@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, FileText } from "lucide-react";
+import { Clock, FileText, Download } from "lucide-react";
+import { exportToPdf } from "@/lib/exportPdf";
+import { toast } from "sonner";
 
 interface Job {
   id: string;
@@ -57,12 +59,30 @@ function HistoryPage() {
   if (selected) {
     return (
       <div className="mx-auto max-w-3xl">
-        <button
-          onClick={() => setSelected(null)}
-          className="mb-4 text-sm font-medium text-primary hover:underline"
-        >
-          ← Back to History
-        </button>
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => setSelected(null)}
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            ← Back to History
+          </button>
+          <button
+            onClick={() => {
+              const sections = [
+                { title: "Original Input", content: selected.input_text },
+                ...Object.entries(selected.outputs || {}).map(([key, val]) => ({
+                  title: key.charAt(0).toUpperCase() + key.slice(1),
+                  content: val,
+                })),
+              ];
+              exportToPdf(sections, `repurpose-${selected.id.slice(0, 8)}`);
+              toast.success("PDF downloaded!");
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Download className="h-3.5 w-3.5" /> Export PDF
+          </button>
+        </div>
         <h1 className="text-xl font-bold text-foreground">Repurpose Details</h1>
         <p className="mt-1 text-xs text-muted-foreground">
           Created {new Date(selected.created_at).toLocaleString()}
