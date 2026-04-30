@@ -8,7 +8,7 @@ interface JobData {
   id: string;
   created_at: string;
   input_text: string;
-  outputs: Record<string, string>;
+  outputs: Record<string, any> | null;
 }
 
 export const Route = createFileRoute("/dashboard/analytics")({

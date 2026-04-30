@@ -18,6 +18,7 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
+import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -64,6 +65,11 @@ const DashboardHistoryRoute = DashboardHistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/dashboard/analytics'
     | '/dashboard/history'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/dashboard/analytics'
     | '/dashboard/history'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/dashboard/analytics'
     | '/dashboard/history'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
@@ -206,10 +218,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHistoryRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/analytics': {
+      id: '/dashboard/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/analytics'
+      preLoaderRoute: typeof DashboardAnalyticsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
+  DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
@@ -217,6 +237,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
