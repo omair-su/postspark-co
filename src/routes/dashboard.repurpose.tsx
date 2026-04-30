@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download } from "lucide-react";
 import { repurposeContent, getMonthlyUsage } from "@/server/repurpose.functions";
+import { exportToPdf } from "@/lib/exportPdf";
 
 const contentTypes = [
   { id: "tweets", label: "10 Tweets", emoji: "🐦" },
@@ -306,11 +307,16 @@ function ResultCard({
   copied: string | null;
   onRegenerate: () => void;
 }) {
+  const handleExportPdf = () => {
+    exportToPdf([{ title, content }], `repurpose-${id}`);
+    toast.success("PDF downloaded!");
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => onCopy(content, id)}
             className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -324,6 +330,12 @@ function ResultCard({
                 <Copy className="h-3 w-3" /> Copy All
               </>
             )}
+          </button>
+          <button
+            onClick={handleExportPdf}
+            className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Download className="h-3 w-3" /> PDF
           </button>
           <button
             onClick={onRegenerate}
