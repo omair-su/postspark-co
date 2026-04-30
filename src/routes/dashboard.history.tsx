@@ -23,7 +23,7 @@ function HistoryPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase
+    (supabase as any)
       .from("repurpose_jobs")
       .select("*")
       .eq("user_id", user.id)

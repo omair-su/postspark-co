@@ -19,7 +19,7 @@ function DashboardHome() {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    supabase
+    (supabase as any)
       .from("repurpose_jobs")
       .select("id, created_at, input_text")
       .eq("user_id", user.id)
