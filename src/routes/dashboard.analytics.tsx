@@ -24,7 +24,7 @@ function AnalyticsPage() {
     if (!session) return;
     getAnalyticsData({
       headers: { Authorization: `Bearer ${session.access_token}` },
-    })
+    } as any)
       .then((res) => {
         setJobs(res.jobs || []);
         setLoading(false);
