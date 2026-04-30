@@ -101,10 +101,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-14 items-center border-b border-border bg-background px-4">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4">
           <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5 text-foreground" />
           </button>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
