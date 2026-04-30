@@ -1,12 +1,22 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabase as browserSupabase } from "@/integrations/supabase/client";
 import { generateRepurposedContent } from "./repurpose.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 
+const attachSupabaseAuthHeader = createMiddleware({ type: "function" }).client(async ({ next }) => {
+  const { data } = await browserSupabase.auth.getSession();
+  const token = data.session?.access_token;
+
+  return next({
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+});
+
 export const getMonthlyUsage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([attachSupabaseAuthHeader, requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
@@ -43,7 +53,7 @@ export const getMonthlyUsage = createServerFn({ method: "POST" })
   });
 
 export const repurposeContent = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([attachSupabaseAuthHeader, requireSupabaseAuth])
   .inputValidator(
     z.object({
       inputText: z.string().min(1).max(50000),
