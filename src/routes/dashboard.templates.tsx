@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Bookmark, Plus, Trash2, X, Loader2 } from "lucide-react";
+import { Bookmark, Plus, Trash2, X, Loader2, Play } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { getTemplates, createTemplate, deleteTemplate } from "@/server/templates.functions";
 
 const allTypes = [
