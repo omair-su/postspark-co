@@ -11,7 +11,7 @@ export const Route = createFileRoute("/dashboard/settings")({
 });
 
 function SettingsPage() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [name, setName] = useState(user?.user_metadata?.full_name || user?.user_metadata?.name || "");
   const [email] = useState(user?.email || "");
   const [password, setPassword] = useState("");
@@ -20,8 +20,12 @@ function SettingsPage() {
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
 
   useEffect(() => {
-    getMonthlyUsage().then(setUsage).catch(() => {});
-  }, []);
+    if (!session) return;
+
+    getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then(setUsage)
+      .catch(() => {});
+  }, [session]);
 
   const plan = usage?.plan || "free";
   const isUnlimited = usage?.limit === -1;
