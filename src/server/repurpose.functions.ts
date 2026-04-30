@@ -5,7 +5,7 @@ import { generateRepurposedContent } from "./repurpose.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 
-export const getMonthlyUsage = createServerFn({ method: "GET" })
+export const getMonthlyUsage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
