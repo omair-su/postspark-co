@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
