@@ -113,11 +113,11 @@ function RepurposePage() {
       setResults(parseResults(result.output));
 
       // Save to DB
-      await supabase.from("repurpose_jobs").insert({
+      await (supabase as any).from("repurpose_jobs").insert({
         user_id: user!.id,
         input_text: input,
-        outputs: parseResults(result.output) as Record<string, unknown>,
-      } as Record<string, unknown>);
+        outputs: parseResults(result.output),
+      });
 
       toast.success("Content generated successfully!");
     } catch (err) {
