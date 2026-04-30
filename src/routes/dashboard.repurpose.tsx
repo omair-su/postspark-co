@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Loader2, Copy, Check, RefreshCw } from "lucide-react";
-import { repurposeContent } from "@/server/repurpose.functions";
+import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle } from "lucide-react";
+import { repurposeContent, getMonthlyUsage } from "@/server/repurpose.functions";
 
 const contentTypes = [
   { id: "tweets", label: "10 Tweets", emoji: "🐦" },
@@ -34,6 +33,14 @@ function RepurposePage() {
   const [results, setResults] = useState<ParsedResults | null>(null);
   const [rawOutput, setRawOutput] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
+  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      getMonthlyUsage().then(setUsage).catch(() => {});
+    }
+  }, [user]);
 
   const toggleType = (id: string) => {
     const next = new Set(selected);
@@ -80,6 +87,11 @@ function RepurposePage() {
   };
 
   const handleRepurpose = async () => {
+    if (usage && usage.used >= usage.limit) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     const input = tab === "text" ? inputText : `YouTube video: ${youtubeUrl}`;
     if (!input.trim()) {
       toast.error("Please enter some content first");
@@ -101,7 +113,7 @@ function RepurposePage() {
 
       if (result.error) {
         if (result.error === "LIMIT_REACHED") {
-          toast.error("You've used all 3 free repurposes this month. Upgrade to Pro for unlimited!");
+          setShowUpgradeModal(true);
         } else {
           toast.error(result.error);
         }
@@ -112,12 +124,8 @@ function RepurposePage() {
       setRawOutput(result.output);
       setResults(parseResults(result.output));
 
-      // Save to DB
-      await (supabase as any).from("repurpose_jobs").insert({
-        user_id: user!.id,
-        input_text: input,
-        outputs: parseResults(result.output),
-      });
+      // Refresh usage count
+      getMonthlyUsage().then(setUsage).catch(() => {});
 
       toast.success("Content generated successfully!");
     } catch (err) {
@@ -127,13 +135,38 @@ function RepurposePage() {
     }
   };
 
+  const remaining = usage ? usage.limit - usage.used : null;
+
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-bold text-foreground">Repurpose Content</h1>
       <p className="mt-1 text-sm text-muted-foreground">Transform your content into multiple formats with AI.</p>
 
+      {/* Usage banner */}
+      {usage && (
+        <div className={`mt-4 flex items-center gap-3 rounded-xl border p-4 text-sm ${
+          remaining === 0
+            ? "border-destructive/30 bg-destructive/5 text-destructive"
+            : remaining !== null && remaining <= 1
+              ? "border-yellow-500/30 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400"
+              : "border-primary/20 bg-primary/5 text-foreground"
+        }`}>
+          {remaining === 0 ? (
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+          ) : (
+            <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+          )}
+          <span>
+            You have <strong>{Math.max(0, remaining ?? 0)}</strong> repurpose{remaining === 1 ? "" : "s"} left this month.
+            {remaining !== null && remaining <= 1 && (
+              <> <button onClick={() => setShowUpgradeModal(true)} className="font-semibold underline underline-offset-2 hover:opacity-80">Upgrade to Pro</button> for unlimited.</>
+            )}
+          </span>
+        </div>
+      )}
+
       {/* Step 1: Input */}
-      <div className="mt-6 rounded-xl border border-border bg-card p-5">
+      <div className="mt-4 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Step 1: Your Content</h2>
         <div className="mt-3 flex gap-2">
           <button
@@ -195,13 +228,17 @@ function RepurposePage() {
       {/* Generate button */}
       <button
         onClick={handleRepurpose}
-        disabled={loading}
+        disabled={loading || (remaining !== null && remaining <= 0)}
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl gradient-electric px-6 py-3 text-sm font-bold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50 glow-electric"
       >
         {loading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
             AI is working its magic...
+          </>
+        ) : remaining !== null && remaining <= 0 ? (
+          <>
+            Limit Reached — Upgrade to Pro <Sparkles className="h-4 w-4" />
           </>
         ) : (
           <>
@@ -214,45 +251,40 @@ function RepurposePage() {
       {results && (
         <div className="mt-6 space-y-4">
           {results.tweets && selected.has("tweets") && (
-            <ResultCard
-              title="🐦 Your 10 Tweets"
-              content={results.tweets}
-              id="tweets"
-              onCopy={handleCopy}
-              copied={copied}
-              onRegenerate={handleRepurpose}
-            />
+            <ResultCard title="🐦 Your 10 Tweets" content={results.tweets} id="tweets" onCopy={handleCopy} copied={copied} onRegenerate={handleRepurpose} />
           )}
           {results.linkedin && selected.has("linkedin") && (
-            <ResultCard
-              title="💼 Your 5 LinkedIn Posts"
-              content={results.linkedin}
-              id="linkedin"
-              onCopy={handleCopy}
-              copied={copied}
-              onRegenerate={handleRepurpose}
-            />
+            <ResultCard title="💼 Your 5 LinkedIn Posts" content={results.linkedin} id="linkedin" onCopy={handleCopy} copied={copied} onRegenerate={handleRepurpose} />
           )}
           {results.email && selected.has("email") && (
-            <ResultCard
-              title="📧 Email Newsletter"
-              content={results.email}
-              id="email"
-              onCopy={handleCopy}
-              copied={copied}
-              onRegenerate={handleRepurpose}
-            />
+            <ResultCard title="📧 Email Newsletter" content={results.email} id="email" onCopy={handleCopy} copied={copied} onRegenerate={handleRepurpose} />
           )}
           {results.video && selected.has("video") && (
-            <ResultCard
-              title="🎬 Video Script"
-              content={results.video}
-              id="video"
-              onCopy={handleCopy}
-              copied={copied}
-              onRegenerate={handleRepurpose}
-            />
+            <ResultCard title="🎬 Video Script" content={results.video} id="video" onCopy={handleCopy} copied={copied} onRegenerate={handleRepurpose} />
           )}
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowUpgradeModal(false)}>
+          <div className="mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center animate-fade-in" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+              <Sparkles className="h-7 w-7 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground">You've hit your monthly limit</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Free accounts get 3 repurposes per month. Upgrade to <strong>Pro</strong> for unlimited AI-powered content generation.
+            </p>
+            <div className="mt-6 space-y-3">
+              <button className="w-full rounded-xl gradient-electric px-6 py-3 text-sm font-bold text-primary-foreground transition-all hover:opacity-90 glow-electric">
+                Upgrade to Pro — $19/mo
+              </button>
+              <button onClick={() => setShowUpgradeModal(false)} className="w-full rounded-xl border border-border px-6 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                Maybe later
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
