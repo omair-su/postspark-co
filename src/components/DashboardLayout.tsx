@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X } from "lucide-react";
+import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -12,7 +12,7 @@ const navItems = [
 ] as const;
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,6 +22,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     toast.success("Signed out");
     navigate({ to: "/" });
   };
+
+  const avatarUrl = user?.user_metadata?.avatar_url;
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || "User";
+  const displayEmail = user?.email || "";
 
   const sidebar = (
     <div className="flex h-full flex-col bg-navy text-sidebar-foreground">
@@ -54,6 +58,21 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
+        {/* User info */}
+        <div className="mb-3 flex items-center gap-3 px-3">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
+              <User className="h-3.5 w-3.5 text-sidebar-accent-foreground" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-xs font-medium text-sidebar-foreground">{displayName}</p>
+            <p className="truncate text-[10px] text-sidebar-foreground/50">{displayEmail}</p>
+          </div>
+        </div>
+
         <button
           onClick={handleSignOut}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
