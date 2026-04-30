@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { FileText, ArrowRight, MessageCircle, Briefcase, Mail, Video } from "lucide-react";
 
 const outputs = [
@@ -20,33 +19,25 @@ export function BeforeAfterSection() {
         </p>
 
         <div className="mt-14 flex flex-col items-center gap-6 md:flex-row md:justify-center">
-          <motion.div
-            className="w-full max-w-[240px] rounded-xl border border-border bg-card p-6 text-center shadow-sm"
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
+          <div className="w-full max-w-[240px] rounded-xl border border-border bg-card p-6 text-center shadow-sm animate-fade-in">
             <FileText className="mx-auto h-10 w-10 text-primary" />
             <p className="mt-3 text-sm font-semibold text-foreground">Your Blog Post</p>
             <p className="mt-1 text-xs text-muted-foreground">1 piece of content</p>
-          </motion.div>
+          </div>
 
           <ArrowRight className="hidden h-6 w-6 text-muted-foreground md:block" />
           <div className="block text-muted-foreground md:hidden">↓</div>
 
           <div className="grid w-full max-w-md grid-cols-2 gap-3">
             {outputs.map((item, i) => (
-              <motion.div
+              <div
                 key={item.label}
-                className="rounded-xl border border-border bg-card p-4 text-center shadow-sm"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                className="rounded-xl border border-border bg-card p-4 text-center shadow-sm animate-fade-in"
+                style={{ animationDelay: `${i * 100}ms` }}
               >
                 <item.icon className={`mx-auto h-6 w-6 ${item.color}`} />
                 <p className="mt-2 text-xs font-semibold text-foreground">{item.label}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

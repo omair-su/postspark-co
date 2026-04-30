@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 
 const tiers = [
@@ -45,17 +44,14 @@ export function PricingSection() {
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
           {tiers.map((t, i) => (
-            <motion.div
+            <div
               key={t.name}
-              className={`relative rounded-xl border p-6 ${
+              className={`relative rounded-xl border p-6 animate-fade-in ${
                 t.popular
                   ? "border-primary bg-card shadow-lg glow-electric"
                   : "border-border bg-card"
               }`}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              style={{ animationDelay: `${i * 100}ms` }}
             >
               {t.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full gradient-electric px-3 py-0.5 text-xs font-semibold text-primary-foreground">
@@ -86,7 +82,7 @@ export function PricingSection() {
               >
                 {t.cta}
               </Link>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
