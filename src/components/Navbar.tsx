@@ -31,6 +31,7 @@ export function Navbar() {
           <button onClick={() => scrollTo("pricing")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Pricing
           </button>
+          <ThemeToggle />
           <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Login
           </Link>
