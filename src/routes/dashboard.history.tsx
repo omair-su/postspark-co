@@ -36,8 +36,20 @@ function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="mx-auto max-w-3xl animate-fade-in">
+        <div className="h-7 w-40 rounded bg-accent animate-pulse" />
+        <div className="mt-2 h-4 w-64 rounded bg-accent animate-pulse" />
+        <div className="mt-6 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-xl border border-border bg-card px-4 py-4">
+              <div className="h-4 w-3/4 animate-pulse rounded bg-accent" />
+              <div className="mt-2 flex gap-4">
+                <div className="h-3 w-16 animate-pulse rounded bg-accent" />
+                <div className="h-3 w-20 animate-pulse rounded bg-accent" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
