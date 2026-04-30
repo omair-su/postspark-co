@@ -116,8 +116,8 @@ function RepurposePage() {
       await supabase.from("repurpose_jobs").insert({
         user_id: user!.id,
         input_text: input,
-        outputs: parseResults(result.output),
-      });
+        outputs: parseResults(result.output) as Record<string, unknown>,
+      } as Record<string, unknown>);
 
       toast.success("Content generated successfully!");
     } catch (err) {
