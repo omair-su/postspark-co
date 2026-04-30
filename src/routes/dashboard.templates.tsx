@@ -36,6 +36,7 @@ export const Route = createFileRoute("/dashboard/templates")({
 
 function TemplatesPage() {
   const { session } = useAuth();
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
