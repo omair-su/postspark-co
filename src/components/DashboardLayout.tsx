@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark } from "lucide-react";
 import { useState, type ReactNode } from "react";
