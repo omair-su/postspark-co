@@ -1,6 +1,8 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/hooks/useAuth";
-import { Toaster } from "sonner";
+import { lazy, Suspense } from "react";
+
+const Toaster = lazy(() => import("sonner").then(m => ({ default: m.Toaster })));
 
 import appCss from "../styles.css?url";
 
@@ -74,7 +76,7 @@ function RootComponent() {
   return (
     <AuthProvider>
       <Outlet />
-      <Toaster position="top-right" richColors />
+      <Suspense fallback={null}><Toaster position="top-right" richColors /></Suspense>
     </AuthProvider>
   );
 }
