@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -11,7 +11,6 @@ import { TrustedBySection } from "@/components/landing/TrustedBySection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { CTABanner } from "@/components/landing/CTABanner";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   head: () => ({
