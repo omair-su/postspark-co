@@ -26,7 +26,7 @@ function AnalyticsPage() {
       headers: { Authorization: `Bearer ${session.access_token}` },
     } as any)
       .then((res) => {
-        setJobs(res.jobs || []);
+        setJobs((res.jobs as any) || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
