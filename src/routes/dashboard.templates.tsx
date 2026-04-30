@@ -254,9 +254,17 @@ function TemplatesPage() {
                     <p className="mt-1 text-[10px] text-muted-foreground italic">"{t.custom_instructions}"</p>
                   )}
                 </div>
-                <button onClick={() => handleDelete(t.id)} className="text-muted-foreground hover:text-destructive transition-colors">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleApply(t)}
+                    className="flex items-center gap-1 rounded-lg gradient-electric px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90"
+                  >
+                    <Play className="h-3 w-3" /> Apply
+                  </button>
+                  <button onClick={() => handleDelete(t.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
