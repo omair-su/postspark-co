@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -10,6 +10,7 @@ import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { TrustedBySection } from "@/components/landing/TrustedBySection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { CTABanner } from "@/components/landing/CTABanner";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,6 +25,12 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const { session, loading } = useAuth();
+
+  if (!loading && session) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <div className="min-h-screen scroll-smooth">
       <Navbar />

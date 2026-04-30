@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Sparkles, Loader2 } from "lucide-react";
@@ -23,6 +23,18 @@ function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
 
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted && data.session) {
+        navigate({ to: "/dashboard", replace: true });
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -32,14 +44,14 @@ function LoginPage() {
       toast.error(error.message);
     } else {
       toast.success("Welcome back!");
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/dashboard", replace: true });
     }
   };
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
     if (result.error) {
       toast.error(result.error instanceof Error ? result.error.message : "Google sign-in failed");
@@ -48,7 +60,7 @@ function LoginPage() {
     }
     if (result.redirected) return;
     toast.success("Welcome back!");
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/dashboard", replace: true });
   };
 
   const handleForgotPassword = async () => {
