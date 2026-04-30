@@ -49,6 +49,7 @@ export type Database = {
           created_at: string
           id: string
           input_text: string
+          is_favorite: boolean
           outputs: Json | null
           user_id: string
         }
@@ -56,6 +57,7 @@ export type Database = {
           created_at?: string
           id?: string
           input_text: string
+          is_favorite?: boolean
           outputs?: Json | null
           user_id: string
         }
@@ -63,6 +65,7 @@ export type Database = {
           created_at?: string
           id?: string
           input_text?: string
+          is_favorite?: boolean
           outputs?: Json | null
           user_id?: string
         }
@@ -102,6 +105,39 @@ export type Database = {
           status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      templates: {
+        Row: {
+          created_at: string
+          custom_instructions: string | null
+          id: string
+          name: string
+          selected_types: Json
+          tone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_instructions?: string | null
+          id?: string
+          name: string
+          selected_types?: Json
+          tone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_instructions?: string | null
+          id?: string
+          name?: string
+          selected_types?: Json
+          tone?: string
           updated_at?: string
           user_id?: string
         }
