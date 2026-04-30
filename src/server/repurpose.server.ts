@@ -1,6 +1,8 @@
 export async function generateRepurposedContent(
   inputText: string,
-  selectedTypes: string[]
+  selectedTypes: string[],
+  tone: string = "professional",
+  customInstructions: string = ""
 ): Promise<{ output: string; error?: string }> {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
   if (!LOVABLE_API_KEY) {
@@ -18,6 +20,18 @@ export async function generateRepurposedContent(
           return "1 email newsletter (subject line + body, 300 words)";
         case "video":
           return "1 video script (hook + 3 main points + CTA, 400 words)";
+        case "instagram":
+          return "5 Instagram captions with relevant hashtags (engaging, visual-friendly, numbered 1-5)";
+        case "facebook":
+          return "3 Facebook posts (conversational, shareable, 100-200 words each, numbered 1-3)";
+        case "seo":
+          return "1 blog summary (150 words) + 3 SEO meta descriptions (under 160 chars each)";
+        case "tiktok":
+          return "3 TikTok/Reels scripts (hook in first 3 seconds, 60-90 seconds each, numbered 1-3)";
+        case "podcast":
+          return "1 set of podcast show notes (title, summary, key takeaways, timestamps outline, 300 words)";
+        case "thread":
+          return "1 Twitter/X thread (8-12 connected tweets, numbered, with a compelling hook)";
         default:
           return "";
       }
@@ -25,7 +39,12 @@ export async function generateRepurposedContent(
     .filter(Boolean)
     .join(", ");
 
-  const systemPrompt = `You are a professional content repurposing assistant. Given the following content, generate: ${typeInstructions}. Format each section with a clear header. Be engaging, value-driven, and platform-appropriate.`;
+  const toneInstruction = tone !== "professional" ? ` Use a ${tone} tone throughout.` : "";
+  const customBlock = customInstructions.trim()
+    ? ` Additional instructions: ${customInstructions.trim()}`
+    : "";
+
+  const systemPrompt = `You are a professional content repurposing assistant. Given the following content, generate: ${typeInstructions}. Format each section with a clear header. Be engaging, value-driven, and platform-appropriate.${toneInstruction}${customBlock}`;
 
   try {
     const response = await fetch(

@@ -2,22 +2,26 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type } from "lucide-react";
 import { repurposeContent, getMonthlyUsage } from "@/server/repurpose.functions";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ToneSelector } from "@/components/ToneSelector";
 
 const contentTypes = [
   { id: "tweets", label: "10 Tweets", emoji: "🐦" },
+  { id: "thread", label: "X Thread", emoji: "🧵" },
   { id: "linkedin", label: "5 LinkedIn Posts", emoji: "💼" },
+  { id: "instagram", label: "5 IG Captions", emoji: "📸" },
+  { id: "facebook", label: "3 Facebook Posts", emoji: "👍" },
   { id: "email", label: "Email Newsletter", emoji: "📧" },
   { id: "video", label: "Video Script", emoji: "🎬" },
+  { id: "tiktok", label: "TikTok Scripts", emoji: "🎵" },
+  { id: "podcast", label: "Podcast Notes", emoji: "🎙️" },
+  { id: "seo", label: "SEO / Blog Summary", emoji: "🔍" },
 ];
 
 interface ParsedResults {
-  tweets?: string;
-  linkedin?: string;
-  email?: string;
-  video?: string;
+  [key: string]: string;
 }
 
 export const Route = createFileRoute("/dashboard/repurpose")({
@@ -36,6 +40,8 @@ function RepurposePage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [tone, setTone] = useState("professional");
+  const [customInstructions, setCustomInstructions] = useState("");
 
   useEffect(() => {
     if (user && session) {
@@ -62,19 +68,31 @@ function RepurposePage() {
     const sections: ParsedResults = {};
     const lower = text.toLowerCase();
 
-    const tweetIdx = lower.indexOf("tweet");
-    const linkedinIdx = lower.indexOf("linkedin");
-    const emailIdx = lower.indexOf("email");
-    const videoIdx = lower.indexOf("video");
+    const keywords: Record<string, string[]> = {
+      tweets: ["tweet"],
+      thread: ["thread"],
+      linkedin: ["linkedin"],
+      instagram: ["instagram"],
+      facebook: ["facebook"],
+      email: ["email", "newsletter"],
+      video: ["video script"],
+      tiktok: ["tiktok", "reels"],
+      podcast: ["podcast"],
+      seo: ["seo", "blog summary", "meta description"],
+    };
 
-    const indices = [
-      { key: "tweets" as const, idx: tweetIdx },
-      { key: "linkedin" as const, idx: linkedinIdx },
-      { key: "email" as const, idx: emailIdx },
-      { key: "video" as const, idx: videoIdx },
-    ]
-      .filter((i) => i.idx >= 0)
-      .sort((a, b) => a.idx - b.idx);
+    const indices: { key: string; idx: number }[] = [];
+    for (const [key, terms] of Object.entries(keywords)) {
+      for (const term of terms) {
+        const idx = lower.indexOf(term);
+        if (idx >= 0) {
+          indices.push({ key, idx });
+          break;
+        }
+      }
+    }
+
+    indices.sort((a, b) => a.idx - b.idx);
 
     for (let i = 0; i < indices.length; i++) {
       const start = indices[i].idx;
@@ -111,7 +129,12 @@ function RepurposePage() {
 
     try {
       const result = await repurposeContent({
-        data: { inputText: input, selectedTypes: Array.from(selected) },
+        data: {
+          inputText: input,
+          selectedTypes: Array.from(selected),
+          tone,
+          customInstructions,
+        },
         headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
       });
 
@@ -128,7 +151,6 @@ function RepurposePage() {
       setRawOutput(result.output);
       setResults(parseResults(result.output));
 
-      // Refresh usage count
       if (session) {
         getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
           .then(setUsage)
@@ -144,6 +166,11 @@ function RepurposePage() {
   };
 
   const remaining = usage ? usage.limit - usage.used : null;
+
+  const typeLabels: Record<string, string> = {};
+  for (const ct of contentTypes) {
+    typeLabels[ct.id] = `${ct.emoji} ${ct.label}`;
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -233,6 +260,16 @@ function RepurposePage() {
         </div>
       </div>
 
+      {/* Step 3: Tone & Style */}
+      <div className="mt-4">
+        <ToneSelector
+          tone={tone}
+          onToneChange={setTone}
+          customInstructions={customInstructions}
+          onCustomInstructionsChange={setCustomInstructions}
+        />
+      </div>
+
       {/* Generate button */}
       <button
         onClick={handleRepurpose}
@@ -255,21 +292,24 @@ function RepurposePage() {
         )}
       </button>
 
-      {/* Step 3: Results */}
+      {/* Results */}
       {results && (
         <div className="mt-6 space-y-4">
-          {results.tweets && selected.has("tweets") && (
-            <ResultCard title="🐦 Your 10 Tweets" content={results.tweets} id="tweets" onCopy={handleCopy} copied={copied} onRegenerate={handleRepurpose} />
-          )}
-          {results.linkedin && selected.has("linkedin") && (
-            <ResultCard title="💼 Your 5 LinkedIn Posts" content={results.linkedin} id="linkedin" onCopy={handleCopy} copied={copied} onRegenerate={handleRepurpose} />
-          )}
-          {results.email && selected.has("email") && (
-            <ResultCard title="📧 Email Newsletter" content={results.email} id="email" onCopy={handleCopy} copied={copied} onRegenerate={handleRepurpose} />
-          )}
-          {results.video && selected.has("video") && (
-            <ResultCard title="🎬 Video Script" content={results.video} id="video" onCopy={handleCopy} copied={copied} onRegenerate={handleRepurpose} />
-          )}
+          {Object.entries(results).map(([key, content]) => {
+            if (!selected.has(key) && key !== "tweets") return null;
+            const label = typeLabels[key] || key;
+            return (
+              <ResultCard
+                key={key}
+                title={label}
+                content={content}
+                id={key}
+                onCopy={handleCopy}
+                copied={copied}
+                onRegenerate={handleRepurpose}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -314,6 +354,9 @@ function ResultCard({
   copied: string | null;
   onRegenerate: () => void;
 }) {
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  const charCount = content.length;
+
   const handleExportPdf = () => {
     exportToPdf([{ title, content }], `repurpose-${id}`);
     toast.success("PDF downloaded!");
@@ -352,6 +395,16 @@ function ResultCard({
           </button>
         </div>
       </div>
+
+      {/* Word/char count */}
+      <div className="mt-2 flex gap-3 text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-1"><Type className="h-3 w-3" /> {wordCount} words</span>
+        <span>{charCount} chars</span>
+        {id === "tweets" && charCount > 280 && (
+          <span className="text-yellow-500">⚠ Some tweets may exceed 280 chars</span>
+        )}
+      </div>
+
       <pre className="mt-3 whitespace-pre-wrap text-sm text-foreground leading-relaxed">{content}</pre>
     </div>
   );

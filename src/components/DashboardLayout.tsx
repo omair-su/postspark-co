@@ -1,13 +1,16 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User } from "lucide-react";
+import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose Content" },
-  { to: "/dashboard/history", icon: History, label: "My History" },
+  { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose" },
+  { to: "/dashboard/history", icon: History, label: "History" },
+  { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
+  { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ] as const;
 
@@ -98,10 +101,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-14 items-center border-b border-border bg-background px-4">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4">
           <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5 text-foreground" />
           </button>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
