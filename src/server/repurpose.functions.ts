@@ -58,7 +58,7 @@ export const repurposeContent = createServerFn({ method: "POST" })
     z.object({
       inputText: z.string().min(1).max(50000),
       selectedTypes: z.array(z.string().min(1).max(20)).min(1).max(4),
-    }).parse
+    }).parse,
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
