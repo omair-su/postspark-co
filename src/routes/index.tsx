@@ -1,16 +1,18 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { BeforeAfterSection } from "@/components/landing/BeforeAfterSection";
-import { FeaturesSection } from "@/components/landing/FeaturesSection";
-import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
-import { PricingSection } from "@/components/landing/PricingSection";
-import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { TrustedBySection } from "@/components/landing/TrustedBySection";
-import { FAQSection } from "@/components/landing/FAQSection";
-import { CTABanner } from "@/components/landing/CTABanner";
 import { useAuth } from "@/hooks/useAuth";
+
+const TrustedBySection = lazy(() => import("@/components/landing/TrustedBySection").then(m => ({ default: m.TrustedBySection })));
+const BeforeAfterSection = lazy(() => import("@/components/landing/BeforeAfterSection").then(m => ({ default: m.BeforeAfterSection })));
+const FeaturesSection = lazy(() => import("@/components/landing/FeaturesSection").then(m => ({ default: m.FeaturesSection })));
+const HowItWorksSection = lazy(() => import("@/components/landing/HowItWorksSection").then(m => ({ default: m.HowItWorksSection })));
+const PricingSection = lazy(() => import("@/components/landing/PricingSection").then(m => ({ default: m.PricingSection })));
+const TestimonialsSection = lazy(() => import("@/components/landing/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
+const FAQSection = lazy(() => import("@/components/landing/FAQSection").then(m => ({ default: m.FAQSection })));
+const CTABanner = lazy(() => import("@/components/landing/CTABanner").then(m => ({ default: m.CTABanner })));
+const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,15 +37,17 @@ function LandingPage() {
     <div className="min-h-screen scroll-smooth">
       <Navbar />
       <HeroSection />
-      <TrustedBySection />
-      <BeforeAfterSection />
-      <FeaturesSection />
-      <HowItWorksSection />
-      <PricingSection />
-      <TestimonialsSection />
-      <FAQSection />
-      <CTABanner />
-      <Footer />
+      <Suspense fallback={null}>
+        <TrustedBySection />
+        <BeforeAfterSection />
+        <FeaturesSection />
+        <HowItWorksSection />
+        <PricingSection />
+        <TestimonialsSection />
+        <FAQSection />
+        <CTABanner />
+        <Footer />
+      </Suspense>
     </div>
   );
 }
