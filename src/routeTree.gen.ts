@@ -20,6 +20,7 @@ import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settin
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -76,6 +77,11 @@ const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => DashboardRoute,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/history'
     | '/dashboard/repurpose'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/history'
     | '/dashboard/repurpose'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/history'
     | '/dashboard/repurpose'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -275,6 +295,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
