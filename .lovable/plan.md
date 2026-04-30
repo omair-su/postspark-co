@@ -1,121 +1,112 @@
-# RepurposeAI -- Comprehensive Upgrade Plan
 
-## Current State Summary
+# Premium Feature Upgrade Plan for RepurposeAI
 
-Your app has: landing page, email/password auth (login/signup), dashboard with repurpose page (AI generation), history, settings, usage tracking (3 free/month), and an upgrade modal. All functional but missing several key features.
+## Current State
+The app has: landing page, auth (email + Google), content repurposing (text/YouTube to tweets, LinkedIn, email, video script), history, PDF export, usage limits (3 free/month), and settings page.
 
-## What This Plan Adds
+## New Premium Features
 
-### 1. Google Sign-In (Login + Signup)
+### 1. More Output Formats (6 new types)
+Add these content types to the repurpose engine:
+- **Instagram Captions** (with hashtag suggestions)
+- **Facebook Posts**
+- **Blog Summary / SEO Meta Description**
+- **TikTok/Reels Script**
+- **Podcast Show Notes**
+- **Thread (X/Twitter thread format)**
 
-Add "Continue with Google" buttons to both login and signup pages using Lovable Cloud's managed Google OAuth. No API keys needed -- it works out of the box.
+Update the content type selector, AI prompt, and result cards.
 
-### 3. Database Additions
+### 2. Tone & Style Controls
+Let users choose the voice/style of generated content:
+- Tone selector: Professional, Casual, Humorous, Inspirational, Educational
+- Custom instructions field: "Write like [brand voice]" free-text input
+- These get sent to the AI prompt for personalized output
 
-- `**profiles` table** -- stores display name, avatar URL, and subscription tier. Auto-created on signup via a database trigger.
-- `**subscriptions` table** -- tracks Stripe subscription ID, status, current period, and plan tier per user.
-- RLS policies on both tables so users can only access their own data.
+### 3. Content Templates (Saved Prompts)
+- Users can save their favorite tone + format combinations as reusable templates
+- New `templates` database table (user_id, name, config JSON)
+- Quick-apply from the repurpose page
+- Pro feature only
 
-### 4. Password Reset Flow
+### 4. Analytics Dashboard
+A new `/dashboard/analytics` page showing:
+- Content generated over time (bar chart by week/month)
+- Most-used output formats (pie/donut chart)
+- Total words generated
+- Usage streak tracker
+- All computed from existing `repurpose_jobs` data, no new tables needed
 
-- Add "Forgot password?" link on the login page
-- Create a `/reset-password` route where users set a new password after clicking the email link
+### 5. Favorites & Organization
+- Star/bookmark individual outputs from history
+- Add a `favorites` boolean column to `repurpose_jobs`
+- Filter history by favorites
+- Search history by input text
 
-### 5. Dashboard Enhancements
+### 6. Bulk Export
+- Export all history or selected items as a single PDF or CSV
+- "Select All" checkbox in history view
 
-- **Dashboard home**: show subscription tier, usage progress bar (e.g., "2 of 3 used"), and quick stats
-- **Settings page**: display current plan with a "Manage Subscription" option; show profile avatar
-- **Usage logic update**: paid users bypass the 3/month limit entirely
+### 7. Character/Word Count on Results
+- Show word count and character count on each result card
+- Show Twitter character limit indicator on tweet outputs
 
-### 6. Landing Page Polish
+### 8. Regenerate Individual Sections
+- Instead of regenerating everything, allow regenerating just one section (e.g., only tweets)
+- New server function that takes a single output type
 
-- Add anchor links in navbar (Features, Pricing, Testimonials) for smooth scrolling
-- Pricing cards link to signup or checkout depending on tier
-- Add a "How It Works" section (3 steps: paste content, choose formats, get results)
+### 9. Dark/Light Theme Toggle
+- Add theme switcher in navbar and settings
+- Persist preference in localStorage
+- Currently dark-only; add proper light theme support
 
-### 7. UX and Quality Improvements
+### 10. Landing Page Enhancements
+- Add a live demo/playground section (paste text, see sample output without login)
+- Add FAQ/accordion section
+- Add "Trusted by" logo bar
+- Add a CTA banner before footer
 
-- Loading skeleton on history page instead of spinner
-- Smooth page transitions with CSS
-- Better empty states with illustrations
-- Form validation feedback (password strength, email format)
-- Mobile hamburger menu in dashboard shows user avatar/name
+## Technical Implementation
 
----
+### Database Changes (2 migrations)
+1. **Add `is_favorite` column** to `repurpose_jobs` (boolean, default false)
+2. **Create `templates` table**: id, user_id, name, tone, custom_instructions, selected_types (jsonb), created_at
+   - RLS: users can CRUD own templates only
+   - Pro/Agency plan check enforced in server function
 
-## Technical Details
+### New Files
+- `src/routes/dashboard.analytics.tsx` -- analytics page
+- `src/routes/dashboard.templates.tsx` -- templates management
+- `src/components/ToneSelector.tsx` -- tone/style picker component
+- `src/components/ThemeToggle.tsx` -- dark/light toggle
+- `src/components/landing/FAQSection.tsx` -- FAQ accordion
+- `src/components/landing/TrustedBySection.tsx` -- logo bar
+- `src/components/landing/DemoSection.tsx` -- live demo
+- `src/server/templates.functions.ts` -- template CRUD server functions
+- `src/server/analytics.functions.ts` -- analytics data server function
 
-### Database Migrations (2 migrations)
+### Modified Files
+- `src/server/repurpose.functions.ts` -- add tone/custom instructions params, single-section regenerate
+- `src/routes/dashboard.repurpose.tsx` -- add tone selector, new formats, per-section regenerate
+- `src/routes/dashboard.history.tsx` -- favorites toggle, search, bulk export, bulk select
+- `src/routes/dashboard.index.tsx` -- link to analytics
+- `src/components/DashboardLayout.tsx` -- add Analytics and Templates nav items
+- `src/routes/index.tsx` -- add new landing sections
+- `src/routes/__root.tsx` -- theme provider
+- `src/styles.css` -- light theme variables
 
-**Migration 1 -- Profiles table:**
+### Charts
+Use lightweight chart rendering with CSS or a small library (recharts) for the analytics dashboard.
 
-```sql
-CREATE TABLE public.profiles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL UNIQUE,
-  display_name TEXT,
-  avatar_url TEXT,
-  plan TEXT NOT NULL DEFAULT 'free',
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
--- RLS: users read/update own profile
--- Trigger: auto-create profile on auth.users insert
-```
+### No Payments Changes
+The upgrade buttons remain as-is. Payments can be added separately when you're ready (via Stripe integration with your own API keys).
 
-**Migration 2 -- Subscriptions table:**
-
-```sql
-CREATE TABLE public.subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL UNIQUE,
-  stripe_customer_id TEXT,
-  stripe_subscription_id TEXT,
-  plan TEXT NOT NULL DEFAULT 'free',
-  status TEXT NOT NULL DEFAULT 'active',
-  current_period_start TIMESTAMPTZ,
-  current_period_end TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
--- RLS: users read own subscription
-```
-
-### Files Created / Modified
-
-
-| File                                        | Change                                             |
-| ------------------------------------------- | -------------------------------------------------- |
-| `src/routes/login.tsx`                      | Add Google OAuth button                            |
-| `src/routes/signup.tsx`                     | Add Google OAuth button                            |
-| `src/routes/reset-password.tsx`             | New -- password reset form                         |
-| `src/server/repurpose.functions.ts`         | Check subscription tier; skip limit for paid users |
-| `src/server/subscription.functions.ts`      | New -- server functions for subscription status    |
-| `src/routes/dashboard.repurpose.tsx`        | Use subscription-aware usage check                 |
-| `src/routes/dashboard.index.tsx`            | Show plan tier + usage progress bar                |
-| `src/routes/dashboard.settings.tsx`         | Show plan info + manage subscription               |
-| `src/components/landing/PricingSection.tsx` | Wire CTA buttons to checkout/signup                |
-| `src/components/Navbar.tsx`                 | Add smooth-scroll anchor links                     |
-| `src/styles.css`                            | Add skeleton animation utility                     |
-
-
-### Payments Setup
-
-Before writing checkout code, I will:
-
-1. Run the payment provider eligibility check
-2. Enable Stripe via Lovable's built-in integration
-3. Create Pro and Agency products
-4. Implement checkout + webhook
-
-### Execution Order
-
-1. Configure Google OAuth (tool call)
-2. Run database migrations (profiles + subscriptions)
-3. Add Google sign-in buttons to login/signup
-4. Add password reset flow
-5. Enable Stripe payments + create products
-6. Build checkout flow + webhook handler
-7. Update repurpose logic to be subscription-aware
-8. Enhance dashboard and settings pages
-9. Polish landing page and UX details
+## Priority Order
+1. More output formats + tone controls (highest impact)
+2. Favorites + search in history
+3. Analytics dashboard
+4. Templates
+5. Theme toggle
+6. Landing page enhancements
+7. Bulk export
+8. Per-section regenerate
