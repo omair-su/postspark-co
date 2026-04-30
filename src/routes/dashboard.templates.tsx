@@ -104,6 +104,18 @@ function TemplatesPage() {
     toast.success("Template deleted");
   };
 
+  const handleApply = (t: Template) => {
+    const params = new URLSearchParams({
+      tone: t.tone,
+      types: (t.selected_types as string[]).join(","),
+    });
+    if (t.custom_instructions) {
+      params.set("instructions", t.custom_instructions);
+    }
+    navigate({ to: "/dashboard/repurpose", search: { tpl: params.toString() } as any });
+    toast.success(`Template "${t.name}" applied!`);
+  };
+
   const toggleType = (id: string) => {
     const next = new Set(selectedTypes);
     if (next.has(id)) next.delete(id);
