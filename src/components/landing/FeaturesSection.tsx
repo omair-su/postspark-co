@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { Twitter, Linkedin, Mail, Video } from "lucide-react";
+import { MessageCircle, Briefcase, Mail, Video } from "lucide-react";
 
 const features = [
-  { icon: Twitter, title: "10 Tweets", desc: "Short, punchy tweets optimized for engagement and virality." },
-  { icon: Linkedin, title: "5 LinkedIn Posts", desc: "Professional, thought-leadership posts that build authority." },
+  { icon: MessageCircle, title: "10 Tweets", desc: "Short, punchy tweets optimized for engagement and virality." },
+  { icon: Briefcase, title: "5 LinkedIn Posts", desc: "Professional, thought-leadership posts that build authority." },
   { icon: Mail, title: "1 Email Newsletter", desc: "Complete newsletter with subject line and engaging body." },
   { icon: Video, title: "1 Video Script", desc: "Hook, main points, and CTA for compelling video content." },
 ];

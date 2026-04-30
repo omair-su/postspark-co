@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { FileText, ArrowRight, Twitter, Linkedin, Mail, Video } from "lucide-react";
+import { FileText, ArrowRight, MessageCircle, Briefcase, Mail, Video } from "lucide-react";
 
 const outputs = [
-  { icon: Twitter, label: "10 Tweets", color: "text-chart-1" },
-  { icon: Linkedin, label: "5 LinkedIn Posts", color: "text-chart-2" },
+  { icon: MessageCircle, label: "10 Tweets", color: "text-chart-1" },
+  { icon: Briefcase, label: "5 LinkedIn Posts", color: "text-chart-2" },
   { icon: Mail, label: "1 Email Newsletter", color: "text-chart-4" },
   { icon: Video, label: "1 Video Script", color: "text-chart-5" },
 ];
