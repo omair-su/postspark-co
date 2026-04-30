@@ -25,7 +25,7 @@ export const Route = createFileRoute("/dashboard/repurpose")({
 });
 
 function RepurposePage() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [tab, setTab] = useState<"text" | "youtube">("text");
   const [inputText, setInputText] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -38,10 +38,12 @@ function RepurposePage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      getMonthlyUsage().then(setUsage).catch(() => {});
+    if (user && session) {
+      getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
+        .then(setUsage)
+        .catch(() => {});
     }
-  }, [user]);
+  }, [user, session]);
 
   const toggleType = (id: string) => {
     const next = new Set(selected);
@@ -110,6 +112,7 @@ function RepurposePage() {
     try {
       const result = await repurposeContent({
         data: { inputText: input, selectedTypes: Array.from(selected) },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
       });
 
       if (result.error) {
@@ -126,7 +129,11 @@ function RepurposePage() {
       setResults(parseResults(result.output));
 
       // Refresh usage count
-      getMonthlyUsage().then(setUsage).catch(() => {});
+      if (session) {
+        getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
+          .then(setUsage)
+          .catch(() => {});
+      }
 
       toast.success("Content generated successfully!");
     } catch (err) {

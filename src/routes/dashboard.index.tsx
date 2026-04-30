@@ -10,16 +10,18 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 function DashboardHome() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !session) return;
 
-    getMonthlyUsage().then(setUsage).catch(() => {});
+    getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then(setUsage)
+      .catch(() => {});
 
     (supabase as any)
       .from("repurpose_jobs")
@@ -33,7 +35,7 @@ function DashboardHome() {
         }
         setLoading(false);
       });
-  }, [user]);
+  }, [user, session]);
 
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const plan = usage?.plan || "free";
