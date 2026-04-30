@@ -43,6 +43,25 @@ function RepurposePage() {
   const [tone, setTone] = useState("professional");
   const [customInstructions, setCustomInstructions] = useState("");
 
+  // Apply template from URL search params
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const tpl = url.searchParams.get("tpl");
+      if (tpl) {
+        const p = new URLSearchParams(tpl);
+        const t = p.get("tone");
+        const types = p.get("types");
+        const instr = p.get("instructions");
+        if (t) setTone(t);
+        if (types) setSelected(new Set(types.split(",")));
+        if (instr) setCustomInstructions(instr);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     if (user && session) {
       getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })

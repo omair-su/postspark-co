@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Bookmark, Plus, Trash2, X, Loader2 } from "lucide-react";
+import { Bookmark, Plus, Trash2, X, Loader2, Play } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { getTemplates, createTemplate, deleteTemplate } from "@/server/templates.functions";
 
 const allTypes = [
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/dashboard/templates")({
 
 function TemplatesPage() {
   const { session } = useAuth();
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -100,6 +102,18 @@ function TemplatesPage() {
     } as any);
     setTemplates((prev) => prev.filter((t) => t.id !== id));
     toast.success("Template deleted");
+  };
+
+  const handleApply = (t: Template) => {
+    const params = new URLSearchParams({
+      tone: t.tone,
+      types: (t.selected_types as string[]).join(","),
+    });
+    if (t.custom_instructions) {
+      params.set("instructions", t.custom_instructions);
+    }
+    navigate({ to: "/dashboard/repurpose", search: { tpl: params.toString() } as any });
+    toast.success(`Template "${t.name}" applied!`);
   };
 
   const toggleType = (id: string) => {
@@ -240,9 +254,17 @@ function TemplatesPage() {
                     <p className="mt-1 text-[10px] text-muted-foreground italic">"{t.custom_instructions}"</p>
                   )}
                 </div>
-                <button onClick={() => handleDelete(t.id)} className="text-muted-foreground hover:text-destructive transition-colors">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleApply(t)}
+                    className="flex items-center gap-1 rounded-lg gradient-electric px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90"
+                  >
+                    <Play className="h-3 w-3" /> Apply
+                  </button>
+                  <button onClick={() => handleDelete(t.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
