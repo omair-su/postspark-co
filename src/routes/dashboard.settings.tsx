@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Crown, User } from "lucide-react";
+import { getMonthlyUsage } from "@/server/repurpose.functions";
 
 export const Route = createFileRoute("/dashboard/settings")({
   component: SettingsPage,
@@ -11,11 +12,19 @@ export const Route = createFileRoute("/dashboard/settings")({
 
 function SettingsPage() {
   const { user } = useAuth();
-  const [name, setName] = useState(user?.user_metadata?.full_name || "");
-  const [email, setEmail] = useState(user?.email || "");
+  const [name, setName] = useState(user?.user_metadata?.full_name || user?.user_metadata?.name || "");
+  const [email] = useState(user?.email || "");
   const [password, setPassword] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
+
+  useEffect(() => {
+    getMonthlyUsage().then(setUsage).catch(() => {});
+  }, []);
+
+  const plan = usage?.plan || "free";
+  const isUnlimited = usage?.limit === -1;
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +53,29 @@ function SettingsPage() {
     }
   };
 
-  return (
-    <div className="mx-auto max-w-xl">
-      <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Manage your account.</p>
+  const avatarUrl = user?.user_metadata?.avatar_url;
 
+  return (
+    <div className="mx-auto max-w-xl animate-fade-in">
+      <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Manage your account and subscription.</p>
+
+      {/* Profile card */}
       <div className="mt-6 rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center gap-4 mb-5">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Avatar" className="h-12 w-12 rounded-full object-cover" />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent">
+              <User className="h-5 w-5 text-muted-foreground" />
+            </div>
+          )}
+          <div>
+            <p className="font-semibold text-foreground">{name || "User"}</p>
+            <p className="text-xs text-muted-foreground">{email}</p>
+          </div>
+        </div>
+
         <h2 className="text-sm font-semibold text-foreground">Profile</h2>
         <form onSubmit={handleUpdateProfile} className="mt-4 space-y-3">
           <div>
@@ -79,6 +105,7 @@ function SettingsPage() {
         </form>
       </div>
 
+      {/* Password */}
       <div className="mt-4 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Change Password</h2>
         <form onSubmit={handleChangePassword} className="mt-4 space-y-3">
@@ -103,13 +130,38 @@ function SettingsPage() {
         </form>
       </div>
 
+      {/* Subscription */}
       <div className="mt-4 rounded-xl border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold text-foreground">Subscription</h2>
-        <p className="mt-2 text-sm text-muted-foreground">You are on the <strong className="text-foreground">Free</strong> plan.</p>
-        <p className="mt-1 text-xs text-muted-foreground">3 repurposes/month included.</p>
-        <button className="mt-3 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground">
-          Upgrade to Pro — $19/mo
-        </button>
+        <div className="flex items-center gap-2">
+          <Crown className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-semibold text-foreground">Subscription</h2>
+        </div>
+        <div className="mt-3 flex items-center gap-3">
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
+            plan === "free"
+              ? "bg-accent text-accent-foreground"
+              : "gradient-electric text-primary-foreground"
+          }`}>
+            {plan.toUpperCase()}
+          </span>
+          {isUnlimited ? (
+            <span className="text-xs text-muted-foreground">Unlimited repurposes</span>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {usage?.used ?? 0} / {usage?.limit ?? 3} repurposes this month
+            </span>
+          )}
+        </div>
+
+        {plan === "free" && (
+          <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+            <p className="text-sm font-medium text-foreground">Upgrade to Pro</p>
+            <p className="mt-1 text-xs text-muted-foreground">Unlimited repurposes, priority generation, and more.</p>
+            <button className="mt-3 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground glow-electric">
+              Upgrade to Pro — $19/mo
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

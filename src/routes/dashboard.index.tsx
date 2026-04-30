@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { Repeat, Sparkles, Clock } from "lucide-react";
+import { Repeat, Sparkles, Clock, TrendingUp, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getMonthlyUsage } from "@/server/repurpose.functions";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
@@ -10,66 +11,127 @@ export const Route = createFileRoute("/dashboard/")({
 
 function DashboardHome() {
   const { user } = useAuth();
-  const [usageCount, setUsageCount] = useState(0);
+  const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
+  const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+
+    getMonthlyUsage().then(setUsage).catch(() => {});
 
     (supabase as any)
       .from("repurpose_jobs")
       .select("id, created_at, input_text")
       .eq("user_id", user.id)
-      .gte("created_at", startOfMonth.toISOString())
       .order("created_at", { ascending: false })
       .then(({ data }: { data: any }) => {
         if (data) {
-          setUsageCount(data.length);
+          setTotalJobs(data.length);
           setRecentJobs(data.slice(0, 5));
         }
+        setLoading(false);
       });
   }, [user]);
 
-  const name = user?.user_metadata?.full_name || "there";
+  const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
+  const plan = usage?.plan || "free";
+  const isUnlimited = usage?.limit === -1;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl animate-fade-in">
       <h1 className="text-2xl font-bold text-foreground">Welcome back, {name}!</h1>
       <p className="mt-1 text-sm text-muted-foreground">Here's your content repurposing overview.</p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      {/* Stats cards */}
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
               <Repeat className="h-4 w-4 text-primary-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{usageCount}</p>
-              <p className="text-xs text-muted-foreground">Repurposes this month</p>
+              <p className="text-2xl font-bold text-foreground">{usage?.used ?? 0}</p>
+              <p className="text-xs text-muted-foreground">This month</p>
             </div>
           </div>
         </div>
 
-        <Link
-          to="/dashboard/repurpose"
-          className="flex items-center gap-3 rounded-xl border border-primary/30 bg-card p-5 transition-all hover:border-primary hover:shadow-md"
-        >
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
+              <TrendingUp className="h-4 w-4 text-accent-foreground" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{totalJobs}</p>
+              <p className="text-xs text-muted-foreground">Total all time</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">New Repurpose</p>
-            <p className="text-xs text-muted-foreground">Create content now</p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
+              <Zap className="h-4 w-4 text-accent-foreground" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground capitalize">{plan}</p>
+              <p className="text-xs text-muted-foreground">Current plan</p>
+            </div>
           </div>
-        </Link>
+        </div>
       </div>
 
+      {/* Usage progress */}
+      {usage && !isUnlimited && (
+        <div className="mt-4 rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium text-foreground">Monthly Usage</span>
+            <span className="text-muted-foreground">{usage.used} / {usage.limit} repurposes</span>
+          </div>
+          <div className="mt-3 h-2 w-full rounded-full bg-accent">
+            <div
+              className="h-2 rounded-full gradient-electric transition-all duration-500"
+              style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }}
+            />
+          </div>
+          {usage.used >= usage.limit && (
+            <p className="mt-2 text-xs text-destructive">
+              You've hit your limit.{" "}
+              <Link to="/dashboard/settings" className="font-medium underline">Upgrade to Pro</Link> for unlimited.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Quick action */}
+      <Link
+        to="/dashboard/repurpose"
+        className="mt-4 flex items-center gap-3 rounded-xl border border-primary/30 bg-card p-5 transition-all hover:border-primary hover:shadow-md"
+      >
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
+          <Sparkles className="h-4 w-4 text-primary-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">New Repurpose</p>
+          <p className="text-xs text-muted-foreground">Transform content into multiple formats</p>
+        </div>
+      </Link>
+
+      {/* Recent activity */}
       <div className="mt-8">
         <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
-        {recentJobs.length === 0 ? (
+        {loading ? (
+          <div className="mt-4 space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-xl border border-border bg-card px-4 py-4">
+                <div className="h-4 w-3/4 animate-pulse rounded bg-accent" />
+                <div className="mt-2 h-3 w-1/4 animate-pulse rounded bg-accent" />
+              </div>
+            ))}
+          </div>
+        ) : recentJobs.length === 0 ? (
           <div className="mt-4 rounded-xl border border-border bg-card p-8 text-center">
             <Clock className="mx-auto h-8 w-8 text-muted-foreground" />
             <p className="mt-3 text-sm text-muted-foreground">No repurposes yet. Create your first one!</p>

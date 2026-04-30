@@ -9,6 +9,21 @@ export const getMonthlyUsage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+
+    // Check subscription plan
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("user_id", userId)
+      .single();
+
+    const plan = profile?.plan || "free";
+    const isPro = plan === "pro" || plan === "agency";
+
+    if (isPro) {
+      return { used: 0, limit: -1, plan }; // -1 = unlimited
+    }
+
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -21,10 +36,10 @@ export const getMonthlyUsage = createServerFn({ method: "GET" })
 
     if (error) {
       console.error("Usage count error:", error);
-      return { used: 0, limit: FREE_MONTHLY_LIMIT };
+      return { used: 0, limit: FREE_MONTHLY_LIMIT, plan };
     }
 
-    return { used: count ?? 0, limit: FREE_MONTHLY_LIMIT };
+    return { used: count ?? 0, limit: FREE_MONTHLY_LIMIT, plan };
   });
 
 export const repurposeContent = createServerFn({ method: "POST" })
@@ -38,24 +53,36 @@ export const repurposeContent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // Check monthly usage
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const { count, error: countError } = await supabase
-      .from("repurpose_jobs")
-      .select("id", { count: "exact", head: true })
+    // Check subscription plan
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan")
       .eq("user_id", userId)
-      .gte("created_at", startOfMonth.toISOString());
+      .single();
 
-    if (!countError && (count ?? 0) >= FREE_MONTHLY_LIMIT) {
-      return { output: "", error: "LIMIT_REACHED" };
+    const plan = profile?.plan || "free";
+    const isPro = plan === "pro" || plan === "agency";
+
+    // Check monthly usage only for free users
+    if (!isPro) {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const { count, error: countError } = await supabase
+        .from("repurpose_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", startOfMonth.toISOString());
+
+      if (!countError && (count ?? 0) >= FREE_MONTHLY_LIMIT) {
+        return { output: "", error: "LIMIT_REACHED" };
+      }
     }
 
     const result = await generateRepurposedContent(data.inputText, data.selectedTypes);
 
-    // Save to DB on success (server-side, using authenticated client)
+    // Save to DB on success
     if (!result.error && result.output) {
       await supabase.from("repurpose_jobs").insert({
         user_id: userId,

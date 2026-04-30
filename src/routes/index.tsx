@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { BeforeAfterSection } from "@/components/landing/BeforeAfterSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
+import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 
@@ -21,11 +22,12 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen scroll-smooth">
       <Navbar />
       <HeroSection />
       <BeforeAfterSection />
       <FeaturesSection />
+      <HowItWorksSection />
       <PricingSection />
       <TestimonialsSection />
       <Footer />

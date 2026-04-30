@@ -9,7 +9,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-20">
+    <section id="features" className="py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <h2 className="text-center text-3xl font-bold text-foreground sm:text-4xl">
           Everything You Need, <span className="text-gradient">Instantly</span>
