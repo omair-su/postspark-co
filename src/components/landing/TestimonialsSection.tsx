@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 const testimonials = [
   { name: "Sarah Chen", role: "Content Creator", text: "RepurposeAI saves me 10+ hours every week. I paste one blog post and get a full week of social content." },
   { name: "Marcus Johnson", role: "Marketing Director", text: "Our team's content output tripled since we started using RepurposeAI. The quality is consistently impressive." },
@@ -16,20 +14,17 @@ export function TestimonialsSection() {
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
           {testimonials.map((t, i) => (
-            <motion.div
+            <div
               key={t.name}
-              className="rounded-xl border border-border bg-card p-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              className="rounded-xl border border-border bg-card p-6 animate-fade-in"
+              style={{ animationDelay: `${i * 100}ms` }}
             >
               <p className="text-sm text-muted-foreground leading-relaxed">"{t.text}"</p>
               <div className="mt-4">
                 <p className="text-sm font-semibold text-foreground">{t.name}</p>
                 <p className="text-xs text-muted-foreground">{t.role}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

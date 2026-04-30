@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { MessageCircle, Briefcase, Mail, Video } from "lucide-react";
 
 const features = [
@@ -21,20 +20,17 @@ export function FeaturesSection() {
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2">
           {features.map((f, i) => (
-            <motion.div
+            <div
               key={f.title}
-              className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-lg"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/30 hover:shadow-lg animate-fade-in"
+              style={{ animationDelay: `${i * 100}ms` }}
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg gradient-electric">
                 <f.icon className="h-5 w-5 text-primary-foreground" />
               </div>
               <h3 className="mt-4 text-lg font-semibold text-foreground">{f.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{f.desc}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
