@@ -76,7 +76,7 @@ function RootComponent() {
   return (
     <AuthProvider>
       <Outlet />
-      <Toaster position="top-right" richColors />
+      <Suspense fallback={null}><Toaster position="top-right" richColors /></Suspense>
     </AuthProvider>
   );
 }
