@@ -1,26 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { BeforeAfterSection } from "@/components/landing/BeforeAfterSection";
+import { FeaturesSection } from "@/components/landing/FeaturesSection";
+import { PricingSection } from "@/components/landing/PricingSection";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "RepurposeAI — Turn 1 Piece of Content Into 30+" },
+      { name: "description", content: "Paste your blog, PDF text, or YouTube link — get tweets, LinkedIn posts, email newsletters, and video scripts instantly." },
+      { property: "og:title", content: "RepurposeAI — One Input. Infinite Content." },
+      { property: "og:description", content: "AI-powered content repurposing. Turn one piece of content into 30+ pieces instantly." },
+    ],
+  }),
+  component: LandingPage,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function LandingPage() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen">
+      <Navbar />
+      <HeroSection />
+      <BeforeAfterSection />
+      <FeaturesSection />
+      <PricingSection />
+      <TestimonialsSection />
+      <Footer />
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }

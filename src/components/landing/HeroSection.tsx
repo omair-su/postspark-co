@@ -1,0 +1,61 @@
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+
+export function HeroSection() {
+  return (
+    <section className="relative overflow-hidden gradient-hero pt-32 pb-20 sm:pt-40 sm:pb-28">
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-electric blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-electric blur-[150px]" />
+      </div>
+
+      <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+            <span className="text-xs font-medium text-primary-foreground">AI-Powered Content Repurposing</span>
+          </div>
+        </motion.div>
+
+        <motion.h1
+          className="text-4xl font-extrabold tracking-tight text-primary-foreground sm:text-6xl lg:text-7xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          Turn 1 Piece of Content
+          <br />
+          <span className="text-gradient">Into 30+</span>
+        </motion.h1>
+
+        <motion.p
+          className="mx-auto mt-6 max-w-2xl text-base text-primary-foreground/70 sm:text-lg"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          Paste your blog, PDF text, or YouTube link — get tweets, LinkedIn posts, email newsletters, and video scripts instantly.
+        </motion.p>
+
+        <motion.div
+          className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary-foreground px-6 py-3 text-sm font-semibold text-navy transition-all hover:opacity-90 shadow-lg"
+          >
+            Start For Free <ArrowRight className="h-4 w-4" />
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
