@@ -25,7 +25,7 @@ function DashboardHome() {
       .eq("user_id", user.id)
       .gte("created_at", startOfMonth.toISOString())
       .order("created_at", { ascending: false })
-      .then(({ data }) => {
+      .then(({ data }: { data: any }) => {
         if (data) {
           setUsageCount(data.length);
           setRecentJobs(data.slice(0, 5));
