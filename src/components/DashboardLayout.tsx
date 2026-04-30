@@ -1,13 +1,15 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User } from "lucide-react";
+import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose Content" },
-  { to: "/dashboard/history", icon: History, label: "My History" },
+  { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose" },
+  { to: "/dashboard/history", icon: History, label: "History" },
+  { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
+  { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ] as const;
 
