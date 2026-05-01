@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { completeOnboarding, getOnboardingStatus } from "@/server/onboarding.functions";
-import { Sparkles, ArrowRight, Loader2, Check } from "lucide-react";
+import { ArrowRight, Loader2, Check } from "lucide-react";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { toast } from "sonner";
 
