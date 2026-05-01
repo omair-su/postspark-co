@@ -225,19 +225,76 @@
 
 .ps-spark-anim:hover .ps-bolt-wrap { animation-duration: 0.8s; }
 
-/* Sidebar logo: add a soft electric glow so the icon pops on dark navy */
-.ps-sidebar-logo { position: relative; }
+/* Sidebar logo: load-in pulse + hover halo for the luxury feel */
+@keyframes ps-sidebar-halo {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+@keyframes ps-sidebar-intro {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+    filter: drop-shadow(0 0 0 rgba(139, 92, 246, 0));
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 18px rgba(139, 92, 246, 0.85));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.55))
+            drop-shadow(0 0 14px rgba(139, 92, 246, 0.25));
+  }
+}
+
+.ps-sidebar-logo {
+  position: relative;
+  animation: ps-sidebar-intro 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 .ps-sidebar-logo svg {
   filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.55))
           drop-shadow(0 0 14px rgba(139, 92, 246, 0.25));
+  transition: filter 0.4s ease;
 }
 .ps-sidebar-logo::before {
   content: "";
   position: absolute;
-  inset: -6px -8px;
-  background: radial-gradient(ellipse at left, rgba(139, 92, 246, 0.25), transparent 70%);
-  border-radius: 12px;
+  inset: -10px -14px;
+  background: radial-gradient(ellipse at left, rgba(139, 92, 246, 0.35), transparent 70%);
+  border-radius: 16px;
   pointer-events: none;
+  animation: ps-sidebar-halo 3.4s ease-in-out infinite;
+}
+.ps-sidebar-logo::after {
+  content: "";
+  position: absolute;
+  inset: -6px -10px;
+  border-radius: 14px;
+  pointer-events: none;
+  background: radial-gradient(circle at 18% 50%, rgba(167, 139, 250, 0.0), transparent 70%);
+  transition: background 0.4s ease;
+}
+.ps-sidebar-logo:hover::after {
+  background: radial-gradient(circle at 18% 50%, rgba(167, 139, 250, 0.55), transparent 70%);
+}
+.ps-sidebar-logo:hover svg {
+  filter: drop-shadow(0 0 14px rgba(167, 139, 250, 0.95))
+          drop-shadow(0 0 24px rgba(124, 58, 237, 0.55));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-sidebar-logo,
+  .ps-sidebar-logo::before {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
