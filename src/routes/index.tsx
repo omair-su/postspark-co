@@ -17,10 +17,10 @@ const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "RepurposeAI — Turn 1 Piece of Content Into 30+" },
-      { name: "description", content: "Paste your blog, PDF text, or YouTube link — get tweets, LinkedIn posts, Instagram captions, email newsletters, video scripts, and more instantly with AI." },
-      { property: "og:title", content: "RepurposeAI — One Input. Infinite Content." },
-      { property: "og:description", content: "AI-powered content repurposing. Turn one piece of content into 30+ pieces instantly." },
+      { title: "PostSpark — Turn 1 Blog Post Into 30 Pieces of Content" },
+      { name: "description", content: "PostSpark uses AI to instantly repurpose your blog posts, PDFs, and YouTube videos into tweets, LinkedIn posts, email newsletters, and video scripts." },
+      { property: "og:title", content: "PostSpark — Turn 1 Blog Post Into 30 Pieces of Content" },
+      { property: "og:description", content: "PostSpark uses AI to instantly repurpose your blog posts, PDFs, and YouTube videos into tweets, LinkedIn posts, email newsletters, and video scripts." },
     ],
   }),
   component: LandingPage,
