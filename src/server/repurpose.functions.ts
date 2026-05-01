@@ -49,6 +49,7 @@ export const repurposeContent = createServerFn({ method: "POST" })
       selectedTypes: z.array(z.string().min(1).max(20)).min(1).max(10),
       tone: z.string().max(50).optional(),
       customInstructions: z.string().max(500).optional(),
+      language: z.string().max(40).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -96,7 +97,8 @@ export const repurposeContent = createServerFn({ method: "POST" })
       data.selectedTypes,
       data.tone || "professional",
       data.customInstructions || "",
-      brandVoiceSummary
+      brandVoiceSummary,
+      data.language || "English"
     );
 
     if (!result.error && result.output) {

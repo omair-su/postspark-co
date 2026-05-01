@@ -43,6 +43,7 @@ function RepurposePage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [tone, setTone] = useState("professional");
   const [customInstructions, setCustomInstructions] = useState("");
+  const [language, setLanguage] = useState("English");
 
   // Apply template from URL search params
   useEffect(() => {
@@ -154,6 +155,7 @@ function RepurposePage() {
           selectedTypes: Array.from(selected),
           tone,
           customInstructions,
+          language,
         },
         headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
       });
@@ -288,6 +290,26 @@ function RepurposePage() {
           customInstructions={customInstructions}
           onCustomInstructionsChange={setCustomInstructions}
         />
+      </div>
+
+      {/* Step 4: Language */}
+      <div className="mt-4 rounded-xl border border-border bg-card p-5">
+        <h2 className="text-sm font-semibold text-foreground">Step 4: Output Language</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Generate content in any language. AI uses native idioms and tone.</p>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="mt-3 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {[
+            "English","Spanish","French","German","Portuguese","Italian","Dutch",
+            "Polish","Swedish","Turkish","Arabic","Hindi","Bengali","Indonesian",
+            "Vietnamese","Thai","Japanese","Korean","Chinese (Simplified)","Chinese (Traditional)",
+            "Russian","Ukrainian","Hebrew","Greek","Romanian","Czech","Hungarian","Finnish","Norwegian","Danish"
+          ].map((l) => (
+            <option key={l} value={l}>{l}</option>
+          ))}
+        </select>
       </div>
 
       {/* Generate button */}
