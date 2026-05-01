@@ -1,6 +1,6 @@
 const testimonials = [
-  { name: "Sarah Chen", role: "Content Creator", text: "RepurposeAI saves me 10+ hours every week. I paste one blog post and get a full week of social content." },
-  { name: "Marcus Johnson", role: "Marketing Director", text: "Our team's content output tripled since we started using RepurposeAI. The quality is consistently impressive." },
+  { name: "Sarah Chen", role: "Content Creator", text: "PostSpark saves me 10+ hours every week. I paste one blog post and get a full week of social content." },
+  { name: "Marcus Johnson", role: "Marketing Director", text: "Our team's content output tripled since we started using PostSpark. The quality is consistently impressive." },
   { name: "Emily Rodriguez", role: "Solo Entrepreneur", text: "As a one-person team, this tool is my secret weapon. It's like having a full content team on demand." },
 ];
 

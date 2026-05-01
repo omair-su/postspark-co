@@ -9,7 +9,7 @@ export function Footer() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg gradient-electric">
               <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
-            <span className="text-base font-bold text-foreground">RepurposeAI</span>
+            <span className="text-base font-bold text-foreground">PostSpark</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
@@ -18,7 +18,7 @@ export function Footer() {
           </div>
         </div>
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} RepurposeAI. All rights reserved.
+          © {new Date().getFullYear()} PostSpark. All rights reserved.
         </p>
       </div>
     </footer>

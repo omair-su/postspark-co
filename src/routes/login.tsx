@@ -8,8 +8,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Log In — RepurposeAI" },
-      { name: "description", content: "Log in to your RepurposeAI account." },
+      { title: "Log In — PostSpark" },
+      { name: "description", content: "Log in to your PostSpark account." },
     ],
   }),
   component: LoginPage,
@@ -84,7 +84,7 @@ function LoginPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-electric">
             <Sparkles className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold text-foreground">RepurposeAI</span>
+          <span className="text-lg font-bold text-foreground">PostSpark</span>
         </Link>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">

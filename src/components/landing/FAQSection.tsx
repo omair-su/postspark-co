@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 const faqs = [
   {
     q: "What types of content can I repurpose?",
-    a: "You can paste any text — blog posts, articles, newsletters, transcripts, notes — or provide a YouTube URL. RepurposeAI transforms it into tweets, LinkedIn posts, Instagram captions, email newsletters, video scripts, TikTok scripts, podcast notes, X threads, and more.",
+    a: "You can paste any text — blog posts, articles, newsletters, transcripts, notes — or provide a YouTube URL. PostSpark transforms it into tweets, LinkedIn posts, Instagram captions, email newsletters, video scripts, TikTok scripts, podcast notes, X threads, and more.",
   },
   {
     q: "How does the free plan work?",
@@ -38,7 +38,7 @@ export function FAQSection() {
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
             Frequently Asked <span className="text-gradient">Questions</span>
           </h2>
-          <p className="mt-4 text-muted-foreground">Everything you need to know about RepurposeAI.</p>
+          <p className="mt-4 text-muted-foreground">Everything you need to know about PostSpark.</p>
         </div>
 
         <div className="space-y-3">

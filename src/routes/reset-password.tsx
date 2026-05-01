@@ -7,7 +7,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Reset Password — RepurposeAI" },
+      { title: "Reset Password — PostSpark" },
     ],
   }),
   component: ResetPasswordPage,
@@ -79,7 +79,7 @@ function ResetPasswordPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-electric">
             <Sparkles className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold text-foreground">RepurposeAI</span>
+          <span className="text-lg font-bold text-foreground">PostSpark</span>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
