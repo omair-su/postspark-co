@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { PostSparkLogo } from "@/components/PostSparkLogo";
 
 export function HeroSection() {
   return (
@@ -10,6 +11,10 @@ export function HeroSection() {
       </div>
 
       <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6 animate-fade-in">
+        <div className="mb-8 flex justify-center">
+          <PostSparkLogo variant="icon" size={88} className="drop-shadow-[0_0_40px_rgba(167,139,250,0.4)]" />
+        </div>
+
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5">
           <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
           <span className="text-xs font-medium text-primary-foreground">AI-Powered Content Repurposing</span>
