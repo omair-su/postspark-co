@@ -36,7 +36,7 @@ export async function generateSocialImage(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "google/gemini-3.1-flash-image-preview",
         messages: [{ role: "user", content: fullPrompt }],
         modalities: ["image", "text"],
       }),
@@ -52,7 +52,10 @@ export async function generateSocialImage(
 
     const data = await response.json();
     const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!url) return { imageUrl: "", error: "No image returned." };
+    if (!url) {
+      console.error("No image in response:", JSON.stringify(data).slice(0, 500));
+      return { imageUrl: "", error: "No image returned." };
+    }
     return { imageUrl: url };
   } catch (err) {
     console.error("Image gen error:", err);
