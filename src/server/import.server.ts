@@ -1,0 +1,191 @@
+export interface ImportResult {
+  text: string;
+  title?: string;
+  source?: string;
+  error?: string;
+}
+
+/** Strip HTML to plain text without external deps. Worker-safe. */
+function stripHtml(html: string): { text: string; title?: string } {
+  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  const title = titleMatch?.[1]?.trim();
+
+  // Remove script, style, nav, footer, header, aside
+  let cleaned = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
+    .replace(/<nav[\s\S]*?<\/nav>/gi, " ")
+    .replace(/<footer[\s\S]*?<\/footer>/gi, " ")
+    .replace(/<header[\s\S]*?<\/header>/gi, " ")
+    .replace(/<aside[\s\S]*?<\/aside>/gi, " ");
+
+  // Try to grab <article> or <main> if present
+  const articleMatch = cleaned.match(/<article[\s\S]*?<\/article>/i);
+  const mainMatch = cleaned.match(/<main[\s\S]*?<\/main>/i);
+  const body = articleMatch?.[0] || mainMatch?.[0] || cleaned;
+
+  // Block-level newlines
+  const withBreaks = body
+    .replace(/<\/(p|div|li|h[1-6]|br)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n");
+
+  const text = withBreaks
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n\s*\n+/g, "\n\n")
+    .trim();
+
+  return { text, title };
+}
+
+export async function scrapeUrl(url: string): Promise<ImportResult> {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "http:" && u.protocol !== "https:") {
+      return { text: "", error: "Only http/https URLs are supported." };
+    }
+
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; PostSparkBot/1.0; +https://postspark.app)",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      redirect: "follow",
+    });
+
+    if (!res.ok) {
+      return { text: "", error: `Failed to fetch URL (${res.status}).` };
+    }
+
+    const ct = res.headers.get("content-type") || "";
+    if (!ct.includes("text/html") && !ct.includes("xml")) {
+      return { text: "", error: "URL did not return HTML content." };
+    }
+
+    const html = await res.text();
+    const { text, title } = stripHtml(html);
+
+    if (text.length < 50) {
+      return { text: "", error: "Could not extract readable content from this page." };
+    }
+
+    // Cap to keep prompts manageable
+    const capped = text.length > 40000 ? text.slice(0, 40000) + "\n\n[…truncated]" : text;
+
+    return { text: capped, title, source: url };
+  } catch (err) {
+    console.error("scrapeUrl error:", err);
+    return { text: "", error: "Failed to fetch URL." };
+  }
+}
+
+export interface TranscriptionResult {
+  text: string;
+  provider: "elevenlabs" | "gemini";
+  error?: string;
+}
+
+/** Transcribe audio via ElevenLabs Scribe (preferred when secret present). */
+export async function transcribeWithElevenLabs(
+  audioBase64: string,
+  mimeType: string,
+): Promise<TranscriptionResult> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) return { text: "", provider: "elevenlabs", error: "ElevenLabs not configured" };
+
+  try {
+    // Convert base64 -> Uint8Array -> Blob
+    const bin = Uint8Array.from(atob(audioBase64), (c) => c.charCodeAt(0));
+    const blob = new Blob([bin], { type: mimeType });
+
+    const form = new FormData();
+    form.append("file", blob, `audio.${mimeType.split("/")[1] || "webm"}`);
+    form.append("model_id", "scribe_v2");
+    form.append("tag_audio_events", "false");
+    form.append("diarize", "false");
+
+    const res = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+      method: "POST",
+      headers: { "xi-api-key": apiKey },
+      body: form,
+    });
+
+    if (!res.ok) {
+      const t = await res.text();
+      console.error("ElevenLabs STT error:", res.status, t);
+      return { text: "", provider: "elevenlabs", error: "ElevenLabs transcription failed." };
+    }
+
+    const data = await res.json();
+    return { text: data.text || "", provider: "elevenlabs" };
+  } catch (err) {
+    console.error("ElevenLabs transcription error:", err);
+    return { text: "", provider: "elevenlabs", error: "ElevenLabs transcription failed." };
+  }
+}
+
+/** Transcribe audio via Lovable AI Gemini (multimodal). */
+export async function transcribeWithGemini(
+  audioBase64: string,
+  mimeType: string,
+): Promise<TranscriptionResult> {
+  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+  if (!LOVABLE_API_KEY) {
+    return { text: "", provider: "gemini", error: "AI service not configured" };
+  }
+
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Transcribe this audio verbatim. Return ONLY the transcribed text, no commentary or formatting. Preserve the speaker's wording, punctuation, and paragraph breaks where natural pauses occur.",
+              },
+              {
+                type: "input_audio",
+                input_audio: {
+                  data: audioBase64,
+                  format: mimeType.includes("mp3") ? "mp3" : mimeType.includes("wav") ? "wav" : "webm",
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (res.status === 429) return { text: "", provider: "gemini", error: "Rate limit reached. Try again shortly." };
+    if (res.status === 402) return { text: "", provider: "gemini", error: "AI credits exhausted." };
+    if (!res.ok) {
+      const t = await res.text();
+      console.error("Gemini STT error:", res.status, t);
+      return { text: "", provider: "gemini", error: "Audio transcription failed." };
+    }
+
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) return { text: "", provider: "gemini", error: "No transcription returned." };
+    return { text: typeof content === "string" ? content.trim() : "", provider: "gemini" };
+  } catch (err) {
+    console.error("Gemini transcription error:", err);
+    return { text: "", provider: "gemini", error: "Failed to transcribe audio." };
+  }
+}

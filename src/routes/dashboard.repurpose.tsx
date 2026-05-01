@@ -45,7 +45,7 @@ function RepurposePage() {
   const [customInstructions, setCustomInstructions] = useState("");
   const [language, setLanguage] = useState("English");
 
-  // Apply template from URL search params
+  // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
     try {
       const url = new URL(window.location.href);
@@ -58,6 +58,12 @@ function RepurposePage() {
         if (t) setTone(t);
         if (types) setSelected(new Set(types.split(",")));
         if (instr) setCustomInstructions(instr);
+      }
+      const imported = sessionStorage.getItem("postspark.import.text");
+      if (imported) {
+        setInputText(imported);
+        setTab("text");
+        sessionStorage.removeItem("postspark.import.text");
       }
     } catch {
       // ignore

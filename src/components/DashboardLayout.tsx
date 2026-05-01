@@ -1,13 +1,14 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText } from "lucide-react";
+import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose" },
+  { to: "/dashboard/import", icon: Upload, label: "Import Studio" },
   { to: "/dashboard/seo-blog", icon: FileText, label: "SEO Blog" },
   { to: "/dashboard/hook-lab", icon: Flame, label: "Hook Lab" },
   { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
