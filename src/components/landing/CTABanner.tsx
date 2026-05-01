@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { PostSparkLogo } from "@/components/PostSparkLogo";
 
 export function CTABanner() {
   return (
@@ -7,8 +8,8 @@ export function CTABanner() {
       <div className="mx-auto max-w-4xl rounded-2xl gradient-hero p-12 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10">
-          <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
-            <Sparkles className="h-7 w-7 text-white" />
+          <div className="mx-auto mb-6 flex items-center justify-center">
+            <PostSparkLogo variant="icon" size={64} />
           </div>
           <h2 className="text-3xl font-bold text-white sm:text-4xl">
             Ready to 10x Your Content Output?
