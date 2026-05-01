@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      brand_voices: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          samples: Json
+          style_summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          samples?: Json
+          style_summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          samples?: Json
+          style_summary?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
