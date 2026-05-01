@@ -1,41 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
-
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-function getUserClient(authHeader: string | undefined) {
-  if (!authHeader) throw new Error("Unauthorized");
-  return createClient(SUPABASE_URL, SERVICE_ROLE, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false },
-  });
-}
-
-async function getUserId(authHeader: string | undefined) {
-  if (!authHeader) throw new Error("Unauthorized");
-  const token = authHeader.replace(/^Bearer\s+/i, "");
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
-  const { data, error } = await admin.auth.getUser(token);
-  if (error || !data.user) throw new Error("Unauthorized");
-  return data.user.id;
-}
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const completeOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z.object({
       role: z.string().min(1).max(60),
       platforms: z.array(z.string().min(1).max(40)).max(20),
     }).parse(data),
   )
-  .handler(async ({ data }) => {
-    const auth = getRequestHeader("authorization") || undefined;
-    const userId = await getUserId(auth);
-    const sb = getUserClient(auth!);
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
 
-    const { error } = await (sb as any)
+    const { error } = await supabase
       .from("profiles")
       .update({
         primary_role: data.role,
@@ -49,11 +27,10 @@ export const completeOnboarding = createServerFn({ method: "POST" })
   });
 
 export const getOnboardingStatus = createServerFn({ method: "GET" })
-  .handler(async () => {
-    const auth = getRequestHeader("authorization") || undefined;
-    const userId = await getUserId(auth);
-    const sb = getUserClient(auth!);
-    const { data } = await (sb as any)
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data } = await supabase
       .from("profiles")
       .select("onboarding_completed, primary_role, primary_platforms")
       .eq("user_id", userId)

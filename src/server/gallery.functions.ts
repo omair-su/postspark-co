@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -9,19 +9,6 @@ const ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABA
 
 function getAdmin() {
   return createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
-}
-function getUserClient(authHeader: string) {
-  return createClient(SUPABASE_URL, SERVICE_ROLE, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false },
-  });
-}
-async function getUserId(authHeader: string | undefined) {
-  if (!authHeader) throw new Error("Unauthorized");
-  const token = authHeader.replace(/^Bearer\s+/i, "");
-  const { data, error } = await getAdmin().auth.getUser(token);
-  if (error || !data.user) throw new Error("Unauthorized");
-  return data.user.id;
 }
 
 function makeSlug(title: string) {
@@ -36,6 +23,7 @@ function makeSlug(title: string) {
 }
 
 export const togglePublic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z.object({
       jobId: z.string().uuid(),
@@ -43,13 +31,10 @@ export const togglePublic = createServerFn({ method: "POST" })
       title: z.string().min(1).max(120).optional(),
     }).parse(data),
   )
-  .handler(async ({ data }) => {
-    const auth = getRequestHeader("authorization");
-    if (!auth) throw new Error("Unauthorized");
-    const userId = await getUserId(auth);
-    const sb = getUserClient(auth);
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
 
-    const { data: existing } = await (sb as any)
+    const { data: existing } = await supabase
       .from("repurpose_jobs")
       .select("public_slug, title, input_text")
       .eq("id", data.jobId)
@@ -62,11 +47,11 @@ export const togglePublic = createServerFn({ method: "POST" })
       slug = makeSlug(data.title || existing.input_text.slice(0, 40));
     }
 
-    const update: Record<string, unknown> = { is_public: data.isPublic };
+    const update: { is_public: boolean; public_slug?: string | null; title?: string } = { is_public: data.isPublic };
     if (data.isPublic) update.public_slug = slug;
     if (data.title) update.title = data.title;
 
-    const { error } = await (sb as any)
+    const { error } = await supabase
       .from("repurpose_jobs")
       .update(update)
       .eq("id", data.jobId)
