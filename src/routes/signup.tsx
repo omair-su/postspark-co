@@ -101,6 +101,11 @@ function SignupPage() {
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <h1 className="text-xl font-bold text-foreground">Create your account</h1>
           <p className="mt-1 text-sm text-muted-foreground">Start repurposing content for free</p>
+          {referralCode && (
+            <div className="mt-3 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-foreground">
+              🎁 You were invited! You'll get <span className="font-semibold">20% off Pro</span> when you upgrade.
+            </div>
+          )}
 
           <button
             onClick={handleGoogle}
