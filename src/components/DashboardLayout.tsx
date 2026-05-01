@@ -1,13 +1,15 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic } from "lucide-react";
+import { Sparkles, LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose" },
+  { to: "/dashboard/hook-lab", icon: Flame, label: "Hook Lab" },
+  { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
   { to: "/dashboard/brand-voice", icon: Mic, label: "Brand Voice" },
   { to: "/dashboard/history", icon: History, label: "History" },
   { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },

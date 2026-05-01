@@ -18,6 +18,8 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
+import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
+import { Route as DashboardHookLabRouteImport } from './routes/dashboard.hook-lab'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
@@ -68,6 +70,16 @@ const DashboardRepurposeRoute = DashboardRepurposeRouteImport.update({
   path: '/repurpose',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardImageStudioRoute = DashboardImageStudioRouteImport.update({
+  id: '/image-studio',
+  path: '/image-studio',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardHookLabRoute = DashboardHookLabRouteImport.update({
+  id: '/hook-lab',
+  path: '/hook-lab',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardHistoryRoute = DashboardHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -99,6 +111,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/history': typeof DashboardHistoryRoute
+  '/dashboard/hook-lab': typeof DashboardHookLabRoute
+  '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
@@ -113,6 +127,8 @@ export interface FileRoutesByTo {
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/history': typeof DashboardHistoryRoute
+  '/dashboard/hook-lab': typeof DashboardHookLabRoute
+  '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
@@ -129,6 +145,8 @@ export interface FileRoutesById {
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/history': typeof DashboardHistoryRoute
+  '/dashboard/hook-lab': typeof DashboardHookLabRoute
+  '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
@@ -146,6 +164,8 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/brand-voice'
     | '/dashboard/history'
+    | '/dashboard/hook-lab'
+    | '/dashboard/image-studio'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
     | '/dashboard/templates'
@@ -160,6 +180,8 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/brand-voice'
     | '/dashboard/history'
+    | '/dashboard/hook-lab'
+    | '/dashboard/image-studio'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
     | '/dashboard/templates'
@@ -175,6 +197,8 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/brand-voice'
     | '/dashboard/history'
+    | '/dashboard/hook-lab'
+    | '/dashboard/image-studio'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
     | '/dashboard/templates'
@@ -255,6 +279,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRepurposeRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/image-studio': {
+      id: '/dashboard/image-studio'
+      path: '/image-studio'
+      fullPath: '/dashboard/image-studio'
+      preLoaderRoute: typeof DashboardImageStudioRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/hook-lab': {
+      id: '/dashboard/hook-lab'
+      path: '/hook-lab'
+      fullPath: '/dashboard/hook-lab'
+      preLoaderRoute: typeof DashboardHookLabRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/history': {
       id: '/dashboard/history'
       path: '/history'
@@ -290,6 +328,8 @@ interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
+  DashboardHookLabRoute: typeof DashboardHookLabRoute
+  DashboardImageStudioRoute: typeof DashboardImageStudioRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardTemplatesRoute: typeof DashboardTemplatesRoute
@@ -300,6 +340,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
+  DashboardHookLabRoute: DashboardHookLabRoute,
+  DashboardImageStudioRoute: DashboardImageStudioRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardTemplatesRoute: DashboardTemplatesRoute,
