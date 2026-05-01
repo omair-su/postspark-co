@@ -2,9 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, FileText, Download, Star, Search, CheckSquare, Square } from "lucide-react";
+import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
 import { toggleFavorite } from "@/server/repurpose.functions";
+import { togglePublic } from "@/server/gallery.functions";
 import { toast } from "sonner";
 
 interface Job {
@@ -13,6 +14,9 @@ interface Job {
   input_text: string;
   outputs: Record<string, string>;
   is_favorite: boolean;
+  is_public?: boolean;
+  public_slug?: string | null;
+  title?: string | null;
 }
 
 export const Route = createFileRoute("/dashboard/history")({
