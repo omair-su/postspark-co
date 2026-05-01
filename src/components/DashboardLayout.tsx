@@ -41,8 +41,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-navy text-sidebar-foreground">
-      <div className="flex h-16 items-center px-4 border-b border-sidebar-border">
-        <PostSparkLogo variant="wordmark" size={28} tone="light" />
+      <div className="flex h-16 items-center px-4 border-b border-sidebar-border bg-gradient-to-r from-navy via-navy-light to-navy">
+        <div className="ps-sidebar-logo">
+          <PostSparkLogo variant="wordmark" size={32} tone="light" />
+        </div>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
