@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 
@@ -29,11 +30,10 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       platforms: z.array(z.string().min(1).max(40)).max(20),
     }).parse(data),
   )
-  .handler(async ({ data, context }) => {
-    const req = (context as any)?.request as Request | undefined;
-    const auth = req?.headers.get("authorization") || undefined;
+  .handler(async ({ data }) => {
+    const auth = getRequestHeader("authorization") || undefined;
     const userId = await getUserId(auth);
-    const sb = getUserClient(auth);
+    const sb = getUserClient(auth!);
 
     const { error } = await (sb as any)
       .from("profiles")
@@ -49,11 +49,10 @@ export const completeOnboarding = createServerFn({ method: "POST" })
   });
 
 export const getOnboardingStatus = createServerFn({ method: "GET" })
-  .handler(async ({ context }) => {
-    const req = (context as any)?.request as Request | undefined;
-    const auth = req?.headers.get("authorization") || undefined;
+  .handler(async () => {
+    const auth = getRequestHeader("authorization") || undefined;
     const userId = await getUserId(auth);
-    const sb = getUserClient(auth);
+    const sb = getUserClient(auth!);
     const { data } = await (sb as any)
       .from("profiles")
       .select("onboarding_completed, primary_role, primary_platforms")
