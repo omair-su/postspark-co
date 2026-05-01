@@ -225,6 +225,21 @@
 
 .ps-spark-anim:hover .ps-bolt-wrap { animation-duration: 0.8s; }
 
+/* Sidebar logo: add a soft electric glow so the icon pops on dark navy */
+.ps-sidebar-logo { position: relative; }
+.ps-sidebar-logo svg {
+  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.55))
+          drop-shadow(0 0 14px rgba(139, 92, 246, 0.25));
+}
+.ps-sidebar-logo::before {
+  content: "";
+  position: absolute;
+  inset: -6px -8px;
+  background: radial-gradient(ellipse at left, rgba(139, 92, 246, 0.25), transparent 70%);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ps-spark-anim .ps-pulse,
   .ps-spark-anim .ps-bolt-wrap,
