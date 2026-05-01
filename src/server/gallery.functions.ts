@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -36,6 +36,7 @@ function makeSlug(title: string) {
 }
 
 export const togglePublic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z.object({
       jobId: z.string().uuid(),
@@ -43,13 +44,10 @@ export const togglePublic = createServerFn({ method: "POST" })
       title: z.string().min(1).max(120).optional(),
     }).parse(data),
   )
-  .handler(async ({ data }) => {
-    const auth = getRequestHeader("authorization");
-    if (!auth) throw new Error("Unauthorized");
-    const userId = await getUserId(auth);
-    const sb = getUserClient(auth);
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
 
-    const { data: existing } = await (sb as any)
+    const { data: existing } = await supabase
       .from("repurpose_jobs")
       .select("public_slug, title, input_text")
       .eq("id", data.jobId)
@@ -66,7 +64,7 @@ export const togglePublic = createServerFn({ method: "POST" })
     if (data.isPublic) update.public_slug = slug;
     if (data.title) update.title = data.title;
 
-    const { error } = await (sb as any)
+    const { error } = await supabase
       .from("repurpose_jobs")
       .update(update)
       .eq("id", data.jobId)
