@@ -75,10 +75,10 @@ function GalleryPostPage() {
           <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{post.input}</p>
         </div>
 
-        {Object.entries(post.outputs).map(([key, val]) => (
+        {Object.entries(post.outputs as Record<string, string>).map(([key, val]) => (
           <div key={key} className="mt-4 rounded-xl border border-border bg-card p-5">
             <h2 className="text-sm font-semibold text-foreground capitalize">{key}</h2>
-            <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{val}</pre>
+            <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{String(val)}</pre>
           </div>
         ))}
 
