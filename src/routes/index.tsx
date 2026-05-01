@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 const TrustedBySection = lazy(() => import("@/components/landing/TrustedBySection").then(m => ({ default: m.TrustedBySection })));
 const BeforeAfterSection = lazy(() => import("@/components/landing/BeforeAfterSection").then(m => ({ default: m.BeforeAfterSection })));
 const FeaturesSection = lazy(() => import("@/components/landing/FeaturesSection").then(m => ({ default: m.FeaturesSection })));
+const PremiumFeaturesSection = lazy(() => import("@/components/landing/PremiumFeaturesSection").then(m => ({ default: m.PremiumFeaturesSection })));
 const HowItWorksSection = lazy(() => import("@/components/landing/HowItWorksSection").then(m => ({ default: m.HowItWorksSection })));
 const PricingSection = lazy(() => import("@/components/landing/PricingSection").then(m => ({ default: m.PricingSection })));
 const TestimonialsSection = lazy(() => import("@/components/landing/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
@@ -41,6 +42,7 @@ function LandingPage() {
         <TrustedBySection />
         <BeforeAfterSection />
         <FeaturesSection />
+        <PremiumFeaturesSection />
         <HowItWorksSection />
         <PricingSection />
         <TestimonialsSection />
