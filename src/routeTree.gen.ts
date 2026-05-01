@@ -19,6 +19,7 @@ import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templ
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blog'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
+import { Route as DashboardImportRouteImport } from './routes/dashboard.import'
 import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
 import { Route as DashboardHookLabRouteImport } from './routes/dashboard.hook-lab'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
@@ -77,6 +78,11 @@ const DashboardRepurposeRoute = DashboardRepurposeRouteImport.update({
   path: '/repurpose',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardImportRoute = DashboardImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardImageStudioRoute = DashboardImageStudioRouteImport.update({
   id: '/image-studio',
   path: '/image-studio',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
+  '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
+  '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
+  '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
+    | '/dashboard/import'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
+    | '/dashboard/import'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
+    | '/dashboard/import'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
@@ -310,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRepurposeRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/import': {
+      id: '/dashboard/import'
+      path: '/import'
+      fullPath: '/dashboard/import'
+      preLoaderRoute: typeof DashboardImportRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/image-studio': {
       id: '/dashboard/image-studio'
       path: '/image-studio'
@@ -369,6 +388,7 @@ interface DashboardRouteChildren {
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardHookLabRoute: typeof DashboardHookLabRoute
   DashboardImageStudioRoute: typeof DashboardImageStudioRoute
+  DashboardImportRoute: typeof DashboardImportRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
@@ -383,6 +403,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardHookLabRoute: DashboardHookLabRoute,
   DashboardImageStudioRoute: DashboardImageStudioRoute,
+  DashboardImportRoute: DashboardImportRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSeoBlogRoute: DashboardSeoBlogRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
