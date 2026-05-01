@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { PostSparkLogo } from "@/components/PostSparkLogo";
 
 export function HeroSection() {
   return (
