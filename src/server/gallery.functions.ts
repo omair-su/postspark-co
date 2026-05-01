@@ -10,19 +10,6 @@ const ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABA
 function getAdmin() {
   return createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
 }
-function getUserClient(authHeader: string) {
-  return createClient(SUPABASE_URL, SERVICE_ROLE, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false },
-  });
-}
-async function getUserId(authHeader: string | undefined) {
-  if (!authHeader) throw new Error("Unauthorized");
-  const token = authHeader.replace(/^Bearer\s+/i, "");
-  const { data, error } = await getAdmin().auth.getUser(token);
-  if (error || !data.user) throw new Error("Unauthorized");
-  return data.user.id;
-}
 
 function makeSlug(title: string) {
   const base = title
@@ -60,7 +47,7 @@ export const togglePublic = createServerFn({ method: "POST" })
       slug = makeSlug(data.title || existing.input_text.slice(0, 40));
     }
 
-    const update: Record<string, unknown> = { is_public: data.isPublic };
+    const update: { is_public: boolean; public_slug?: string | null; title?: string } = { is_public: data.isPublic };
     if (data.isPublic) update.public_slug = slug;
     if (data.title) update.title = data.title;
 
