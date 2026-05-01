@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, Loader2 } from "lucide-react";
+import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/reset-password")({
@@ -76,10 +77,7 @@ function ResetPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex items-center justify-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-electric">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold text-foreground">PostSpark</span>
+          <PostSparkLogo variant="wordmark" size={32} />
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">

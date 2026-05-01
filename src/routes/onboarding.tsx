@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { completeOnboarding, getOnboardingStatus } from "@/server/onboarding.functions";
 import { Sparkles, ArrowRight, Loader2, Check } from "lucide-react";
+import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/onboarding")({
@@ -86,10 +87,7 @@ function OnboardingPage() {
     <div className="flex min-h-screen items-center justify-center bg-surface px-4 py-10">
       <div className="w-full max-w-xl">
         <div className="mb-8 flex items-center justify-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-electric">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold text-foreground">PostSpark</span>
+          <PostSparkLogo variant="wordmark" size={32} />
         </div>
 
         {/* Progress */}
