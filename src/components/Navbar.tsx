@@ -15,11 +15,8 @@ export function Navbar() {
   return (
     <nav className="glass fixed top-0 left-0 right-0 z-50 border-b border-border">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-electric">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold text-foreground">⚡ PostSpark</span>
+        <Link to="/" className="flex items-center group">
+          <PostSparkLogo variant="wordmark" size={32} />
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
