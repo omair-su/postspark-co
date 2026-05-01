@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 
@@ -42,9 +43,8 @@ export const togglePublic = createServerFn({ method: "POST" })
       title: z.string().min(1).max(120).optional(),
     }).parse(data),
   )
-  .handler(async ({ data, context }) => {
-    const req = (context as any)?.request as Request | undefined;
-    const auth = req?.headers.get("authorization");
+  .handler(async ({ data }) => {
+    const auth = getRequestHeader("authorization");
     if (!auth) throw new Error("Unauthorized");
     const userId = await getUserId(auth);
     const sb = getUserClient(auth);

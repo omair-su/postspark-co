@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
@@ -20,9 +21,8 @@ async function getUserId(authHeader: string | undefined) {
 }
 
 export const getReferralStats = createServerFn({ method: "GET" })
-  .handler(async ({ context }) => {
-    const req = (context as any)?.request as Request | undefined;
-    const auth = req?.headers.get("authorization");
+  .handler(async () => {
+    const auth = getRequestHeader("authorization");
     if (!auth) throw new Error("Unauthorized");
     const userId = await getUserId(auth);
     const sb = getUserClient(auth);
