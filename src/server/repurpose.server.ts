@@ -2,7 +2,8 @@ export async function generateRepurposedContent(
   inputText: string,
   selectedTypes: string[],
   tone: string = "professional",
-  customInstructions: string = ""
+  customInstructions: string = "",
+  brandVoiceSummary: string = ""
 ): Promise<{ output: string; error?: string }> {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
   if (!LOVABLE_API_KEY) {
@@ -44,7 +45,11 @@ export async function generateRepurposedContent(
     ? ` Additional instructions: ${customInstructions.trim()}`
     : "";
 
-  const systemPrompt = `You are a professional content repurposing assistant. Given the following content, generate: ${typeInstructions}. Format each section with a clear header. Be engaging, value-driven, and platform-appropriate.${toneInstruction}${customBlock}`;
+  const voiceBlock = brandVoiceSummary.trim()
+    ? `\n\nCRITICAL — Match this user's personal brand voice EXACTLY. Mimic their tone, sentence rhythm, vocabulary, punctuation quirks, and formatting habits:\n${brandVoiceSummary.trim()}`
+    : "";
+
+  const systemPrompt = `You are a professional content repurposing assistant. Given the following content, generate: ${typeInstructions}. Format each section with a clear header. Be engaging, value-driven, and platform-appropriate.${toneInstruction}${customBlock}${voiceBlock}`;
 
   try {
     const response = await fetch(

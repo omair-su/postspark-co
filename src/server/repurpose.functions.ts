@@ -79,11 +79,24 @@ export const repurposeContent = createServerFn({ method: "POST" })
       }
     }
 
+    // Fetch active brand voice (Pro feature) to personalize output
+    let brandVoiceSummary = "";
+    if (isPro) {
+      const { data: activeVoice } = await supabase
+        .from("brand_voices")
+        .select("style_summary")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .maybeSingle();
+      brandVoiceSummary = activeVoice?.style_summary || "";
+    }
+
     const result = await generateRepurposedContent(
       data.inputText,
       data.selectedTypes,
       data.tone || "professional",
-      data.customInstructions || ""
+      data.customInstructions || "",
+      brandVoiceSummary
     );
 
     if (!result.error && result.output) {
