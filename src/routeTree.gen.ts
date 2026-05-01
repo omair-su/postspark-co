@@ -17,10 +17,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blog'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
 import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
 import { Route as DashboardHookLabRouteImport } from './routes/dashboard.hook-lab'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
+import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
@@ -65,6 +67,11 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSeoBlogRoute = DashboardSeoBlogRouteImport.update({
+  id: '/seo-blog',
+  path: '/seo-blog',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardRepurposeRoute = DashboardRepurposeRouteImport.update({
   id: '/repurpose',
   path: '/repurpose',
@@ -83,6 +90,11 @@ const DashboardHookLabRoute = DashboardHookLabRouteImport.update({
 const DashboardHistoryRoute = DashboardHistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCalendarRoute = DashboardCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardBrandVoiceRoute = DashboardBrandVoiceRouteImport.update({
@@ -110,10 +122,12 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
+  '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
+  '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -126,10 +140,12 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
+  '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
+  '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -144,10 +160,12 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
+  '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
+  '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -163,10 +181,12 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/brand-voice'
+    | '/dashboard/calendar'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
     | '/dashboard/repurpose'
+    | '/dashboard/seo-blog'
     | '/dashboard/settings'
     | '/dashboard/templates'
     | '/dashboard/'
@@ -179,10 +199,12 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/brand-voice'
+    | '/dashboard/calendar'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
     | '/dashboard/repurpose'
+    | '/dashboard/seo-blog'
     | '/dashboard/settings'
     | '/dashboard/templates'
     | '/dashboard'
@@ -196,10 +218,12 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/brand-voice'
+    | '/dashboard/calendar'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
     | '/dashboard/repurpose'
+    | '/dashboard/seo-blog'
     | '/dashboard/settings'
     | '/dashboard/templates'
     | '/dashboard/'
@@ -272,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/seo-blog': {
+      id: '/dashboard/seo-blog'
+      path: '/seo-blog'
+      fullPath: '/dashboard/seo-blog'
+      preLoaderRoute: typeof DashboardSeoBlogRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/repurpose': {
       id: '/dashboard/repurpose'
       path: '/repurpose'
@@ -298,6 +329,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/dashboard/history'
       preLoaderRoute: typeof DashboardHistoryRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/calendar': {
+      id: '/dashboard/calendar'
+      path: '/calendar'
+      fullPath: '/dashboard/calendar'
+      preLoaderRoute: typeof DashboardCalendarRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/brand-voice': {
@@ -327,10 +365,12 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
+  DashboardCalendarRoute: typeof DashboardCalendarRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardHookLabRoute: typeof DashboardHookLabRoute
   DashboardImageStudioRoute: typeof DashboardImageStudioRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
+  DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardTemplatesRoute: typeof DashboardTemplatesRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -339,10 +379,12 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
+  DashboardCalendarRoute: DashboardCalendarRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardHookLabRoute: DashboardHookLabRoute,
   DashboardImageStudioRoute: DashboardImageStudioRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
+  DashboardSeoBlogRoute: DashboardSeoBlogRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardTemplatesRoute: DashboardTemplatesRoute,
   DashboardIndexRoute: DashboardIndexRoute,
