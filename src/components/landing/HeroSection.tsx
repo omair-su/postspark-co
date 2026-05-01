@@ -18,11 +18,11 @@ export function HeroSection() {
         <h1 className="text-4xl font-extrabold tracking-tight text-primary-foreground sm:text-6xl lg:text-7xl">
           Turn 1 Piece of Content
           <br />
-          <span className="text-gradient">Into 30+</span>
+          <span className="text-gradient">Into 30 — Instantly</span>
         </h1>
 
         <p className="mx-auto mt-6 max-w-2xl text-base text-primary-foreground/70 sm:text-lg">
-          Paste your blog, PDF text, or YouTube link — get tweets, LinkedIn posts, email newsletters, and video scripts instantly.
+          PostSpark uses AI to repurpose your blog posts, YouTube videos, and PDFs into tweets, LinkedIn posts, email newsletters, and video scripts in seconds.
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -30,7 +30,7 @@ export function HeroSection() {
             to="/signup"
             className="inline-flex items-center gap-2 rounded-xl bg-primary-foreground px-6 py-3 text-sm font-semibold text-navy transition-all hover:opacity-90 shadow-lg"
           >
-            Start For Free <ArrowRight className="h-4 w-4" />
+            Try PostSpark Free <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>

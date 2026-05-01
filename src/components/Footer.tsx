@@ -18,7 +18,7 @@ export function Footer() {
           </div>
         </div>
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} PostSpark. All rights reserved.
+          © 2026 PostSpark. All rights reserved.
         </p>
       </div>
     </footer>
