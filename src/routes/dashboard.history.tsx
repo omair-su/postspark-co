@@ -173,6 +173,38 @@ function HistoryPage() {
             >
               <Download className="h-3.5 w-3.5" /> Export PDF
             </button>
+            <button
+              onClick={async () => {
+                if (!session) return;
+                const newVal = !selected.is_public;
+                try {
+                  const res = await togglePublic({
+                    data: { jobId: selected.id, isPublic: newVal, title: selected.title || selected.input_text.slice(0, 80) },
+                    headers: { Authorization: `Bearer ${session.access_token}` },
+                  });
+                  setSelected({ ...selected, is_public: newVal, public_slug: res.slug });
+                  setJobs((prev) => prev.map((j) => (j.id === selected.id ? { ...j, is_public: newVal, public_slug: res.slug } : j)));
+                  toast.success(newVal ? "Now public in the Gallery!" : "Made private");
+                } catch (err) {
+                  toast.error("Could not update sharing");
+                }
+              }}
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${selected.is_public ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+            >
+              <Globe className="h-3.5 w-3.5" /> {selected.is_public ? "Public" : "Make public"}
+            </button>
+            {selected.is_public && selected.public_slug && (
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/gallery/${selected.public_slug}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success("Public link copied!");
+                }}
+                className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Copy className="h-3.5 w-3.5" /> Copy link
+              </button>
+            )}
           </div>
         </div>
         <h1 className="text-xl font-bold text-foreground">Repurpose Details</h1>
