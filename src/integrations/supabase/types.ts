@@ -53,7 +53,12 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          onboarding_completed: boolean
           plan: string
+          primary_platforms: Json
+          primary_role: string | null
+          referral_code: string | null
+          referred_by: string | null
           updated_at: string
           user_id: string
         }
@@ -62,7 +67,12 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          onboarding_completed?: boolean
           plan?: string
+          primary_platforms?: Json
+          primary_role?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
           user_id: string
         }
@@ -71,9 +81,41 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          onboarding_completed?: boolean
           plan?: string
+          primary_platforms?: Json
+          primary_role?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+          reward_granted_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+          reward_granted_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
+          reward_granted_at?: string | null
+          status?: string
         }
         Relationships: []
       }
@@ -83,24 +125,36 @@ export type Database = {
           id: string
           input_text: string
           is_favorite: boolean
+          is_public: boolean
           outputs: Json | null
+          public_slug: string | null
+          title: string | null
           user_id: string
+          view_count: number
         }
         Insert: {
           created_at?: string
           id?: string
           input_text: string
           is_favorite?: boolean
+          is_public?: boolean
           outputs?: Json | null
+          public_slug?: string | null
+          title?: string | null
           user_id: string
+          view_count?: number
         }
         Update: {
           created_at?: string
           id?: string
           input_text?: string
           is_favorite?: boolean
+          is_public?: boolean
           outputs?: Json | null
+          public_slug?: string | null
+          title?: string | null
           user_id?: string
+          view_count?: number
         }
         Relationships: []
       }

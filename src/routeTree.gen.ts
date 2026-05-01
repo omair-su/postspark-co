@@ -11,14 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blog'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
+import { Route as DashboardReferralsRouteImport } from './routes/dashboard.referrals'
 import { Route as DashboardImportRouteImport } from './routes/dashboard.import'
 import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
 import { Route as DashboardHookLabRouteImport } from './routes/dashboard.hook-lab'
@@ -38,6 +42,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -53,10 +62,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GalleryIndexRoute = GalleryIndexRouteImport.update({
+  id: '/gallery/',
+  path: '/gallery/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const GallerySlugRoute = GallerySlugRouteImport.update({
+  id: '/gallery/$slug',
+  path: '/gallery/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardTemplatesRoute = DashboardTemplatesRouteImport.update({
   id: '/templates',
@@ -76,6 +95,11 @@ const DashboardSeoBlogRoute = DashboardSeoBlogRouteImport.update({
 const DashboardRepurposeRoute = DashboardRepurposeRouteImport.update({
   id: '/repurpose',
   path: '/repurpose',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardReferralsRoute = DashboardReferralsRouteImport.update({
+  id: '/referrals',
+  path: '/referrals',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardImportRoute = DashboardImportRouteImport.update({
@@ -123,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -133,15 +158,19 @@ export interface FileRoutesByFullPath {
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/gallery/$slug': typeof GallerySlugRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/gallery/': typeof GalleryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -152,17 +181,21 @@ export interface FileRoutesByTo {
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/gallery/$slug': typeof GallerySlugRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/gallery': typeof GalleryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -173,11 +206,14 @@ export interface FileRoutesById {
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/gallery/$slug': typeof GallerySlugRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/gallery/': typeof GalleryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -185,6 +221,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/onboarding'
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
@@ -195,15 +232,19 @@ export interface FileRouteTypes {
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/referrals'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
     | '/dashboard/templates'
+    | '/gallery/$slug'
     | '/dashboard/'
+    | '/gallery/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/onboarding'
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
@@ -214,16 +255,20 @@ export interface FileRouteTypes {
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/referrals'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
     | '/dashboard/templates'
+    | '/gallery/$slug'
     | '/dashboard'
+    | '/gallery'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
     | '/login'
+    | '/onboarding'
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
@@ -234,20 +279,26 @@ export interface FileRouteTypes {
     | '/dashboard/hook-lab'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/referrals'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
     | '/dashboard/templates'
+    | '/gallery/$slug'
     | '/dashboard/'
+    | '/gallery/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  GallerySlugRoute: typeof GallerySlugRoute
+  GalleryIndexRoute: typeof GalleryIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -264,6 +315,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -287,12 +345,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gallery/': {
+      id: '/gallery/'
+      path: '/gallery'
+      fullPath: '/gallery/'
+      preLoaderRoute: typeof GalleryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/gallery/$slug': {
+      id: '/gallery/$slug'
+      path: '/gallery/$slug'
+      fullPath: '/gallery/$slug'
+      preLoaderRoute: typeof GallerySlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dashboard/templates': {
       id: '/dashboard/templates'
@@ -320,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/repurpose'
       fullPath: '/dashboard/repurpose'
       preLoaderRoute: typeof DashboardRepurposeRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/referrals': {
+      id: '/dashboard/referrals'
+      path: '/referrals'
+      fullPath: '/dashboard/referrals'
+      preLoaderRoute: typeof DashboardReferralsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/import': {
@@ -389,6 +468,7 @@ interface DashboardRouteChildren {
   DashboardHookLabRoute: typeof DashboardHookLabRoute
   DashboardImageStudioRoute: typeof DashboardImageStudioRoute
   DashboardImportRoute: typeof DashboardImportRoute
+  DashboardReferralsRoute: typeof DashboardReferralsRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
@@ -404,6 +484,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHookLabRoute: DashboardHookLabRoute,
   DashboardImageStudioRoute: DashboardImageStudioRoute,
   DashboardImportRoute: DashboardImportRoute,
+  DashboardReferralsRoute: DashboardReferralsRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSeoBlogRoute: DashboardSeoBlogRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
@@ -419,9 +500,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  GallerySlugRoute: GallerySlugRoute,
+  GalleryIndexRoute: GalleryIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

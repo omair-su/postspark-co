@@ -22,6 +22,7 @@ function SignupPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState<string>("");
 
   useEffect(() => {
     let mounted = true;
@@ -30,6 +31,19 @@ function SignupPage() {
         navigate({ to: "/dashboard", replace: true });
       }
     });
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get("ref");
+      if (ref) {
+        setReferralCode(ref);
+        try { localStorage.setItem("postspark_ref", ref); } catch {}
+      } else {
+        try {
+          const stored = localStorage.getItem("postspark_ref");
+          if (stored) setReferralCode(stored);
+        } catch {}
+      }
+    }
     return () => {
       mounted = false;
     };
@@ -42,7 +56,7 @@ function SignupPage() {
       email,
       password,
       options: {
-        data: { full_name: name },
+        data: { full_name: name, ...(referralCode ? { referral_code: referralCode } : {}) },
         emailRedirectTo: window.location.origin,
       },
     });
@@ -50,6 +64,7 @@ function SignupPage() {
     if (error) {
       toast.error(error.message);
     } else if (data.session) {
+      try { localStorage.removeItem("postspark_ref"); } catch {}
       toast.success("Account created!");
       navigate({ to: "/dashboard", replace: true });
     } else {
@@ -86,6 +101,11 @@ function SignupPage() {
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <h1 className="text-xl font-bold text-foreground">Create your account</h1>
           <p className="mt-1 text-sm text-muted-foreground">Start repurposing content for free</p>
+          {referralCode && (
+            <div className="mt-3 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-foreground">
+              🎁 You were invited! You'll get <span className="font-semibold">20% off Pro</span> when you upgrade.
+            </div>
+          )}
 
           <button
             onClick={handleGoogle}
