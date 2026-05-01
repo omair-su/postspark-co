@@ -15,7 +15,7 @@ export function exportToPdf(sections: ExportSection[], filename = "repurpose-exp
   // Header
   doc.setFontSize(8);
   doc.setTextColor(124, 58, 237); // electric purple
-  doc.text("RepurposeAI", margin, y);
+  doc.text("PostSpark", margin, y);
   doc.setTextColor(160, 160, 170);
   doc.text(new Date().toLocaleDateString(), pageW - margin, y, { align: "right" });
   y += 10;

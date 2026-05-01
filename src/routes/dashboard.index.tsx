@@ -43,7 +43,7 @@ function DashboardHome() {
 
   return (
     <div className="mx-auto max-w-3xl animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Welcome back, {name}!</h1>
+      <h1 className="text-2xl font-bold text-foreground">Welcome to PostSpark 👋</h1>
       <p className="mt-1 text-sm text-muted-foreground">Here's your content repurposing overview.</p>
 
       {/* Stats cards */}

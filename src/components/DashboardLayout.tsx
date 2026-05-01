@@ -36,7 +36,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="flex h-7 w-7 items-center justify-center rounded-lg gradient-electric">
           <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
         </div>
-        <span className="text-sm font-bold">RepurposeAI</span>
+        <span className="text-sm font-bold">PostSpark</span>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
