@@ -19,6 +19,7 @@ import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templ
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
+import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
@@ -72,6 +73,11 @@ const DashboardHistoryRoute = DashboardHistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBrandVoiceRoute = DashboardBrandVoiceRouteImport.update({
+  id: '/brand-voice',
+  path: '/brand-voice',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
+    | '/dashboard/brand-voice'
     | '/dashboard/history'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
+    | '/dashboard/brand-voice'
     | '/dashboard/history'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
+    | '/dashboard/brand-voice'
     | '/dashboard/history'
     | '/dashboard/repurpose'
     | '/dashboard/settings'
@@ -250,6 +262,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHistoryRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/brand-voice': {
+      id: '/dashboard/brand-voice'
+      path: '/brand-voice'
+      fullPath: '/dashboard/brand-voice'
+      preLoaderRoute: typeof DashboardBrandVoiceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/analytics': {
       id: '/dashboard/analytics'
       path: '/analytics'
@@ -269,6 +288,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
@@ -278,6 +298,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,

@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type, Eye, FileText } from "lucide-react";
 import { repurposeContent, getMonthlyUsage } from "@/server/repurpose.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { ToneSelector } from "@/components/ToneSelector";
+import { VisualPreview } from "@/components/VisualPreview";
 
 const contentTypes = [
   { id: "tweets", label: "10 Tweets", emoji: "🐦" },
@@ -375,6 +376,8 @@ function ResultCard({
 }) {
   const wordCount = content.split(/\s+/).filter(Boolean).length;
   const charCount = content.length;
+  const previewable = ["tweets", "thread", "linkedin", "instagram", "facebook"].includes(id);
+  const [view, setView] = useState<"raw" | "preview">(previewable ? "preview" : "raw");
 
   const handleExportPdf = () => {
     exportToPdf([{ title, content }], `repurpose-${id}`);
@@ -386,6 +389,26 @@ function ResultCard({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         <div className="flex gap-2 flex-wrap">
+          {previewable && (
+            <div className="flex items-center rounded-lg border border-border overflow-hidden">
+              <button
+                onClick={() => setView("preview")}
+                className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-colors ${
+                  view === "preview" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Eye className="h-3 w-3" /> Preview
+              </button>
+              <button
+                onClick={() => setView("raw")}
+                className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-colors ${
+                  view === "raw" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <FileText className="h-3 w-3" /> Raw
+              </button>
+            </div>
+          )}
           <button
             onClick={() => onCopy(content, id)}
             className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -424,7 +447,13 @@ function ResultCard({
         )}
       </div>
 
-      <pre className="mt-3 whitespace-pre-wrap text-sm text-foreground leading-relaxed">{content}</pre>
+      {view === "preview" && previewable ? (
+        <div className="mt-4">
+          <VisualPreview typeId={id} content={content} />
+        </div>
+      ) : (
+        <pre className="mt-3 whitespace-pre-wrap text-sm text-foreground leading-relaxed">{content}</pre>
+      )}
     </div>
   );
 }
