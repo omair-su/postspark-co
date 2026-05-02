@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_images: {
+        Row: {
+          aspect: string | null
+          created_at: string
+          id: string
+          image_url: string
+          prompt: string
+          source: string
+          style: string | null
+          template: string | null
+          user_id: string
+        }
+        Insert: {
+          aspect?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          prompt: string
+          source?: string
+          style?: string | null
+          template?: string | null
+          user_id: string
+        }
+        Update: {
+          aspect?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          prompt?: string
+          source?: string
+          style?: string | null
+          template?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
