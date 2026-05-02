@@ -326,7 +326,7 @@ function ImageStudioPage() {
     setLoading(true);
     setCarouselSlides([]);
     try {
-      const res = await generateCarousel({
+      const res: any = await generateCarousel({
         data: { topic: carouselTopic.trim(), style },
       });
       if (res.error) {
