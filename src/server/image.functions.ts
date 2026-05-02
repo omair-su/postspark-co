@@ -2,17 +2,55 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { generateSocialImage, generateVariations, editImage } from "./image.server";
+import {
+  generateSocialImage,
+  generateVariations,
+  editImage,
+  generateCarouselSet,
+  checkPromptSafety,
+  generateCaption,
+} from "./image.server";
 
-async function assertPro(supabase: any, userId: string) {
+const FREE_MONTHLY_LIMIT = 5; // free tier preview generations
+const PRO_MONTHLY_LIMIT = 500; // soft cap for Pro/Agency
+
+async function getPlan(supabase: any, userId: string): Promise<string> {
   const { data: profile } = await supabase
     .from("profiles")
     .select("plan")
     .eq("user_id", userId)
     .single();
-  const plan = profile?.plan || "free";
+  return profile?.plan || "free";
+}
+
+async function isPro(plan: string) {
   return plan === "pro" || plan === "agency";
 }
+
+async function monthStartIso() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
+}
+
+async function countMonthlyGenerations(userId: string): Promise<number> {
+  const since = await monthStartIso();
+  const { count } = await supabaseAdmin
+    .from("generated_images")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", since);
+  return count || 0;
+}
+
+export const getImageUsage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const plan = await getPlan(supabase, userId);
+    const used = await countMonthlyGenerations(userId);
+    const limit = (await isPro(plan)) ? PRO_MONTHLY_LIMIT : FREE_MONTHLY_LIMIT;
+    return { plan, used, limit, remaining: Math.max(0, limit - used) };
+  });
 
 export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -26,7 +64,8 @@ export const generateImage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (!(await assertPro(supabase, userId)))
+    const plan = await getPlan(supabase, userId);
+    if (!(await isPro(plan)))
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
     return generateSocialImage(data.prompt, data.style, data.aspect, data.template);
   });
@@ -44,7 +83,8 @@ export const generateImageVariations = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (!(await assertPro(supabase, userId)))
+    const plan = await getPlan(supabase, userId);
+    if (!(await isPro(plan)))
       return { results: [], error: "Variations is a Pro feature. Upgrade to unlock." };
     const results = await generateVariations(
       data.prompt,
@@ -54,6 +94,27 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       data.count,
     );
     return { results };
+  });
+
+export const generateCarousel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      topic: z.string().min(3).max(500),
+      style: z.string().min(1).max(40).default("minimal"),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const plan = await getPlan(supabase, userId);
+    if (!(await isPro(plan)))
+      return {
+        results: [],
+        slides: [],
+        error: "Carousel generation is a Pro feature. Upgrade to unlock.",
+      };
+    const out = await generateCarouselSet(data.topic, data.style);
+    return out;
   });
 
 export const editUploadedImage = createServerFn({ method: "POST" })
@@ -66,12 +127,21 @@ export const editUploadedImage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (!(await assertPro(supabase, userId)))
+    const plan = await getPlan(supabase, userId);
+    if (!(await isPro(plan)))
       return { imageUrl: "", error: "Image editing is a Pro feature. Upgrade to unlock." };
     return editImage(data.imageDataUrl, data.instruction);
   });
 
-// Save a generated image to storage + library
+export const captionForImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ prompt: z.string().min(1).max(2000) }).parse)
+  .handler(async ({ data }) => {
+    const caption = await generateCaption(data.prompt);
+    return { caption };
+  });
+
+// Save a generated image to storage + library (with optional safety check)
 export const saveImageToLibrary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -82,12 +152,23 @@ export const saveImageToLibrary = createServerFn({ method: "POST" })
       aspect: z.string().max(40).optional(),
       template: z.string().max(40).optional(),
       source: z.string().max(20).default("generate"),
+      safetyCheck: z.boolean().default(true),
     }).parse,
   )
   .handler(async ({ data, context }) => {
     const { userId } = context;
     try {
-      // Convert data URL to bytes
+      if (data.safetyCheck) {
+        const safety = await checkPromptSafety(data.prompt);
+        if (!safety.safe) {
+          return {
+            error:
+              "Image not saved — content flagged by safety check" +
+              (safety.reason ? `: ${safety.reason}` : ""),
+          };
+        }
+      }
+
       const match = data.imageDataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
       if (!match) return { error: "Invalid image data" };
       const mime = match[1];
@@ -150,7 +231,6 @@ export const deleteLibraryImage = createServerFn({ method: "POST" })
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    // Fetch to get path for storage delete
     const { data: row } = await supabase
       .from("generated_images")
       .select("image_url")
@@ -158,7 +238,6 @@ export const deleteLibraryImage = createServerFn({ method: "POST" })
       .single();
     const { error } = await supabase.from("generated_images").delete().eq("id", data.id);
     if (error) return { error: "Delete failed" };
-    // Best-effort storage delete
     if (row?.image_url) {
       const marker = "/generated-images/";
       const idx = row.image_url.indexOf(marker);
