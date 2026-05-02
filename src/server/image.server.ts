@@ -130,3 +130,145 @@ export async function editImage(
     },
   ]);
 }
+
+// Generate a 5-slide Instagram carousel with consistent style/typography
+export async function generateCarouselSet(
+  topic: string,
+  style: string,
+): Promise<{ results: ImageGenResult[]; slides: { title: string; body: string }[] }> {
+  // Step 1: ask a text model for slide copy + a shared visual style descriptor
+  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+  let slides: { title: string; body: string }[] = [];
+  let visualLanguage =
+    "consistent typography (bold sans-serif), unified color palette, identical layout grid, brand-cohesive";
+
+  try {
+    const planRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You design Instagram carousels. Reply with strict JSON only: {\"visualLanguage\":\"...\",\"slides\":[{\"title\":\"...\",\"body\":\"...\"}, x5]}. Slide 1 = hook cover. Slides 2-4 = value/insight. Slide 5 = CTA. Titles ≤6 words, body ≤16 words.",
+          },
+          { role: "user", content: `Topic: ${topic}` },
+        ],
+      }),
+    });
+    if (planRes.ok) {
+      const j = await planRes.json();
+      const txt = j.choices?.[0]?.message?.content || "";
+      const match = txt.match(/\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        if (Array.isArray(parsed.slides)) slides = parsed.slides.slice(0, 5);
+        if (parsed.visualLanguage) visualLanguage = parsed.visualLanguage;
+      }
+    }
+  } catch (e) {
+    console.error("carousel plan error", e);
+  }
+
+  // Fallback slides if planning failed
+  if (slides.length < 5) {
+    slides = [
+      { title: topic, body: "Swipe →" },
+      { title: "Why it matters", body: "Key insight one." },
+      { title: "How it works", body: "Practical detail." },
+      { title: "Pro tip", body: "Actionable takeaway." },
+      { title: "Save & share", body: "Follow for more." },
+    ];
+  }
+
+  // Step 2: generate 5 images in parallel, all sharing the same visual language
+  const tasks = slides.map((s, i) => {
+    const slidePrompt = [
+      `Instagram carousel slide ${i + 1} of 5 about "${topic}".`,
+      `Slide title text: "${s.title}". Body text: "${s.body}".`,
+      `Render the title and body text clearly and legibly on the image.`,
+      `Visual language (MUST stay consistent across the whole set): ${visualLanguage}.`,
+      `Square 1:1 composition, identical typography, identical color palette and layout grid as the other slides in this set.`,
+      styleHints[style] || styleHints.minimal,
+      "Premium social-media design, share-worthy.",
+    ].join(" ");
+    return callImageAI([{ role: "user", content: slidePrompt }]);
+  });
+
+  const results = await Promise.all(tasks);
+  return { results, slides };
+}
+
+// Lightweight content safety check using a text model on the prompt
+export async function checkPromptSafety(
+  prompt: string,
+): Promise<{ safe: boolean; reason?: string }> {
+  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+  if (!LOVABLE_API_KEY) return { safe: true };
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content:
+              'Classify a prompt for an image-generation tool. Reply ONLY strict JSON: {"safe":true|false,"reason":"..."}. Mark unsafe if it requests sexual content involving minors, real-person nudity/deepfakes, graphic gore, hate symbols, or instructions for weapons/violence. Otherwise safe.',
+          },
+          { role: "user", content: prompt.slice(0, 1500) },
+        ],
+      }),
+    });
+    if (!res.ok) return { safe: true };
+    const j = await res.json();
+    const txt = j.choices?.[0]?.message?.content || "";
+    const m = txt.match(/\{[\s\S]*\}/);
+    if (!m) return { safe: true };
+    const parsed = JSON.parse(m[0]);
+    return { safe: parsed.safe !== false, reason: parsed.reason };
+  } catch (e) {
+    console.error("safety check error", e);
+    return { safe: true };
+  }
+}
+
+// Generate a share-ready caption for an image prompt
+export async function generateCaption(prompt: string): Promise<string> {
+  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+  if (!LOVABLE_API_KEY) return prompt;
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Write a single share-ready Instagram/LinkedIn caption (<=280 chars) for the given image idea. Include a short hook, 1 line of value, one CTA, and 3-5 relevant hashtags at the end. Plain text only, no quotes.",
+          },
+          { role: "user", content: prompt.slice(0, 1500) },
+        ],
+      }),
+    });
+    if (!res.ok) return prompt;
+    const j = await res.json();
+    return (j.choices?.[0]?.message?.content || prompt).trim();
+  } catch {
+    return prompt;
+  }
+}
