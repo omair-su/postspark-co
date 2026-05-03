@@ -79,11 +79,7 @@ export const submitApprovalResponse = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data }) => {
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!
-    );
-    const { data: ok, error } = await supabase.rpc("respond_to_approval", {
+    const { data: ok, error } = await supabaseAdmin.rpc("respond_to_approval", {
       _token: data.token,
       _status: data.status,
       _client_name: data.clientName ?? null,
