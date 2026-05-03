@@ -49,6 +49,8 @@ function CalendarPage() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Post | null>(null);
   const [defaultDate, setDefaultDate] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "scheduled" | "published" | "failed">("all");
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const monthLabel = cursor.toLocaleString(undefined, { month: "long", year: "numeric" });
 
