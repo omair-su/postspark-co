@@ -158,7 +158,7 @@ function CalendarPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Content Calendar</h1>
-            <p className="text-sm text-muted-foreground">Plan, schedule, and visualize your posts across platforms.</p>
+            <p className="text-sm text-muted-foreground">Plan, schedule, and visualize your posts across platforms. <span className="text-[11px] opacity-70">(Times in {tz})</span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
