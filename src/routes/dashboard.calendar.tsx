@@ -98,16 +98,24 @@ function CalendarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursor, session]);
 
+  const filteredPosts = useMemo(() => {
+    if (statusFilter === "all") return posts;
+    if (statusFilter === "failed") return posts.filter((p) => !!(p as any).publish_error);
+    return posts.filter((p) => p.status === statusFilter);
+  }, [posts, statusFilter]);
+
+  const failedCount = useMemo(() => posts.filter((p) => !!(p as any).publish_error).length, [posts]);
+
   const postsByDay = useMemo(() => {
     const map = new Map<string, Post[]>();
-    for (const p of posts) {
+    for (const p of filteredPosts) {
       const d = new Date(p.scheduled_for);
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(p);
     }
     return map;
-  }, [posts]);
+  }, [filteredPosts]);
 
   const openNew = (date: Date) => {
     setEditing(null);
