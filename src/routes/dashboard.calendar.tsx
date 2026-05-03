@@ -217,6 +217,29 @@ function CalendarPage() {
         </div>
       </div>
 
+      {/* Status filter chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        {(["all","scheduled","published","failed"] as const).map((s) => {
+          const count = s === "all" ? posts.length : s === "failed" ? failedCount : posts.filter((p) => p.status === s).length;
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${
+                statusFilter === s ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {s} <span className="ml-1 opacity-60">({count})</span>
+            </button>
+          );
+        })}
+        {failedCount > 0 && (
+          <span className="ml-auto rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1 text-[11px] font-medium text-destructive">
+            {failedCount} publish failure{failedCount === 1 ? "" : "s"}
+          </span>
+        )}
+      </div>
+
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="mb-4 flex items-center justify-between">
           <button
