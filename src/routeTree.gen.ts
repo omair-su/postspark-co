@@ -17,6 +17,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
@@ -73,6 +74,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const GallerySlugRoute = GallerySlugRouteImport.update({
   id: '/gallery/$slug',
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/gallery/$slug': typeof GallerySlugRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
 }
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/gallery/$slug': typeof GallerySlugRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
 }
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/gallery/$slug': typeof GallerySlugRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
 }
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/gallery/$slug'
+    | '/invite/$token'
     | '/dashboard/'
     | '/gallery/'
   fileRoutesByTo: FileRoutesByTo
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/gallery/$slug'
+    | '/invite/$token'
     | '/dashboard'
     | '/gallery'
   id:
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/gallery/$slug'
+    | '/invite/$token'
     | '/dashboard/'
     | '/gallery/'
   fileRoutesById: FileRoutesById
@@ -322,6 +334,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   GallerySlugRoute: typeof GallerySlugRoute
+  InviteTokenRoute: typeof InviteTokenRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
 }
 
@@ -382,6 +395,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/gallery/$slug': {
       id: '/gallery/$slug'
@@ -547,6 +567,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   GallerySlugRoute: GallerySlugRoute,
+  InviteTokenRoute: InviteTokenRoute,
   GalleryIndexRoute: GalleryIndexRoute,
 }
 export const routeTree = rootRouteImport
