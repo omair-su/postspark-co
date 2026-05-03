@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, Palette, Type, Sparkles, ArrowLeft } from "lucide-react";
-import { getBrandKit, upsertBrandKit } from "@/server/brandKit.functions";
+import { Loader2, Upload, Palette, Type, Sparkles, ArrowLeft, Trash2, RefreshCw, Check, AlertTriangle } from "lucide-react";
+import { getBrandKit, upsertBrandKit, deleteBrandLogo } from "@/server/brandKit.functions";
+import { gradeContrast } from "@/lib/contrast";
 
 export const Route = createFileRoute("/dashboard/brand-kit")({
   component: BrandKitPage,
