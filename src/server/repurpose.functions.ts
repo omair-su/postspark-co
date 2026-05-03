@@ -71,6 +71,10 @@ export const repurposeContent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
+    if (rateLimited(userId)) {
+      return { output: "", error: "Rate limit: please wait a minute and try again." };
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("plan")
