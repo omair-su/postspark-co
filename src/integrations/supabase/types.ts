@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      approval_audit_log: {
+        Row: {
+          action: string
+          actor_label: string | null
+          actor_user_id: string | null
+          approval_id: string
+          client_comment: string | null
+          client_name: string | null
+          created_at: string
+          id: string
+          job_id: string
+          metadata: Json
+          new_status: string | null
+          old_status: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_label?: string | null
+          actor_user_id?: string | null
+          approval_id: string
+          client_comment?: string | null
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          metadata?: Json
+          new_status?: string | null
+          old_status?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_label?: string | null
+          actor_user_id?: string | null
+          approval_id?: string
+          client_comment?: string | null
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          metadata?: Json
+          new_status?: string | null
+          old_status?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       approval_requests: {
         Row: {
           client_comment: string | null
