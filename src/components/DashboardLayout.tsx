@@ -1,10 +1,11 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe, Sparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -15,6 +16,7 @@ const navItems = [
   { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
   { to: "/dashboard/calendar", icon: Calendar, label: "Calendar" },
   { to: "/dashboard/brand-voice", icon: Mic, label: "Brand Voice" },
+  { to: "/dashboard/brand-kit", icon: Sparkles, label: "Brand Kit" },
   { to: "/dashboard/history", icon: History, label: "History" },
   { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
   { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
@@ -119,6 +121,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
+      <PWAInstallPrompt />
     </div>
   );
 }
