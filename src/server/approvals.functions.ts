@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 function genToken() {
   return [...crypto.getRandomValues(new Uint8Array(24))]
@@ -64,11 +64,7 @@ export const listApprovalRequests = createServerFn({ method: "POST" })
 export const fetchApprovalByToken = createServerFn({ method: "POST" })
   .inputValidator(z.object({ token: z.string().min(8).max(80) }).parse)
   .handler(async ({ data }) => {
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!
-    );
-    const { data: result, error } = await supabase.rpc("get_approval_by_token", { _token: data.token });
+    const { data: result, error } = await supabaseAdmin.rpc("get_approval_by_token", { _token: data.token });
     if (error) return { approval: null, error: error.message };
     return { approval: result, error: null };
   });
@@ -83,15 +79,11 @@ export const submitApprovalResponse = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data }) => {
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!
-    );
-    const { data: ok, error } = await supabase.rpc("respond_to_approval", {
+    const { data: ok, error } = await supabaseAdmin.rpc("respond_to_approval", {
       _token: data.token,
       _status: data.status,
-      _client_name: data.clientName ?? null,
-      _client_comment: data.clientComment ?? null,
+      _client_name: (data.clientName ?? null) as string,
+      _client_comment: (data.clientComment ?? null) as string,
     });
     if (error) return { success: false, error: error.message };
     return { success: ok === true };
