@@ -22,6 +22,8 @@ const navItems = [
   { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
   { to: "/dashboard/referrals", icon: Gift, label: "Refer & Earn" },
   { to: "/gallery", icon: Globe, label: "Gallery" },
+  { to: "/dashboard/team", icon: Users, label: "Team" },
+  { to: "/dashboard/agency-analytics", icon: Building2, label: "Agency Analytics" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ] as const;
 
