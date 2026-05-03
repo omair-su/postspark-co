@@ -144,7 +144,30 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5 text-foreground" />
           </button>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            {ws.workspace && (
+              <div className="hidden items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1 text-xs sm:flex">
+                <Building2 className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium text-foreground">{ws.workspace.name}</span>
+                {ws.brandKits.length > 0 && (
+                  <>
+                    <span className="text-muted-foreground">·</span>
+                    <select
+                      value={ws.activeBrandKitId || ""}
+                      onChange={(e) => handleSwitchKit(e.target.value || null)}
+                      className="bg-transparent text-foreground focus:outline-none"
+                      title="Active brand"
+                    >
+                      <option value="">All brands</option>
+                      {ws.brandKits.map((k) => (
+                        <option key={k.id} value={k.id}>{k.brand_name || "Unnamed"}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  </>
+                )}
+              </div>
+            )}
             <ThemeToggle />
           </div>
         </header>
