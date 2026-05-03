@@ -80,8 +80,18 @@ function RepurposePage() {
 
   useEffect(() => {
     if (user && session) {
-      getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
-        .then(setUsage)
+      const auth = { headers: { Authorization: `Bearer ${session.access_token}` } };
+      getMonthlyUsage(auth).then(setUsage).catch(() => {});
+      getBrandKit(auth)
+        .then(({ kit }) => {
+          if (kit) {
+            setBrandKit({
+              brand_name: (kit as any).brand_name ?? null,
+              tagline: (kit as any).tagline ?? null,
+              preferred_tone: (kit as any).preferred_tone ?? null,
+            });
+          }
+        })
         .catch(() => {});
     }
   }, [user, session]);
