@@ -204,6 +204,14 @@ function RepurposePage() {
           .catch(() => {});
       }
 
+      // Trigger PWA install prompt eligibility after first successful repurpose
+      try {
+        if (typeof window !== "undefined" && localStorage.getItem("ps_pwa_ready_v1") !== "1") {
+          localStorage.setItem("ps_pwa_ready_v1", "1");
+          window.dispatchEvent(new Event("postspark:pwa-ready"));
+        }
+      } catch {}
+
       toast.success("Content generated successfully!");
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
