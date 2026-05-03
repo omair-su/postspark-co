@@ -7,6 +7,7 @@ interface BIPEvent extends Event {
 }
 
 const STORAGE_KEY = "ps_pwa_prompt_state_v1";
+const READY_KEY = "ps_pwa_ready_v1"; // set after first successful repurpose
 
 export function PWAInstallPrompt() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
@@ -15,6 +16,36 @@ export function PWAInstallPrompt() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Gate: only show after the user has completed at least one repurpose
+    if (localStorage.getItem(READY_KEY) !== "1") {
+      const onReady = () => {
+        // Re-trigger by reloading the effect on next mount; simplest is to set state
+        if (localStorage.getItem(READY_KEY) === "1") setVisible((v) => v); // no-op; effect re-evaluates via window reload pattern
+      };
+      window.addEventListener("postspark:pwa-ready", onReady);
+      // We still want to attach beforeinstallprompt early so we can capture it
+      // and show later — but only if not dismissed/installed.
+      const stateEarly = localStorage.getItem(STORAGE_KEY);
+      if (stateEarly === "dismissed" || stateEarly === "installed") {
+        return () => window.removeEventListener("postspark:pwa-ready", onReady);
+      }
+      const onBIPEarly = (e: Event) => {
+        e.preventDefault();
+        setDeferred(e as BIPEvent);
+        if (localStorage.getItem(READY_KEY) === "1") setVisible(true);
+      };
+      const onReadyShow = () => {
+        if (deferred || /iPad|iPhone|iPod/.test(window.navigator.userAgent)) setVisible(true);
+      };
+      window.addEventListener("beforeinstallprompt", onBIPEarly);
+      window.addEventListener("postspark:pwa-ready", onReadyShow);
+      return () => {
+        window.removeEventListener("beforeinstallprompt", onBIPEarly);
+        window.removeEventListener("postspark:pwa-ready", onReadyShow);
+        window.removeEventListener("postspark:pwa-ready", onReady);
+      };
+    }
 
     // Capability check — already installed / standalone
     const isStandalone =
