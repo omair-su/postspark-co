@@ -2,13 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2, X, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2, X, Loader2, Upload } from "lucide-react";
 import {
   listScheduledPosts,
   createScheduledPost,
   deleteScheduledPost,
   updateScheduledPost,
+  bulkImportScheduledPosts,
 } from "@/server/calendar.functions";
+import { toast as toastFn } from "sonner";
 
 export const Route = createFileRoute("/dashboard/calendar")({
   component: CalendarPage,
