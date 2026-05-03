@@ -25,21 +25,16 @@ SAVEPOINT setup;
 -- request.jwt.claims directly — RLS uses auth.uid() which reads that claim.
 DO $$
 DECLARE
-  u_a uuid;
-  u_b uuid;
+  u_a uuid := :'user_a';
+  u_b uuid := :'user_b';
   ws_a uuid;
   job_a uuid;
   job_shared uuid;
   appr_id uuid;
   cnt int;
 BEGIN
-  -- Pick two existing auth users to use as fixtures (we cannot insert into
-  -- auth.users with the standard connection, so we reuse real user ids and
-  -- roll the entire transaction back at the end).
-  SELECT id INTO u_a FROM auth.users ORDER BY created_at LIMIT 1;
-  SELECT id INTO u_b FROM auth.users WHERE id <> u_a ORDER BY created_at LIMIT 1;
-  IF u_a IS NULL OR u_b IS NULL THEN
-    RAISE EXCEPTION 'Need ≥2 auth.users in the project to run RLS tests';
+  IF u_a IS NULL OR u_b IS NULL OR u_a = u_b THEN
+    RAISE EXCEPTION 'Pass two distinct -v user_a / -v user_b uuids';
   END IF;
 
   -- Profiles (may already exist for these users)
