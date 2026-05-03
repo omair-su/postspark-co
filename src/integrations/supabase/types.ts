@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      brand_kits: {
+        Row: {
+          accent_color: string | null
+          brand_handle: string | null
+          brand_name: string | null
+          created_at: string
+          font_body: string | null
+          font_heading: string | null
+          id: string
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          tagline: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent_color?: string | null
+          brand_handle?: string | null
+          brand_name?: string | null
+          created_at?: string
+          font_body?: string | null
+          font_heading?: string | null
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          tagline?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent_color?: string | null
+          brand_handle?: string | null
+          brand_name?: string | null
+          created_at?: string
+          font_body?: string | null
+          font_heading?: string | null
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          tagline?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       brand_voices: {
         Row: {
           created_at: string
@@ -82,6 +130,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      post_metrics: {
+        Row: {
+          comments: number | null
+          fetched_at: string
+          id: string
+          impressions: number | null
+          likes: number | null
+          platform: string
+          platform_post_id: string
+          scheduled_post_id: string | null
+          shares: number | null
+          user_id: string
+        }
+        Insert: {
+          comments?: number | null
+          fetched_at?: string
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          platform: string
+          platform_post_id: string
+          scheduled_post_id?: string | null
+          shares?: number | null
+          user_id: string
+        }
+        Update: {
+          comments?: number | null
+          fetched_at?: string
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          platform?: string
+          platform_post_id?: string
+          scheduled_post_id?: string | null
+          shares?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_metrics_scheduled_post_id_fkey"
+            columns: ["scheduled_post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -200,7 +295,11 @@ export type Database = {
           created_at: string
           id: string
           platform: string
+          platform_post_id: string | null
+          publish_error: string | null
+          published_at: string | null
           scheduled_for: string
+          social_account_id: string | null
           status: string
           title: string
           updated_at: string
@@ -211,7 +310,11 @@ export type Database = {
           created_at?: string
           id?: string
           platform?: string
+          platform_post_id?: string | null
+          publish_error?: string | null
+          published_at?: string | null
           scheduled_for: string
+          social_account_id?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -222,9 +325,63 @@ export type Database = {
           created_at?: string
           id?: string
           platform?: string
+          platform_post_id?: string | null
+          publish_error?: string | null
+          published_at?: string | null
           scheduled_for?: string
+          social_account_id?: string | null
           status?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_posts_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_accounts: {
+        Row: {
+          access_token: string
+          created_at: string
+          id: string
+          platform: string
+          platform_user_id: string
+          platform_username: string | null
+          refresh_token: string | null
+          scopes: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          id?: string
+          platform: string
+          platform_user_id: string
+          platform_username?: string | null
+          refresh_token?: string | null
+          scopes?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          id?: string
+          platform?: string
+          platform_user_id?: string
+          platform_username?: string | null
+          refresh_token?: string | null
+          scopes?: string | null
+          token_expires_at?: string | null
           updated_at?: string
           user_id?: string
         }
