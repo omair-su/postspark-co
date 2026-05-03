@@ -24,29 +24,26 @@ SAVEPOINT setup;
 -- request.jwt.claims directly — RLS uses auth.uid() which reads that claim.
 DO $$
 DECLARE
-  u_a uuid := '11111111-1111-1111-1111-111111111111';
-  u_b uuid := '22222222-2222-2222-2222-222222222222';
+  u_a uuid;
+  u_b uuid;
   ws_a uuid;
   job_a uuid;
   job_shared uuid;
   appr_id uuid;
   cnt int;
 BEGIN
-  -- Seed as service-role (current connection) to bypass RLS for fixture setup.
+  -- Pick two existing auth users to use as fixtures (we cannot insert into
+  -- auth.users with the standard connection, so we reuse real user ids and
+  -- roll the entire transaction back at the end).
+  SELECT id INTO u_a FROM auth.users ORDER BY created_at LIMIT 1;
+  SELECT id INTO u_b FROM auth.users WHERE id <> u_a ORDER BY created_at LIMIT 1;
+  IF u_a IS NULL OR u_b IS NULL THEN
+    RAISE EXCEPTION 'Need ≥2 auth.users in the project to run RLS tests';
+  END IF;
 
-  -- Auth users (required by FKs from public tables)
-  INSERT INTO auth.users(id, instance_id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-  VALUES
-    (u_a, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-     'a-' || u_a || '@test.local', '', now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-    (u_b, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-     'b-' || u_b || '@test.local', '', now(), now(), now(), '{}'::jsonb, '{}'::jsonb)
-  ON CONFLICT (id) DO NOTHING;
-
-  -- Profiles
+  -- Profiles (may already exist for these users)
   INSERT INTO public.profiles(user_id, display_name, plan)
-  VALUES (u_a, 'User A', 'agency'), (u_b, 'User B', 'free')
+  VALUES (u_a, 'User A test', 'agency'), (u_b, 'User B test', 'free')
   ON CONFLICT DO NOTHING;
 
   -- Workspace owned by A
