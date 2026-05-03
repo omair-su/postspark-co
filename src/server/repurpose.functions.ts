@@ -5,6 +5,22 @@ import { generateRepurposedContent } from "./repurpose.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 
+// Per-instance rate limiter: max 10 AI calls / minute / user
+const RATE_BUCKET = new Map<string, number[]>();
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 10;
+function rateLimited(userId: string): boolean {
+  const now = Date.now();
+  const arr = (RATE_BUCKET.get(userId) || []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (arr.length >= RATE_MAX) {
+    RATE_BUCKET.set(userId, arr);
+    return true;
+  }
+  arr.push(now);
+  RATE_BUCKET.set(userId, arr);
+  return false;
+}
+
 export const getMonthlyUsage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
