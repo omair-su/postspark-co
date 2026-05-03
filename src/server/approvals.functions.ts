@@ -64,11 +64,7 @@ export const listApprovalRequests = createServerFn({ method: "POST" })
 export const fetchApprovalByToken = createServerFn({ method: "POST" })
   .inputValidator(z.object({ token: z.string().min(8).max(80) }).parse)
   .handler(async ({ data }) => {
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!
-    );
-    const { data: result, error } = await supabase.rpc("get_approval_by_token", { _token: data.token });
+    const { data: result, error } = await supabaseAdmin.rpc("get_approval_by_token", { _token: data.token });
     if (error) return { approval: null, error: error.message };
     return { approval: result, error: null };
   });
