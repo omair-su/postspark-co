@@ -10,7 +10,6 @@ import {
   updateScheduledPost,
   bulkImportScheduledPosts,
 } from "@/server/calendar.functions";
-import { toast as toastFn } from "sonner";
 
 export const Route = createFileRoute("/dashboard/calendar")({
   component: CalendarPage,
