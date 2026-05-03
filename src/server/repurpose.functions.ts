@@ -209,3 +209,22 @@ export const getAnalyticsData = createServerFn({ method: "POST" })
 
     return { jobs: jobs || [] };
   });
+
+export const bulkDeleteJobs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({ ids: z.array(z.string().uuid()).min(1).max(200) }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error, count } = await supabase
+      .from("repurpose_jobs")
+      .delete({ count: "exact" })
+      .in("id", data.ids)
+      .eq("user_id", userId);
+    if (error) {
+      console.error("Bulk delete error:", error);
+      return { success: false, deleted: 0 };
+    }
+    return { success: true, deleted: count ?? 0 };
+  });
