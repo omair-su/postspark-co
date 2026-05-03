@@ -185,11 +185,15 @@ function BrandKitPage() {
               <span className="text-xs text-muted-foreground">No logo</span>
             )}
           </div>
-          <div>
+          <div className="flex flex-wrap items-center gap-2">
             <label className="cursor-pointer rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent">
               {uploading ? (
                 <span className="inline-flex items-center gap-1">
                   <Loader2 className="h-3 w-3 animate-spin" /> Uploading…
+                </span>
+              ) : logoUrl ? (
+                <span className="inline-flex items-center gap-1">
+                  <RefreshCw className="h-3 w-3" /> Replace logo
                 </span>
               ) : (
                 "Upload logo"
@@ -202,7 +206,28 @@ function BrandKitPage() {
                 disabled={uploading}
               />
             </label>
-            <p className="mt-1 text-[10px] text-muted-foreground">PNG/SVG/JPG, max 2MB</p>
+            {logoUrl && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!session) return;
+                  if (!confirm("Delete your brand logo?")) return;
+                  const res = await deleteBrandLogo({
+                    headers: { Authorization: `Bearer ${session.access_token}` },
+                  });
+                  if (res.success) {
+                    setLogoUrl("");
+                    toast.success("Logo deleted");
+                  } else {
+                    toast.error("Could not delete logo");
+                  }
+                }}
+                className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3 w-3" /> Delete
+              </button>
+            )}
+            <p className="basis-full text-[10px] text-muted-foreground">PNG/SVG/JPG, max 2MB</p>
           </div>
         </div>
       </section>
