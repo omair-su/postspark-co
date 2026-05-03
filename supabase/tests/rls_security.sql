@@ -34,6 +34,16 @@ DECLARE
 BEGIN
   -- Seed as service-role (current connection) to bypass RLS for fixture setup.
 
+  -- Auth users (required by FKs from public tables)
+  INSERT INTO auth.users(id, instance_id, aud, role, email, encrypted_password,
+    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+  VALUES
+    (u_a, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+     'a-' || u_a || '@test.local', '', now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
+    (u_b, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+     'b-' || u_b || '@test.local', '', now(), now(), now(), '{}'::jsonb, '{}'::jsonb)
+  ON CONFLICT (id) DO NOTHING;
+
   -- Profiles
   INSERT INTO public.profiles(user_id, display_name, plan)
   VALUES (u_a, 'User A', 'agency'), (u_b, 'User B', 'free')
