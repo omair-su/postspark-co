@@ -244,7 +244,15 @@ function BrandKitPage() {
         </div>
       </section>
 
-      {/* Fonts */}
+      {/* Contrast & Readability */}
+      <ContrastPreview
+        primary={primary}
+        secondary={secondary}
+        accent={accent}
+        fontHeading={fontHeading}
+        fontBody={fontBody}
+      />
+
       <section className="mt-4 rounded-2xl border border-border bg-card p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <Type className="h-4 w-4 text-primary" /> Typography
