@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Crown, User } from "lucide-react";
+import { Loader2, Crown, User, Sparkles, ArrowRight } from "lucide-react";
 import { getMonthlyUsage } from "@/server/repurpose.functions";
 
 export const Route = createFileRoute("/dashboard/settings")({
@@ -133,6 +133,23 @@ function SettingsPage() {
           </button>
         </form>
       </div>
+
+      {/* Brand Kit shortcut */}
+      <Link
+        to="/dashboard/brand-kit"
+        className="mt-4 flex items-center justify-between rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
+            <Sparkles className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Brand Kit</p>
+            <p className="text-xs text-muted-foreground">Logo, colors, fonts & preferred tone — auto-applied to every generation.</p>
+          </div>
+        </div>
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
 
       {/* Subscription */}
       <div className="mt-4 rounded-xl border border-border bg-card p-5">

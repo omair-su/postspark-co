@@ -24,6 +24,7 @@ export type Database = {
           font_heading: string | null
           id: string
           logo_url: string | null
+          preferred_tone: string | null
           primary_color: string | null
           secondary_color: string | null
           tagline: string | null
@@ -39,6 +40,7 @@ export type Database = {
           font_heading?: string | null
           id?: string
           logo_url?: string | null
+          preferred_tone?: string | null
           primary_color?: string | null
           secondary_color?: string | null
           tagline?: string | null
@@ -54,6 +56,7 @@ export type Database = {
           font_heading?: string | null
           id?: string
           logo_url?: string | null
+          preferred_tone?: string | null
           primary_color?: string | null
           secondary_color?: string | null
           tagline?: string | null

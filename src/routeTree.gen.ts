@@ -29,6 +29,7 @@ import { Route as DashboardHookLabRouteImport } from './routes/dashboard.hook-la
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
+import { Route as DashboardBrandKitRouteImport } from './routes/dashboard.brand-kit'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
@@ -132,6 +133,11 @@ const DashboardBrandVoiceRoute = DashboardBrandVoiceRouteImport.update({
   path: '/brand-voice',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBrandKitRoute = DashboardBrandKitRouteImport.update({
+  id: '/brand-kit',
+  path: '/brand-kit',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
+    | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
     | '/dashboard/history'
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
+    | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
     | '/dashboard/history'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
+    | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
     | '/dashboard/history'
@@ -443,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBrandVoiceRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/brand-kit': {
+      id: '/dashboard/brand-kit'
+      path: '/brand-kit'
+      fullPath: '/dashboard/brand-kit'
+      preLoaderRoute: typeof DashboardBrandKitRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/analytics': {
       id: '/dashboard/analytics'
       path: '/analytics'
@@ -462,6 +481,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardBrandKitRoute: typeof DashboardBrandKitRoute
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
   DashboardCalendarRoute: typeof DashboardCalendarRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
@@ -478,6 +498,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardBrandKitRoute: DashboardBrandKitRoute,
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
   DashboardCalendarRoute: DashboardCalendarRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
