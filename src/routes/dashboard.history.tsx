@@ -67,9 +67,31 @@ function HistoryPage() {
 
   const filteredJobs = jobs.filter((j) => {
     if (filterFav && !j.is_favorite) return false;
-    if (search && !j.input_text.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const hay = `${j.title || ""} ${j.input_text}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     return true;
   });
+
+  const handleBulkDelete = async () => {
+    if (!session) return;
+    const ids = Array.from(bulkSelected);
+    if (ids.length === 0) { toast.error("Select at least one item"); return; }
+    if (!confirm(`Delete ${ids.length} item${ids.length === 1 ? "" : "s"}? This cannot be undone.`)) return;
+    const res: any = await bulkDeleteJobs({
+      data: { ids },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (res.success) {
+      setJobs((prev) => prev.filter((j) => !bulkSelected.has(j.id)));
+      setBulkSelected(new Set());
+      toast.success(`Deleted ${res.deleted}`);
+    } else {
+      toast.error("Delete failed");
+    }
+  };
 
   const handleBulkExportPdf = () => {
     const toExport = filteredJobs.filter((j) => bulkSelected.has(j.id));
