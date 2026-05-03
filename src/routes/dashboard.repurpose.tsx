@@ -224,6 +224,30 @@ function RepurposePage() {
       <h1 className="text-2xl font-bold text-foreground">Repurpose Content</h1>
       <p className="mt-1 text-sm text-muted-foreground">Transform your content into multiple formats with AI.</p>
 
+      {/* Brand Kit indicator */}
+      {brandKit && (brandKit.brand_name || brandKit.preferred_tone || brandKit.tagline) && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <span className="font-semibold text-foreground">Brand Kit active</span>
+          {brandKit.brand_name && (
+            <span className="rounded-full bg-background px-2 py-0.5 text-muted-foreground">
+              {brandKit.brand_name}
+            </span>
+          )}
+          {brandKit.preferred_tone && !overrideTone && (
+            <span className="rounded-full bg-background px-2 py-0.5 text-muted-foreground">
+              Tone: <span className="font-medium text-foreground">{brandKit.preferred_tone}</span>
+            </span>
+          )}
+          <span className={`rounded-full px-2 py-0.5 ${brandKit.tagline ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+            Tagline {brandKit.tagline ? "✓" : "—"}
+          </span>
+          <Link to="/dashboard/brand-kit" className="ml-auto text-primary hover:underline">
+            Edit
+          </Link>
+        </div>
+      )}
+
       {/* Usage banner */}
       {usage && (
         <div className={`mt-4 flex items-center gap-3 rounded-xl border p-4 text-sm ${
