@@ -11,9 +11,10 @@
 --   * Workspace helper functions are NOT executable by anon/authenticated.
 --   * Approval audit trigger writes a row on insert + status change.
 --
--- Run with: psql -f supabase/tests/rls_security.sql
--- All work is rolled back at the end. Any RAISE EXCEPTION = failed test.
--- ============================================================================
+-- Run with:
+--   psql -v user_a=<uuid> -v user_b=<uuid> -f supabase/tests/rls_security.sql
+-- Two real auth.users ids are required because public tables FK into auth.users
+-- and the test connection cannot insert there. Everything is rolled back.
 
 BEGIN;
 
