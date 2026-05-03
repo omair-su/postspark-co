@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, Palette, Type, Sparkles, ArrowLeft } from "lucide-react";
-import { getBrandKit, upsertBrandKit } from "@/server/brandKit.functions";
+import { Loader2, Upload, Palette, Type, Sparkles, ArrowLeft, Trash2, RefreshCw, Check, AlertTriangle } from "lucide-react";
+import { getBrandKit, upsertBrandKit, deleteBrandLogo } from "@/server/brandKit.functions";
+import { gradeContrast } from "@/lib/contrast";
 
 export const Route = createFileRoute("/dashboard/brand-kit")({
   component: BrandKitPage,
@@ -184,11 +185,15 @@ function BrandKitPage() {
               <span className="text-xs text-muted-foreground">No logo</span>
             )}
           </div>
-          <div>
+          <div className="flex flex-wrap items-center gap-2">
             <label className="cursor-pointer rounded-lg border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent">
               {uploading ? (
                 <span className="inline-flex items-center gap-1">
                   <Loader2 className="h-3 w-3 animate-spin" /> Uploading…
+                </span>
+              ) : logoUrl ? (
+                <span className="inline-flex items-center gap-1">
+                  <RefreshCw className="h-3 w-3" /> Replace logo
                 </span>
               ) : (
                 "Upload logo"
@@ -201,7 +206,28 @@ function BrandKitPage() {
                 disabled={uploading}
               />
             </label>
-            <p className="mt-1 text-[10px] text-muted-foreground">PNG/SVG/JPG, max 2MB</p>
+            {logoUrl && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!session) return;
+                  if (!confirm("Delete your brand logo?")) return;
+                  const res = await deleteBrandLogo({
+                    headers: { Authorization: `Bearer ${session.access_token}` },
+                  });
+                  if (res.success) {
+                    setLogoUrl("");
+                    toast.success("Logo deleted");
+                  } else {
+                    toast.error("Could not delete logo");
+                  }
+                }}
+                className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3 w-3" /> Delete
+              </button>
+            )}
+            <p className="basis-full text-[10px] text-muted-foreground">PNG/SVG/JPG, max 2MB</p>
           </div>
         </div>
       </section>
@@ -218,7 +244,15 @@ function BrandKitPage() {
         </div>
       </section>
 
-      {/* Fonts */}
+      {/* Contrast & Readability */}
+      <ContrastPreview
+        primary={primary}
+        secondary={secondary}
+        accent={accent}
+        fontHeading={fontHeading}
+        fontBody={fontBody}
+      />
+
       <section className="mt-4 rounded-2xl border border-border bg-card p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <Type className="h-4 w-4 text-primary" /> Typography
@@ -355,5 +389,90 @@ function FontField({
         The quick brown fox jumps.
       </p>
     </div>
+  );
+}
+
+function ContrastPreview({
+  primary,
+  secondary,
+  accent,
+  fontHeading,
+  fontBody,
+}: {
+  primary: string;
+  secondary: string;
+  accent: string;
+  fontHeading: string;
+  fontBody: string;
+}) {
+  const pairs = [
+    { label: "Body on Secondary (background)", fg: "#ffffff", bg: secondary },
+    { label: "Body on Primary", fg: "#ffffff", bg: primary },
+    { label: "Accent on Secondary", fg: accent, bg: secondary },
+    { label: "Primary on white", fg: primary, bg: "#ffffff" },
+  ];
+  const grades = pairs.map((p) => ({ ...p, g: gradeContrast(p.fg, p.bg) }));
+  const worst = grades.reduce((min, x) => (x.g.ratio < min.g.ratio ? x : min), grades[0]);
+
+  return (
+    <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+      <h2 className="flex items-center gap-2 text-sm font-semibold">
+        <Check className="h-4 w-4 text-primary" /> Contrast & readability
+      </h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        WCAG 2.1 — AA needs 4.5:1 for body text, 3:1 for large headings.
+      </p>
+
+      {worst.g.ratio < 4.5 && (
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 text-xs text-yellow-700 dark:text-yellow-400">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            <strong>{worst.label}</strong> only reaches {worst.g.ratio.toFixed(2)}:1. Body text may be hard to read — adjust your colors.
+          </span>
+        </div>
+      )}
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {grades.map((p) => (
+          <div
+            key={p.label}
+            className="rounded-lg border border-border p-3"
+            style={{ background: p.bg }}
+          >
+            <p
+              className="text-base font-bold"
+              style={{ color: p.fg, fontFamily: fontHeading }}
+            >
+              Heading sample
+            </p>
+            <p className="text-xs" style={{ color: p.fg, fontFamily: fontBody }}>
+              The quick brown fox jumps over the lazy dog.
+            </p>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-[10px] font-medium opacity-70" style={{ color: p.fg }}>
+                {p.label}
+              </span>
+              <ContrastBadge grade={p.g} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ContrastBadge({ grade }: { grade: ReturnType<typeof gradeContrast> }) {
+  const color =
+    grade.label === "AAA"
+      ? "bg-emerald-500"
+      : grade.label === "AA"
+        ? "bg-emerald-400"
+        : grade.label === "AA Large"
+          ? "bg-yellow-500"
+          : "bg-red-500";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold text-white ${color}`}>
+      {grade.label} · {grade.ratio.toFixed(2)}:1
+    </span>
   );
 }

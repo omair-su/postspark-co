@@ -4,9 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type, Eye, FileText } from "lucide-react";
 import { repurposeContent, getMonthlyUsage } from "@/server/repurpose.functions";
+import { getBrandKit } from "@/server/brandKit.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { ToneSelector } from "@/components/ToneSelector";
 import { VisualPreview } from "@/components/VisualPreview";
+import { Link } from "@tanstack/react-router";
 
 const contentTypes = [
   { id: "tweets", label: "10 Tweets", emoji: "🐦" },
@@ -44,6 +46,12 @@ function RepurposePage() {
   const [tone, setTone] = useState("professional");
   const [customInstructions, setCustomInstructions] = useState("");
   const [language, setLanguage] = useState("English");
+  const [brandKit, setBrandKit] = useState<{
+    brand_name: string | null;
+    tagline: string | null;
+    preferred_tone: string | null;
+  } | null>(null);
+  const [overrideTone, setOverrideTone] = useState(false);
 
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
@@ -72,8 +80,18 @@ function RepurposePage() {
 
   useEffect(() => {
     if (user && session) {
-      getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
-        .then(setUsage)
+      const auth = { headers: { Authorization: `Bearer ${session.access_token}` } };
+      getMonthlyUsage(auth).then(setUsage).catch(() => {});
+      getBrandKit(auth)
+        .then(({ kit }) => {
+          if (kit) {
+            setBrandKit({
+              brand_name: (kit as any).brand_name ?? null,
+              tagline: (kit as any).tagline ?? null,
+              preferred_tone: (kit as any).preferred_tone ?? null,
+            });
+          }
+        })
         .catch(() => {});
     }
   }, [user, session]);
@@ -155,11 +173,12 @@ function RepurposePage() {
     setRawOutput("");
 
     try {
+      const useBrandTone = !!brandKit?.preferred_tone && !overrideTone;
       const result = await repurposeContent({
         data: {
           inputText: input,
           selectedTypes: Array.from(selected),
-          tone,
+          tone: useBrandTone ? undefined : tone,
           customInstructions,
           language,
         },
@@ -204,6 +223,30 @@ function RepurposePage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-bold text-foreground">Repurpose Content</h1>
       <p className="mt-1 text-sm text-muted-foreground">Transform your content into multiple formats with AI.</p>
+
+      {/* Brand Kit indicator */}
+      {brandKit && (brandKit.brand_name || brandKit.preferred_tone || brandKit.tagline) && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <span className="font-semibold text-foreground">Brand Kit active</span>
+          {brandKit.brand_name && (
+            <span className="rounded-full bg-background px-2 py-0.5 text-muted-foreground">
+              {brandKit.brand_name}
+            </span>
+          )}
+          {brandKit.preferred_tone && !overrideTone && (
+            <span className="rounded-full bg-background px-2 py-0.5 text-muted-foreground">
+              Tone: <span className="font-medium text-foreground">{brandKit.preferred_tone}</span>
+            </span>
+          )}
+          <span className={`rounded-full px-2 py-0.5 ${brandKit.tagline ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+            Tagline {brandKit.tagline ? "✓" : "—"}
+          </span>
+          <Link to="/dashboard/brand-kit" className="ml-auto text-primary hover:underline">
+            Edit
+          </Link>
+        </div>
+      )}
 
       {/* Usage banner */}
       {usage && (
@@ -290,12 +333,31 @@ function RepurposePage() {
 
       {/* Step 3: Tone & Style */}
       <div className="mt-4">
-        <ToneSelector
-          tone={tone}
-          onToneChange={setTone}
-          customInstructions={customInstructions}
-          onCustomInstructionsChange={setCustomInstructions}
-        />
+        {brandKit?.preferred_tone && (
+          <div className="mb-2 flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 text-xs">
+            <span className="text-muted-foreground">
+              Brand Kit tone: <strong className="text-foreground capitalize">{brandKit.preferred_tone}</strong>
+              {!overrideTone && <span className="ml-1 text-primary">(in use)</span>}
+            </span>
+            <label className="inline-flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={overrideTone}
+                onChange={(e) => setOverrideTone(e.target.checked)}
+                className="h-3.5 w-3.5 accent-primary"
+              />
+              <span className="font-medium text-foreground">Override for this run</span>
+            </label>
+          </div>
+        )}
+        <div className={brandKit?.preferred_tone && !overrideTone ? "opacity-60 pointer-events-none" : ""}>
+          <ToneSelector
+            tone={tone}
+            onToneChange={setTone}
+            customInstructions={customInstructions}
+            onCustomInstructionsChange={setCustomInstructions}
+          />
+        </div>
       </div>
 
       {/* Step 4: Language */}
