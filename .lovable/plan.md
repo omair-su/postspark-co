@@ -1,85 +1,124 @@
+# PostSpark — Review & Next Roadmap
 
-# Agency Tier — Justify the $49/mo
+A walkthrough of what you have, what needs polish, and what to build next so the app is ready to charge real money.
 
-Right now Agency = Pro with a higher price. We'll add features that only make sense for people managing **multiple brands or clients with a team**. Each feature is gated server-side to `plan = 'agency'`.
+---
 
-## The 6 Agency-only features
+## 1. Where PostSpark stands today
 
-### 1. Team seats (up to 5 members)
-Owner invites teammates by email. Teammates sign up / log in and join the workspace. All members share the workspace's brand kits, history, scheduled posts, image library, and usage quota.
+**Live capability surface (28 routes, 18 server modules):**
+- Content engine: Repurpose, SEO Blog, Hook Lab, Import Studio, Brand Voice, Brand Kit, Templates
+- Visuals: Image Studio (AI image generation)
+- Distribution: Calendar (manual scheduling), public Gallery, History
+- Monetization scaffolding: Free / Pro / Agency tiers, usage limits, referrals
+- Agency tier: Workspaces, Team seats, Approvals, Agency Analytics, Bulk CSV
+- Onboarding wizard, PWA install prompt, Brand Kit auto-apply
 
-- New tables: `workspaces`, `workspace_members` (role: owner / admin / member), `workspace_invites` (email + token + expiry).
-- Refactor: existing per-user data (brand_kits, generated_images, repurpose_jobs, scheduled_posts, brand_voices, templates) gets an optional `workspace_id`. Server functions resolve "active workspace" for the current user and scope queries to it (falls back to personal data for Free/Pro).
-- UI: `/dashboard/team` page — member list, invite form, pending invites, remove member, role badge. Accept-invite flow at `/invite/$token`.
+**Honest gaps that block real usage:**
+1. **No real publishing** — "scheduled posts" never actually post to Twitter/LinkedIn. `social_accounts` table exists but no OAuth, no publisher cron.
+2. **No payments** — Pro/Agency upgrade buttons are decorative. No Stripe/Paddle. Plan is set manually in DB.
+3. **Analytics is fake** — `post_metrics` table has no writer; the Analytics page only shows local generation counts.
+4. **Approval emails not sent** — Agency approval links must be copy-pasted manually.
+5. **Team invites not emailed** — same problem; token only.
+6. **No admin/observability** — no way to see signups, MRR, errors, AI cost.
 
-### 2. Multi-brand / client workspaces
-Agency users can create **multiple brand kits** (one per client) and switch the "active" one from a top-bar workspace switcher. Pro users stay limited to one brand kit.
+---
 
-- Extend `brand_kits`: already keyed by user — add `workspace_id` and remove the implicit single-row assumption for Agency. Add a `is_active` flag per workspace.
-- Top-bar `BrandSwitcher` dropdown (next to user avatar in `DashboardLayout`). Persists active brand in localStorage + writes through to a `active_brand_kit_id` column on `workspace_members`.
-- Repurpose, Image Studio, and Scheduling all read the active brand kit instead of "the user's only brand kit".
+## 2. Refinements needed on existing features (Sprint 3.5)
 
-### 3. Client approval workflow
-Send generated content to a client for approval via a public review link — no client login needed.
+Small polish that meaningfully raises quality before adding new surface area.
 
-- New table `approval_requests` (job_id, workspace_id, public_token, status: pending/approved/changes_requested, client_email, client_comment, decided_at).
-- New public route `/review/$token` — client sees the generated outputs, can Approve or Request Changes with a comment. Email-less flow (link is the auth).
-- Inside Repurpose history, a "Send for approval" button on each job → generates link → copy / email. Status badge shown back in the dashboard.
+### Repurpose
+- Persist `brand_kit_id` and `workspace_id` on every job (currently `repurpose_jobs` has the columns but the insert doesn't fill them — breaks Agency Analytics rollups).
+- Re-run / regenerate a single output type without redoing all of them.
+- Per-output edit + save back to history.
 
-### 4. White-label / remove "Made with PostSpark"
-- Workspace-level toggle: hide PostSpark branding on shared review links and exported assets (image watermark, PDF footer, share pages under `/gallery/$slug`).
-- Optional custom logo + accent color injected into the review page (uses the active brand kit).
+### Brand Kit
+- Allow multiple brand kits for Agency (DB allows it, UI still single-row).
+- Show "applied to: X jobs this month" stat.
 
-### 5. Agency analytics rollup
-A dashboard view that aggregates **across all client brand kits** in the workspace: posts generated per brand, scheduled posts published, approval turnaround, top-performing platforms. Pro sees only their own; Agency sees a per-client breakdown with a brand filter.
+### Calendar
+- Drag-to-reschedule (currently date-edit only).
+- Status filter chips (scheduled / published / failed) and a "publish failures" callout.
+- Timezone awareness on schedule picker.
 
-- New route `/dashboard/agency-analytics`. Server function aggregates `repurpose_jobs`, `scheduled_posts`, `post_metrics` grouped by `brand_kit_id`.
+### Team / Workspace
+- BrandSwitcher in top bar (planned, never built) so Agency users can switch active client without leaving the page.
+- Clear "active workspace = X" indicator.
+- Server-scope every query by active workspace (today most still scope by `user_id` only).
 
-### 6. Bulk CSV import → schedule
-Upload a CSV (`date, platform, content`) and queue dozens of posts in one shot to the active brand's calendar. Agency-only.
+### History & Gallery
+- Full-text search across past jobs.
+- Tag/category filter.
+- Bulk delete.
 
-- New route action on `/dashboard/calendar`: "Bulk import CSV" button, parses client-side with PapaParse (already used elsewhere), inserts batch into `scheduled_posts`.
+### PWA / Onboarding
+- Show install prompt only after the user completes their first repurpose (not at login — too early).
+- Add a 1-line "what would you like to do first?" CTA on the dashboard for new users.
 
-## Technical plan
+### Security & infra
+- RLS audit on `social_accounts` (no INSERT/UPDATE policies → users can't connect accounts even when OAuth ships).
+- Add INSERT/UPDATE policies on `post_metrics` (currently locked, so the analytics writer can't function).
+- Rate-limit AI server functions per user/minute.
 
-**Migrations**
-- `workspaces (id, owner_id, name, white_label boolean default false, created_at)`
-- `workspace_members (workspace_id, user_id, role, active_brand_kit_id, joined_at)` PK (workspace_id, user_id)
-- `workspace_invites (id, workspace_id, email, token, role, expires_at, accepted_at)`
-- `approval_requests (id, job_id, workspace_id, token, status, client_email, client_comment, decided_at, created_at)`
-- Add `workspace_id uuid` (nullable) to: `brand_kits`, `generated_images`, `repurpose_jobs`, `scheduled_posts`, `brand_voices`, `templates`. Backfill = NULL (personal).
-- Drop the implicit "one brand_kit per user" UI guard for Agency.
+---
 
-**RLS**
-- Helper SQL function `is_workspace_member(_workspace_id uuid, _user_id uuid) returns boolean security definer` to avoid recursive RLS.
-- Update SELECT/INSERT/UPDATE/DELETE policies on the six scoped tables: allow when `auth.uid() = user_id` OR `workspace_id is not null and is_workspace_member(workspace_id, auth.uid())`.
-- `approval_requests`: public SELECT by token only (no auth) for the review page; workspace members for management.
+## 3. Sprint 4 — Make it a real SaaS
 
-**Plan gating (server-side)**
-- Centralize a `requireAgency(supabase, userId)` helper. Used at the top of every Agency-only server function: invites, multi-brand creation (>1 kit), approval requests, white-label toggle, agency analytics, bulk import.
-- UI shows soft upsell cards for Pro/Free.
+Three pillars, in priority order.
 
-**Active workspace resolution**
-- New helper `getActiveWorkspaceContext(supabase, userId)` → returns `{ workspaceId | null, brandKitId | null, role }`. Read from `workspace_members.active_brand_kit_id`. Patches into Repurpose / Image Studio / Brand Voice flows.
+### A. Real social publishing (the #1 broken promise)
+- Twitter/X OAuth 2.0 + LinkedIn OAuth → write tokens into `social_accounts`.
+- "Connect account" UI under Settings.
+- Publisher: pg_cron job hits `/api/public/publish-due-posts` every minute, posts due `scheduled_posts` via the platform API, writes back `platform_post_id` / `published_at` / `publish_error`.
+- Per-post preview that mirrors how it'll look on the actual platform.
 
-**New / edited files**
-- `supabase/migrations/[ts]_agency_tier.sql`
-- `src/server/workspace.functions.ts`, `src/server/workspace.server.ts`
-- `src/server/approvals.functions.ts`, `src/server/agencyAnalytics.functions.ts`
-- `src/lib/workspaceContext.ts` (client active-workspace store)
-- `src/components/BrandSwitcher.tsx` (top-bar)
-- `src/routes/dashboard.team.tsx`
-- `src/routes/dashboard.agency-analytics.tsx`
-- `src/routes/invite.$token.tsx`
-- `src/routes/review.$token.tsx`
-- Edits: `src/routes/dashboard.brand-kit.tsx` (multi-kit list), `src/routes/dashboard.repurpose.tsx` + `dashboard.image-studio.tsx` + `dashboard.calendar.tsx` (active brand awareness, approval button, CSV import), `src/components/DashboardLayout.tsx` (mount BrandSwitcher + Team nav), `src/components/landing/PricingSection.tsx` (refresh Agency feature list), `src/server/repurpose.functions.ts` + `brandKit.functions.ts` (workspace scoping)
+### B. Payments (turn on revenue)
+- Stripe Checkout for Pro ($19) and Agency ($49) with monthly + annual.
+- Customer portal for cancel/upgrade.
+- Webhook → updates `subscriptions` + `profiles.plan`.
+- Hard-enforce limits server-side on downgrade.
+- 14-day Pro trial on signup (no card) to lift conversion.
 
-**Out of scope for this sprint**
-- Real Stripe price for upgrade flow (already absent).
-- Email delivery for invites/approvals — we'll show the link to copy; SMTP wiring later.
-- Granular per-member permissions beyond owner/admin/member.
+### C. Performance analytics (close the loop)
+- Cron pulls likes/shares/comments/impressions from Twitter + LinkedIn for posts published in last 30 days, writes to `post_metrics`.
+- Analytics page: per-post engagement, best time-of-day, top hooks, brand-kit comparison.
+- Weekly email digest ("Your top post this week earned 142 likes").
 
-## Pricing page update
-Agency tier bullets become: **Up to 5 team seats · Multi-brand workspaces · Client approval links · White-label review pages · Agency analytics rollup · Bulk CSV scheduling**.
+### D. Email infrastructure (unblocks invites + approvals + digests)
+- Resend integration (or Lovable Cloud email).
+- Templates: invite, approval request, approval decided, weekly digest, trial ending.
 
-Approve and I'll build it end-to-end.
+---
+
+## 4. Sprint 5 — Growth & moat
+
+- **Chrome extension**: highlight any text on the web → "Repurpose with PostSpark".
+- **Notion / Google Docs import** (currently only paste/upload).
+- **AI agent mode**: "Turn this blog into a 30-day content calendar" → fills the calendar end-to-end.
+- **Public profile pages** for Gallery (`/u/$handle`) — SEO + virality.
+- **Affiliate program** built on top of existing referrals (cash payout, not credits).
+- **Admin dashboard** (internal): MRR, signups, churn, AI spend per user.
+
+---
+
+## 5. Recommended order
+
+```text
+Sprint 3.5  (1-2 days)  Refinements above — required before charging
+Sprint 4A   (2-3 days)  Real Twitter + LinkedIn publishing
+Sprint 4B   (1-2 days)  Stripe payments + trial
+Sprint 4C   (2 days)    Performance analytics pull
+Sprint 4D   (1 day)     Email infra (Resend)
+Sprint 5    (later)     Growth surface
+```
+
+---
+
+## What I'd like you to decide
+
+1. Do you want me to start with **Sprint 3.5 refinements** (polish existing) or jump straight to **Sprint 4A real publishing** (most-asked feature)?
+2. For payments: **Stripe** (default) or **Paddle** (better for non-US sellers, handles VAT)?
+3. For email: **Resend** (modern, dev-friendly) or use Lovable Cloud's built-in email?
+
+Reply with your picks and I'll execute.
