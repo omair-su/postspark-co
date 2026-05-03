@@ -333,12 +333,31 @@ function RepurposePage() {
 
       {/* Step 3: Tone & Style */}
       <div className="mt-4">
-        <ToneSelector
-          tone={tone}
-          onToneChange={setTone}
-          customInstructions={customInstructions}
-          onCustomInstructionsChange={setCustomInstructions}
-        />
+        {brandKit?.preferred_tone && (
+          <div className="mb-2 flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 text-xs">
+            <span className="text-muted-foreground">
+              Brand Kit tone: <strong className="text-foreground capitalize">{brandKit.preferred_tone}</strong>
+              {!overrideTone && <span className="ml-1 text-primary">(in use)</span>}
+            </span>
+            <label className="inline-flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={overrideTone}
+                onChange={(e) => setOverrideTone(e.target.checked)}
+                className="h-3.5 w-3.5 accent-primary"
+              />
+              <span className="font-medium text-foreground">Override for this run</span>
+            </label>
+          </div>
+        )}
+        <div className={brandKit?.preferred_tone && !overrideTone ? "opacity-60 pointer-events-none" : ""}>
+          <ToneSelector
+            tone={tone}
+            onToneChange={setTone}
+            customInstructions={customInstructions}
+            onCustomInstructionsChange={setCustomInstructions}
+          />
+        </div>
       </div>
 
       {/* Step 4: Language */}
