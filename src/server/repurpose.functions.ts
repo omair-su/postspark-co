@@ -92,11 +92,32 @@ export const repurposeContent = createServerFn({ method: "POST" })
       brandVoiceSummary = activeVoice?.style_summary || "";
     }
 
+    // Auto-apply Brand Kit preferred tone if user didn't explicitly choose one
+    let effectiveTone = data.tone || "professional";
+    let brandContext = "";
+    const { data: kit } = await supabase
+      .from("brand_kits")
+      .select("brand_name, tagline, preferred_tone")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (kit) {
+      const k = kit as any;
+      if (!data.tone && k.preferred_tone) effectiveTone = k.preferred_tone;
+      const parts: string[] = [];
+      if (k.brand_name) parts.push(`Brand: ${k.brand_name}`);
+      if (k.tagline) parts.push(`Tagline: ${k.tagline}`);
+      if (parts.length) brandContext = parts.join(" | ");
+    }
+
+    const mergedInstructions = brandContext
+      ? `${data.customInstructions || ""}${data.customInstructions ? " " : ""}Brand context — ${brandContext}.`.trim()
+      : (data.customInstructions || "");
+
     const result = await generateRepurposedContent(
       data.inputText,
       data.selectedTypes,
-      data.tone || "professional",
-      data.customInstructions || "",
+      effectiveTone,
+      mergedInstructions,
       brandVoiceSummary,
       data.language || "English"
     );
