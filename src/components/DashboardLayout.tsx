@@ -29,10 +29,36 @@ const navItems = [
 ] as const;
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { signOut, user } = useAuth();
+  const { signOut, user, session } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [ws, setWs] = useState<{
+    workspace: { id: string; name: string } | null;
+    brandKits: Array<{ id: string; brand_name: string | null }>;
+    activeBrandKitId: string | null;
+  }>({ workspace: null, brandKits: [], activeBrandKitId: null });
+
+  useEffect(() => {
+    if (!session) return;
+    getMyWorkspace({ headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then((r: any) => setWs({
+        workspace: r.workspace || null,
+        brandKits: r.brandKits || [],
+        activeBrandKitId: r.activeBrandKitId || null,
+      }))
+      .catch(() => {});
+  }, [session]);
+
+  const handleSwitchKit = async (id: string | null) => {
+    if (!session || !ws.workspace) return;
+    await setActiveBrandKit({
+      data: { workspaceId: ws.workspace.id, brandKitId: id },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    setWs((prev) => ({ ...prev, activeBrandKitId: id }));
+    toast.success("Brand switched");
+  };
 
   const handleSignOut = async () => {
     await signOut();
