@@ -33,7 +33,7 @@ DECLARE
   appr_id uuid;
   cnt int;
 BEGIN
-  SELECT t.u_a, t.u_b INTO u_a, u_b FROM _test_users LIMIT 1;
+  SELECT _test_users.u_a, _test_users.u_b INTO u_a, u_b FROM _test_users LIMIT 1;
   IF u_a IS NULL OR u_b IS NULL OR u_a = u_b THEN
     RAISE EXCEPTION 'Pass two distinct -v user_a / -v user_b uuids';
   END IF;
