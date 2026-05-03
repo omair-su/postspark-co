@@ -16,11 +16,13 @@ export function PWAInstallPrompt() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Skip if already installed or running standalone
+    // Capability check — already installed / standalone
     const isStandalone =
       window.matchMedia?.("(display-mode: standalone)").matches ||
+      window.matchMedia?.("(display-mode: minimal-ui)").matches ||
       // @ts-ignore iOS Safari
-      window.navigator.standalone === true;
+      window.navigator.standalone === true ||
+      document.referrer.startsWith("android-app://");
     if (isStandalone) return;
 
     // Skip in iframe (Lovable preview)
@@ -30,31 +32,55 @@ export function PWAInstallPrompt() {
       return;
     }
 
+    // Skip if browser already reports the related installed app
+    const nav = window.navigator as any;
+    if (typeof nav.getInstalledRelatedApps === "function") {
+      nav.getInstalledRelatedApps().then((apps: unknown[]) => {
+        if (apps && apps.length > 0) {
+          localStorage.setItem(STORAGE_KEY, "installed");
+        }
+      }).catch(() => {});
+    }
+
     const state = localStorage.getItem(STORAGE_KEY);
     if (state === "dismissed" || state === "installed") return;
+
+    const ua = window.navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+    const isAndroid = /Android/.test(ua);
+    const isChromiumDesktop =
+      /Chrome|Edg|OPR/.test(ua) && !/Mobile/.test(ua) && !/Firefox/.test(ua);
+
+    // Capability gate: only browsers with real install UI support
+    const supportsInstallUI = isIOS || isAndroid || isChromiumDesktop;
+    if (!supportsInstallUI) return;
 
     const onBIP = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BIPEvent);
       setVisible(true);
     };
+    const onInstalled = () => {
+      localStorage.setItem(STORAGE_KEY, "installed");
+      setVisible(false);
+    };
     window.addEventListener("beforeinstallprompt", onBIP);
+    window.addEventListener("appinstalled", onInstalled);
 
-    // iOS fallback (no beforeinstallprompt support)
-    const ua = window.navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+    // iOS has no beforeinstallprompt — show manual hint
+    let iosTimer: ReturnType<typeof setTimeout> | null = null;
     if (isIOS) {
-      const t = setTimeout(() => {
+      iosTimer = setTimeout(() => {
         setIosHint(true);
         setVisible(true);
       }, 1500);
-      return () => {
-        window.removeEventListener("beforeinstallprompt", onBIP);
-        clearTimeout(t);
-      };
     }
 
-    return () => window.removeEventListener("beforeinstallprompt", onBIP);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBIP);
+      window.removeEventListener("appinstalled", onInstalled);
+      if (iosTimer) clearTimeout(iosTimer);
+    };
   }, []);
 
   const dismiss = () => {
