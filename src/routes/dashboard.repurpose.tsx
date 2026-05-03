@@ -173,11 +173,12 @@ function RepurposePage() {
     setRawOutput("");
 
     try {
+      const useBrandTone = !!brandKit?.preferred_tone && !overrideTone;
       const result = await repurposeContent({
         data: {
           inputText: input,
           selectedTypes: Array.from(selected),
-          tone,
+          tone: useBrandTone ? undefined : tone,
           customInstructions,
           language,
         },
