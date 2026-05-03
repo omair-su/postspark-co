@@ -7,47 +7,28 @@ interface BIPEvent extends Event {
 }
 
 const STORAGE_KEY = "ps_pwa_prompt_state_v1";
-const READY_KEY = "ps_pwa_ready_v1"; // set after first successful repurpose
+const READY_KEY = "ps_pwa_ready_v1";
 
 export function PWAInstallPrompt() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [visible, setVisible] = useState(false);
   const [iosHint, setIosHint] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  // Track readiness flag (set after first successful repurpose)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setReady(localStorage.getItem(READY_KEY) === "1");
+    const onReady = () => setReady(true);
+    window.addEventListener("postspark:pwa-ready", onReady);
+    return () => window.removeEventListener("postspark:pwa-ready", onReady);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!ready) return;
 
-    // Gate: only show after the user has completed at least one repurpose
-    if (localStorage.getItem(READY_KEY) !== "1") {
-      const onReady = () => {
-        // Re-trigger by reloading the effect on next mount; simplest is to set state
-        if (localStorage.getItem(READY_KEY) === "1") setVisible((v) => v); // no-op; effect re-evaluates via window reload pattern
-      };
-      window.addEventListener("postspark:pwa-ready", onReady);
-      // We still want to attach beforeinstallprompt early so we can capture it
-      // and show later — but only if not dismissed/installed.
-      const stateEarly = localStorage.getItem(STORAGE_KEY);
-      if (stateEarly === "dismissed" || stateEarly === "installed") {
-        return () => window.removeEventListener("postspark:pwa-ready", onReady);
-      }
-      const onBIPEarly = (e: Event) => {
-        e.preventDefault();
-        setDeferred(e as BIPEvent);
-        if (localStorage.getItem(READY_KEY) === "1") setVisible(true);
-      };
-      const onReadyShow = () => {
-        if (deferred || /iPad|iPhone|iPod/.test(window.navigator.userAgent)) setVisible(true);
-      };
-      window.addEventListener("beforeinstallprompt", onBIPEarly);
-      window.addEventListener("postspark:pwa-ready", onReadyShow);
-      return () => {
-        window.removeEventListener("beforeinstallprompt", onBIPEarly);
-        window.removeEventListener("postspark:pwa-ready", onReadyShow);
-        window.removeEventListener("postspark:pwa-ready", onReady);
-      };
-    }
-
-    // Capability check — already installed / standalone
+    // Capability checks
     const isStandalone =
       window.matchMedia?.("(display-mode: standalone)").matches ||
       window.matchMedia?.("(display-mode: minimal-ui)").matches ||
@@ -56,20 +37,16 @@ export function PWAInstallPrompt() {
       document.referrer.startsWith("android-app://");
     if (isStandalone) return;
 
-    // Skip in iframe (Lovable preview)
     try {
       if (window.self !== window.top) return;
     } catch {
       return;
     }
 
-    // Skip if browser already reports the related installed app
     const nav = window.navigator as any;
     if (typeof nav.getInstalledRelatedApps === "function") {
       nav.getInstalledRelatedApps().then((apps: unknown[]) => {
-        if (apps && apps.length > 0) {
-          localStorage.setItem(STORAGE_KEY, "installed");
-        }
+        if (apps && apps.length > 0) localStorage.setItem(STORAGE_KEY, "installed");
       }).catch(() => {});
     }
 
@@ -79,12 +56,8 @@ export function PWAInstallPrompt() {
     const ua = window.navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
     const isAndroid = /Android/.test(ua);
-    const isChromiumDesktop =
-      /Chrome|Edg|OPR/.test(ua) && !/Mobile/.test(ua) && !/Firefox/.test(ua);
-
-    // Capability gate: only browsers with real install UI support
-    const supportsInstallUI = isIOS || isAndroid || isChromiumDesktop;
-    if (!supportsInstallUI) return;
+    const isChromiumDesktop = /Chrome|Edg|OPR/.test(ua) && !/Mobile/.test(ua) && !/Firefox/.test(ua);
+    if (!(isIOS || isAndroid || isChromiumDesktop)) return;
 
     const onBIP = (e: Event) => {
       e.preventDefault();
@@ -98,7 +71,6 @@ export function PWAInstallPrompt() {
     window.addEventListener("beforeinstallprompt", onBIP);
     window.addEventListener("appinstalled", onInstalled);
 
-    // iOS has no beforeinstallprompt — show manual hint
     let iosTimer: ReturnType<typeof setTimeout> | null = null;
     if (isIOS) {
       iosTimer = setTimeout(() => {
@@ -112,7 +84,7 @@ export function PWAInstallPrompt() {
       window.removeEventListener("appinstalled", onInstalled);
       if (iosTimer) clearTimeout(iosTimer);
     };
-  }, []);
+  }, [ready]);
 
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, "dismissed");
