@@ -34,34 +34,28 @@ export const upsertBrandKit = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const payload: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(data)) {
+      if (v !== undefined) payload[k] = v;
+    }
+
     const { data: existing } = await supabase
       .from("brand_kits")
       .select("id")
       .eq("user_id", userId)
       .maybeSingle();
 
-    const payload: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(data)) {
-      if (v !== undefined) payload[k] = v;
-    }
-
     if (existing) {
       const { error } = await supabase
         .from("brand_kits")
         .update(payload as any)
         .eq("user_id", userId);
-      if (error) {
-        console.error("update brand kit error", error);
-        return { success: false, error: error.message };
-      }
+      if (error) return { success: false, error: error.message };
     } else {
       const { error } = await supabase
         .from("brand_kits")
         .insert({ user_id: userId, ...(payload as any) });
-      if (error) {
-        console.error("insert brand kit error", error);
-        return { success: false, error: error.message };
-      }
+      if (error) return { success: false, error: error.message };
     }
     return { success: true };
   });
