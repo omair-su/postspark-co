@@ -2,12 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2, X, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2, X, Loader2, Upload } from "lucide-react";
 import {
   listScheduledPosts,
   createScheduledPost,
   deleteScheduledPost,
   updateScheduledPost,
+  bulkImportScheduledPosts,
 } from "@/server/calendar.functions";
 
 export const Route = createFileRoute("/dashboard/calendar")({
@@ -150,12 +151,60 @@ function CalendarPage() {
             <p className="text-sm text-muted-foreground">Plan, schedule, and visualize your posts across platforms.</p>
           </div>
         </div>
-        <button
-          onClick={() => openNew(new Date())}
-          className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" /> Schedule post
-        </button>
+        <div className="flex items-center gap-2">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-accent">
+            <Upload className="h-3.5 w-3.5" /> Bulk import (CSV)
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file || !session) return;
+                const text = await file.text();
+                const lines = text.split(/\r?\n/).filter(Boolean);
+                if (lines.length < 2) { toast.error("CSV is empty"); return; }
+                const header = lines[0].toLowerCase().split(",").map((s) => s.trim());
+                const idx = (k: string) => header.indexOf(k);
+                const di = idx("date"), pi = idx("platform"), ci = idx("content"), ti = idx("title");
+                if (di < 0 || pi < 0 || ci < 0) { toast.error("CSV needs columns: date, platform, content (optional: title)"); return; }
+                const allowed = new Set(["twitter","linkedin","instagram","facebook","tiktok","youtube","blog","email"]);
+                const parsed: any[] = [];
+                for (let i = 1; i < lines.length; i++) {
+                  const cols = lines[i].split(",");
+                  const platform = (cols[pi] || "").trim().toLowerCase();
+                  const dateStr = (cols[di] || "").trim();
+                  const content = (cols[ci] || "").trim();
+                  if (!allowed.has(platform) || !content) continue;
+                  const dt = new Date(dateStr);
+                  if (isNaN(dt.getTime())) continue;
+                  parsed.push({
+                    title: ti >= 0 ? (cols[ti] || "").trim() || content.slice(0,40) : content.slice(0,40),
+                    content,
+                    platform,
+                    scheduled_for: dt.toISOString(),
+                  });
+                }
+                if (parsed.length === 0) { toast.error("No valid rows found"); return; }
+                const res: any = await bulkImportScheduledPosts({ data: { posts: parsed }, headers: { Authorization: `Bearer ${session.access_token}` } });
+                if (!res.success) {
+                  if (res.error === "AGENCY_REQUIRED") toast.error("Bulk CSV import is an Agency-plan feature.");
+                  else toast.error(res.error || "Import failed");
+                  return;
+                }
+                toast.success(`Imported ${res.inserted} posts`);
+                load();
+              }}
+            />
+          </label>
+          <button
+            onClick={() => openNew(new Date())}
+            className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" /> Schedule post
+          </button>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">

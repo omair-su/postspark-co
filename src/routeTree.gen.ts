@@ -17,8 +17,11 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as ReviewTokenRouteImport } from './routes/review.$token'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
+import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blog'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
@@ -31,6 +34,7 @@ import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calend
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
 import { Route as DashboardBrandKitRouteImport } from './routes/dashboard.brand-kit'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
+import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard.agency-analytics'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const SignupRoute = SignupRouteImport.update({
@@ -73,6 +77,16 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ReviewTokenRoute = ReviewTokenRouteImport.update({
+  id: '/review/$token',
+  path: '/review/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GallerySlugRoute = GallerySlugRouteImport.update({
   id: '/gallery/$slug',
   path: '/gallery/$slug',
@@ -81,6 +95,11 @@ const GallerySlugRoute = GallerySlugRouteImport.update({
 const DashboardTemplatesRoute = DashboardTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardTeamRoute = DashboardTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
@@ -143,6 +162,12 @@ const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAgencyAnalyticsRoute =
+  DashboardAgencyAnalyticsRouteImport.update({
+    id: '/agency-analytics',
+    path: '/agency-analytics',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -157,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
@@ -169,8 +195,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/gallery/$slug': typeof GallerySlugRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
 }
@@ -181,6 +210,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
@@ -193,8 +223,11 @@ export interface FileRoutesByTo {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/gallery/$slug': typeof GallerySlugRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
 }
@@ -207,6 +240,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
@@ -219,8 +253,11 @@ export interface FileRoutesById {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/gallery/$slug': typeof GallerySlugRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/review/$token': typeof ReviewTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
 }
@@ -234,6 +271,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
+    | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
@@ -246,8 +284,11 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/team'
     | '/dashboard/templates'
     | '/gallery/$slug'
+    | '/invite/$token'
+    | '/review/$token'
     | '/dashboard/'
     | '/gallery/'
   fileRoutesByTo: FileRoutesByTo
@@ -258,6 +299,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
+    | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
@@ -270,8 +312,11 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/team'
     | '/dashboard/templates'
     | '/gallery/$slug'
+    | '/invite/$token'
+    | '/review/$token'
     | '/dashboard'
     | '/gallery'
   id:
@@ -283,6 +328,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
+    | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
@@ -295,8 +341,11 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/team'
     | '/dashboard/templates'
     | '/gallery/$slug'
+    | '/invite/$token'
+    | '/review/$token'
     | '/dashboard/'
     | '/gallery/'
   fileRoutesById: FileRoutesById
@@ -310,6 +359,8 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   GallerySlugRoute: typeof GallerySlugRoute
+  InviteTokenRoute: typeof InviteTokenRoute
+  ReviewTokenRoute: typeof ReviewTokenRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
 }
 
@@ -371,6 +422,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/review/$token': {
+      id: '/review/$token'
+      path: '/review/$token'
+      fullPath: '/review/$token'
+      preLoaderRoute: typeof ReviewTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/gallery/$slug': {
       id: '/gallery/$slug'
       path: '/gallery/$slug'
@@ -383,6 +448,13 @@ declare module '@tanstack/react-router' {
       path: '/templates'
       fullPath: '/dashboard/templates'
       preLoaderRoute: typeof DashboardTemplatesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/team': {
+      id: '/dashboard/team'
+      path: '/team'
+      fullPath: '/dashboard/team'
+      preLoaderRoute: typeof DashboardTeamRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/settings': {
@@ -469,6 +541,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/agency-analytics': {
+      id: '/dashboard/agency-analytics'
+      path: '/agency-analytics'
+      fullPath: '/dashboard/agency-analytics'
+      preLoaderRoute: typeof DashboardAgencyAnalyticsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -480,6 +559,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardAgencyAnalyticsRoute: typeof DashboardAgencyAnalyticsRoute
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardBrandKitRoute: typeof DashboardBrandKitRoute
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
@@ -492,11 +572,13 @@ interface DashboardRouteChildren {
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardTeamRoute: typeof DashboardTeamRoute
   DashboardTemplatesRoute: typeof DashboardTemplatesRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAgencyAnalyticsRoute: DashboardAgencyAnalyticsRoute,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardBrandKitRoute: DashboardBrandKitRoute,
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
@@ -509,6 +591,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSeoBlogRoute: DashboardSeoBlogRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardTeamRoute: DashboardTeamRoute,
   DashboardTemplatesRoute: DashboardTemplatesRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
@@ -526,6 +609,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   GallerySlugRoute: GallerySlugRoute,
+  InviteTokenRoute: InviteTokenRoute,
+  ReviewTokenRoute: ReviewTokenRoute,
   GalleryIndexRoute: GalleryIndexRoute,
 }
 export const routeTree = rootRouteImport

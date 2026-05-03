@@ -1,133 +1,85 @@
 
-# PostSpark Premium Upgrade Roadmap
+# Agency Tier — Justify the $49/mo
 
-Goal: turn PostSpark from "a content repurposer" into a **creator command center** that pulls people in, keeps them, and justifies Pro/Agency pricing. Below is a prioritized, phased plan — we ship in waves so each release feels like a "wow" moment, not one giant blob.
+Right now Agency = Pro with a higher price. We'll add features that only make sense for people managing **multiple brands or clients with a team**. Each feature is gated server-side to `plan = 'agency'`.
 
----
+## The 6 Agency-only features
 
-## Wave 1 — The "Wow on First Use" Layer (highest impact, ship first)
+### 1. Team seats (up to 5 members)
+Owner invites teammates by email. Teammates sign up / log in and join the workspace. All members share the workspace's brand kits, history, scheduled posts, image library, and usage quota.
 
-These features hit users in the first 60 seconds and drive conversions.
+- New tables: `workspaces`, `workspace_members` (role: owner / admin / member), `workspace_invites` (email + token + expiry).
+- Refactor: existing per-user data (brand_kits, generated_images, repurpose_jobs, scheduled_posts, brand_voices, templates) gets an optional `workspace_id`. Server functions resolve "active workspace" for the current user and scope queries to it (falls back to personal data for Free/Pro).
+- UI: `/dashboard/team` page — member list, invite form, pending invites, remove member, role badge. Accept-invite flow at `/invite/$token`.
 
-### 1. AI Brand Voice Training
-- User pastes 3–5 samples of their past content (tweets, blog, LinkedIn).
-- We store an embedding + style summary in a new `brand_voices` table.
-- Every future generation auto-uses their voice → output sounds like *them*, not generic AI.
-- Pro/Agency only. Massive retention driver.
+### 2. Multi-brand / client workspaces
+Agency users can create **multiple brand kits** (one per client) and switch the "active" one from a top-bar workspace switcher. Pro users stay limited to one brand kit.
 
-### 2. One-Click Viral Hooks Generator
-- New tab in repurpose page: "Hook Lab".
-- Generates 10 scroll-stopping hooks per platform (Twitter, LinkedIn, TikTok, YouTube).
-- Uses proven viral frameworks (curiosity gap, contrarian, listicle, story).
-- Free users get 3 hooks; Pro gets 10 + framework labels.
+- Extend `brand_kits`: already keyed by user — add `workspace_id` and remove the implicit single-row assumption for Agency. Add a `is_active` flag per workspace.
+- Top-bar `BrandSwitcher` dropdown (next to user avatar in `DashboardLayout`). Persists active brand in localStorage + writes through to a `active_brand_kit_id` column on `workspace_members`.
+- Repurpose, Image Studio, and Scheduling all read the active brand kit instead of "the user's only brand kit".
 
-### 3. Visual Content Preview (mockup cards)
-- Render outputs inside realistic platform mockups (a fake tweet card, a fake LinkedIn post, a fake IG caption with image slot).
-- Users *see* how content will look before posting → huge perceived value.
-- Pure CSS, no API cost.
+### 3. Client approval workflow
+Send generated content to a client for approval via a public review link — no client login needed.
 
-### 4. AI Image Generation for Posts
-- Use `google/gemini-3.1-flash-image-preview` (free via Lovable AI) to generate post thumbnails, IG carousels, and quote cards.
-- 1 image/repurpose for Free, unlimited for Pro.
-- Auto-suggest based on content topic.
+- New table `approval_requests` (job_id, workspace_id, public_token, status: pending/approved/changes_requested, client_email, client_comment, decided_at).
+- New public route `/review/$token` — client sees the generated outputs, can Approve or Request Changes with a comment. Email-less flow (link is the auth).
+- Inside Repurpose history, a "Send for approval" button on each job → generates link → copy / email. Status badge shown back in the dashboard.
 
----
+### 4. White-label / remove "Made with PostSpark"
+- Workspace-level toggle: hide PostSpark branding on shared review links and exported assets (image watermark, PDF footer, share pages under `/gallery/$slug`).
+- Optional custom logo + accent color injected into the review page (uses the active brand kit).
 
-## Wave 2 — The "Creator Workflow" Layer (retention + daily-use)
+### 5. Agency analytics rollup
+A dashboard view that aggregates **across all client brand kits** in the workspace: posts generated per brand, scheduled posts published, approval turnaround, top-performing platforms. Pro sees only their own; Agency sees a per-client breakdown with a brand filter.
 
-### 5. Content Calendar & Scheduler View
-- New `/dashboard/calendar` route.
-- Drag-drop calendar showing planned posts by date/platform.
-- New `scheduled_posts` table (date, platform, content, status).
-- Phase 1: planning only (manual copy-out). Phase 2 (later): real publishing via platform APIs.
+- New route `/dashboard/agency-analytics`. Server function aggregates `repurpose_jobs`, `scheduled_posts`, `post_metrics` grouped by `brand_kit_id`.
 
-### 6. Multi-Language Repurposing
-- Toggle: "Also generate in: Spanish, French, Urdu, Arabic, Hindi…" (12 languages).
-- Pro feature. Opens international creator market — huge for Pakistan/MENA audience.
+### 6. Bulk CSV import → schedule
+Upload a CSV (`date, platform, content`) and queue dozens of posts in one shot to the active brand's calendar. Agency-only.
 
-### 7. SEO-Optimized Long-Form Mode
-- New output type: full 1500-word blog post with H1/H2/H3, meta description, focus keyword, internal link suggestions.
-- Targets bloggers/agencies — Agency tier value driver.
+- New route action on `/dashboard/calendar`: "Bulk import CSV" button, parses client-side with PapaParse (already used elsewhere), inserts batch into `scheduled_posts`.
 
-### 8. Content Series Generator
-- Input one topic → AI plans a **30-day content series** (calendar of 30 post ideas across formats).
-- One click expands any day into full content.
-- "Never run out of ideas again" — killer marketing line.
+## Technical plan
 
----
+**Migrations**
+- `workspaces (id, owner_id, name, white_label boolean default false, created_at)`
+- `workspace_members (workspace_id, user_id, role, active_brand_kit_id, joined_at)` PK (workspace_id, user_id)
+- `workspace_invites (id, workspace_id, email, token, role, expires_at, accepted_at)`
+- `approval_requests (id, job_id, workspace_id, token, status, client_email, client_comment, decided_at, created_at)`
+- Add `workspace_id uuid` (nullable) to: `brand_kits`, `generated_images`, `repurpose_jobs`, `scheduled_posts`, `brand_voices`, `templates`. Backfill = NULL (personal).
+- Drop the implicit "one brand_kit per user" UI guard for Agency.
 
-## Wave 3 — The "Differentiation" Layer (what competitors don't have)
+**RLS**
+- Helper SQL function `is_workspace_member(_workspace_id uuid, _user_id uuid) returns boolean security definer` to avoid recursive RLS.
+- Update SELECT/INSERT/UPDATE/DELETE policies on the six scoped tables: allow when `auth.uid() = user_id` OR `workspace_id is not null and is_workspace_member(workspace_id, auth.uid())`.
+- `approval_requests`: public SELECT by token only (no auth) for the review page; workspace members for management.
 
-### 9. Audio/Voice Input
-- Record voice memo → Whisper transcription → repurpose.
-- Creators talk faster than they type. Mobile-first feature.
+**Plan gating (server-side)**
+- Centralize a `requireAgency(supabase, userId)` helper. Used at the top of every Agency-only server function: invites, multi-brand creation (>1 kit), approval requests, white-label toggle, agency analytics, bulk import.
+- UI shows soft upsell cards for Pro/Free.
 
-### 10. URL & Document Import (expand beyond YouTube)
-- Paste any blog URL, podcast link, PDF upload, or Google Doc → auto-extract → repurpose.
-- Uses server-side fetch + readability extraction. Massive input-flexibility win.
+**Active workspace resolution**
+- New helper `getActiveWorkspaceContext(supabase, userId)` → returns `{ workspaceId | null, brandKitId | null, role }`. Read from `workspace_members.active_brand_kit_id`. Patches into Repurpose / Image Studio / Brand Voice flows.
 
-### 11. Performance Predictor (AI Score)
-- Each generated post gets an AI-predicted "engagement score" (0–100) with reasoning.
-- "This LinkedIn post scores 87/100 — strong hook, weak CTA. Fix?"
-- Cheap to compute, feels magical.
+**New / edited files**
+- `supabase/migrations/[ts]_agency_tier.sql`
+- `src/server/workspace.functions.ts`, `src/server/workspace.server.ts`
+- `src/server/approvals.functions.ts`, `src/server/agencyAnalytics.functions.ts`
+- `src/lib/workspaceContext.ts` (client active-workspace store)
+- `src/components/BrandSwitcher.tsx` (top-bar)
+- `src/routes/dashboard.team.tsx`
+- `src/routes/dashboard.agency-analytics.tsx`
+- `src/routes/invite.$token.tsx`
+- `src/routes/review.$token.tsx`
+- Edits: `src/routes/dashboard.brand-kit.tsx` (multi-kit list), `src/routes/dashboard.repurpose.tsx` + `dashboard.image-studio.tsx` + `dashboard.calendar.tsx` (active brand awareness, approval button, CSV import), `src/components/DashboardLayout.tsx` (mount BrandSwitcher + Team nav), `src/components/landing/PricingSection.tsx` (refresh Agency feature list), `src/server/repurpose.functions.ts` + `brandKit.functions.ts` (workspace scoping)
 
-### 12. Team Workspaces (Agency tier)
-- Invite team members, shared brand voices, approval workflow (draft → review → approved).
-- New `workspaces` + `workspace_members` tables with RLS.
-- Justifies the $49/mo Agency price.
+**Out of scope for this sprint**
+- Real Stripe price for upgrade flow (already absent).
+- Email delivery for invites/approvals — we'll show the link to copy; SMTP wiring later.
+- Granular per-member permissions beyond owner/admin/member.
 
----
+## Pricing page update
+Agency tier bullets become: **Up to 5 team seats · Multi-brand workspaces · Client approval links · White-label review pages · Agency analytics rollup · Bulk CSV scheduling**.
 
-## Wave 4 — The "Polish & Conversion" Layer
-
-### 13. Onboarding Wizard
-- 4-step first-login flow: pick niche → train voice → generate first post → see results.
-- Boosts activation rate significantly.
-
-### 14. Public Showcase / Gallery
-- Opt-in: users can publish best generations to a public `/gallery` page.
-- Social proof + SEO landing pages for free traffic.
-
-### 15. Referral Program
-- "Give 1 month free, get 1 month free" — built-in viral loop.
-- New `referrals` table tracking codes + redemptions.
-
-### 16. Browser Extension Stub (landing page first)
-- Add "Coming Soon: Chrome Extension" section on landing.
-- Capture emails for waitlist → build hype + email list.
-
----
-
-## Technical Architecture Summary
-
-**New database tables (all with RLS):**
-- `brand_voices` (user_id, name, style_summary, sample_embeddings)
-- `scheduled_posts` (user_id, content, platform, scheduled_for, status)
-- `workspaces` + `workspace_members` + `workspace_roles` (separate role table — security pattern)
-- `generated_images` (user_id, job_id, image_url, prompt)
-- `referrals` (referrer_id, code, redeemed_by, redeemed_at)
-
-**New server functions:**
-- `brandVoice.functions.ts` — train/get/apply voice
-- `images.functions.ts` — Gemini image generation
-- `hooks.functions.ts` — viral hook generator
-- `scheduling.functions.ts` — calendar CRUD
-- `transcription.functions.ts` — audio → text via Lovable AI
-- `import.functions.ts` — URL/PDF extraction
-
-**AI models (all free via Lovable AI Gateway):**
-- Text: `google/gemini-2.5-flash` (default), `openai/gpt-5-mini` (premium quality)
-- Images: `google/gemini-3.1-flash-image-preview`
-- Voice: existing transcription pipeline
-
-**No payment work in this plan** — Paddle integration tracked separately.
-
----
-
-## Recommended Build Order
-
-I suggest we ship **Wave 1** first (4 features, ~1 build session each). They give the biggest "holy shit" moment for new visitors and immediately justify upgrading. Then we measure, iterate, and roll out Wave 2.
-
-**My recommendation: start with #1 (Brand Voice) + #3 (Visual Preview) together** — they transform the *core* repurpose experience into something visibly better than every competitor.
-
-Reply with which wave (or specific features) you want me to build first, and I'll start immediately.
+Approve and I'll build it end-to-end.

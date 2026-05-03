@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe, Sparkles } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe, Sparkles, Users, Building2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
@@ -22,6 +22,8 @@ const navItems = [
   { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
   { to: "/dashboard/referrals", icon: Gift, label: "Refer & Earn" },
   { to: "/gallery", icon: Globe, label: "Gallery" },
+  { to: "/dashboard/team", icon: Users, label: "Team" },
+  { to: "/dashboard/agency-analytics", icon: Building2, label: "Agency Analytics" },
   { to: "/dashboard/settings", icon: Settings, label: "Settings" },
 ] as const;
 

@@ -99,3 +99,37 @@ export const deleteScheduledPost = createServerFn({ method: "POST" })
     }
     return { success: true };
   });
+
+export const bulkImportScheduledPosts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      posts: z.array(
+        z.object({
+          title: z.string().min(1).max(200),
+          content: z.string().min(1).max(10000),
+          platform: z.enum(["twitter","linkedin","instagram","facebook","tiktok","youtube","blog","email"]),
+          scheduled_for: z.string().datetime(),
+        })
+      ).min(1).max(200),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    // Agency gate
+    const { data: profile } = await supabase.from("profiles").select("plan").eq("user_id", userId).single();
+    if (profile?.plan !== "agency") {
+      return { success: false, error: "AGENCY_REQUIRED", inserted: 0 };
+    }
+
+    const rows = data.posts.map((p) => ({ ...p, user_id: userId }));
+    const { error, count } = await supabase
+      .from("scheduled_posts")
+      .insert(rows, { count: "exact" });
+    if (error) {
+      console.error("Bulk import error:", error);
+      return { success: false, error: error.message, inserted: 0 };
+    }
+    return { success: true, inserted: count ?? rows.length };
+  });

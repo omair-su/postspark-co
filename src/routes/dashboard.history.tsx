@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy } from "lucide-react";
+import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
 import { toggleFavorite } from "@/server/repurpose.functions";
 import { togglePublic } from "@/server/gallery.functions";
+import { createApprovalRequest } from "@/server/approvals.functions";
 import { toast } from "sonner";
 
 interface Job {
@@ -205,6 +206,26 @@ function HistoryPage() {
                 <Copy className="h-3.5 w-3.5" /> Copy link
               </button>
             )}
+            <button
+              onClick={async () => {
+                if (!session) return;
+                const res = await createApprovalRequest({
+                  data: { jobId: selected.id },
+                  headers: { Authorization: `Bearer ${session.access_token}` },
+                });
+                if (!(res as any).success) {
+                  if ((res as any).error?.includes("AGENCY")) toast.error("Client approvals are an Agency-plan feature.");
+                  else toast.error((res as any).error || "Could not create approval link");
+                  return;
+                }
+                const url = `${window.location.origin}/review/${(res as any).token}`;
+                await navigator.clipboard.writeText(url);
+                toast.success("Approval link copied — share with your client");
+              }}
+              className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+            >
+              <UserCheck className="h-3.5 w-3.5" /> Send for approval
+            </button>
           </div>
         </div>
         <h1 className="text-xl font-bold text-foreground">Repurpose Details</h1>
