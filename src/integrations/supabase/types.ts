@@ -715,8 +715,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_approval_by_token: { Args: { _token: string }; Returns: Json }
       is_workspace_member: {
         Args: { _user_id: string; _workspace_id: string }
+        Returns: boolean
+      }
+      respond_to_approval: {
+        Args: {
+          _client_comment: string
+          _client_name: string
+          _status: string
+          _token: string
+        }
         Returns: boolean
       }
       workspace_role: {
