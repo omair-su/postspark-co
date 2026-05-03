@@ -39,7 +39,7 @@ export const getMyWorkspace = createServerFn({ method: "POST" })
     const [{ data: workspace }, { data: members }, { data: invites }, { data: brandKits }] = await Promise.all([
       supabase.from("workspaces").select("*").eq("id", m.workspace_id).single(),
       supabase.from("workspace_members").select("user_id, role, joined_at").eq("workspace_id", m.workspace_id),
-      supabase.from("workspace_invites").select("id, email, role, expires_at, accepted_at, created_at").eq("workspace_id", m.workspace_id).is("accepted_at", null),
+      supabase.from("workspace_invites").select("id, email, role, token, expires_at, accepted_at, created_at").eq("workspace_id", m.workspace_id).is("accepted_at", null),
       supabase.from("brand_kits").select("id, brand_name, tagline, logo_url, primary_color, accent_color").eq("workspace_id", m.workspace_id),
     ]);
 
