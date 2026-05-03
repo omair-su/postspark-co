@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy } from "lucide-react";
+import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
 import { toggleFavorite } from "@/server/repurpose.functions";
 import { togglePublic } from "@/server/gallery.functions";
+import { createApprovalRequest } from "@/server/approvals.functions";
 import { toast } from "sonner";
 
 interface Job {
