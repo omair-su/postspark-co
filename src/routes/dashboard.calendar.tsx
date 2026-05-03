@@ -49,6 +49,8 @@ function CalendarPage() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Post | null>(null);
   const [defaultDate, setDefaultDate] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "scheduled" | "published" | "failed">("all");
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const monthLabel = cursor.toLocaleString(undefined, { month: "long", year: "numeric" });
 
@@ -96,16 +98,24 @@ function CalendarPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursor, session]);
 
+  const filteredPosts = useMemo(() => {
+    if (statusFilter === "all") return posts;
+    if (statusFilter === "failed") return posts.filter((p) => !!(p as any).publish_error);
+    return posts.filter((p) => p.status === statusFilter);
+  }, [posts, statusFilter]);
+
+  const failedCount = useMemo(() => posts.filter((p) => !!(p as any).publish_error).length, [posts]);
+
   const postsByDay = useMemo(() => {
     const map = new Map<string, Post[]>();
-    for (const p of posts) {
+    for (const p of filteredPosts) {
       const d = new Date(p.scheduled_for);
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(p);
     }
     return map;
-  }, [posts]);
+  }, [filteredPosts]);
 
   const openNew = (date: Date) => {
     setEditing(null);
@@ -148,7 +158,7 @@ function CalendarPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Content Calendar</h1>
-            <p className="text-sm text-muted-foreground">Plan, schedule, and visualize your posts across platforms.</p>
+            <p className="text-sm text-muted-foreground">Plan, schedule, and visualize your posts across platforms. <span className="text-[11px] opacity-70">(Times in {tz})</span></p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -205,6 +215,29 @@ function CalendarPage() {
             <Plus className="h-4 w-4" /> Schedule post
           </button>
         </div>
+      </div>
+
+      {/* Status filter chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        {(["all","scheduled","published","failed"] as const).map((s) => {
+          const count = s === "all" ? posts.length : s === "failed" ? failedCount : posts.filter((p) => p.status === s).length;
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${
+                statusFilter === s ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {s} <span className="ml-1 opacity-60">({count})</span>
+            </button>
+          );
+        })}
+        {failedCount > 0 && (
+          <span className="ml-auto rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1 text-[11px] font-medium text-destructive">
+            {failedCount} publish failure{failedCount === 1 ? "" : "s"}
+          </span>
+        )}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">

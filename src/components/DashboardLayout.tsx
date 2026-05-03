@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe, Sparkles, Users, Building2 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe, Sparkles, Users, Building2, ChevronDown } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { getMyWorkspace, setActiveBrandKit } from "@/server/workspace.functions";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -28,10 +29,36 @@ const navItems = [
 ] as const;
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { signOut, user } = useAuth();
+  const { signOut, user, session } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [ws, setWs] = useState<{
+    workspace: { id: string; name: string } | null;
+    brandKits: Array<{ id: string; brand_name: string | null }>;
+    activeBrandKitId: string | null;
+  }>({ workspace: null, brandKits: [], activeBrandKitId: null });
+
+  useEffect(() => {
+    if (!session) return;
+    getMyWorkspace({ headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then((r: any) => setWs({
+        workspace: r.workspace || null,
+        brandKits: r.brandKits || [],
+        activeBrandKitId: r.activeBrandKitId || null,
+      }))
+      .catch(() => {});
+  }, [session]);
+
+  const handleSwitchKit = async (id: string | null) => {
+    if (!session || !ws.workspace) return;
+    await setActiveBrandKit({
+      data: { workspaceId: ws.workspace.id, brandKitId: id },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    setWs((prev) => ({ ...prev, activeBrandKitId: id }));
+    toast.success("Brand switched");
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -117,7 +144,30 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5 text-foreground" />
           </button>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            {ws.workspace && (
+              <div className="hidden items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1 text-xs sm:flex">
+                <Building2 className="h-3.5 w-3.5 text-primary" />
+                <span className="font-medium text-foreground">{ws.workspace.name}</span>
+                {ws.brandKits.length > 0 && (
+                  <>
+                    <span className="text-muted-foreground">·</span>
+                    <select
+                      value={ws.activeBrandKitId || ""}
+                      onChange={(e) => handleSwitchKit(e.target.value || null)}
+                      className="bg-transparent text-foreground focus:outline-none"
+                      title="Active brand"
+                    >
+                      <option value="">All brands</option>
+                      {ws.brandKits.map((k) => (
+                        <option key={k.id} value={k.id}>{k.brand_name || "Unnamed"}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  </>
+                )}
+              </div>
+            )}
             <ThemeToggle />
           </div>
         </header>

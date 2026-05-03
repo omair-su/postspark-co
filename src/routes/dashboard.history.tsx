@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck } from "lucide-react";
+import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck, Trash2 } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
-import { toggleFavorite } from "@/server/repurpose.functions";
+import { toggleFavorite, bulkDeleteJobs } from "@/server/repurpose.functions";
 import { togglePublic } from "@/server/gallery.functions";
 import { createApprovalRequest } from "@/server/approvals.functions";
 import { toast } from "sonner";
@@ -67,9 +67,31 @@ function HistoryPage() {
 
   const filteredJobs = jobs.filter((j) => {
     if (filterFav && !j.is_favorite) return false;
-    if (search && !j.input_text.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const hay = `${j.title || ""} ${j.input_text}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     return true;
   });
+
+  const handleBulkDelete = async () => {
+    if (!session) return;
+    const ids = Array.from(bulkSelected);
+    if (ids.length === 0) { toast.error("Select at least one item"); return; }
+    if (!confirm(`Delete ${ids.length} item${ids.length === 1 ? "" : "s"}? This cannot be undone.`)) return;
+    const res: any = await bulkDeleteJobs({
+      data: { ids },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (res.success) {
+      setJobs((prev) => prev.filter((j) => !bulkSelected.has(j.id)));
+      setBulkSelected(new Set());
+      toast.success(`Deleted ${res.deleted}`);
+    } else {
+      toast.error("Delete failed");
+    }
+  };
 
   const handleBulkExportPdf = () => {
     const toExport = filteredJobs.filter((j) => bulkSelected.has(j.id));
@@ -298,6 +320,9 @@ function HistoryPage() {
           </button>
           <button onClick={handleBulkExportCsv} className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground">
             <Download className="h-3 w-3" /> Export CSV
+          </button>
+          <button onClick={handleBulkDelete} className="flex items-center gap-1 rounded-lg border border-destructive/30 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10">
+            <Trash2 className="h-3 w-3" /> Delete
           </button>
         </div>
       )}

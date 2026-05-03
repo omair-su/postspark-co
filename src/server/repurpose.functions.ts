@@ -5,6 +5,22 @@ import { generateRepurposedContent } from "./repurpose.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 
+// Per-instance rate limiter: max 10 AI calls / minute / user
+const RATE_BUCKET = new Map<string, number[]>();
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 10;
+function rateLimited(userId: string): boolean {
+  const now = Date.now();
+  const arr = (RATE_BUCKET.get(userId) || []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (arr.length >= RATE_MAX) {
+    RATE_BUCKET.set(userId, arr);
+    return true;
+  }
+  arr.push(now);
+  RATE_BUCKET.set(userId, arr);
+  return false;
+}
+
 export const getMonthlyUsage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -55,6 +71,10 @@ export const repurposeContent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
+    if (rateLimited(userId)) {
+      return { output: "", error: "Rate limit: please wait a minute and try again." };
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("plan")
@@ -95,19 +115,31 @@ export const repurposeContent = createServerFn({ method: "POST" })
     // Auto-apply Brand Kit preferred tone if user didn't explicitly choose one
     let effectiveTone = data.tone || "professional";
     let brandContext = "";
+    let brandKitId: string | null = null;
     const { data: kit } = await supabase
       .from("brand_kits")
-      .select("brand_name, tagline, preferred_tone")
+      .select("id, brand_name, tagline, preferred_tone")
       .eq("user_id", userId)
       .maybeSingle();
     if (kit) {
       const k = kit as any;
+      brandKitId = k.id ?? null;
       if (!data.tone && k.preferred_tone) effectiveTone = k.preferred_tone;
       const parts: string[] = [];
       if (k.brand_name) parts.push(`Brand: ${k.brand_name}`);
       if (k.tagline) parts.push(`Tagline: ${k.tagline}`);
       if (parts.length) brandContext = parts.join(" | ");
     }
+
+    // Resolve active workspace (Agency users)
+    let workspaceId: string | null = null;
+    const { data: membership } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+    if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
 
     const mergedInstructions = brandContext
       ? `${data.customInstructions || ""}${data.customInstructions ? " " : ""}Brand context — ${brandContext}.`.trim()
@@ -127,7 +159,9 @@ export const repurposeContent = createServerFn({ method: "POST" })
         user_id: userId,
         input_text: data.inputText,
         outputs: { raw: result.output },
-      });
+        brand_kit_id: brandKitId,
+        workspace_id: workspaceId,
+      } as any);
     }
 
     return result;
@@ -174,4 +208,23 @@ export const getAnalyticsData = createServerFn({ method: "POST" })
     }
 
     return { jobs: jobs || [] };
+  });
+
+export const bulkDeleteJobs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({ ids: z.array(z.string().uuid()).min(1).max(200) }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error, count } = await supabase
+      .from("repurpose_jobs")
+      .delete({ count: "exact" })
+      .in("id", data.ids)
+      .eq("user_id", userId);
+    if (error) {
+      console.error("Bulk delete error:", error);
+      return { success: false, deleted: 0 };
+    }
+    return { success: true, deleted: count ?? 0 };
   });
