@@ -321,6 +321,9 @@ function HistoryPage() {
           <button onClick={handleBulkExportCsv} className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground">
             <Download className="h-3 w-3" /> Export CSV
           </button>
+          <button onClick={handleBulkDelete} className="flex items-center gap-1 rounded-lg border border-destructive/30 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10">
+            <Trash2 className="h-3 w-3" /> Delete
+          </button>
         </div>
       )}
 
