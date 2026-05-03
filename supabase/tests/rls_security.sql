@@ -18,21 +18,23 @@
 
 BEGIN;
 
--- Use a savepoint we can roll back to even if a test fails mid-way.
+-- psql vars are interpolated into the literal SQL text below before execution.
+CREATE TEMP TABLE _test_users(u_a uuid, u_b uuid) ON COMMIT DROP;
+INSERT INTO _test_users VALUES (:'user_a'::uuid, :'user_b'::uuid);
+
 SAVEPOINT setup;
 
--- Two fake user ids. We cannot insert into auth.users in test, so we set
--- request.jwt.claims directly — RLS uses auth.uid() which reads that claim.
 DO $$
 DECLARE
-  u_a uuid := :'user_a';
-  u_b uuid := :'user_b';
+  u_a uuid;
+  u_b uuid;
   ws_a uuid;
   job_a uuid;
   job_shared uuid;
   appr_id uuid;
   cnt int;
 BEGIN
+  SELECT t.u_a, t.u_b INTO u_a, u_b FROM _test_users t LIMIT 1;
   IF u_a IS NULL OR u_b IS NULL OR u_a = u_b THEN
     RAISE EXCEPTION 'Pass two distinct -v user_a / -v user_b uuids';
   END IF;
