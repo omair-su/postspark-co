@@ -59,3 +59,37 @@ export const upsertBrandKit = createServerFn({ method: "POST" })
     }
     return { success: true };
   });
+
+export const deleteBrandLogo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    // Clear logo_url on the brand kit
+    const { data: existing } = await supabase
+      .from("brand_kits")
+      .select("id, logo_url")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existing?.logo_url) {
+      // Best-effort remove from storage if it lives in our bucket
+      try {
+        const url = existing.logo_url as string;
+        const marker = "/brand-assets/";
+        const idx = url.indexOf(marker);
+        if (idx >= 0) {
+          const path = url.slice(idx + marker.length);
+          if (path.startsWith(`${userId}/`)) {
+            await supabase.storage.from("brand-assets").remove([path]);
+          }
+        }
+      } catch {
+        // ignore storage cleanup failures
+      }
+      await supabase
+        .from("brand_kits")
+        .update({ logo_url: null } as any)
+        .eq("user_id", userId);
+    }
+    return { success: true };
+  });
