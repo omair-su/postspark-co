@@ -46,6 +46,12 @@ function RepurposePage() {
   const [tone, setTone] = useState("professional");
   const [customInstructions, setCustomInstructions] = useState("");
   const [language, setLanguage] = useState("English");
+  const [brandKit, setBrandKit] = useState<{
+    brand_name: string | null;
+    tagline: string | null;
+    preferred_tone: string | null;
+  } | null>(null);
+  const [overrideTone, setOverrideTone] = useState(false);
 
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
