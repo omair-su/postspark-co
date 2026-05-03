@@ -60,6 +60,21 @@ export const listApprovalRequests = createServerFn({ method: "POST" })
     return { approvals: data || [] };
   });
 
+export const listApprovalAuditLog = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ approvalId: z.string().uuid() }).parse)
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: rows, error } = await supabase
+      .from("approval_audit_log")
+      .select("id, action, old_status, new_status, actor_user_id, actor_label, client_name, client_comment, created_at")
+      .eq("approval_id", data.approvalId)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) return { entries: [], error: error.message };
+    return { entries: rows ?? [], error: null };
+  });
+
 // Public (no auth) — uses anon client + secure RPC
 export const fetchApprovalByToken = createServerFn({ method: "POST" })
   .inputValidator(z.object({ token: z.string().min(8).max(80) }).parse)
