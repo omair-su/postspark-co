@@ -82,8 +82,8 @@ export const submitApprovalResponse = createServerFn({ method: "POST" })
     const { data: ok, error } = await supabaseAdmin.rpc("respond_to_approval", {
       _token: data.token,
       _status: data.status,
-      _client_name: data.clientName ?? null,
-      _client_comment: data.clientComment ?? null,
+      _client_name: data.clientName ?? "",
+      _client_comment: data.clientComment ?? "",
     });
     if (error) return { success: false, error: error.message };
     return { success: ok === true };
