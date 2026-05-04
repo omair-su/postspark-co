@@ -40,12 +40,95 @@ function buildPrompt(prompt: string, style?: string, aspect?: string, template?:
   return parts.join(". ");
 }
 
-// Stable image models in fallback order. Nano Banana (2.5) is the proven workhorse;
-// the 3.1 preview is tried first only when explicitly requested via env override.
+// Stable image models in fallback order. Lovable AI Gateway is used as the
+// fallback when Replicate is unavailable or for image-edit (multimodal) calls.
 const IMAGE_MODELS = [
   "google/gemini-2.5-flash-image",
   "google/gemini-3.1-flash-image-preview",
 ];
+
+const REPLICATE_ASPECT: Record<string, string> = {
+  square: "1:1",
+  portrait: "9:16",
+  landscape: "16:9",
+};
+
+// Replicate Flux 1.1 Pro — premium photorealistic generation
+async function callReplicateFlux(
+  prompt: string,
+  aspect: "square" | "portrait" | "landscape" = "square",
+): Promise<ImageGenResult> {
+  const token = process.env.REPLICATE_API_TOKEN;
+  if (!token) return { imageUrl: "", error: "REPLICATE_API_TOKEN not configured" };
+
+  try {
+    const createRes = await fetch(
+      "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Prefer: "wait=60",
+        },
+        body: JSON.stringify({
+          input: {
+            prompt: prompt.slice(0, 2000),
+            aspect_ratio: REPLICATE_ASPECT[aspect] || "1:1",
+            output_format: "jpg",
+            output_quality: 90,
+            safety_tolerance: 2,
+            prompt_upsampling: true,
+          },
+        }),
+      },
+    );
+
+    if (!createRes.ok) {
+      const text = await createRes.text();
+      console.error("Replicate create error:", createRes.status, text.slice(0, 300));
+      if (createRes.status === 401 || createRes.status === 403)
+        return { imageUrl: "", error: "Replicate authentication failed. Check REPLICATE_API_TOKEN." };
+      if (createRes.status === 402)
+        return { imageUrl: "", error: "Replicate billing issue — please add credits at replicate.com." };
+      if (createRes.status === 429)
+        return { imageUrl: "", error: "Replicate rate limit reached. Try again shortly." };
+      return { imageUrl: "", error: `Replicate error (${createRes.status})` };
+    }
+
+    let prediction: any = await createRes.json();
+
+    // Poll until finished if Prefer:wait didn't complete it
+    const started = Date.now();
+    while (
+      prediction?.status &&
+      prediction.status !== "succeeded" &&
+      prediction.status !== "failed" &&
+      prediction.status !== "canceled" &&
+      Date.now() - started < 90_000
+    ) {
+      await new Promise((r) => setTimeout(r, 1500));
+      const pollRes = await fetch(prediction.urls?.get, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!pollRes.ok) break;
+      prediction = await pollRes.json();
+    }
+
+    if (prediction?.status === "succeeded") {
+      const out = prediction.output;
+      const url = Array.isArray(out) ? out[0] : typeof out === "string" ? out : null;
+      if (url) return { imageUrl: url };
+      return { imageUrl: "", error: "Replicate returned no image URL" };
+    }
+    if (prediction?.status === "failed")
+      return { imageUrl: "", error: prediction.error || "Replicate generation failed" };
+    return { imageUrl: "", error: "Replicate timed out" };
+  } catch (err) {
+    console.error("Replicate request error:", err);
+    return { imageUrl: "", error: "Failed to reach Replicate" };
+  }
+}
 
 async function callImageAIOnce(
   model: string,
@@ -99,6 +182,19 @@ async function callImageAI(messages: any[]): Promise<ImageGenResult> {
   return last;
 }
 
+// Premium text-to-image: try Replicate Flux 1.1 Pro first, fall back to Lovable AI.
+async function generateFromPrompt(
+  fullPrompt: string,
+  aspect: "square" | "portrait" | "landscape",
+): Promise<ImageGenResult> {
+  if (process.env.REPLICATE_API_TOKEN) {
+    const r = await callReplicateFlux(fullPrompt, aspect);
+    if (r.imageUrl) return r;
+    console.warn("Replicate failed, falling back to Lovable AI:", r.error);
+  }
+  return callImageAI([{ role: "user", content: fullPrompt }]);
+}
+
 export async function generateSocialImage(
   prompt: string,
   style: string,
@@ -106,7 +202,8 @@ export async function generateSocialImage(
   template?: string,
 ): Promise<ImageGenResult> {
   const fullPrompt = buildPrompt(prompt, style, aspect, template);
-  return callImageAI([{ role: "user", content: fullPrompt }]);
+  const a = (aspect as "square" | "portrait" | "landscape") || "square";
+  return generateFromPrompt(fullPrompt, a);
 }
 
 export async function generateVariations(
@@ -122,6 +219,7 @@ export async function generateVariations(
     "different color palette, fresh mood",
     "different lighting and atmosphere",
   ];
+  const a = (aspect as "square" | "portrait" | "landscape") || "square";
   const tasks = Array.from({ length: count }).map((_, i) => {
     const variantHint = variants[i % variants.length];
     const finalPrompt = buildPrompt(
@@ -130,7 +228,7 @@ export async function generateVariations(
       aspect,
       template,
     );
-    return callImageAI([{ role: "user", content: finalPrompt }]);
+    return generateFromPrompt(finalPrompt, a);
   });
   return Promise.all(tasks);
 }
@@ -216,7 +314,7 @@ export async function generateCarouselSet(
       styleHints[style] || styleHints.minimal,
       "Premium social-media design, share-worthy.",
     ].join(" ");
-    return callImageAI([{ role: "user", content: slidePrompt }]);
+    return generateFromPrompt(slidePrompt, "square");
   });
 
   const results = await Promise.all(tasks);
