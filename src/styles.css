@@ -302,3 +302,14 @@
   .ps-spark-anim .ps-bolt-wrap,
   .ps-spark-anim .ps-dot { animation: none; }
 }
+
+@keyframes ai-progress-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.ai-progress-bar {
+  animation: ai-progress-slide 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-progress-bar { animation: none; opacity: 0.6; }
+}
