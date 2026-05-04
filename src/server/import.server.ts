@@ -74,21 +74,37 @@ function isBlockedHost(hostname: string): boolean {
 
 export async function scrapeUrl(url: string): Promise<ImportResult> {
   try {
-    const u = new URL(url);
-    if (u.protocol !== "http:" && u.protocol !== "https:") {
-      return { text: "", error: "Only http/https URLs are supported." };
-    }
-    if (isBlockedHost(u.hostname)) {
-      return { text: "", error: "URL not allowed." };
+    let currentUrl = url;
+    let res: Response | null = null;
+
+    // Manually follow redirects, re-validating the host on each hop to prevent SSRF.
+    for (let hop = 0; hop < 5; hop++) {
+      const u = new URL(currentUrl);
+      if (u.protocol !== "http:" && u.protocol !== "https:") {
+        return { text: "", error: "Only http/https URLs are supported." };
+      }
+      if (isBlockedHost(u.hostname)) {
+        return { text: "", error: "URL not allowed." };
+      }
+
+      res = await fetch(currentUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; PostSparkBot/1.0; +https://postspark.app)",
+          Accept: "text/html,application/xhtml+xml",
+        },
+        redirect: "manual",
+      });
+
+      if (res.status >= 300 && res.status < 400) {
+        const loc = res.headers.get("location");
+        if (!loc) return { text: "", error: "Redirect without Location header." };
+        currentUrl = new URL(loc, currentUrl).toString();
+        continue;
+      }
+      break;
     }
 
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; PostSparkBot/1.0; +https://postspark.app)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      redirect: "follow",
-    });
+    if (!res) return { text: "", error: "Failed to fetch URL." };
 
     if (!res.ok) {
       return { text: "", error: `Failed to fetch URL (${res.status}).` };
