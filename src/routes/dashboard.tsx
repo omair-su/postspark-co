@@ -52,9 +52,20 @@ function DashboardLayoutRoute() {
   useEffect(() => {
     if (!session) return;
     if (location.pathname.startsWith("/onboarding")) return;
+
+    // Cache onboarding-complete in localStorage to avoid a server roundtrip on every nav.
+    const cacheKey = `ps_onboarding_done_${session.user.id}`;
+    if (typeof window !== "undefined" && window.localStorage.getItem(cacheKey) === "1") {
+      return;
+    }
+
     getOnboardingStatus({ headers: { Authorization: `Bearer ${session.access_token}` } })
       .then((s) => {
-        if (!s.completed) navigate({ to: "/onboarding", replace: true });
+        if (s.completed) {
+          try { window.localStorage.setItem(cacheKey, "1"); } catch {}
+        } else {
+          navigate({ to: "/onboarding", replace: true });
+        }
       })
       .catch(() => {});
   }, [session, navigate, location.pathname]);
