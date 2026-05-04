@@ -1,9 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { gatewayFetch, getPaddleClient, type PaddleEnv } from "@/lib/paddle.server";
-import { createClient } from "@supabase/supabase-js";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
-  .inputValidator((data: { priceId: string; environment: PaddleEnv }) => data)
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { priceId: string; environment: PaddleEnv }) => {
+    if (!data?.priceId || typeof data.priceId !== "string") {
+      throw new Error("priceId is required");
+    }
+    if (data.environment !== "sandbox" && data.environment !== "live") {
+      throw new Error("Invalid environment");
+    }
+    return data;
+  })
   .handler(async ({ data }) => {
     const response = await gatewayFetch(
       data.environment,
@@ -15,17 +25,20 @@ export const resolvePaddlePrice = createServerFn({ method: "GET" })
   });
 
 export const createPortalSession = createServerFn({ method: "POST" })
-  .inputValidator((data: { userId: string; environment: PaddleEnv }) => data)
-  .handler(async ({ data }) => {
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { environment: PaddleEnv }) => {
+    if (data?.environment !== "sandbox" && data?.environment !== "live") {
+      throw new Error("Invalid environment");
+    }
+    return { environment: data.environment };
+  })
+  .handler(async ({ data, context }) => {
+    const userId = context.userId;
 
-    const { data: sub, error } = await supabase
+    const { data: sub, error } = await supabaseAdmin
       .from("subscriptions")
       .select("paddle_customer_id, paddle_subscription_id")
-      .eq("user_id", data.userId)
+      .eq("user_id", userId)
       .eq("environment", data.environment)
       .order("created_at", { ascending: false })
       .limit(1)

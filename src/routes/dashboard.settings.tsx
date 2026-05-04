@@ -161,7 +161,7 @@ function SettingsPage() {
 }
 
 function SubscriptionCard({ usage }: { usage: { used: number; limit: number; plan?: string } | null }) {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { subscription, tier, isActive } = useSubscription();
   const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
   const [portalLoading, setPortalLoading] = useState(false);
@@ -175,11 +175,12 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
   };
 
   const handleManageBilling = async () => {
-    if (!user) return;
+    if (!user || !session) return;
     setPortalLoading(true);
     try {
       const result = await createPortalSession({
-        data: { userId: user.id, environment: getPaddleEnvironment() },
+        data: { environment: getPaddleEnvironment() },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       window.open(result.overviewUrl, "_blank");
     } catch (e: any) {
