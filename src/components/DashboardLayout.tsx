@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { AIProgressBar } from "@/components/AIProgressBar";
 import { getMyWorkspace, setActiveBrandKit } from "@/server/workspace.functions";
 
 const navItems = [
