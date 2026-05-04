@@ -53,7 +53,7 @@ export const listApprovalRequests = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data } = await supabase
       .from("approval_requests")
-      .select("id, job_id, status, token, client_email, client_name, client_comment, decided_at, created_at")
+      .select("id, job_id, status, client_email, client_name, client_comment, decided_at, created_at")
       .eq("created_by", userId)
       .order("created_at", { ascending: false })
       .limit(50);
