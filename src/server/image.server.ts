@@ -53,7 +53,11 @@ const REPLICATE_ASPECT: Record<string, string> = {
   landscape: "16:9",
 };
 
-// Replicate Flux 1.1 Pro — premium photorealistic generation
+// Replicate Flux 1.1 Pro — premium photorealistic generation.
+// Worker-friendly async pattern: create prediction (returns instantly with an ID),
+// then poll with short, individually-timed subrequests inside the Worker's budget.
+// Avoids Prefer: wait — that single long-lived subrequest is what was getting
+// killed by Cloudflare Workers and producing "No image returned".
 async function callReplicateFlux(
   prompt: string,
   aspect: "square" | "portrait" | "landscape" = "square",
@@ -61,15 +65,30 @@ async function callReplicateFlux(
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return { imageUrl: "", error: "REPLICATE_API_TOKEN not configured" };
 
+  // Wall-clock cap below Worker subrequest aggregate limit.
+  const MAX_WAIT_MS = 55_000;
+  const POLL_INTERVAL_MS = 1500;
+  const SUBREQUEST_TIMEOUT_MS = 8000;
+
+  const fetchWithTimeout = async (url: string, init: RequestInit, ms: number) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try {
+      return await fetch(url, { ...init, signal: ctrl.signal });
+    } finally {
+      clearTimeout(t);
+    }
+  };
+
+  let prediction: any;
   try {
-    const createRes = await fetch(
+    const createRes = await fetchWithTimeout(
       "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-          Prefer: "wait=60",
         },
         body: JSON.stringify({
           input: {
@@ -82,6 +101,7 @@ async function callReplicateFlux(
           },
         }),
       },
+      SUBREQUEST_TIMEOUT_MS,
     );
 
     if (!createRes.ok) {
@@ -90,44 +110,78 @@ async function callReplicateFlux(
       if (createRes.status === 401 || createRes.status === 403)
         return { imageUrl: "", error: "Replicate authentication failed. Check REPLICATE_API_TOKEN." };
       if (createRes.status === 402)
-        return { imageUrl: "", error: "Replicate billing issue — please add credits at replicate.com." };
+        return { imageUrl: "", error: "Replicate billing issue — add credits at replicate.com." };
+      if (createRes.status === 422)
+        return { imageUrl: "", error: `Replicate rejected the prompt: ${text.slice(0, 200)}` };
       if (createRes.status === 429)
         return { imageUrl: "", error: "Replicate rate limit reached. Try again shortly." };
       return { imageUrl: "", error: `Replicate error (${createRes.status})` };
     }
 
-    let prediction: any = await createRes.json();
-
-    // Poll until finished if Prefer:wait didn't complete it
-    const started = Date.now();
-    while (
-      prediction?.status &&
-      prediction.status !== "succeeded" &&
-      prediction.status !== "failed" &&
-      prediction.status !== "canceled" &&
-      Date.now() - started < 90_000
-    ) {
-      await new Promise((r) => setTimeout(r, 1500));
-      const pollRes = await fetch(prediction.urls?.get, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!pollRes.ok) break;
-      prediction = await pollRes.json();
-    }
-
-    if (prediction?.status === "succeeded") {
-      const out = prediction.output;
-      const url = Array.isArray(out) ? out[0] : typeof out === "string" ? out : null;
-      if (url) return { imageUrl: url };
-      return { imageUrl: "", error: "Replicate returned no image URL" };
-    }
-    if (prediction?.status === "failed")
-      return { imageUrl: "", error: prediction.error || "Replicate generation failed" };
-    return { imageUrl: "", error: "Replicate timed out" };
-  } catch (err) {
-    console.error("Replicate request error:", err);
-    return { imageUrl: "", error: "Failed to reach Replicate" };
+    prediction = await createRes.json();
+  } catch (err: any) {
+    console.error("Replicate create request error:", err?.message || err);
+    return { imageUrl: "", error: "Failed to reach Replicate (create timed out)" };
   }
+
+  const getUrl: string | undefined = prediction?.urls?.get;
+  if (!getUrl) {
+    console.error("Replicate response missing urls.get:", JSON.stringify(prediction).slice(0, 300));
+    return { imageUrl: "", error: "Replicate returned an unexpected response" };
+  }
+
+  // Short sleep helper
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  const started = Date.now();
+  while (
+    prediction?.status !== "succeeded" &&
+    prediction?.status !== "failed" &&
+    prediction?.status !== "canceled"
+  ) {
+    if (Date.now() - started > MAX_WAIT_MS) {
+      console.warn(
+        `Replicate poll exceeded ${MAX_WAIT_MS}ms (last status=${prediction?.status}, id=${prediction?.id})`,
+      );
+      return {
+        imageUrl: "",
+        error:
+          "Replicate is taking longer than expected. The image may still complete — check back in a moment, or try again.",
+      };
+    }
+    await sleep(POLL_INTERVAL_MS);
+    try {
+      const pollRes = await fetchWithTimeout(
+        getUrl,
+        { headers: { Authorization: `Bearer ${token}` } },
+        SUBREQUEST_TIMEOUT_MS,
+      );
+      if (!pollRes.ok) {
+        const text = await pollRes.text();
+        console.error("Replicate poll error:", pollRes.status, text.slice(0, 200));
+        // brief transient errors -> keep polling
+        if (pollRes.status >= 500) continue;
+        return { imageUrl: "", error: `Replicate poll failed (${pollRes.status})` };
+      }
+      prediction = await pollRes.json();
+    } catch (err: any) {
+      console.warn("Replicate poll subrequest aborted:", err?.message || err);
+      // single transient failure — keep going
+      continue;
+    }
+  }
+
+  if (prediction?.status === "succeeded") {
+    const out = prediction.output;
+    const url = Array.isArray(out) ? out[0] : typeof out === "string" ? out : null;
+    if (url) return { imageUrl: url };
+    console.error("Replicate succeeded with no output:", JSON.stringify(prediction).slice(0, 300));
+    return { imageUrl: "", error: "Replicate returned no image URL" };
+  }
+  return {
+    imageUrl: "",
+    error: prediction?.error || `Replicate ${prediction?.status || "generation failed"}`,
+  };
 }
 
 async function callImageAIOnce(
