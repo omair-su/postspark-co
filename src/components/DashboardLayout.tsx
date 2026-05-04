@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe, Sparkles, Users, Building2, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe, Sparkles, Users, Building2, ChevronDown } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { AIProgressBar } from "@/components/AIProgressBar";
 import { getMyWorkspace, setActiveBrandKit } from "@/server/workspace.functions";
 
 const navItems = [
@@ -71,14 +72,44 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const displayEmail = user?.email || "";
 
   const sidebar = (
-    <div className="flex h-full flex-col bg-navy text-sidebar-foreground">
-      <div className="flex h-16 items-center px-4 border-b border-sidebar-border bg-gradient-to-r from-navy via-navy-light to-navy">
+    <div className="flex h-full min-h-0 flex-col bg-navy text-sidebar-foreground">
+      <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-sidebar-border bg-gradient-to-r from-navy via-navy-light to-navy">
         <div className="ps-sidebar-logo">
           <PostSparkLogo variant="wordmark" size={32} tone="light" />
         </div>
+        <button
+          className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close menu"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      {/* Mobile-only brand switcher */}
+      {ws.workspace && (
+        <div className="md:hidden shrink-0 border-b border-sidebar-border px-3 py-2">
+          <div className="flex items-center gap-2 rounded-lg bg-sidebar-accent/30 px-2.5 py-1.5 text-xs">
+            <Building2 className="h-3.5 w-3.5 text-primary" />
+            <span className="truncate font-medium text-sidebar-foreground">{ws.workspace.name}</span>
+            {ws.brandKits.length > 0 && (
+              <select
+                value={ws.activeBrandKitId || ""}
+                onChange={(e) => handleSwitchKit(e.target.value || null)}
+                className="ml-auto bg-transparent text-sidebar-foreground focus:outline-none"
+                title="Active brand"
+              >
+                <option value="" className="text-foreground">All brands</option>
+                {ws.brandKits.map((k) => (
+                  <option key={k.id} value={k.id} className="text-foreground">{k.brand_name || "Unnamed"}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+      )}
+
+      <nav className="flex-1 min-h-0 space-y-1 overflow-y-auto px-3 py-4">
         {navItems.map((item) => {
           const active = location.pathname === item.to;
           return (
@@ -99,7 +130,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-3">
+      <div className="shrink-0 border-t border-sidebar-border p-3">
         {/* User info */}
         <div className="mb-3 flex items-center gap-3 px-3">
           {avatarUrl ? (
@@ -174,6 +205,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
       <PWAInstallPrompt />
+      <AIProgressBar />
     </div>
   );
 }

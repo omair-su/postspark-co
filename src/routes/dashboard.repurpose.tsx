@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { withAIProgress } from "@/lib/aiProgress";
 import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type, Eye, FileText } from "lucide-react";
 import { repurposeContent, getMonthlyUsage } from "@/server/repurpose.functions";
 import { getBrandKit } from "@/server/brandKit.functions";
@@ -174,7 +175,7 @@ function RepurposePage() {
 
     try {
       const useBrandTone = !!brandKit?.preferred_tone && !overrideTone;
-      const result = await repurposeContent({
+      const result = await withAIProgress(repurposeContent({
         data: {
           inputText: input,
           selectedTypes: Array.from(selected),
@@ -183,7 +184,7 @@ function RepurposePage() {
           language,
         },
         headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
+      }));
 
       if (result.error) {
         if (result.error === "LIMIT_REACHED") {

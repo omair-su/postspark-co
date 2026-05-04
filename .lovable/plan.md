@@ -1,124 +1,164 @@
-# PostSpark — Review & Next Roadmap
+# PostSpark — Audit & Roadmap to v2
 
-A walkthrough of what you have, what needs polish, and what to build next so the app is ready to charge real money.
-
----
-
-## 1. Where PostSpark stands today
-
-**Live capability surface (28 routes, 18 server modules):**
-- Content engine: Repurpose, SEO Blog, Hook Lab, Import Studio, Brand Voice, Brand Kit, Templates
-- Visuals: Image Studio (AI image generation)
-- Distribution: Calendar (manual scheduling), public Gallery, History
-- Monetization scaffolding: Free / Pro / Agency tiers, usage limits, referrals
-- Agency tier: Workspaces, Team seats, Approvals, Agency Analytics, Bulk CSV
-- Onboarding wizard, PWA install prompt, Brand Kit auto-apply
-
-**Honest gaps that block real usage:**
-1. **No real publishing** — "scheduled posts" never actually post to Twitter/LinkedIn. `social_accounts` table exists but no OAuth, no publisher cron.
-2. **No payments** — Pro/Agency upgrade buttons are decorative. No Stripe/Paddle. Plan is set manually in DB.
-3. **Analytics is fake** — `post_metrics` table has no writer; the Analytics page only shows local generation counts.
-4. **Approval emails not sent** — Agency approval links must be copy-pasted manually.
-5. **Team invites not emailed** — same problem; token only.
-6. **No admin/observability** — no way to see signups, MRR, errors, AI cost.
+A complete review of what's live, what's broken, and what to build next so PostSpark stops feeling like a demo and starts converting visitors into paying users.
 
 ---
 
-## 2. Refinements needed on existing features (Sprint 3.5)
+## Part 1 — Audit Findings
 
-Small polish that meaningfully raises quality before adding new surface area.
+### A. Critical bugs to fix immediately (Sprint 0 — same day)
 
-### Repurpose
-- Persist `brand_kit_id` and `workspace_id` on every job (currently `repurpose_jobs` has the columns but the insert doesn't fill them — breaks Agency Analytics rollups).
-- Re-run / regenerate a single output type without redoing all of them.
-- Per-output edit + save back to history.
+1. **Sidebar doesn't scroll (your reported bug)** — confirmed. In `DashboardLayout.tsx` the `<nav>` has `flex-1 space-y-1 px-3 py-4` but **no `overflow-y-auto`**. With 17 nav items + the user/sign-out footer, items below "Settings" get clipped on laptop screens and on mobile. Fix: add `overflow-y-auto` + `min-h-0` to the nav, and make the user-info footer `shrink-0`.
 
-### Brand Kit
-- Allow multiple brand kits for Agency (DB allows it, UI still single-row).
-- Show "applied to: X jobs this month" stat.
+2. **Mobile sidebar height** — the mobile drawer uses the same nav, same bug, plus the close affordance is only the backdrop tap. Add an explicit X button at the top.
 
-### Calendar
-- Drag-to-reschedule (currently date-edit only).
-- Status filter chips (scheduled / published / failed) and a "publish failures" callout.
-- Timezone awareness on schedule picker.
+3. **Brand switcher in header is hidden on mobile** (`hidden sm:flex`) — Agency users on phones can't switch workspace. Move it into the mobile sidebar.
 
-### Team / Workspace
-- BrandSwitcher in top bar (planned, never built) so Agency users can switch active client without leaving the page.
-- Clear "active workspace = X" indicator.
-- Server-scope every query by active workspace (today most still scope by `user_id` only).
+4. **Image Studio file is 1,163 lines** — single component, hard to debug, likely the source of repeated "no image returned" regressions. Split into `ImageGeneratorForm`, `ImageHistoryGrid`, `ImageEditPanel` and a thin route shell.
 
-### History & Gallery
-- Full-text search across past jobs.
-- Tag/category filter.
-- Bulk delete.
+5. **Onboarding gate fires on every dashboard mount** — `dashboard.tsx` calls `getOnboardingStatus` on every navigation. Cache the "completed" result in localStorage to remove a server roundtrip per click.
 
-### PWA / Onboarding
-- Show install prompt only after the user completes their first repurpose (not at login — too early).
-- Add a 1-line "what would you like to do first?" CTA on the dashboard for new users.
+6. **No global error boundary on dashboard routes** — when a server fn throws (e.g. Anthropic 5xx, rate limit), the whole page goes blank instead of showing a retry. Add `errorComponent` to each route with a server fn.
 
-### Security & infra
-- RLS audit on `social_accounts` (no INSERT/UPDATE policies → users can't connect accounts even when OAuth ships).
-- Add INSERT/UPDATE policies on `post_metrics` (currently locked, so the analytics writer can't function).
-- Rate-limit AI server functions per user/minute.
+7. **PWA install prompt mounts in dashboard layout** — fires during sign-up flow on mobile, distracting. Memory says it should fire after first repurpose; implement that gate.
 
----
+### B. Honest gaps (features that look done but aren't)
 
-## 3. Sprint 4 — Make it a real SaaS
+| Feature | Status | What's missing |
+|---|---|---|
+| Calendar / scheduled posts | UI works, DB has rows | **No publisher.** Nothing ever posts to Twitter/LinkedIn. No OAuth. |
+| Analytics page | Page renders | **No data writer.** `post_metrics` table is empty. Charts show local generation counts only. |
+| Pro / Agency upgrade | Buttons live | Paddle webhook wired but **no test of full lifecycle** (cancel, dunning, refund). Welcome email path exists but unverified. |
+| Team invites | Token created | **Email never sent.** User must copy-paste the URL. |
+| Approvals | Review page works | **Approval-request email never sent.** Same problem. |
+| Brand Kit | Single kit per user | DB supports multiple, UI only shows first. Agency users can't manage clients properly. |
+| Repurpose history | Saves jobs | Doesn't save `brand_kit_id` or `workspace_id` → Agency Analytics rollups are broken. |
+| Search | None | No full-text search across history, gallery, or templates. |
+| Admin / observability | None | No way to see signups, MRR, AI cost, error rate. Flying blind. |
 
-Three pillars, in priority order.
+### C. UX inconsistencies across the 28 routes
 
-### A. Real social publishing (the #1 broken promise)
-- Twitter/X OAuth 2.0 + LinkedIn OAuth → write tokens into `social_accounts`.
-- "Connect account" UI under Settings.
-- Publisher: pg_cron job hits `/api/public/publish-due-posts` every minute, posts due `scheduled_posts` via the platform API, writes back `platform_post_id` / `published_at` / `publish_error`.
-- Per-post preview that mirrors how it'll look on the actual platform.
+- 9 routes use a custom heading style, 6 use `<h1 className="text-3xl">`, 3 use card wrappers — no shared `PageHeader` component.
+- Some routes have empty states with CTAs (Repurpose, Calendar), most don't (History, Templates, Hook Lab show a blank panel).
+- Loading states are inconsistent: some use `<Loader2>` spinner, some show skeletons, some show nothing (page just freezes).
+- No global "AI is thinking" indicator — user clicks Generate, nothing happens for 30–90s, they bounce. The original spec asked for a navbar progress bar.
+- Toast usage is inconsistent (some success, some silent; some errors swallowed).
+- Mobile: most dashboard pages have horizontal overflow because cards use fixed widths instead of `min-w-0`.
 
-### B. Payments (turn on revenue)
-- Stripe Checkout for Pro ($19) and Agency ($49) with monthly + annual.
-- Customer portal for cancel/upgrade.
-- Webhook → updates `subscriptions` + `profiles.plan`.
-- Hard-enforce limits server-side on downgrade.
-- 14-day Pro trial on signup (no card) to lift conversion.
+### D. Performance & infra
 
-### C. Performance analytics (close the loop)
-- Cron pulls likes/shares/comments/impressions from Twitter + LinkedIn for posts published in last 30 days, writes to `post_metrics`.
-- Analytics page: per-post engagement, best time-of-day, top hooks, brand-kit comparison.
-- Weekly email digest ("Your top post this week earned 142 likes").
+- 1,163-line route files ship as one chunk — slow first paint on dashboard. Split + lazy-load heavy panels.
+- No rate limiting on AI server fns → one bad actor can burn your Anthropic budget.
+- No retry/backoff on Claude calls — transient 529s surface as user errors.
+- `social_accounts` table has SELECT policy but **no INSERT/UPDATE policy** → even when OAuth ships, writes will fail.
+- `post_metrics` is fully locked → analytics writer can't function.
 
-### D. Email infrastructure (unblocks invites + approvals + digests)
-- Resend integration (or Lovable Cloud email).
-- Templates: invite, approval request, approval decided, weekly digest, trial ending.
+### E. SEO / Growth surface
+
+- Landing page is solid but `/gallery`, `/pricing`, `/privacy`, `/terms` don't have unique `head()` metadata in some cases.
+- No public profile pages (`/u/$handle`) for gallery virality.
+- No sitemap entries for gallery items.
+- No referral payout — only credits, which Free users can't even spend.
 
 ---
 
-## 4. Sprint 5 — Growth & moat
+## Part 2 — The Plan (3 sprints to v2)
 
-- **Chrome extension**: highlight any text on the web → "Repurpose with PostSpark".
-- **Notion / Google Docs import** (currently only paste/upload).
-- **AI agent mode**: "Turn this blog into a 30-day content calendar" → fills the calendar end-to-end.
-- **Public profile pages** for Gallery (`/u/$handle`) — SEO + virality.
-- **Affiliate program** built on top of existing referrals (cash payout, not credits).
-- **Admin dashboard** (internal): MRR, signups, churn, AI spend per user.
-
----
-
-## 5. Recommended order
+### Sprint 0 — Bug fix pass (1 day, ship today)
 
 ```text
-Sprint 3.5  (1-2 days)  Refinements above — required before charging
-Sprint 4A   (2-3 days)  Real Twitter + LinkedIn publishing
-Sprint 4B   (1-2 days)  Stripe payments + trial
-Sprint 4C   (2 days)    Performance analytics pull
-Sprint 4D   (1 day)     Email infra (Resend)
-Sprint 5    (later)     Growth surface
+- Sidebar scroll fix (nav: overflow-y-auto + min-h-0; footer: shrink-0)
+- Mobile sidebar X button
+- Move brand switcher into mobile sidebar
+- Add errorComponent to all dashboard.* routes (retry button)
+- Global navbar progress bar during AI calls (Zustand store)
+- Cache onboarding-complete in localStorage
+- Gate PWA prompt behind first-repurpose-done flag
+- Split dashboard.image-studio.tsx into 4 files
+```
+
+### Sprint 1 — Polish & consistency (2-3 days)
+
+```text
+- Build shared <PageHeader title subtitle action /> + adopt across 28 routes
+- Build shared <EmptyState icon title body cta /> + add to History,
+  Templates, Hook Lab, Calendar, Image Studio, Brand Voice
+- Standardize loading: <PageLoader/> for routes, <InlineSpinner/> in buttons,
+  <SkeletonCard/> for grids
+- Standardize toasts: success on every mutation, error.toString() never shown
+  raw — always a friendly message
+- Mobile pass: every card gets min-w-0, every grid gets responsive cols
+- Full-text search on History (Postgres tsvector) + Gallery + Templates
+- Multiple Brand Kits UI for Agency tier (DB already supports it)
+- Persist brand_kit_id + workspace_id on repurpose_jobs insert
+- Rate-limit AI server fns (10/min/user free, 60/min Pro, 200/min Agency)
+- Retry/backoff wrapper around Anthropic + Replicate + ElevenLabs calls
+- Fix RLS: add INSERT/UPDATE policies on social_accounts and post_metrics
+- Per-route head() metadata audit (every public route gets unique title/desc/og)
+```
+
+### Sprint 2 — Make it a real SaaS (1 week)
+
+The 4 things that actually unlock revenue. In priority order:
+
+**2A. Real social publishing** (the #1 broken promise)
+- Twitter/X OAuth 2.0 + LinkedIn OAuth, store tokens in `social_accounts`
+- "Connect account" UI under Settings
+- pg_cron job → `/api/public/publish-due-posts` every minute
+  → posts due `scheduled_posts` via platform API
+  → writes back `platform_post_id`, `published_at`, `publish_error`
+- Per-platform live preview (Twitter card, LinkedIn card)
+
+**2B. Payments lifecycle** (close the leaks)
+- End-to-end test of Paddle: subscribe → upgrade → cancel → resubscribe → refund
+- Customer portal link in Settings
+- Server-side hard-enforce limits on downgrade
+- 14-day Pro trial on signup (no card) — biggest conversion lever
+- Failed-payment dunning email (3 attempts then downgrade)
+
+**2C. Real performance analytics** (close the loop)
+- pg_cron pulls likes/shares/comments/impressions from Twitter + LinkedIn
+  for posts published in the last 30 days → writes to `post_metrics`
+- Analytics page: per-post engagement, best time-of-day, top-performing
+  hooks, brand-kit comparison
+- Weekly digest email: "Your top post this week earned 142 likes"
+
+**2D. Email infrastructure** (unblocks invites + approvals + digests)
+- Resend integration
+- Templates: invite, approval request, approval decided, weekly digest,
+  trial ending, payment failed, welcome (paid)
+- Wire team invites + approvals to actually send
+
+### Sprint 3 — Growth & moat (later, only after Sprint 2 ships)
+
+- Chrome extension: highlight any text → "Repurpose with PostSpark"
+- Notion + Google Docs import
+- Public profile pages `/u/$handle` (SEO + gallery virality)
+- Sitemap entries for gallery items
+- Affiliate program (cash payout) on top of existing referrals
+- Internal admin dashboard: MRR, signups, churn, AI spend per user, error rate
+- AI agent mode: "Turn this blog into a 30-day calendar" → fills calendar end-to-end
+
+---
+
+## Recommended order
+
+```text
+Sprint 0  (today)        Bug pass — sidebar scroll + 7 other fixes
+Sprint 1  (2-3 days)     Polish, consistency, search, rate-limit, RLS
+Sprint 2A (2-3 days)     Real Twitter + LinkedIn publishing
+Sprint 2B (1-2 days)     Payments lifecycle + 14-day trial
+Sprint 2C (2 days)       Real analytics pull
+Sprint 2D (1 day)        Resend email infra
+Sprint 3  (later)        Growth surface
 ```
 
 ---
 
-## What I'd like you to decide
+## What I need you to decide
 
-1. Do you want me to start with **Sprint 3.5 refinements** (polish existing) or jump straight to **Sprint 4A real publishing** (most-asked feature)?
-2. For payments: **Stripe** (default) or **Paddle** (better for non-US sellers, handles VAT)?
-3. For email: **Resend** (modern, dev-friendly) or use Lovable Cloud's built-in email?
+1. **Start point**: Should I start with **Sprint 0 today** (fix the sidebar + 7 other bugs you'd see immediately in the preview) or jump straight into a bigger sprint?
+2. **Sprint 2 order**: Once polish is done, what's more important to you — **publishing** (2A, the most-asked feature) or **payments lifecycle + trial** (2B, the biggest revenue lever)?
+3. **Email provider**: **Resend** (modern, dev-friendly, $0 for 3k emails/mo) or stick with the existing Lovable Cloud email path?
 
 Reply with your picks and I'll execute.

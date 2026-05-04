@@ -35,6 +35,7 @@ import {
   getImageUsage,
   captionForImage,
 } from "@/server/image.functions";
+import { withAIProgress } from "@/lib/aiProgress";
 import JSZip from "jszip";
 
 export const Route = createFileRoute("/dashboard/image-studio")({
@@ -286,10 +287,10 @@ function ImageStudioPage() {
     setLoading(true);
     setImageUrl("");
     try {
-      const res = await generateImage({
+      const res = await withAIProgress(generateImage({
         data: { prompt: prompt.trim(), style, aspect, template },
         headers: authHeaders,
-      });
+      }));
       if (res.error) toast.error(res.error);
       else if (!res.imageUrl) toast.error("No image returned");
       else {
@@ -310,10 +311,10 @@ function ImageStudioPage() {
     setLoading(true);
     setVariations([]);
     try {
-      const res = await generateImageVariations({
+      const res = await withAIProgress(generateImageVariations({
         data: { prompt: prompt.trim(), style, aspect, template, count: 4 },
         headers: authHeaders,
-      });
+      }));
       if (res.error) {
         toast.error(res.error);
       } else {
@@ -338,10 +339,10 @@ function ImageStudioPage() {
     setLoading(true);
     setCarouselSlides([]);
     try {
-      const res: any = await generateCarousel({
+      const res: any = await withAIProgress(generateCarousel({
         data: { topic: carouselTopic.trim(), style },
         headers: authHeaders,
-      });
+      }));
       if (res.error) {
         toast.error(res.error);
       } else {
