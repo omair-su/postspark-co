@@ -33,7 +33,10 @@ export async function initializePaddle() {
   });
 }
 
-export async function getPaddlePriceId(priceId: string): Promise<string> {
+export async function getPaddlePriceId(priceId: string, accessToken: string): Promise<string> {
   const environment = getPaddleEnvironment();
-  return resolvePaddlePrice({ data: { priceId, environment } });
+  return resolvePaddlePrice({
+    data: { priceId, environment },
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 }
