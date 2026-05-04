@@ -174,7 +174,7 @@ function RepurposePage() {
 
     try {
       const useBrandTone = !!brandKit?.preferred_tone && !overrideTone;
-      const result = await repurposeContent({
+      const result = await withAIProgress(repurposeContent({
         data: {
           inputText: input,
           selectedTypes: Array.from(selected),
@@ -183,7 +183,7 @@ function RepurposePage() {
           language,
         },
         headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
-      });
+      }));
 
       if (result.error) {
         if (result.error === "LIMIT_REACHED") {
