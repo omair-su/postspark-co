@@ -18,10 +18,26 @@ const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PostSpark — Turn 1 Blog Post Into 30 Pieces of Content" },
-      { name: "description", content: "PostSpark uses AI to instantly repurpose your blog posts, PDFs, and YouTube videos into tweets, LinkedIn posts, email newsletters, and video scripts." },
-      { property: "og:title", content: "PostSpark — Turn 1 Blog Post Into 30 Pieces of Content" },
-      { property: "og:description", content: "PostSpark uses AI to instantly repurpose your blog posts, PDFs, and YouTube videos into tweets, LinkedIn posts, email newsletters, and video scripts." },
+      { title: "PostSpark — AI Content Repurposing Tool | Turn 1 Post Into 30" },
+      { name: "description", content: "PostSpark uses AI to repurpose your blog posts, YouTube videos and PDFs into tweets, LinkedIn posts, email newsletters and video scripts instantly. Try free." },
+      { property: "og:title", content: "PostSpark — Turn 1 Post Into 30 Instantly" },
+      { property: "og:description", content: "AI-powered content repurposing for creators" },
+      { property: "og:url", content: "https://postspark.co" },
+      { property: "og:image", content: "https://postspark.co/og-image.png" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "PostSpark",
+          applicationCategory: "BusinessApplication",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          description: "AI-powered content repurposing tool",
+          url: "https://postspark.co",
+        }),
+      },
     ],
   }),
   component: LandingPage,
