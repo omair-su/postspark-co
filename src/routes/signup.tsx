@@ -9,8 +9,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
-      { title: "Sign Up — PostSpark" },
-      { name: "description", content: "Create your free PostSpark account." },
+      { title: "Start Free — PostSpark AI Content Tool" },
+      { name: "description", content: "Create your free PostSpark account and start repurposing content with AI. 3 free repurposes per month, no credit card required." },
     ],
   }),
   component: SignupPage,
