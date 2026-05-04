@@ -211,6 +211,14 @@ function ImageStudioPage() {
     remaining: number;
   } | null>(null);
 
+  const authHeaders = useMemo(
+    () =>
+      session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : undefined,
+    [session?.access_token],
+  );
+
   // settings (persisted)
   const [watermarkOn, setWatermarkOn] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -244,8 +252,9 @@ function ImageStudioPage() {
         : "aspect-video";
 
   const refreshUsage = async () => {
+    if (!authHeaders) return;
     try {
-      const u = await getImageUsage();
+      const u = await getImageUsage({ headers: authHeaders });
       setUsage(u);
     } catch (e) {
       // ignore
@@ -257,9 +266,10 @@ function ImageStudioPage() {
   }, [session]);
 
   const loadLibrary = async () => {
+    if (!authHeaders) return;
     setLibLoading(true);
     try {
-      const res = await listLibraryImages();
+      const res = await listLibraryImages({ headers: authHeaders });
       setLibrary((res.images as LibImage[]) || []);
     } finally {
       setLibLoading(false);
@@ -278,6 +288,7 @@ function ImageStudioPage() {
     try {
       const res = await generateImage({
         data: { prompt: prompt.trim(), style, aspect, template },
+        headers: authHeaders,
       });
       if (res.error) toast.error(res.error);
       else if (!res.imageUrl) toast.error("No image returned");
@@ -301,6 +312,7 @@ function ImageStudioPage() {
     try {
       const res = await generateImageVariations({
         data: { prompt: prompt.trim(), style, aspect, template, count: 4 },
+        headers: authHeaders,
       });
       if (res.error) {
         toast.error(res.error);
@@ -328,6 +340,7 @@ function ImageStudioPage() {
     try {
       const res: any = await generateCarousel({
         data: { topic: carouselTopic.trim(), style },
+        headers: authHeaders,
       });
       if (res.error) {
         toast.error(res.error);
@@ -370,6 +383,7 @@ function ImageStudioPage() {
     try {
       const res = await editUploadedImage({
         data: { imageDataUrl: uploadedUrl, instruction: editInstruction.trim() },
+        headers: authHeaders,
       });
       if (res.error) toast.error(res.error);
       else if (!res.imageUrl) toast.error("No image returned");
@@ -414,6 +428,7 @@ function ImageStudioPage() {
           source: src,
           safetyCheck: safetyOn,
         },
+        headers: authHeaders,
       });
       toast.dismiss(t);
       if (res.error) toast.error(res.error);
@@ -428,7 +443,8 @@ function ImageStudioPage() {
   };
 
   const removeFromLibrary = async (id: string) => {
-    const res = await deleteLibraryImage({ data: { id } });
+    if (!authHeaders) return toast.error("Please sign in");
+    const res = await deleteLibraryImage({ data: { id }, headers: authHeaders });
     if (res.error) return toast.error(res.error);
     setLibrary((l) => l.filter((i) => i.id !== id));
     toast.success("Deleted");
