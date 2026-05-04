@@ -40,44 +40,63 @@ function buildPrompt(prompt: string, style?: string, aspect?: string, template?:
   return parts.join(". ");
 }
 
-async function callImageAI(messages: any[]): Promise<ImageGenResult> {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  if (!LOVABLE_API_KEY) return { imageUrl: "", error: "AI service not configured" };
+// Stable image models in fallback order. Nano Banana (2.5) is the proven workhorse;
+// the 3.1 preview is tried first only when explicitly requested via env override.
+const IMAGE_MODELS = [
+  "google/gemini-2.5-flash-image",
+  "google/gemini-3.1-flash-image-preview",
+];
 
+async function callImageAIOnce(
+  model: string,
+  messages: any[],
+  apiKey: string,
+): Promise<{ result: ImageGenResult; retriable: boolean }> {
   try {
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
-        messages,
-        modalities: ["image", "text"],
-      }),
+      body: JSON.stringify({ model, messages, modalities: ["image", "text"] }),
     });
 
     if (response.status === 429)
-      return { imageUrl: "", error: "Rate limit reached. Try again shortly." };
-    if (response.status === 402) return { imageUrl: "", error: "AI credits exhausted." };
+      return { result: { imageUrl: "", error: "Rate limit reached. Try again shortly." }, retriable: false };
+    if (response.status === 402)
+      return { result: { imageUrl: "", error: "AI credits exhausted." }, retriable: false };
     if (!response.ok) {
       const text = await response.text();
-      console.error("Image AI error:", response.status, text);
-      return { imageUrl: "", error: "Image generation failed." };
+      console.error(`Image AI error [${model}]:`, response.status, text.slice(0, 300));
+      return { result: { imageUrl: "", error: `Image generation failed (${response.status}).` }, retriable: true };
     }
 
     const data = await response.json();
     const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     if (!url) {
-      console.error("No image in response:", JSON.stringify(data).slice(0, 500));
-      return { imageUrl: "", error: "No image returned." };
+      console.error(`No image in response [${model}]:`, JSON.stringify(data).slice(0, 500));
+      return { result: { imageUrl: "", error: "No image returned." }, retriable: true };
     }
-    return { imageUrl: url };
+    return { result: { imageUrl: url }, retriable: false };
   } catch (err) {
-    console.error("Image gen error:", err);
-    return { imageUrl: "", error: "Failed to connect to AI service." };
+    console.error(`Image gen error [${model}]:`, err);
+    return { result: { imageUrl: "", error: "Failed to connect to AI service." }, retriable: true };
   }
+}
+
+async function callImageAI(messages: any[]): Promise<ImageGenResult> {
+  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+  if (!LOVABLE_API_KEY) return { imageUrl: "", error: "AI service not configured" };
+
+  let last: ImageGenResult = { imageUrl: "", error: "No image returned." };
+  for (const model of IMAGE_MODELS) {
+    const { result, retriable } = await callImageAIOnce(model, messages, LOVABLE_API_KEY);
+    if (result.imageUrl) return result;
+    last = result;
+    if (!retriable) return result; // rate limit / no credits → don't try other models
+  }
+  return last;
 }
 
 export async function generateSocialImage(
