@@ -182,6 +182,19 @@ async function callImageAI(messages: any[]): Promise<ImageGenResult> {
   return last;
 }
 
+// Premium text-to-image: try Replicate Flux 1.1 Pro first, fall back to Lovable AI.
+async function generateFromPrompt(
+  fullPrompt: string,
+  aspect: "square" | "portrait" | "landscape",
+): Promise<ImageGenResult> {
+  if (process.env.REPLICATE_API_TOKEN) {
+    const r = await callReplicateFlux(fullPrompt, aspect);
+    if (r.imageUrl) return r;
+    console.warn("Replicate failed, falling back to Lovable AI:", r.error);
+  }
+  return callImageAI([{ role: "user", content: fullPrompt }]);
+}
+
 export async function generateSocialImage(
   prompt: string,
   style: string,
@@ -189,7 +202,8 @@ export async function generateSocialImage(
   template?: string,
 ): Promise<ImageGenResult> {
   const fullPrompt = buildPrompt(prompt, style, aspect, template);
-  return callImageAI([{ role: "user", content: fullPrompt }]);
+  const a = (aspect as "square" | "portrait" | "landscape") || "square";
+  return generateFromPrompt(fullPrompt, a);
 }
 
 export async function generateVariations(
@@ -205,6 +219,7 @@ export async function generateVariations(
     "different color palette, fresh mood",
     "different lighting and atmosphere",
   ];
+  const a = (aspect as "square" | "portrait" | "landscape") || "square";
   const tasks = Array.from({ length: count }).map((_, i) => {
     const variantHint = variants[i % variants.length];
     const finalPrompt = buildPrompt(
@@ -213,7 +228,7 @@ export async function generateVariations(
       aspect,
       template,
     );
-    return callImageAI([{ role: "user", content: finalPrompt }]);
+    return generateFromPrompt(finalPrompt, a);
   });
   return Promise.all(tasks);
 }
