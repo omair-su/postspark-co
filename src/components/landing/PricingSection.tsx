@@ -1,5 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { Check } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Check, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 const tiers = [
   {
@@ -10,6 +12,7 @@ const tiers = [
     features: ["3 repurposes/month", "All content formats", "Copy & export"],
     cta: "Start Free",
     popular: false,
+    priceId: null,
   },
   {
     name: "Pro",
@@ -19,6 +22,7 @@ const tiers = [
     features: ["Unlimited repurposes", "All content formats", "Priority generation", "History & re-generation"],
     cta: "Get Pro",
     popular: true,
+    priceId: "pro_monthly",
   },
   {
     name: "Agency",
@@ -36,10 +40,31 @@ const tiers = [
     ],
     cta: "Get Agency",
     popular: false,
+    priceId: "agency_monthly",
   },
-];
+] as const;
 
 export function PricingSection() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { openCheckout, loading } = usePaddleCheckout();
+
+  const handleCta = async (priceId: string | null) => {
+    if (!priceId) {
+      navigate({ to: "/signup" });
+      return;
+    }
+    if (!user) {
+      navigate({ to: "/signup", search: { plan: priceId } as any });
+      return;
+    }
+    await openCheckout({
+      priceId,
+      userId: user.id,
+      customerEmail: user.email,
+    });
+  };
+
   return (
     <section className="py-20 bg-surface" id="pricing">
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
@@ -80,16 +105,27 @@ export function PricingSection() {
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/signup"
-                className={`mt-6 flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
-                  t.popular
-                    ? "gradient-electric text-primary-foreground glow-electric hover:opacity-90"
-                    : "border border-border text-foreground hover:bg-accent"
-                }`}
-              >
-                {t.cta}
-              </Link>
+              {t.priceId === null ? (
+                <Link
+                  to="/signup"
+                  className="mt-6 flex w-full items-center justify-center rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-accent"
+                >
+                  {t.cta}
+                </Link>
+              ) : (
+                <button
+                  onClick={() => handleCta(t.priceId)}
+                  disabled={loading}
+                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50 ${
+                    t.popular
+                      ? "gradient-electric text-primary-foreground glow-electric hover:opacity-90"
+                      : "border border-border text-foreground hover:bg-accent"
+                  }`}
+                >
+                  {loading && <Loader2 className="h-3 w-3 animate-spin" />}
+                  {t.cta}
+                </button>
+              )}
             </div>
           ))}
         </div>
