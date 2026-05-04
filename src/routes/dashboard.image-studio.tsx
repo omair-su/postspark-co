@@ -287,10 +287,10 @@ function ImageStudioPage() {
     setLoading(true);
     setImageUrl("");
     try {
-      const res = await generateImage({
+      const res = await withAIProgress(generateImage({
         data: { prompt: prompt.trim(), style, aspect, template },
         headers: authHeaders,
-      });
+      }));
       if (res.error) toast.error(res.error);
       else if (!res.imageUrl) toast.error("No image returned");
       else {
