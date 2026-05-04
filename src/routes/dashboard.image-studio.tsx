@@ -339,10 +339,10 @@ function ImageStudioPage() {
     setLoading(true);
     setCarouselSlides([]);
     try {
-      const res: any = await generateCarousel({
+      const res: any = await withAIProgress(generateCarousel({
         data: { topic: carouselTopic.trim(), style },
         headers: authHeaders,
-      });
+      }));
       if (res.error) {
         toast.error(res.error);
       } else {
