@@ -311,10 +311,10 @@ function ImageStudioPage() {
     setLoading(true);
     setVariations([]);
     try {
-      const res = await generateImageVariations({
+      const res = await withAIProgress(generateImageVariations({
         data: { prompt: prompt.trim(), style, aspect, template, count: 4 },
         headers: authHeaders,
-      });
+      }));
       if (res.error) {
         toast.error(res.error);
       } else {
