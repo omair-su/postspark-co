@@ -35,6 +35,7 @@ import {
   getImageUsage,
   captionForImage,
 } from "@/server/image.functions";
+import { withAIProgress } from "@/lib/aiProgress";
 import JSZip from "jszip";
 
 export const Route = createFileRoute("/dashboard/image-studio")({
