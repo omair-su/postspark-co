@@ -500,7 +500,7 @@ function ImageStudioPage() {
 
         let caption = item.prompt;
         try {
-          const c = await captionForImage({ data: { prompt: item.prompt } });
+          const c = await captionForImage({ data: { prompt: item.prompt }, headers: authHeaders });
           caption = c.caption || item.prompt;
         } catch {
           // fallback to prompt
