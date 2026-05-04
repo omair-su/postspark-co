@@ -37,7 +37,7 @@ function HookLabPage() {
     setLoading(true);
     setHooks([]);
     try {
-      const res = await generateHooks({ data: { topic: topic.trim(), platform } });
+      const res = await withAIProgress(generateHooks({ data: { topic: topic.trim(), platform } }));
       if (res.error) {
         toast.error(res.error);
       } else if (res.hooks.length === 0) {
