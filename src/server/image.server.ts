@@ -314,7 +314,7 @@ export async function generateCarouselSet(
       styleHints[style] || styleHints.minimal,
       "Premium social-media design, share-worthy.",
     ].join(" ");
-    return callImageAI([{ role: "user", content: slidePrompt }]);
+    return generateFromPrompt(slidePrompt, "square");
   });
 
   const results = await Promise.all(tasks);
