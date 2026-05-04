@@ -35,10 +35,12 @@ import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.bran
 import { Route as DashboardBrandKitRouteImport } from './routes/dashboard.brand-kit'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard.agency-analytics'
+import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -171,6 +173,11 @@ const DashboardAgencyAnalyticsRoute =
     path: '/agency-analytics',
     getParentRoute: () => DashboardRoute,
   } as any)
+const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
+  id: '/checkout/success',
+  path: '/checkout/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -192,6 +199,12 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -201,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
@@ -221,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/review/$token': typeof ReviewTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -232,6 +247,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
@@ -252,6 +268,7 @@ export interface FileRoutesByTo {
   '/review/$token': typeof ReviewTokenRoute
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -265,6 +282,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
@@ -285,6 +303,7 @@ export interface FileRoutesById {
   '/review/$token': typeof ReviewTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -299,6 +318,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
+    | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
     | '/dashboard/brand-kit'
@@ -319,6 +339,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/dashboard/'
     | '/gallery/'
+    | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -330,6 +351,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
+    | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
     | '/dashboard/brand-kit'
@@ -350,6 +372,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/dashboard'
     | '/gallery'
+    | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -362,6 +385,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/auth/callback'
+    | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
     | '/dashboard/brand-kit'
@@ -382,6 +406,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/dashboard/'
     | '/gallery/'
+    | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -395,10 +420,12 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   GallerySlugRoute: typeof GallerySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -588,6 +615,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAgencyAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/checkout/success': {
+      id: '/checkout/success'
+      path: '/checkout/success'
+      fullPath: '/checkout/success'
+      preLoaderRoute: typeof CheckoutSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -614,6 +648,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/auth/preview'
       fullPath: '/lovable/email/auth/preview'
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -669,10 +710,12 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  CheckoutSuccessRoute: CheckoutSuccessRoute,
   GallerySlugRoute: GallerySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
   GalleryIndexRoute: GalleryIndexRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
@@ -680,12 +723,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

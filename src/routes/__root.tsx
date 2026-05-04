@@ -1,5 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/hooks/useAuth";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { lazy, Suspense } from "react";
 
 const Toaster = lazy(() => import("sonner").then(m => ({ default: m.Toaster })));
@@ -82,6 +83,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <AuthProvider>
+      <PaymentTestModeBanner />
       <Outlet />
       <Suspense fallback={null}><Toaster position="top-right" richColors /></Suspense>
     </AuthProvider>
