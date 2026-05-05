@@ -7,6 +7,12 @@ const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string 
   { path: "/", priority: "1.0", changefreq: "weekly" },
   { path: "/pricing", priority: "0.9", changefreq: "monthly" },
   { path: "/gallery", priority: "0.8", changefreq: "daily" },
+  { path: "/blog", priority: "0.9", changefreq: "daily" },
+  { path: "/features/repurpose-blog-to-social", priority: "0.8", changefreq: "monthly" },
+  { path: "/features/youtube-to-tweets", priority: "0.8", changefreq: "monthly" },
+  { path: "/features/linkedin-post-generator", priority: "0.8", changefreq: "monthly" },
+  { path: "/for/creators", priority: "0.8", changefreq: "monthly" },
+  { path: "/for/agencies", priority: "0.8", changefreq: "monthly" },
   { path: "/signup", priority: "0.6", changefreq: "monthly" },
   { path: "/login", priority: "0.4", changefreq: "yearly" },
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },
@@ -49,6 +55,31 @@ export const Route = createFileRoute("/sitemap.xml")({
           }
         } catch (e) {
           console.error("sitemap: gallery fetch failed", e);
+        }
+
+        try {
+          const { data: posts } = await supabaseAdmin
+            .from("blog_posts")
+            .select("slug, updated_at, published_at")
+            .eq("status", "published")
+            .order("published_at", { ascending: false })
+            .limit(1000);
+
+          for (const p of posts || []) {
+            const lastmod = (p.updated_at || p.published_at || new Date().toISOString()).slice(0, 10);
+            urls.push(
+              `<url><loc>${SITE}/blog/${escapeXml(p.slug)}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`
+            );
+          }
+
+          const { data: cats } = await supabaseAdmin.from("blog_categories").select("slug");
+          for (const c of cats || []) {
+            urls.push(
+              `<url><loc>${SITE}/blog/category/${escapeXml(c.slug)}</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>`
+            );
+          }
+        } catch (e) {
+          console.error("sitemap: blog fetch failed", e);
         }
 
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
