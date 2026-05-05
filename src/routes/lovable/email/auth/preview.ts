@@ -18,7 +18,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "content-sparkle-60"
+const SITE_NAME = "PostSpark"
 const ROOT_DOMAIN = "postspark.co"
 
 // Sample data for preview mode ONLY (not used in actual email sending).
