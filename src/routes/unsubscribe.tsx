@@ -8,7 +8,7 @@ const searchSchema = z.object({ token: z.string().optional() });
 export const Route = createFileRoute("/unsubscribe")({
   validateSearch: searchSchema,
   component: UnsubscribePage,
-  head: () => ({ meta: [{ title: "Unsubscribe — PostSpark" }] }),
+  head: () => ({ meta: [{ title: "Unsubscribe — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 function UnsubscribePage() {

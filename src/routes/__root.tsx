@@ -29,6 +29,32 @@ function NotFoundComponent() {
   );
 }
 
+const ORG_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "PostSpark",
+  url: "https://postspark.co",
+  logo: "https://postspark.co/og-image.png",
+  description:
+    "AI content repurposing tool that turns blog posts, PDFs, and YouTube videos into tweets, LinkedIn posts, email newsletters, and video scripts.",
+  sameAs: [
+    "https://twitter.com/postspark",
+    "https://www.linkedin.com/company/postspark",
+  ],
+};
+
+const SITE_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "PostSpark",
+  url: "https://postspark.co",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://postspark.co/gallery?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -38,15 +64,21 @@ export const Route = createRootRoute({
       { name: "description", content: "PostSpark uses AI to instantly repurpose your blog posts, PDFs, and YouTube videos into tweets, LinkedIn posts, email newsletters, and video scripts." },
       { name: "keywords", content: "AI content repurposing, repurpose blog posts, content creator tool, AI writing tool, LinkedIn post generator, tweet generator, email newsletter generator" },
       { name: "author", content: "PostSpark" },
+      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
+      { property: "og:site_name", content: "PostSpark" },
       { property: "og:title", content: "PostSpark — Turn 1 Post Into 30 Instantly" },
-      { property: "og:description", content: "AI-powered content repurposing for creators" },
+      { property: "og:description", content: "AI-powered content repurposing for creators and agencies." },
       { property: "og:url", content: "https://postspark.co" },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://postspark.co/og-image.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@postspark" },
       { name: "twitter:title", content: "PostSpark — AI Content Repurposing" },
-      { name: "twitter:description", content: "Turn 1 blog post into 30 pieces of content instantly" },
+      { name: "twitter:description", content: "Turn 1 blog post into 30 pieces of content instantly." },
       { name: "twitter:image", content: "https://postspark.co/og-image.png" },
+      { name: "theme-color", content: "#1a1a2e" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -59,6 +91,10 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: "/favicon.svg" },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "canonical", href: "https://postspark.co" },
+    ],
+    scripts: [
+      { type: "application/ld+json", children: JSON.stringify(ORG_JSONLD) },
+      { type: "application/ld+json", children: JSON.stringify(SITE_JSONLD) },
     ],
   }),
   shellComponent: RootShell,

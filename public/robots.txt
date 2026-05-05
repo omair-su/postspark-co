@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /onboarding
+Disallow: /auth/
+Disallow: /checkout/
+Disallow: /invite/
+Disallow: /review/
+Disallow: /reset-password
+Disallow: /unsubscribe
+Disallow: /lovable/
 
 Sitemap: https://postspark.co/sitemap.xml

@@ -9,9 +9,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Login — PostSpark" },
-      { name: "description", content: "Log in to your PostSpark account to repurpose content with AI." },
+      { title: "Log in — PostSpark" },
+      { name: "description", content: "Log in to your PostSpark account." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
+    links: [{ rel: "canonical", href: "https://postspark.co/login" }],
   }),
   component: LoginPage,
 });

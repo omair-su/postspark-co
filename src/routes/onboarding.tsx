@@ -7,7 +7,7 @@ import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/onboarding")({
-  head: () => ({ meta: [{ title: "Welcome — PostSpark" }] }),
+  head: () => ({ meta: [{ title: "Welcome — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: OnboardingPage,
 });
 
