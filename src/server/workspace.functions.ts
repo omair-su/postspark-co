@@ -68,7 +68,7 @@ export const createWorkspace = createServerFn({ method: "POST" })
       .single();
     if (error) return { success: false, error: error.message };
 
-    await supabase.from("workspace_members").insert({
+    await supabaseAdmin.from("workspace_members").insert({
       workspace_id: ws.id,
       user_id: userId,
       role: "owner",
