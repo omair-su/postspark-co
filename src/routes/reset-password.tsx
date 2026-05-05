@@ -9,6 +9,7 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       { title: "Reset Password — PostSpark" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: ResetPasswordPage,
