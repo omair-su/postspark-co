@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateRepurposedContent } from "@/server/repurpose.server";
 
-const FREE_MONTHLY_LIMIT = 3;
+const FREE_MONTHLY_LIMIT = 10;
 
 // Per-instance rate limiter: max 10 AI calls / minute / user
 const RATE_BUCKET = new Map<string, number[]>();

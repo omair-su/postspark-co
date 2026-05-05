@@ -441,7 +441,7 @@ function RepurposePage() {
             </div>
             <h2 className="text-xl font-bold text-foreground">You've hit your monthly limit</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Free accounts get 3 repurposes per month. Upgrade to <strong>Pro</strong> for unlimited AI-powered content generation.
+              Free accounts get 10 repurposes per month. Upgrade to <strong>Pro</strong> for unlimited AI-powered content generation.
             </p>
             <div className="mt-6 space-y-3">
               <button className="w-full rounded-xl gradient-electric px-6 py-3 text-sm font-bold text-primary-foreground transition-all hover:opacity-90 glow-electric">

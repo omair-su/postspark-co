@@ -9,7 +9,7 @@ const tiers = [
     price: "$0",
     period: "/month",
     desc: "Get started with content repurposing",
-    features: ["3 repurposes/month", "All content formats", "Copy & export"],
+    features: ["10 repurposes/month", "All content formats", "Copy & export"],
     cta: "Start Free",
     popular: false,
     priceId: null,

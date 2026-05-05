@@ -6,7 +6,7 @@ const DESC = "Solo creators use PostSpark to turn one piece of content into a fu
 const URL = "https://postspark.co/for/creators";
 
 const FAQS = [
-  { q: "Do I need a big audience to benefit?", a: "No — PostSpark is built for creators at every stage. Free plan covers 3 repurposes per month so you can ship more without overhead." },
+  { q: "Do I need a big audience to benefit?", a: "No — PostSpark is built for creators at every stage. Free plan covers 10 repurposes per month so you can ship more without overhead." },
   { q: "Will my posts feel authentic?", a: "Yes. Train PostSpark on 5 of your past posts and outputs match your voice, not a generic AI tone." },
   { q: "How is this different from ChatGPT?", a: "PostSpark is specialized for content repurposing: platform formatting, hook optimization, brand voice persistence, and multi-output batching — all built in." },
   { q: "Can I cancel anytime?", a: "Yes. Cancel from your dashboard; access continues until your billing period ends." },
