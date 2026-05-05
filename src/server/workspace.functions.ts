@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function requireAgency(supabase: any, userId: string) {
   const { data: profile } = await supabase
@@ -67,7 +68,7 @@ export const createWorkspace = createServerFn({ method: "POST" })
       .single();
     if (error) return { success: false, error: error.message };
 
-    await supabase.from("workspace_members").insert({
+    await supabaseAdmin.from("workspace_members").insert({
       workspace_id: ws.id,
       user_id: userId,
       role: "owner",
@@ -175,12 +176,12 @@ export const acceptInvite = createServerFn({ method: "POST" })
       return { success: false, error: `Invite is for ${invite.email}. Sign in with that email.` };
     }
 
-    await supabase.from("workspace_members").insert({
+    await supabaseAdmin.from("workspace_members").insert({
       workspace_id: invite.workspace_id,
       user_id: userId,
       role: invite.role,
     });
-    await supabase
+    await supabaseAdmin
       .from("workspace_invites")
       .update({ accepted_at: new Date().toISOString() })
       .eq("id", invite.id);
