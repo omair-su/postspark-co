@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { getOnboardingStatus } from "@/server/onboarding.functions";
+import { getOnboardingStatus } from "@/lib/onboarding.functions";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({

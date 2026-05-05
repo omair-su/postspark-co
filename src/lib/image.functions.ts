@@ -9,7 +9,7 @@ import {
   generateCarouselSet,
   checkPromptSafety,
   generateCaption,
-} from "./image.server";
+} from "@/server/image.server";
 
 const FREE_MONTHLY_LIMIT = 5; // free tier preview generations
 const PRO_MONTHLY_LIMIT = 500; // soft cap for Pro/Agency

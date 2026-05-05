@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { getAgencyAnalytics } from "@/server/agencyAnalytics.functions";
+import { getAgencyAnalytics } from "@/lib/agencyAnalytics.functions";
 import { Loader2, BarChart3, Building2, Calendar, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/agency-analytics")({

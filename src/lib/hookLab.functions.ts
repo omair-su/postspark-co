@@ -1,16 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateSeoBlog } from "./seoBlog.server";
+import { generateViralHooks } from "@/server/hookLab.server";
 
-export const generateBlog = createServerFn({ method: "POST" })
+export const generateHooks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       topic: z.string().min(3).max(500),
-      keyword: z.string().min(2).max(120),
-      wordTarget: z.number().int().min(600).max(3000),
-      language: z.string().min(2).max(40).default("English"),
+      platform: z.enum(["twitter", "linkedin", "instagram", "tiktok", "youtube"]),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -24,29 +22,17 @@ export const generateBlog = createServerFn({ method: "POST" })
     const plan = profile?.plan || "free";
     const isPro = plan === "pro" || plan === "agency";
     if (!isPro) {
-      return {
-        title: "",
-        metaDescription: "",
-        slug: "",
-        outline: [],
-        markdown: "",
-        faq: [],
-        error: "SEO Blog Generator is a Pro feature. Upgrade to unlock.",
-      };
+      return { hooks: [], error: "Viral Hook Lab is a Pro feature. Upgrade to unlock." };
     }
 
+    let brandVoiceSummary = "";
     const { data: voice } = await supabase
       .from("brand_voices")
       .select("style_summary")
       .eq("user_id", userId)
       .eq("is_active", true)
       .maybeSingle();
+    brandVoiceSummary = voice?.style_summary || "";
 
-    return generateSeoBlog(
-      data.topic,
-      data.keyword,
-      data.wordTarget,
-      data.language,
-      voice?.style_summary || "",
-    );
+    return generateViralHooks(data.topic, data.platform, brandVoiceSummary);
   });

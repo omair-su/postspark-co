@@ -8,7 +8,7 @@ import {
   trainBrandVoice,
   setActiveBrandVoice,
   deleteBrandVoice,
-} from "@/server/brandVoice.functions";
+} from "@/lib/brandVoice.functions";
 
 interface Voice {
   id: string;

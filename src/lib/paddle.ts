@@ -33,7 +33,7 @@ export async function initializePaddle() {
 
 export async function getPaddlePriceId(priceId: string, accessToken: string): Promise<string> {
   const environment = getPaddleEnvironment();
-  const { resolvePaddlePrice } = await import("@/server/payments.functions");
+  const { resolvePaddlePrice } = await import("@/lib/payments.functions");
   return resolvePaddlePrice({
     data: { priceId, environment },
     headers: { Authorization: `Bearer ${accessToken}` },

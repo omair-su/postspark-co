@@ -34,7 +34,7 @@ import {
   deleteLibraryImage,
   getImageUsage,
   captionForImage,
-} from "@/server/image.functions";
+} from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import JSZip from "jszip";
 

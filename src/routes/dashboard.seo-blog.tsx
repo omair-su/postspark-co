@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { FileText, Loader2, Sparkles, Copy, Check, Download } from "lucide-react";
-import { generateBlog } from "@/server/seoBlog.functions";
+import { generateBlog } from "@/lib/seoBlog.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 
 export const Route = createFileRoute("/dashboard/seo-blog")({

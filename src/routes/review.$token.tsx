@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { fetchApprovalByToken, submitApprovalResponse } from "@/server/approvals.functions";
+import { fetchApprovalByToken, submitApprovalResponse } from "@/lib/approvals.functions";
 import { Loader2, Check, MessageSquareWarning, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 

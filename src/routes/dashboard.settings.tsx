@@ -7,7 +7,7 @@ import { Loader2, Crown, User, Sparkles, ArrowRight, ExternalLink, Trash2 } from
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { createPortalSession, previewPlanChange, applyPlanChange, deleteAccount } from "@/server/payments.functions";
+import { createPortalSession, previewPlanChange, applyPlanChange, deleteAccount } from "@/lib/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 
 export const Route = createFileRoute("/dashboard/settings")({
