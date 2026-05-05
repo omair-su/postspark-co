@@ -186,6 +186,9 @@ export const deleteAccount = createServerFn({ method: "POST" })
 
     // Send confirmation email (best-effort)
     try {
+      const React = await import("react");
+      const { render } = await import("@react-email/components");
+      const { AccountDeletedEmail } = await import("@/lib/email-templates/account-deleted");
       const element = React.createElement(AccountDeletedEmail, {});
       const html = await render(element);
       const text = await render(element, { plainText: true });
