@@ -1,5 +1,3 @@
-import { resolvePaddlePrice } from "@/server/payments.functions";
-
 const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string | undefined;
 
 declare global {
@@ -35,6 +33,7 @@ export async function initializePaddle() {
 
 export async function getPaddlePriceId(priceId: string, accessToken: string): Promise<string> {
   const environment = getPaddleEnvironment();
+  const { resolvePaddlePrice } = await import("@/server/payments.functions");
   return resolvePaddlePrice({
     data: { priceId, environment },
     headers: { Authorization: `Bearer ${accessToken}` },
