@@ -27,7 +27,7 @@ import { WelcomePaidEmail } from './welcome-paid'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'team-invite': { ...teamInvite, callerRestriction: 'invite_owner' },
-  'approval-request': { ...approvalRequest, callerRestriction: 'invite_owner' },
+  'approval-request': { ...approvalRequest, callerRestriction: 'approval_owner' },
   'welcome-paid': {
     component: WelcomePaidEmail,
     subject: (d: any) => `Welcome to PostSpark ${d?.planName ?? 'Premium'} 🎉`,
