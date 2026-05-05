@@ -2,9 +2,9 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { TrustedBySection } from "@/components/landing/TrustedBySection";
 import { useAuth } from "@/hooks/useAuth";
 
-const TrustedBySection = lazy(() => import("@/components/landing/TrustedBySection").then(m => ({ default: m.TrustedBySection })));
 const BeforeAfterSection = lazy(() => import("@/components/landing/BeforeAfterSection").then(m => ({ default: m.BeforeAfterSection })));
 const FeaturesSection = lazy(() => import("@/components/landing/FeaturesSection").then(m => ({ default: m.FeaturesSection })));
 const PremiumFeaturesSection = lazy(() => import("@/components/landing/PremiumFeaturesSection").then(m => ({ default: m.PremiumFeaturesSection })));
@@ -70,8 +70,8 @@ function LandingPage() {
     <div className="min-h-screen scroll-smooth">
       <Navbar />
       <HeroSection />
+      <TrustedBySection />
       <Suspense fallback={null}>
-        <TrustedBySection />
         <BeforeAfterSection />
         <FeaturesSection />
         <PremiumFeaturesSection />
