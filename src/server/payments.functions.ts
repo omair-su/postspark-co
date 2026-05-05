@@ -1,10 +1,7 @@
-import * as React from "react";
-import { render } from "@react-email/components";
 import { createServerFn } from "@tanstack/react-start";
 import { gatewayFetch, getPaddleClient, type PaddleEnv } from "@/lib/paddle.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { AccountDeletedEmail } from "@/lib/email-templates/account-deleted";
 
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
