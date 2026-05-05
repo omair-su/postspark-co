@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getAdmin, getAnon, makeSlug } from "./gallery.server";
+import { getAdmin, getAnon, makeSlug } from "@/server/gallery.server";
 
 export const togglePublic = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -44,7 +44,6 @@ export const togglePublic = createServerFn({ method: "POST" })
 
 export const getGalleryFeed = createServerFn({ method: "GET" })
   .handler(async () => {
-    // Public read: use anon client to leverage RLS public policy
     const sb = getAnon();
     const { data, error } = await (sb as any)
       .from("repurpose_jobs")
@@ -77,7 +76,6 @@ export const getPublicPost = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!row) return null;
 
-    // Fire-and-forget view increment via service role
     try {
       await (getAdmin() as any)
         .from("repurpose_jobs")

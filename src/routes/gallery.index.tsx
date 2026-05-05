@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { getGalleryFeed } from "@/server/gallery.functions";
+import { getGalleryFeed } from "@/lib/gallery.functions";
 import { Sparkles, Eye, ArrowRight, Loader2 } from "lucide-react";
 
 interface Item {

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Sparkles, ArrowLeft } from "lucide-react";
-import { getPublicPost } from "@/server/gallery.functions";
+import { getPublicPost } from "@/lib/gallery.functions";
 
 export const Route = createFileRoute("/gallery/$slug")({
   loader: async ({ params }) => {
