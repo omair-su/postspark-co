@@ -345,6 +345,7 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           template_name: templateName,
           recipient_email: effectiveRecipient,
           status: 'pending',
+          metadata: { actor_user_id: user.id },
         })
 
         const { error: enqueueError } = await supabase.rpc('enqueue_email', {
