@@ -11,10 +11,11 @@ export interface TemplateEntry {
    * Who is allowed to trigger this template via the public /lovable/email/transactional/send endpoint.
    * - 'server_only': only the server (service role) may send. Authenticated user calls are rejected.
    * - 'invite_owner': caller must own a pending workspace_invite for the recipient email.
+   * - 'approval_owner': caller must own a pending approval_request for the recipient email.
    * - 'self': recipient must equal the authenticated user's own email.
    * Defaults to 'server_only' (deny by default).
    */
-  callerRestriction?: 'server_only' | 'invite_owner' | 'self'
+  callerRestriction?: 'server_only' | 'invite_owner' | 'approval_owner' | 'self'
 }
 
 import { template as teamInvite } from './team-invite'
