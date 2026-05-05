@@ -1,13 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Crown, User, Sparkles, ArrowRight, ExternalLink } from "lucide-react";
+import { Loader2, Crown, User, Sparkles, ArrowRight, ExternalLink, Trash2 } from "lucide-react";
 import { getMonthlyUsage } from "@/server/repurpose.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { createPortalSession } from "@/server/payments.functions";
+import { createPortalSession, previewPlanChange, applyPlanChange, deleteAccount } from "@/server/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 
 export const Route = createFileRoute("/dashboard/settings")({
