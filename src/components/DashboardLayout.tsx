@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AIProgressBar } from "@/components/AIProgressBar";
+import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { getMyWorkspace, setActiveBrandKit } from "@/server/workspace.functions";
 
 const navItems = [
@@ -202,6 +203,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <ThemeToggle />
           </div>
         </header>
+        <SubscriptionBanner />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
       <PWAInstallPrompt />

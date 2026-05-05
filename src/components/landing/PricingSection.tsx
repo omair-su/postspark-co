@@ -19,10 +19,10 @@ const tiers = [
     price: "$19",
     period: "/month",
     desc: "For creators who publish daily",
-    features: ["Unlimited repurposes", "All content formats", "Priority generation", "History & re-generation"],
-    cta: "Get Pro",
+    features: ["14-day free trial", "Unlimited repurposes", "All content formats", "Priority generation", "History & re-generation"],
+    cta: "Start 14-day free trial",
     popular: true,
-    priceId: "pro_monthly",
+    priceId: "pro_monthly_trial",
   },
   {
     name: "Agency",
@@ -30,6 +30,7 @@ const tiers = [
     period: "/month",
     desc: "For teams managing multiple clients",
     features: [
+      "14-day free trial",
       "Everything in Pro",
       "Up to 5 team seats",
       "Multi-brand workspaces",
@@ -38,9 +39,9 @@ const tiers = [
       "Agency analytics rollup",
       "Bulk CSV scheduling",
     ],
-    cta: "Get Agency",
+    cta: "Start 14-day free trial",
     popular: false,
-    priceId: "agency_monthly",
+    priceId: "agency_monthly_trial",
   },
 ] as const;
 
@@ -72,7 +73,7 @@ export function PricingSection() {
           Simple, Transparent <span className="text-gradient">Pricing</span>
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-center text-muted-foreground">
-          Start free. Upgrade when you're ready.
+          Start free, or try Pro &amp; Agency free for 14 days. Cancel anytime.
         </p>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">

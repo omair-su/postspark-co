@@ -213,6 +213,18 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
         )}
       </div>
 
+      {subscription?.status === "trialing" && subscription.current_period_end && (
+        <p className="mt-3 text-xs font-medium text-primary">
+          🎉 Free trial — ends {new Date(subscription.current_period_end).toLocaleDateString()}. You'll be charged automatically unless you cancel.
+        </p>
+      )}
+
+      {subscription?.status === "past_due" && (
+        <p className="mt-3 text-xs font-medium text-destructive">
+          ⚠️ Payment failed. Update your card via Manage billing to keep your subscription active.
+        </p>
+      )}
+
       {subscription && subscription.cancel_at_period_end && subscription.current_period_end && (
         <p className="mt-3 text-xs text-orange-600 dark:text-orange-400">
           Subscription ends on {new Date(subscription.current_period_end).toLocaleDateString()}.
@@ -225,25 +237,27 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
             <p className="text-sm font-semibold text-foreground">Pro</p>
             <p className="mt-1 text-xs text-muted-foreground">Unlimited repurposes & priority generation.</p>
             <button
-              onClick={() => handleUpgrade("pro_monthly")}
+              onClick={() => handleUpgrade("pro_monthly_trial")}
               disabled={checkoutLoading}
               className="mt-3 flex items-center justify-center gap-2 w-full rounded-lg gradient-electric px-3 py-2 text-sm font-semibold text-primary-foreground glow-electric disabled:opacity-50"
             >
               {checkoutLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-              Upgrade to Pro — $19/mo
+              Start 14-day free trial
             </button>
+            <p className="mt-2 text-center text-[10px] text-muted-foreground">Then $19/mo · cancel anytime</p>
           </div>
           <div className="rounded-lg border border-border p-4">
             <p className="text-sm font-semibold text-foreground">Agency</p>
             <p className="mt-1 text-xs text-muted-foreground">Team seats, multi-brand & white-label.</p>
             <button
-              onClick={() => handleUpgrade("agency_monthly")}
+              onClick={() => handleUpgrade("agency_monthly_trial")}
               disabled={checkoutLoading}
               className="mt-3 flex items-center justify-center gap-2 w-full rounded-lg border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent disabled:opacity-50"
             >
               {checkoutLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-              Upgrade to Agency — $49/mo
+              Start 14-day free trial
             </button>
+            <p className="mt-2 text-center text-[10px] text-muted-foreground">Then $49/mo · cancel anytime</p>
           </div>
         </div>
       ) : (
