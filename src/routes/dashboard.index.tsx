@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Repeat, Sparkles, Clock, TrendingUp, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getMonthlyUsage } from "@/server/repurpose.functions";
+import { getMonthlyUsage } from "@/lib/repurpose.functions";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
