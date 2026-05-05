@@ -1,13 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Crown, User, Sparkles, ArrowRight, ExternalLink } from "lucide-react";
+import { Loader2, Crown, User, Sparkles, ArrowRight, ExternalLink, Trash2 } from "lucide-react";
 import { getMonthlyUsage } from "@/server/repurpose.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { createPortalSession } from "@/server/payments.functions";
+import { createPortalSession, previewPlanChange, applyPlanChange, deleteAccount } from "@/server/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 
 export const Route = createFileRoute("/dashboard/settings")({
@@ -262,16 +262,7 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
         </div>
       ) : (
         <div className="mt-4 space-y-2">
-          {plan === "pro" && isActive && (
-            <button
-              onClick={() => handleUpgrade("agency_monthly")}
-              disabled={checkoutLoading}
-              className="flex items-center justify-center gap-2 w-full rounded-lg gradient-electric px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-            >
-              {checkoutLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-              Upgrade to Agency — $49/mo
-            </button>
-          )}
+          {plan === "pro" && isActive && <UpgradeToAgencyButton />}
           <button
             onClick={handleManageBilling}
             disabled={portalLoading}
@@ -280,6 +271,158 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
             {portalLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <ExternalLink className="h-3 w-3" />}
             Manage billing
           </button>
+        </div>
+      )}
+      <DangerZone />
+    </div>
+  );
+}
+
+function UpgradeToAgencyButton() {
+  const { session } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<{ amountCents: number; currency: string; nextBilledAt: string | null } | null>(null);
+  const [applying, setApplying] = useState(false);
+
+  const startUpgrade = async () => {
+    if (!session) return;
+    setLoading(true);
+    setOpen(true);
+    try {
+      const result = await previewPlanChange({
+        data: { environment: getPaddleEnvironment(), targetPriceId: "agency_monthly" },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      setPreview(result);
+    } catch (e: any) {
+      toast.error(e?.message || "Couldn't preview the upgrade");
+      setOpen(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirm = async () => {
+    if (!session) return;
+    setApplying(true);
+    try {
+      await applyPlanChange({
+        data: { environment: getPaddleEnvironment(), targetPriceId: "agency_monthly" },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      toast.success("Upgraded to Agency!");
+      setOpen(false);
+    } catch (e: any) {
+      toast.error(e?.message || "Upgrade failed");
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        onClick={startUpgrade}
+        className="flex items-center justify-center gap-2 w-full rounded-lg gradient-electric px-3 py-2 text-sm font-semibold text-primary-foreground"
+      >
+        Upgrade to Agency — $49/mo
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !applying && setOpen(false)}>
+          <div className="w-full max-w-sm rounded-xl border border-border bg-card p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-foreground">Upgrade to Agency</h3>
+            {loading || !preview ? (
+              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Calculating prorated charge…</div>
+            ) : (
+              <div className="mt-3 space-y-2 text-sm text-foreground">
+                <p>You'll be charged a prorated amount today for the remainder of this billing period:</p>
+                <p className="text-2xl font-bold text-primary">
+                  {(preview.amountCents / 100).toLocaleString(undefined, { style: "currency", currency: preview.currency })}
+                </p>
+                {preview.nextBilledAt && (
+                  <p className="text-xs text-muted-foreground">Next full charge of $49 on {new Date(preview.nextBilledAt).toLocaleDateString()}.</p>
+                )}
+              </div>
+            )}
+            <div className="mt-5 flex gap-2">
+              <button onClick={() => setOpen(false)} disabled={applying} className="flex-1 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:bg-accent disabled:opacity-50">Cancel</button>
+              <button onClick={confirm} disabled={applying || loading || !preview} className="flex-1 flex items-center justify-center gap-2 rounded-lg gradient-electric px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+                {applying && <Loader2 className="h-3 w-3 animate-spin" />}Confirm upgrade
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function DangerZone() {
+  const { user, session } = useAuth();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const onDelete = async () => {
+    if (!session || !user) return;
+    setDeleting(true);
+    try {
+      await deleteAccount({
+        data: { confirmationEmail: confirmEmail.trim() },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      await supabase.auth.signOut();
+      toast.success("Account deleted");
+      navigate({ to: "/" });
+    } catch (e: any) {
+      toast.error(e?.message || "Could not delete account");
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-5">
+      <div className="flex items-center gap-2">
+        <Trash2 className="h-4 w-4 text-destructive" />
+        <h2 className="text-sm font-semibold text-foreground">Danger zone</h2>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Permanently delete your account and cancel any active subscription. This cannot be undone.
+      </p>
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="mt-3 rounded-lg border border-destructive/40 px-3 py-2 text-sm font-semibold text-destructive hover:bg-destructive/10"
+        >
+          Delete my account
+        </button>
+      ) : (
+        <div className="mt-3 space-y-3">
+          <p className="text-xs text-foreground">Type <span className="font-mono font-semibold">{user?.email}</span> to confirm:</p>
+          <input
+            value={confirmEmail}
+            onChange={(e) => setConfirmEmail(e.target.value)}
+            placeholder={user?.email}
+            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setOpen(false); setConfirmEmail(""); }}
+              disabled={deleting}
+              className="flex-1 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:bg-accent disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onDelete}
+              disabled={deleting || confirmEmail.trim().toLowerCase() !== (user?.email ?? "").toLowerCase()}
+              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-destructive px-3 py-2 text-sm font-semibold text-destructive-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              {deleting && <Loader2 className="h-3 w-3 animate-spin" />}Delete forever
+            </button>
+          </div>
         </div>
       )}
     </div>
