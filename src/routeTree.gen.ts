@@ -13,6 +13,7 @@ import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RefundsRouteImport } from './routes/refunds'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -23,9 +24,15 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
+import { Route as ForCreatorsRouteImport } from './routes/for.creators'
+import { Route as ForAgenciesRouteImport } from './routes/for.agencies'
+import { Route as FeaturesYoutubeToTweetsRouteImport } from './routes/features.youtube-to-tweets'
+import { Route as FeaturesRepurposeBlogToSocialRouteImport } from './routes/features.repurpose-blog-to-social'
+import { Route as FeaturesLinkedinPostGeneratorRouteImport } from './routes/features.linkedin-post-generator'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
@@ -43,8 +50,11 @@ import { Route as DashboardBrandKitRouteImport } from './routes/dashboard.brand-
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard.agency-analytics'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
+import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -70,6 +80,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RssDotxmlRoute = RssDotxmlRouteImport.update({
+  id: '/rss.xml',
+  path: '/rss.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -122,6 +137,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReviewTokenRoute = ReviewTokenRouteImport.update({
   id: '/review/$token',
   path: '/review/$token',
@@ -137,6 +157,33 @@ const GallerySlugRoute = GallerySlugRouteImport.update({
   path: '/gallery/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForCreatorsRoute = ForCreatorsRouteImport.update({
+  id: '/for/creators',
+  path: '/for/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForAgenciesRoute = ForAgenciesRouteImport.update({
+  id: '/for/agencies',
+  path: '/for/agencies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesYoutubeToTweetsRoute = FeaturesYoutubeToTweetsRouteImport.update({
+  id: '/features/youtube-to-tweets',
+  path: '/features/youtube-to-tweets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRepurposeBlogToSocialRoute =
+  FeaturesRepurposeBlogToSocialRouteImport.update({
+    id: '/features/repurpose-blog-to-social',
+    path: '/features/repurpose-blog-to-social',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const FeaturesLinkedinPostGeneratorRoute =
+  FeaturesLinkedinPostGeneratorRouteImport.update({
+    id: '/features/linkedin-post-generator',
+    path: '/features/linkedin-post-generator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
@@ -223,6 +270,11 @@ const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
   path: '/checkout/success',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -231,6 +283,16 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogCategorySlugRoute = BlogCategorySlugRouteImport.update({
+  id: '/blog/category/$slug',
+  path: '/blog/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogAuthorSlugRoute = BlogAuthorSlugRouteImport.update({
+  id: '/blog/author/$slug',
+  path: '/blog/author/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LovableEmailTransactionalSendRoute =
@@ -277,11 +339,13 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -299,11 +363,19 @@ export interface FileRoutesByFullPath {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
+  '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
+  '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
+  '/for/agencies': typeof ForAgenciesRoute
+  '/for/creators': typeof ForCreatorsRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
+  '/blog/author/$slug': typeof BlogAuthorSlugRoute
+  '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -320,11 +392,13 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -342,11 +416,19 @@ export interface FileRoutesByTo {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
+  '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
+  '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
+  '/for/agencies': typeof ForAgenciesRoute
+  '/for/creators': typeof ForCreatorsRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
+  '/blog/author/$slug': typeof BlogAuthorSlugRoute
+  '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -365,11 +447,13 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/refunds': typeof RefundsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -387,11 +471,19 @@ export interface FileRoutesById {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
+  '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
+  '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
+  '/for/agencies': typeof ForAgenciesRoute
+  '/for/creators': typeof ForCreatorsRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
+  '/blog/author/$slug': typeof BlogAuthorSlugRoute
+  '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -411,11 +503,13 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refunds'
     | '/reset-password'
+    | '/rss.xml'
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
     | '/auth/callback'
+    | '/blog/$slug'
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
@@ -433,11 +527,19 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/email/unsubscribe'
+    | '/features/linkedin-post-generator'
+    | '/features/repurpose-blog-to-social'
+    | '/features/youtube-to-tweets'
+    | '/for/agencies'
+    | '/for/creators'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/blog/'
     | '/dashboard/'
     | '/gallery/'
+    | '/blog/author/$slug'
+    | '/blog/category/$slug'
     | '/lovable/email/suppression'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -454,11 +556,13 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refunds'
     | '/reset-password'
+    | '/rss.xml'
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
     | '/auth/callback'
+    | '/blog/$slug'
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
@@ -476,11 +580,19 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/email/unsubscribe'
+    | '/features/linkedin-post-generator'
+    | '/features/repurpose-blog-to-social'
+    | '/features/youtube-to-tweets'
+    | '/for/agencies'
+    | '/for/creators'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/blog'
     | '/dashboard'
     | '/gallery'
+    | '/blog/author/$slug'
+    | '/blog/category/$slug'
     | '/lovable/email/suppression'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -498,11 +610,13 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refunds'
     | '/reset-password'
+    | '/rss.xml'
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
     | '/auth/callback'
+    | '/blog/$slug'
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
@@ -520,11 +634,19 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/email/unsubscribe'
+    | '/features/linkedin-post-generator'
+    | '/features/repurpose-blog-to-social'
+    | '/features/youtube-to-tweets'
+    | '/for/agencies'
+    | '/for/creators'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/blog/'
     | '/dashboard/'
     | '/gallery/'
+    | '/blog/author/$slug'
+    | '/blog/category/$slug'
     | '/lovable/email/suppression'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -543,17 +665,27 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RefundsRoute: typeof RefundsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RssDotxmlRoute: typeof RssDotxmlRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  FeaturesLinkedinPostGeneratorRoute: typeof FeaturesLinkedinPostGeneratorRoute
+  FeaturesRepurposeBlogToSocialRoute: typeof FeaturesRepurposeBlogToSocialRoute
+  FeaturesYoutubeToTweetsRoute: typeof FeaturesYoutubeToTweetsRoute
+  ForAgenciesRoute: typeof ForAgenciesRoute
+  ForCreatorsRoute: typeof ForCreatorsRoute
   GallerySlugRoute: typeof GallerySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
+  BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
+  BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -591,6 +723,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rss.xml': {
+      id: '/rss.xml'
+      path: '/rss.xml'
+      fullPath: '/rss.xml'
+      preLoaderRoute: typeof RssDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -663,6 +802,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/review/$token': {
       id: '/review/$token'
       path: '/review/$token'
@@ -682,6 +828,41 @@ declare module '@tanstack/react-router' {
       path: '/gallery/$slug'
       fullPath: '/gallery/$slug'
       preLoaderRoute: typeof GallerySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for/creators': {
+      id: '/for/creators'
+      path: '/for/creators'
+      fullPath: '/for/creators'
+      preLoaderRoute: typeof ForCreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for/agencies': {
+      id: '/for/agencies'
+      path: '/for/agencies'
+      fullPath: '/for/agencies'
+      preLoaderRoute: typeof ForAgenciesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features/youtube-to-tweets': {
+      id: '/features/youtube-to-tweets'
+      path: '/features/youtube-to-tweets'
+      fullPath: '/features/youtube-to-tweets'
+      preLoaderRoute: typeof FeaturesYoutubeToTweetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features/repurpose-blog-to-social': {
+      id: '/features/repurpose-blog-to-social'
+      path: '/features/repurpose-blog-to-social'
+      fullPath: '/features/repurpose-blog-to-social'
+      preLoaderRoute: typeof FeaturesRepurposeBlogToSocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features/linkedin-post-generator': {
+      id: '/features/linkedin-post-generator'
+      path: '/features/linkedin-post-generator'
+      fullPath: '/features/linkedin-post-generator'
+      preLoaderRoute: typeof FeaturesLinkedinPostGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -803,6 +984,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutSuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -815,6 +1003,20 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/suppression'
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/category/$slug': {
+      id: '/blog/category/$slug'
+      path: '/blog/category/$slug'
+      fullPath: '/blog/category/$slug'
+      preLoaderRoute: typeof BlogCategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/author/$slug': {
+      id: '/blog/author/$slug'
+      path: '/blog/author/$slug'
+      fullPath: '/blog/author/$slug'
+      preLoaderRoute: typeof BlogAuthorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/transactional/send': {
@@ -913,17 +1115,27 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RefundsRoute: RefundsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RssDotxmlRoute: RssDotxmlRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  BlogSlugRoute: BlogSlugRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  FeaturesLinkedinPostGeneratorRoute: FeaturesLinkedinPostGeneratorRoute,
+  FeaturesRepurposeBlogToSocialRoute: FeaturesRepurposeBlogToSocialRoute,
+  FeaturesYoutubeToTweetsRoute: FeaturesYoutubeToTweetsRoute,
+  ForAgenciesRoute: ForAgenciesRoute,
+  ForCreatorsRoute: ForCreatorsRoute,
   GallerySlugRoute: GallerySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
+  BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
+  BlogAuthorSlugRoute: BlogAuthorSlugRoute,
+  BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
