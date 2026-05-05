@@ -1,15 +1,35 @@
-import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const scrollTo = (id: string) => {
+  // When landing on / with a hash, smooth-scroll to that section once mounted.
+  useEffect(() => {
+    if (location.pathname !== "/") return;
+    const hash = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+    if (!hash) return;
+    // wait for lazy sections to mount
+    const t = setTimeout(() => {
+      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 250);
+    return () => clearTimeout(t);
+  }, [location.pathname]);
+
+  const goToSection = (id: string) => {
     setOpen(false);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    if (location.pathname === "/") {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      // update hash without jump
+      try { window.history.replaceState(null, "", `/#${id}`); } catch {}
+    } else {
+      navigate({ to: "/", hash: id });
+    }
   };
 
   return (
@@ -20,15 +40,21 @@ export function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
-          <button onClick={() => scrollTo("features")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => goToSection("features")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Features
           </button>
-          <button onClick={() => scrollTo("how-it-works")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => goToSection("how-it-works")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             How It Works
           </button>
-          <button onClick={() => scrollTo("pricing")} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Pricing
-          </button>
+          </Link>
+          <Link to="/gallery" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Gallery
+          </Link>
+          <Link to="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Blog
+          </Link>
           <ThemeToggle />
           <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Login
@@ -41,7 +67,7 @@ export function Navbar() {
           </Link>
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen(!open)}>
+        <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
@@ -49,15 +75,21 @@ export function Navbar() {
       {open && (
         <div className="border-t border-border bg-background px-4 py-4 md:hidden">
           <div className="flex flex-col gap-3">
-            <button onClick={() => scrollTo("features")} className="text-left text-sm font-medium text-muted-foreground">
+            <button onClick={() => goToSection("features")} className="text-left text-sm font-medium text-muted-foreground">
               Features
             </button>
-            <button onClick={() => scrollTo("how-it-works")} className="text-left text-sm font-medium text-muted-foreground">
+            <button onClick={() => goToSection("how-it-works")} className="text-left text-sm font-medium text-muted-foreground">
               How It Works
             </button>
-            <button onClick={() => scrollTo("pricing")} className="text-left text-sm font-medium text-muted-foreground">
+            <Link to="/pricing" className="text-sm font-medium text-muted-foreground" onClick={() => setOpen(false)}>
               Pricing
-            </button>
+            </Link>
+            <Link to="/gallery" className="text-sm font-medium text-muted-foreground" onClick={() => setOpen(false)}>
+              Gallery
+            </Link>
+            <Link to="/blog" className="text-sm font-medium text-muted-foreground" onClick={() => setOpen(false)}>
+              Blog
+            </Link>
             <Link to="/login" className="text-sm font-medium text-muted-foreground" onClick={() => setOpen(false)}>
               Login
             </Link>

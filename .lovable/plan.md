@@ -1,194 +1,154 @@
-# PostSpark SEO Plan — Drive Organic Pro Signups
+# PostSpark — Full Product Audit & Next-Level Plan
 
-## Current state (audit)
-
-| Area | Status |
-|---|---|
-| Root `<head>` meta | ✅ Good (title, description, OG, Twitter, canonical) |
-| Per-route `head()` | ⚠️ Only ~6 pages have it; **most don't** (incl. `/pricing`) |
-| `og-image.png` | ❌ Missing — 404 on every share |
-| `sitemap.xml` | ⚠️ Static, only 4 URLs (missing gallery, blog, content pages) |
-| `robots.txt` | ⚠️ Allows `/dashboard/*` and auth pages to be crawled |
-| Structured data (JSON-LD) | ❌ None |
-| Blog / content marketing | ❌ None — biggest organic-acquisition gap |
-| Public Gallery indexing | ⚠️ Pages exist but no per-job meta or sitemap inclusion |
-| Comparison / use-case pages | ❌ None (no "vs Buffer", "for agencies", etc.) |
-| Page speed signals | ⚠️ Good preconnect, but no preloaded LCP image |
-
-## Strategy
-
-Organic Pro signups come from **three funnels**:
-1. **Branded search** ("PostSpark") → already covered by root meta.
-2. **Tool/feature search** ("AI tweet generator", "repurpose blog post to LinkedIn") → needs landing pages + per-route meta + JSON-LD `SoftwareApplication`.
-3. **Content/use-case search** ("how to repurpose a YouTube video", "agency content workflow") → needs a blog and use-case pages.
-
-This plan covers all three.
+A page-by-page review followed by a prioritized roadmap. Goal: make PostSpark feel obviously better than the alternatives so creators try it organically and convert.
 
 ---
 
-## Phase 1 — Technical SEO foundation
+## Part 1 — What you have today (page-by-page audit)
 
-### 1.1 Per-route `head()` for every public page
+### A. Marketing site (public)
 
-Add unique `title`, `description`, `og:title`, `og:description`, `canonical` to:
-- `/pricing` — *"PostSpark Pricing — Free, Pro $19/mo, Agency $49/mo"*
-- `/login`, `/signup` — set `noindex` (auth pages shouldn't compete with `/`)
-- `/privacy`, `/terms`, `/refunds` — short descriptive title + `noindex` is acceptable, but indexable trust pages also help
-- `/gallery` — *"Content Inspiration Gallery — See AI-Repurposed Posts"*
-- `/gallery/$slug` — dynamic from loader: job title + first 160 chars of input as description, OG image from job's first generated image
-- `/review/$token`, `/invite/$token`, `/checkout/success`, `/auth/callback`, `/onboarding`, `/reset-password`, `/unsubscribe` — `noindex, nofollow` (private/transactional)
+| Page | Status | What works | What's hurting conversion |
+|---|---|---|---|
+| `/` (landing) | Mostly good | Strong hero, premium features grid, JSON-LD, FAQ schema | Hero has only **one CTA** and **no demo/social proof above the fold**. Navbar uses `scrollTo` (broken when on other pages — hash anchors don't navigate). "Trusted by 1,000+" with no logos = looks fake. Only 3 generic testimonials with no photo/handle/source. No live demo or interactive sample. |
+| `/pricing` | OK | Clean, JSON-LD Product, 14-day trial copy | No comparison table (Free vs Pro vs Agency feature grid). No "what you save vs Jasper/Buffer" math. No annual toggle / savings. No money-back guarantee badge. |
+| `/login`, `/signup` | Functional | Google OAuth, referral capture | No social proof on signup ("Join 1,000+ creators"). No preview of what they'll get. No trust badges. |
+| `/features/*` (3 pages) | Solid templated SEO pages | SeoLandingPage has FAQ, JSON-LD, internal links | All 3 use the **same template** → look identical → low time-on-page. No actual screenshots/demos of the feature. |
+| `/for/creators`, `/for/agencies` | Same template as features | Good for SEO | Same templating issue. Agency page should have a calculator ("hours saved per client × clients = $"). |
+| `/gallery`, `/gallery/$slug` | Live but empty-feeling | Public showcase exists, OG images per item | Likely has near-zero items (no seed). No category filters, no "remix this" CTA, no creator attribution that drives signups. |
+| `/blog`, `/blog/$slug`, RSS | Infrastructure ready | Routes + categories + authors exist | Need seeded cornerstone posts to actually rank. |
+| `/privacy`, `/terms`, `/refunds` | Standard | Required, present | Fine. |
+| `/onboarding` | 2-step (role + platforms) | Captures intent | **Doesn't lead to a "wow" moment**. After onboarding user lands on empty dashboard instead of a pre-filled first repurpose. |
 
-Each page also gets a route-specific `<link rel="canonical">`.
+### B. Dashboard (authed app)
 
-### 1.2 Create real OG image
+The sidebar lists **17 nav items**. That's a LOT. Audit:
 
-Generate `/public/og-image.png` (1200×630) with PostSpark logo, tagline "Turn 1 Post Into 30. Instantly.", brand gradient. Same image used as Twitter card and root OG. Currently 404s on every share — fixing this alone improves CTR from social.
-
-### 1.3 Dynamic sitemap as a server route
-
-Replace static `public/sitemap.xml` with `src/routes/sitemap[.]xml.tsx` (TanStack server route). Includes:
-- All static public routes with realistic `priority` and `changefreq`
-- All public Gallery jobs (`repurpose_jobs WHERE is_public = true`) with `lastmod` from `created_at`
-- All blog posts (Phase 3)
-
-Re-fetched on every request so new gallery items + blog posts appear automatically.
-
-### 1.4 Tighten `robots.txt`
-
-```text
-User-agent: *
-Allow: /
-Disallow: /dashboard/
-Disallow: /onboarding
-Disallow: /auth/
-Disallow: /checkout/
-Disallow: /invite/
-Disallow: /review/
-Disallow: /reset-password
-Disallow: /unsubscribe
-
-Sitemap: https://postspark.co/sitemap.xml
-```
-
-### 1.5 Structured data (JSON-LD)
-
-- **Root**: `Organization` (name, logo, sameAs social links) + `WebSite` with `SearchAction`.
-- **Pricing page**: `Product` with three `Offer` entries (Free, Pro $19, Agency $49).
-- **Gallery item pages**: `CreativeWork` with author, datePublished.
-- **Blog posts** (Phase 3): `Article` with author, datePublished, image.
-- **FAQ section** on landing: `FAQPage` markup → eligible for rich-result FAQ snippets.
-
-### 1.6 Performance signals (Core Web Vitals)
-
-- Preload the hero LCP image (or use inline SVG hero).
-- Add `fetchpriority="high"` to the hero image.
-- Audit `framer-motion`-free CSS animations (already enforced by project rules).
-- Add `width`/`height` on every `<img>` to prevent CLS.
-
----
-
-## Phase 2 — Conversion-focused landing pages
-
-These are **separate routes** (not hash anchors) so each ranks independently:
-
-| Route | Target query | Purpose |
+| Item | State | Verdict |
 |---|---|---|
-| `/features/repurpose-blog-to-social` | "repurpose blog post to social media" | Long-tail capture |
-| `/features/youtube-to-tweets` | "youtube video to tweets" | Long-tail capture |
-| `/features/linkedin-post-generator` | "AI LinkedIn post generator" | Mid-tail capture |
-| `/for/agencies` | "content repurposing for agencies" | Agency-tier acquisition |
-| `/for/creators` | "content tools for creators" | Pro-tier acquisition |
-| `/compare/postspark-vs-buffer` (etc.) | "X vs PostSpark" | Comparison searches |
+| Dashboard | Stats + recent jobs | Fine but bland — no "next best action" |
+| Repurpose | Core flow, 558 LoC | Powerful but **dense**: 10 format chips, tone selector, custom instructions, brand override toggle, language, YouTube tab — overwhelming on first use |
+| Import Studio | YouTube/PDF/URL import | Good differentiator, but separate from Repurpose causes friction (user has to import → switch page → paste → repurpose) |
+| SEO Blog | Long-form generator | Good Pro hook |
+| Hook Lab | Hook variants | Good Pro hook |
+| Image Studio | AI images | Good but expensive — needs usage caps shown |
+| Calendar | Drag-drop scheduling | High-value but **only useful if there's a publishing integration** — currently planning-only |
+| Brand Voice | Sample upload | Great Pro feature, often hidden |
+| Brand Kit | Logo/colors/fonts | Great, often hidden |
+| History | Past jobs | Functional |
+| Analytics | Usage stats | Vague — what does the user do with it? |
+| Templates | Saved configs | Useful, under-discovered |
+| Refer & Earn | Referrals | Good growth loop, buried at #13 in nav |
+| Gallery | Public showcase | Belongs in marketing nav too |
+| Team | Multi-seat | Agency only |
+| Agency Analytics | Rollup | Agency only |
+| Settings | Account, plan, etc. | Fine |
 
-Each page: hero, 3 benefits, 1 demo/screenshot, FAQ, CTA → signup. All linked from the footer for internal-link equity.
+### C. Cross-cutting issues
 
----
-
-## Phase 3 — Content marketing engine (highest organic ROI)
-
-### 3.1 Blog infrastructure
-
-- New routes: `/blog` (index) and `/blog/$slug` (post).
-- New table `blog_posts` (slug, title, excerpt, content_md, cover_image_url, author, published_at, status).
-- MDX or markdown rendering with `marked` + DOMPurify (already Worker-safe).
-- Each post: `<Article>` JSON-LD, OG image = cover image, canonical, RSS feed at `/rss.xml`.
-- Blog index + each post auto-included in dynamic sitemap.
-
-### 3.2 Launch content (10 cornerstone posts)
-
-Topics chosen for search volume + buyer intent:
-1. "How to repurpose a blog post into 10 tweets (with examples)"
-2. "The agency guide to content repurposing workflows"
-3. "AI vs human content repurposing: a 2026 comparison"
-4. "How to turn a YouTube video into a LinkedIn carousel"
-5. "Email newsletter from blog: 5-minute workflow"
-6. "Building a brand voice AI can actually copy"
-7. "Hook lab: 50 LinkedIn opening lines that convert"
-8. "From SEO blog to social posts in one click"
-9. "Content batching for solo creators (case study)"
-10. "Why repurposing beats creating new content (data)"
-
-Each post links naturally to relevant feature pages → Pro CTA.
+1. **Navbar's `scrollTo`** uses `document.getElementById` — works on `/` but on any other page (pricing, gallery, blog) clicking "Features" silently fails.
+2. **Hero has no live preview** — every winning AI tool ships a demo (Jasper, Copy.ai, Notion AI). PostSpark just shows static text.
+3. **No "before/after" with real content** — the BeforeAfter section shows abstract icons, not actual generated tweets.
+4. **Onboarding doesn't deliver the aha moment** — user lands on empty dashboard. Should auto-run a sample repurpose with their stated platforms.
+5. **No usage feedback loop** — when a free user hits 3/3, the upgrade prompt is the only path. There's no "share to earn more" or "invite a friend for +1 repurpose" inline.
+6. **No public proof** — testimonials are generic stock names. No real Twitter/LinkedIn screenshots, no Product Hunt badge, no user count, no logos.
+7. **Free tier is too thin** — 3/month is barely enough to evaluate quality. Competitors give 10–50 free generations.
+8. **Mobile sidebar nav has 17 items** — overwhelming on the 506px viewport the user is testing.
+9. **No "What changed" / changelog** — premium features are labeled "New" forever; should link to a real changelog page.
+10. **Email lifecycle is reactive only** — transactional emails work, but no Day-1 onboarding email, no Day-3 "here's what to try", no Day-7 upgrade nudge.
 
 ---
 
-## Phase 4 — Off-page & ongoing
+## Part 2 — Prioritized roadmap (4 phases)
 
-(Outside code, but listed so you can track):
-- Submit `sitemap.xml` to Google Search Console + Bing Webmaster.
-- Verify domain in GSC, monitor Core Web Vitals + indexed pages weekly.
-- Add PostSpark to Product Hunt, AlternativeTo, G2, Capterra, There's An AI For That.
-- Build internal link graph: footer links every feature/blog page from every page.
-- Add testimonials with `Person` + `Review` JSON-LD.
+### Phase 1 — Conversion fundamentals (1–2 sessions, biggest ROI)
+
+Goal: 2× landing → signup, 2× signup → first repurpose.
+
+1. **Real hero demo** — replace the static hero subtitle with an interactive paste box: user types/pastes a sentence, clicks "See it work", and sees 3 sample outputs (tweet, LinkedIn, hook) generate in front of them. Falls back to a pre-rendered animated example for SSR/no-JS. This is the single highest-leverage change.
+2. **Fix Navbar cross-page nav** — replace `scrollTo` with `<Link to="/#features">` patterns + a `useEffect` on `/` that scrolls to `location.hash` on mount. Otherwise nav is broken everywhere except `/`.
+3. **Real social proof bar** — replace "Trusted by Creators / Agencies / Marketers" with actual logos (even 4–6 small startups) OR Twitter/LinkedIn screenshot carousel. Include real handle, photo, and link.
+4. **Pricing comparison table** — add a feature-by-feature grid (Free / Pro / Agency) below the cards. Add "Replaces $X/mo of tools" math. Add money-back guarantee badge. Add annual toggle (e.g. 2 months free).
+5. **Bump Free tier to 5–10 repurposes/month** — 3 is below the threshold where users can fairly evaluate quality. The cost is small; the conversion gain is large.
+6. **Onboarding → instant aha** — at the end of onboarding, auto-run a curated sample repurpose tailored to the chosen platforms, so the user lands on a *populated* result page, not an empty dashboard. Show "This is what PostSpark made for you in 4 seconds. Now try with your own content →".
+
+### Phase 2 — Activation & retention (1–2 sessions)
+
+Goal: more first-week repurposes per signup, more day-7 returns.
+
+1. **Merge Import + Repurpose** — make Import a tab inside the Repurpose page (Text / YouTube / Upload / URL). Removes one nav item, removes a context switch.
+2. **First-run guided tour** — 3-step tooltip walkthrough on first dashboard visit (Repurpose → Brand Voice → Calendar). Skippable. Stored on profile.
+3. **"Suggest content" widget** — on the dashboard home, show 3 trending topics for the user's stated platforms, each as a one-click "Generate now" prompt. Solves the blank-page problem.
+4. **Inline upgrade nudges with reward path** — when free user hits 3/3, show two paths: "Upgrade to Pro" AND "Invite 1 friend → +2 free repurposes this month". Already have referrals — just surface it at the limit moment.
+5. **Email lifecycle (4 emails)** — Day 0 welcome with 3 sample inputs to try, Day 2 "your brand voice is empty — train it in 60s", Day 5 social proof + upgrade, Day 12 "your trial ends in 2 days — here's what you've created".
+6. **Sidebar trim** — collapse 17 items into 4 sections with sub-nav: **Create** (Repurpose, SEO Blog, Hook Lab, Image Studio, Import), **Plan** (Calendar, Templates, History), **Brand** (Brand Voice, Brand Kit), **Account** (Analytics, Referrals, Team, Settings). Gallery moves to a top-bar link.
+
+### Phase 3 — Differentiation & virality (2–3 sessions)
+
+Goal: organic word-of-mouth, defensible moat.
+
+1. **Brand Voice quality bar** — current upload-and-pray needs visible feedback: "Your voice is 87% trained. Add 2 more samples for best results." Show before/after sample on every save.
+2. **Public gallery seeding + remix** — seed gallery with 30–50 hand-picked examples across niches. Add "Remix this" button on every gallery item that pre-fills the repurpose page with the source. Add creator attribution that links back to their profile (drives signups via virality).
+3. **Publisher integration (at least one)** — Calendar without publishing is half-built. Ship a Buffer/Typefully/Make.com webhook integration so users can actually push to Twitter/LinkedIn. This unlocks Calendar's value and is a major moat vs Jasper/Copy.ai.
+4. **Live changelog page** (`/changelog`) — replaces the perpetual "New" badges, gives SEO surface, builds trust that the product ships.
+5. **Public roadmap + voting** — Trello-style board (can be a single route reading from a `roadmap_items` table). Creators love feeling heard; this is also a content-marketing surface.
+6. **Embeddable "Generated with PostSpark" badge** — opt-in attribution badge on shared content + on review/approval pages → free top-of-funnel.
+
+### Phase 4 — SEO & content engine (ongoing, but kick off in 1 session)
+
+Goal: organic traffic that compounds.
+
+1. **Differentiate the 5 SEO landing pages** — currently all use the same `SeoLandingPage` template. Add unique hero screenshots, unique testimonial, unique sample output for each. Templates are SEO-penalized as duplicate intent.
+2. **Seed 3 cornerstone blog posts** using the existing SEO Blog generator (e.g. "Repurpose a YouTube video to LinkedIn", "Best AI tools for content repurposing 2026", "How agencies scale content with AI"). Linked from footer + relevant feature pages.
+3. **Comparison pages** (`/compare/postspark-vs-jasper`, `/vs-buffer`, `/vs-typefully`) — these rank fast for high-intent buyer queries.
+4. **Gallery as SEO surface** — every `/gallery/$slug` already has per-item meta — make sure they're in the dynamic sitemap and the index page links to top items, not just a feed.
+5. **Submit to** Product Hunt, There's An AI For That, AlternativeTo, Futurepedia, G2.
 
 ---
 
-## Implementation order
+## Part 3 — Suggested execution order
 
 ```text
-Sprint A (1 session) — Foundation
-  ├─ Per-route head() for all public pages
-  ├─ OG image generation + commit to /public/og-image.png
-  ├─ Dynamic sitemap route + tightened robots.txt
-  └─ JSON-LD: Organization, WebSite, Product (pricing), FAQPage (landing)
+Sprint 1 — "Make the landing page actually convert"
+  ├─ Interactive hero demo (live or pre-rendered fallback)
+  ├─ Fix Navbar cross-page nav (Link + hash scroll)
+  ├─ Real social proof (logos OR tweet screenshots)
+  ├─ Pricing comparison table + annual toggle
+  └─ Bump free tier to 5–10/month
 
-Sprint B (1 session) — Conversion pages
-  ├─ /features/* (3 pages)
-  ├─ /for/agencies, /for/creators
-  └─ Footer link mesh
+Sprint 2 — "Make new users succeed in their first session"
+  ├─ Onboarding → auto-run sample repurpose
+  ├─ Merge Import into Repurpose tabs
+  ├─ Dashboard "Suggest content" widget
+  └─ Sidebar IA refactor (4 grouped sections)
 
-Sprint C (1 session) — Blog engine
-  ├─ blog_posts table + admin UI to publish (or seed via SQL)
-  ├─ /blog and /blog/$slug routes with markdown rendering
-  ├─ RSS feed
-  └─ Article JSON-LD + sitemap inclusion
+Sprint 3 — "Build the moat"
+  ├─ Buffer/Typefully publishing integration
+  ├─ Gallery seeding + Remix button + creator attribution
+  ├─ Brand Voice quality scoring
+  └─ Changelog + Public Roadmap pages
 
-Sprint D (ongoing) — Content
-  └─ Publish 10 cornerstone posts using existing seo-blog generator
+Sprint 4 — "Compound organic growth"
+  ├─ Differentiate SEO landing templates
+  ├─ Seed 3 cornerstone blog posts
+  ├─ Comparison pages (vs Jasper / vs Buffer / vs Typefully)
+  └─ Email lifecycle (4-step drip)
 ```
 
 ---
 
-## Technical notes (skip if non-technical)
+## Part 4 — Things I deliberately won't change
 
-- Sitemap uses TanStack server route file `src/routes/sitemap[.]xml.tsx` returning `text/xml`. Reads `repurpose_jobs WHERE is_public = true` and `blog_posts WHERE status='published'` via `supabaseAdmin`.
-- All `head()` follow the project's existing TanStack `createFileRoute({ head: () => ({...}) })` pattern; child meta override root meta automatically.
-- `noindex` pages get `<meta name="robots" content="noindex,nofollow">` in `head()` AND `Disallow:` in robots.txt (belt + braces).
-- Gallery item OG image derives from `job.outputs.images?.[0] ?? '/og-image.png'` so every shared link has a unique preview.
-- Blog posts use `marked` (~30KB, Worker-safe) for MD→HTML; sanitized with `DOMPurify` to prevent XSS in author content.
-- JSON-LD injected via `head().scripts: [{ type: 'application/ld+json', children: JSON.stringify(...) }]`.
+- Brand colors / typography / logo (already strong, on-brand)
+- Paddle billing flow (working, regulated, don't touch)
+- Auth flow (email + Google works well)
+- Core Anthropic Claude integration for generation
+- Existing dashboard route names (would break user bookmarks/emails)
 
-## What I won't touch unless you ask
+---
 
-- Existing dashboard routes (already `noindex`-equivalent since auth-gated).
-- Brand voice / colors / copy — SEO-only changes.
-- Paddle/payment flows.
-- The `generated-images` public bucket (you accepted this risk).
+## What I need from you to start
 
-## Expected outcome
+Pick the sprint you want me to ship first (recommend **Sprint 1** — biggest conversion lift, no schema changes). I'll implement it end-to-end in the next message. We can tackle one sprint per follow-up so each ship is reviewable.
 
-Working backwards from goal: **organic Pro signups**. Phase 1 fixes the foundation that makes everything else effective (correct OG, sitemap, structured data → 2-4× CTR from search/social on existing traffic). Phase 2 captures bottom-funnel buyer queries. Phase 3 captures top-funnel awareness queries and feeds them into the funnel. Phase 4 is distribution.
-
-Realistic timeline to first organic Pro signups: **2-3 weeks after Sprint C ships** (Google indexing + ranking lag), accelerating from month 2 onward as content accumulates.
-
-Approve and I'll start with **Sprint A** (foundation) in the next message.
+If you want, I can also call out which 1–2 items in each sprint give 80% of the value if you'd rather do a "best-of" sprint instead of phase-by-phase.

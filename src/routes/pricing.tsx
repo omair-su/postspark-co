@@ -25,7 +25,7 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — PostSpark | Free, Pro $19/mo, Agency $49/mo" },
-      { name: "description", content: "Start free with 3 repurposes per month. Pro is $19/mo for unlimited AI content repurposing. Agency is $49/mo with team seats and white-label." },
+      { name: "description", content: "Start free with 10 repurposes per month. Pro is $19/mo for unlimited AI content repurposing. Agency is $49/mo with team seats and white-label." },
       { property: "og:title", content: "PostSpark Pricing — Free, Pro $19, Agency $49" },
       { property: "og:description", content: "Plans built for creators and agencies. Cancel anytime." },
       { property: "og:url", content: "https://postspark.co/pricing" },

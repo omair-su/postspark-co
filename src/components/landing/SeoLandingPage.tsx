@@ -24,7 +24,7 @@ export function SeoLandingPage(props: SeoLandingPageProps) {
     eyebrow,
     h1,
     subhead,
-    primaryCtaLabel = "Start free — 3 repurposes/month",
+    primaryCtaLabel = "Start free — 10 repurposes/month",
     benefits,
     steps,
     outputs,
@@ -133,7 +133,7 @@ export function SeoLandingPage(props: SeoLandingPageProps) {
           <div className="rounded-2xl border border-border gradient-electric p-10 text-center">
             <h2 className="text-3xl font-bold text-primary-foreground sm:text-4xl">Try PostSpark free</h2>
             <p className="mx-auto mt-3 max-w-xl text-primary-foreground/90">
-              3 repurposes per month, no credit card. Upgrade to Pro for unlimited generations.
+              10 repurposes per month, no credit card. Upgrade to Pro for unlimited generations.
             </p>
             <Link
               to="/signup"
