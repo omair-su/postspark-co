@@ -8,7 +8,7 @@ import {
   revokeInvite,
   removeMember,
   updateWorkspace,
-} from "@/server/workspace.functions";
+} from "@/lib/workspace.functions";
 import { Loader2, Users, Crown, Mail, Trash2, Copy, Check, Sparkles, Building2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { sendTransactionalEmail } from "@/lib/email/send";

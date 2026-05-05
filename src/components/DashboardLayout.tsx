@@ -8,7 +8,7 @@ import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AIProgressBar } from "@/components/AIProgressBar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
-import { getMyWorkspace, setActiveBrandKit } from "@/server/workspace.functions";
+import { getMyWorkspace, setActiveBrandKit } from "@/lib/workspace.functions";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
