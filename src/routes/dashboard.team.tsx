@@ -11,6 +11,7 @@ import {
 } from "@/server/workspace.functions";
 import { Loader2, Users, Crown, Mail, Trash2, Copy, Check, Sparkles, Building2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { sendTransactionalEmail } from "@/lib/email/send";
 
 export const Route = createFileRoute("/dashboard/team")({
   component: TeamPage,
@@ -63,9 +64,34 @@ function TeamPage() {
       toast.error((res as any).error || "Failed to invite");
       return;
     }
-    toast.success("Invite created — copy the link to share!");
+    const token = (res as any).token as string | undefined;
+    const inviteEmail = email.trim();
     setEmail("");
     refresh();
+
+    // Fire-and-forget the invite email
+    if (token) {
+      const inviteUrl = `${window.location.origin}/invite/${token}`;
+      try {
+        await sendTransactionalEmail({
+          templateName: "team-invite",
+          recipientEmail: inviteEmail,
+          idempotencyKey: `team-invite-${token}`,
+          templateData: {
+            workspaceName: data.workspace.name,
+            inviterName: (user as any)?.user_metadata?.full_name || (user as any)?.email,
+            inviteUrl,
+            role,
+          },
+        });
+        toast.success(`Invite email sent to ${inviteEmail}`);
+      } catch (e: any) {
+        toast.success("Invite created — copy the link to share!");
+        console.warn("Invite email failed", e);
+      }
+    } else {
+      toast.success("Invite created — copy the link to share!");
+    }
   };
 
   const inviteLink = (token: string) =>
