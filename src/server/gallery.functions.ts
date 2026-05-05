@@ -45,7 +45,7 @@ export const togglePublic = createServerFn({ method: "POST" })
 export const getGalleryFeed = createServerFn({ method: "GET" })
   .handler(async () => {
     // Public read: use anon client to leverage RLS public policy
-    const sb = createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: false } });
+    const sb = getAnon();
     const { data, error } = await (sb as any)
       .from("repurpose_jobs")
       .select("id, public_slug, title, input_text, outputs, created_at, view_count")
@@ -67,7 +67,7 @@ export const getGalleryFeed = createServerFn({ method: "GET" })
 export const getPublicPost = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ slug: z.string().min(3).max(80) }).parse(data))
   .handler(async ({ data }) => {
-    const sb = createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: false } });
+    const sb = getAnon();
     const { data: row, error } = await (sb as any)
       .from("repurpose_jobs")
       .select("id, public_slug, title, input_text, outputs, created_at")
