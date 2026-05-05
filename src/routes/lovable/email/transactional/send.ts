@@ -115,6 +115,80 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           )
         }
 
+        // 1b. Enforce caller restriction (defense against template/recipient abuse)
+        const restriction = template.callerRestriction ?? 'server_only'
+        const normalizedRecipient = effectiveRecipient.toLowerCase()
+        const callerEmail = (user.email || '').toLowerCase()
+
+        if (restriction === 'server_only') {
+          // Authenticated end-users may never trigger these — they are sent by
+          // server-side flows (webhooks, server functions) which render and
+          // enqueue emails directly without going through this endpoint.
+          console.warn('Blocked server_only template from user-triggered send', {
+            templateName,
+            user_id: user.id,
+            recipient_redacted: redactEmail(effectiveRecipient),
+          })
+          return Response.json(
+            { error: 'This template can only be triggered by server-side flows.' },
+            { status: 403 }
+          )
+        }
+
+        if (restriction === 'self' && normalizedRecipient !== callerEmail) {
+          return Response.json(
+            { error: 'Recipient must match your own account email.' },
+            { status: 403 }
+          )
+        }
+
+        if (restriction === 'invite_owner') {
+          const { data: invite } = await supabase
+            .from('workspace_invites')
+            .select('id')
+            .eq('email', normalizedRecipient)
+            .eq('invited_by', user.id)
+            .is('accepted_at', null)
+            .gt('expires_at', new Date().toISOString())
+            .maybeSingle()
+          if (!invite) {
+            return Response.json(
+              { error: 'No matching pending invite for this recipient.' },
+              { status: 403 }
+            )
+          }
+        }
+
+        if (restriction === 'approval_owner') {
+          const { data: approval } = await supabase
+            .from('approval_requests')
+            .select('id')
+            .eq('client_email', normalizedRecipient)
+            .eq('created_by', user.id)
+            .eq('status', 'pending')
+            .maybeSingle()
+          if (!approval) {
+            return Response.json(
+              { error: 'No matching pending approval request for this recipient.' },
+              { status: 403 }
+            )
+          }
+        }
+
+        // 1c. Per-user rate limit: max 20 transactional sends per hour
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+        const { count: recentCount } = await supabase
+          .from('email_send_log')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', oneHourAgo)
+          .like('metadata->>actor_user_id', user.id)
+        if (typeof recentCount === 'number' && recentCount >= 20) {
+          return Response.json(
+            { error: 'Rate limit exceeded. Try again later.' },
+            { status: 429 }
+          )
+        }
+
         // 2. Check suppression list (fail-closed: if we can't verify, don't send)
         const { data: suppressed, error: suppressionError } = await supabase
           .from('suppressed_emails')
