@@ -18,7 +18,7 @@ export const Route = createFileRoute("/dashboard/team")({
 });
 
 function TeamPage() {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [name, setName] = useState("");
