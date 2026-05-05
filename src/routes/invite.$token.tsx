@@ -6,6 +6,7 @@ import { Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/invite/$token")({
+  head: () => ({ meta: [{ title: "Team invite — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: InvitePage,
 });
 
