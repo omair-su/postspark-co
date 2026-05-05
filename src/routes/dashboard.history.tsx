@@ -231,8 +231,14 @@ function HistoryPage() {
             <button
               onClick={async () => {
                 if (!session) return;
+                const clientEmail = window.prompt(
+                  "Email this approval link to your client (optional — leave blank to just copy the link):",
+                  ""
+                );
+                if (clientEmail === null) return; // cancel
+                const trimmed = clientEmail.trim();
                 const res = await createApprovalRequest({
-                  data: { jobId: selected.id },
+                  data: { jobId: selected.id, clientEmail: trimmed || null },
                   headers: { Authorization: `Bearer ${session.access_token}` },
                 });
                 if (!(res as any).success) {
@@ -240,9 +246,31 @@ function HistoryPage() {
                   else toast.error((res as any).error || "Could not create approval link");
                   return;
                 }
-                const url = `${window.location.origin}/review/${(res as any).token}`;
+                const token = (res as any).token;
+                const url = `${window.location.origin}/review/${token}`;
                 await navigator.clipboard.writeText(url);
-                toast.success("Approval link copied — share with your client");
+
+                if (trimmed && /\S+@\S+\.\S+/.test(trimmed)) {
+                  try {
+                    const { sendTransactionalEmail } = await import("@/lib/email/send");
+                    await sendTransactionalEmail({
+                      templateName: "approval-request",
+                      recipientEmail: trimmed,
+                      idempotencyKey: `approval-${token}`,
+                      templateData: {
+                        jobTitle: selected.title || selected.input_text?.slice(0, 60) || "Content for review",
+                        senderName: (user as any)?.user_metadata?.full_name || (user as any)?.email,
+                        reviewUrl: url,
+                      },
+                    });
+                    toast.success(`Approval link sent to ${trimmed} (link also copied)`);
+                  } catch (e: any) {
+                    console.warn("Approval email failed", e);
+                    toast.success("Approval link copied — email failed, share manually");
+                  }
+                } else {
+                  toast.success("Approval link copied — share with your client");
+                }
               }}
               className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
             >
