@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { acceptInvite } from "@/server/workspace.functions";
+import { acceptInvite } from "@/lib/workspace.functions";
 import { Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 
