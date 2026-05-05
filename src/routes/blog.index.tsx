@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { listPosts, listCategories, type BlogPostListItem, type BlogCategory } from "@/server/blog.functions";
+import type { BlogPostListItem, BlogCategory } from "@/lib/blog-types";
 
 const TITLE = "PostSpark Blog — Content Repurposing & AI Writing";
 const DESC = "Frameworks, tutorials, and case studies on AI content repurposing, brand voice, and creator workflows from the PostSpark team.";
@@ -9,6 +9,7 @@ const URL = "https://postspark.co/blog";
 
 export const Route = createFileRoute("/blog/")({
   loader: async () => {
+    const { listPosts, listCategories } = await import("@/server/blog.functions");
     const [posts, categories] = await Promise.all([listPosts({ data: {} }), listCategories()]);
     return { posts, categories };
   },

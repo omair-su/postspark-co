@@ -1,10 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { getCategoryBySlug, listPosts, type BlogPostListItem, type BlogCategory } from "@/server/blog.functions";
+import type { BlogPostListItem, BlogCategory } from "@/lib/blog-types";
 
 export const Route = createFileRoute("/blog/category/$slug")({
   loader: async ({ params }) => {
+    const { getCategoryBySlug, listPosts } = await import("@/server/blog.functions");
     const category = await getCategoryBySlug({ data: { slug: params.slug } });
     if (!category) throw notFound();
     const posts = await listPosts({ data: { categorySlug: params.slug } });
