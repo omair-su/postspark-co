@@ -8,7 +8,7 @@ const faqs = [
   },
   {
     q: "How does the free plan work?",
-    a: "Free accounts get 3 AI-powered repurposes per month. Each repurpose can generate multiple output formats simultaneously. Upgrade to Pro for unlimited repurposes.",
+    a: "Free accounts get 10 AI-powered repurposes per month. Each repurpose can generate multiple output formats simultaneously. Upgrade to Pro for unlimited repurposes.",
   },
   {
     q: "Can I customize the tone and style?",
