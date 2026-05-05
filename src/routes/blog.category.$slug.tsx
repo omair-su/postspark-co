@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { getCategoryBySlug, listPosts } from "@/server/blog.functions";
+import { getCategoryBySlug, listPosts, type BlogPostListItem, type BlogCategory } from "@/server/blog.functions";
 
 export const Route = createFileRoute("/blog/category/$slug")({
   loader: async ({ params }) => {
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/blog/category/$slug")({
 });
 
 function CategoryPage() {
-  const { category, posts } = Route.useLoaderData();
+  const { category, posts } = Route.useLoaderData() as { category: BlogCategory; posts: BlogPostListItem[] };
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

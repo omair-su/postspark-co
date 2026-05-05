@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { listPosts, listCategories } from "@/server/blog.functions";
+import { listPosts, listCategories, type BlogPostListItem, type BlogCategory } from "@/server/blog.functions";
 
 const TITLE = "PostSpark Blog — Content Repurposing & AI Writing";
 const DESC = "Frameworks, tutorials, and case studies on AI content repurposing, brand voice, and creator workflows from the PostSpark team.";
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/blog/")({
 });
 
 function BlogIndex() {
-  const { posts, categories } = Route.useLoaderData();
+  const { posts, categories } = Route.useLoaderData() as { posts: BlogPostListItem[]; categories: BlogCategory[] };
 
   return (
     <div className="min-h-screen bg-background">

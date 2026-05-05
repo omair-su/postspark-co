@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { getAuthorBySlug, listPosts } from "@/server/blog.functions";
+import { getAuthorBySlug, listPosts, type BlogPostListItem, type BlogAuthor } from "@/server/blog.functions";
 
 export const Route = createFileRoute("/blog/author/$slug")({
   loader: async ({ params }) => {
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/blog/author/$slug")({
 });
 
 function AuthorPage() {
-  const { author, posts } = Route.useLoaderData();
+  const { author, posts } = Route.useLoaderData() as { author: BlogAuthor; posts: BlogPostListItem[] };
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
