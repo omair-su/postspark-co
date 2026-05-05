@@ -1,164 +1,194 @@
-# PostSpark — Audit & Roadmap to v2
+# PostSpark SEO Plan — Drive Organic Pro Signups
 
-A complete review of what's live, what's broken, and what to build next so PostSpark stops feeling like a demo and starts converting visitors into paying users.
+## Current state (audit)
+
+| Area | Status |
+|---|---|
+| Root `<head>` meta | ✅ Good (title, description, OG, Twitter, canonical) |
+| Per-route `head()` | ⚠️ Only ~6 pages have it; **most don't** (incl. `/pricing`) |
+| `og-image.png` | ❌ Missing — 404 on every share |
+| `sitemap.xml` | ⚠️ Static, only 4 URLs (missing gallery, blog, content pages) |
+| `robots.txt` | ⚠️ Allows `/dashboard/*` and auth pages to be crawled |
+| Structured data (JSON-LD) | ❌ None |
+| Blog / content marketing | ❌ None — biggest organic-acquisition gap |
+| Public Gallery indexing | ⚠️ Pages exist but no per-job meta or sitemap inclusion |
+| Comparison / use-case pages | ❌ None (no "vs Buffer", "for agencies", etc.) |
+| Page speed signals | ⚠️ Good preconnect, but no preloaded LCP image |
+
+## Strategy
+
+Organic Pro signups come from **three funnels**:
+1. **Branded search** ("PostSpark") → already covered by root meta.
+2. **Tool/feature search** ("AI tweet generator", "repurpose blog post to LinkedIn") → needs landing pages + per-route meta + JSON-LD `SoftwareApplication`.
+3. **Content/use-case search** ("how to repurpose a YouTube video", "agency content workflow") → needs a blog and use-case pages.
+
+This plan covers all three.
 
 ---
 
-## Part 1 — Audit Findings
+## Phase 1 — Technical SEO foundation
 
-### A. Critical bugs to fix immediately (Sprint 0 — same day)
+### 1.1 Per-route `head()` for every public page
 
-1. **Sidebar doesn't scroll (your reported bug)** — confirmed. In `DashboardLayout.tsx` the `<nav>` has `flex-1 space-y-1 px-3 py-4` but **no `overflow-y-auto`**. With 17 nav items + the user/sign-out footer, items below "Settings" get clipped on laptop screens and on mobile. Fix: add `overflow-y-auto` + `min-h-0` to the nav, and make the user-info footer `shrink-0`.
+Add unique `title`, `description`, `og:title`, `og:description`, `canonical` to:
+- `/pricing` — *"PostSpark Pricing — Free, Pro $19/mo, Agency $49/mo"*
+- `/login`, `/signup` — set `noindex` (auth pages shouldn't compete with `/`)
+- `/privacy`, `/terms`, `/refunds` — short descriptive title + `noindex` is acceptable, but indexable trust pages also help
+- `/gallery` — *"Content Inspiration Gallery — See AI-Repurposed Posts"*
+- `/gallery/$slug` — dynamic from loader: job title + first 160 chars of input as description, OG image from job's first generated image
+- `/review/$token`, `/invite/$token`, `/checkout/success`, `/auth/callback`, `/onboarding`, `/reset-password`, `/unsubscribe` — `noindex, nofollow` (private/transactional)
 
-2. **Mobile sidebar height** — the mobile drawer uses the same nav, same bug, plus the close affordance is only the backdrop tap. Add an explicit X button at the top.
+Each page also gets a route-specific `<link rel="canonical">`.
 
-3. **Brand switcher in header is hidden on mobile** (`hidden sm:flex`) — Agency users on phones can't switch workspace. Move it into the mobile sidebar.
+### 1.2 Create real OG image
 
-4. **Image Studio file is 1,163 lines** — single component, hard to debug, likely the source of repeated "no image returned" regressions. Split into `ImageGeneratorForm`, `ImageHistoryGrid`, `ImageEditPanel` and a thin route shell.
+Generate `/public/og-image.png` (1200×630) with PostSpark logo, tagline "Turn 1 Post Into 30. Instantly.", brand gradient. Same image used as Twitter card and root OG. Currently 404s on every share — fixing this alone improves CTR from social.
 
-5. **Onboarding gate fires on every dashboard mount** — `dashboard.tsx` calls `getOnboardingStatus` on every navigation. Cache the "completed" result in localStorage to remove a server roundtrip per click.
+### 1.3 Dynamic sitemap as a server route
 
-6. **No global error boundary on dashboard routes** — when a server fn throws (e.g. Anthropic 5xx, rate limit), the whole page goes blank instead of showing a retry. Add `errorComponent` to each route with a server fn.
+Replace static `public/sitemap.xml` with `src/routes/sitemap[.]xml.tsx` (TanStack server route). Includes:
+- All static public routes with realistic `priority` and `changefreq`
+- All public Gallery jobs (`repurpose_jobs WHERE is_public = true`) with `lastmod` from `created_at`
+- All blog posts (Phase 3)
 
-7. **PWA install prompt mounts in dashboard layout** — fires during sign-up flow on mobile, distracting. Memory says it should fire after first repurpose; implement that gate.
+Re-fetched on every request so new gallery items + blog posts appear automatically.
 
-### B. Honest gaps (features that look done but aren't)
+### 1.4 Tighten `robots.txt`
 
-| Feature | Status | What's missing |
+```text
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /onboarding
+Disallow: /auth/
+Disallow: /checkout/
+Disallow: /invite/
+Disallow: /review/
+Disallow: /reset-password
+Disallow: /unsubscribe
+
+Sitemap: https://postspark.co/sitemap.xml
+```
+
+### 1.5 Structured data (JSON-LD)
+
+- **Root**: `Organization` (name, logo, sameAs social links) + `WebSite` with `SearchAction`.
+- **Pricing page**: `Product` with three `Offer` entries (Free, Pro $19, Agency $49).
+- **Gallery item pages**: `CreativeWork` with author, datePublished.
+- **Blog posts** (Phase 3): `Article` with author, datePublished, image.
+- **FAQ section** on landing: `FAQPage` markup → eligible for rich-result FAQ snippets.
+
+### 1.6 Performance signals (Core Web Vitals)
+
+- Preload the hero LCP image (or use inline SVG hero).
+- Add `fetchpriority="high"` to the hero image.
+- Audit `framer-motion`-free CSS animations (already enforced by project rules).
+- Add `width`/`height` on every `<img>` to prevent CLS.
+
+---
+
+## Phase 2 — Conversion-focused landing pages
+
+These are **separate routes** (not hash anchors) so each ranks independently:
+
+| Route | Target query | Purpose |
 |---|---|---|
-| Calendar / scheduled posts | UI works, DB has rows | **No publisher.** Nothing ever posts to Twitter/LinkedIn. No OAuth. |
-| Analytics page | Page renders | **No data writer.** `post_metrics` table is empty. Charts show local generation counts only. |
-| Pro / Agency upgrade | Buttons live | Paddle webhook wired but **no test of full lifecycle** (cancel, dunning, refund). Welcome email path exists but unverified. |
-| Team invites | Token created | **Email never sent.** User must copy-paste the URL. |
-| Approvals | Review page works | **Approval-request email never sent.** Same problem. |
-| Brand Kit | Single kit per user | DB supports multiple, UI only shows first. Agency users can't manage clients properly. |
-| Repurpose history | Saves jobs | Doesn't save `brand_kit_id` or `workspace_id` → Agency Analytics rollups are broken. |
-| Search | None | No full-text search across history, gallery, or templates. |
-| Admin / observability | None | No way to see signups, MRR, AI cost, error rate. Flying blind. |
+| `/features/repurpose-blog-to-social` | "repurpose blog post to social media" | Long-tail capture |
+| `/features/youtube-to-tweets` | "youtube video to tweets" | Long-tail capture |
+| `/features/linkedin-post-generator` | "AI LinkedIn post generator" | Mid-tail capture |
+| `/for/agencies` | "content repurposing for agencies" | Agency-tier acquisition |
+| `/for/creators` | "content tools for creators" | Pro-tier acquisition |
+| `/compare/postspark-vs-buffer` (etc.) | "X vs PostSpark" | Comparison searches |
 
-### C. UX inconsistencies across the 28 routes
-
-- 9 routes use a custom heading style, 6 use `<h1 className="text-3xl">`, 3 use card wrappers — no shared `PageHeader` component.
-- Some routes have empty states with CTAs (Repurpose, Calendar), most don't (History, Templates, Hook Lab show a blank panel).
-- Loading states are inconsistent: some use `<Loader2>` spinner, some show skeletons, some show nothing (page just freezes).
-- No global "AI is thinking" indicator — user clicks Generate, nothing happens for 30–90s, they bounce. The original spec asked for a navbar progress bar.
-- Toast usage is inconsistent (some success, some silent; some errors swallowed).
-- Mobile: most dashboard pages have horizontal overflow because cards use fixed widths instead of `min-w-0`.
-
-### D. Performance & infra
-
-- 1,163-line route files ship as one chunk — slow first paint on dashboard. Split + lazy-load heavy panels.
-- No rate limiting on AI server fns → one bad actor can burn your Anthropic budget.
-- No retry/backoff on Claude calls — transient 529s surface as user errors.
-- `social_accounts` table has SELECT policy but **no INSERT/UPDATE policy** → even when OAuth ships, writes will fail.
-- `post_metrics` is fully locked → analytics writer can't function.
-
-### E. SEO / Growth surface
-
-- Landing page is solid but `/gallery`, `/pricing`, `/privacy`, `/terms` don't have unique `head()` metadata in some cases.
-- No public profile pages (`/u/$handle`) for gallery virality.
-- No sitemap entries for gallery items.
-- No referral payout — only credits, which Free users can't even spend.
+Each page: hero, 3 benefits, 1 demo/screenshot, FAQ, CTA → signup. All linked from the footer for internal-link equity.
 
 ---
 
-## Part 2 — The Plan (3 sprints to v2)
+## Phase 3 — Content marketing engine (highest organic ROI)
 
-### Sprint 0 — Bug fix pass (1 day, ship today)
+### 3.1 Blog infrastructure
 
-```text
-- Sidebar scroll fix (nav: overflow-y-auto + min-h-0; footer: shrink-0)
-- Mobile sidebar X button
-- Move brand switcher into mobile sidebar
-- Add errorComponent to all dashboard.* routes (retry button)
-- Global navbar progress bar during AI calls (Zustand store)
-- Cache onboarding-complete in localStorage
-- Gate PWA prompt behind first-repurpose-done flag
-- Split dashboard.image-studio.tsx into 4 files
-```
+- New routes: `/blog` (index) and `/blog/$slug` (post).
+- New table `blog_posts` (slug, title, excerpt, content_md, cover_image_url, author, published_at, status).
+- MDX or markdown rendering with `marked` + DOMPurify (already Worker-safe).
+- Each post: `<Article>` JSON-LD, OG image = cover image, canonical, RSS feed at `/rss.xml`.
+- Blog index + each post auto-included in dynamic sitemap.
 
-### Sprint 1 — Polish & consistency (2-3 days)
+### 3.2 Launch content (10 cornerstone posts)
 
-```text
-- Build shared <PageHeader title subtitle action /> + adopt across 28 routes
-- Build shared <EmptyState icon title body cta /> + add to History,
-  Templates, Hook Lab, Calendar, Image Studio, Brand Voice
-- Standardize loading: <PageLoader/> for routes, <InlineSpinner/> in buttons,
-  <SkeletonCard/> for grids
-- Standardize toasts: success on every mutation, error.toString() never shown
-  raw — always a friendly message
-- Mobile pass: every card gets min-w-0, every grid gets responsive cols
-- Full-text search on History (Postgres tsvector) + Gallery + Templates
-- Multiple Brand Kits UI for Agency tier (DB already supports it)
-- Persist brand_kit_id + workspace_id on repurpose_jobs insert
-- Rate-limit AI server fns (10/min/user free, 60/min Pro, 200/min Agency)
-- Retry/backoff wrapper around Anthropic + Replicate + ElevenLabs calls
-- Fix RLS: add INSERT/UPDATE policies on social_accounts and post_metrics
-- Per-route head() metadata audit (every public route gets unique title/desc/og)
-```
+Topics chosen for search volume + buyer intent:
+1. "How to repurpose a blog post into 10 tweets (with examples)"
+2. "The agency guide to content repurposing workflows"
+3. "AI vs human content repurposing: a 2026 comparison"
+4. "How to turn a YouTube video into a LinkedIn carousel"
+5. "Email newsletter from blog: 5-minute workflow"
+6. "Building a brand voice AI can actually copy"
+7. "Hook lab: 50 LinkedIn opening lines that convert"
+8. "From SEO blog to social posts in one click"
+9. "Content batching for solo creators (case study)"
+10. "Why repurposing beats creating new content (data)"
 
-### Sprint 2 — Make it a real SaaS (1 week)
-
-The 4 things that actually unlock revenue. In priority order:
-
-**2A. Real social publishing** (the #1 broken promise)
-- Twitter/X OAuth 2.0 + LinkedIn OAuth, store tokens in `social_accounts`
-- "Connect account" UI under Settings
-- pg_cron job → `/api/public/publish-due-posts` every minute
-  → posts due `scheduled_posts` via platform API
-  → writes back `platform_post_id`, `published_at`, `publish_error`
-- Per-platform live preview (Twitter card, LinkedIn card)
-
-**2B. Payments lifecycle** (close the leaks)
-- End-to-end test of Paddle: subscribe → upgrade → cancel → resubscribe → refund
-- Customer portal link in Settings
-- Server-side hard-enforce limits on downgrade
-- 14-day Pro trial on signup (no card) — biggest conversion lever
-- Failed-payment dunning email (3 attempts then downgrade)
-
-**2C. Real performance analytics** (close the loop)
-- pg_cron pulls likes/shares/comments/impressions from Twitter + LinkedIn
-  for posts published in the last 30 days → writes to `post_metrics`
-- Analytics page: per-post engagement, best time-of-day, top-performing
-  hooks, brand-kit comparison
-- Weekly digest email: "Your top post this week earned 142 likes"
-
-**2D. Email infrastructure** (unblocks invites + approvals + digests)
-- Resend integration
-- Templates: invite, approval request, approval decided, weekly digest,
-  trial ending, payment failed, welcome (paid)
-- Wire team invites + approvals to actually send
-
-### Sprint 3 — Growth & moat (later, only after Sprint 2 ships)
-
-- Chrome extension: highlight any text → "Repurpose with PostSpark"
-- Notion + Google Docs import
-- Public profile pages `/u/$handle` (SEO + gallery virality)
-- Sitemap entries for gallery items
-- Affiliate program (cash payout) on top of existing referrals
-- Internal admin dashboard: MRR, signups, churn, AI spend per user, error rate
-- AI agent mode: "Turn this blog into a 30-day calendar" → fills calendar end-to-end
+Each post links naturally to relevant feature pages → Pro CTA.
 
 ---
 
-## Recommended order
+## Phase 4 — Off-page & ongoing
+
+(Outside code, but listed so you can track):
+- Submit `sitemap.xml` to Google Search Console + Bing Webmaster.
+- Verify domain in GSC, monitor Core Web Vitals + indexed pages weekly.
+- Add PostSpark to Product Hunt, AlternativeTo, G2, Capterra, There's An AI For That.
+- Build internal link graph: footer links every feature/blog page from every page.
+- Add testimonials with `Person` + `Review` JSON-LD.
+
+---
+
+## Implementation order
 
 ```text
-Sprint 0  (today)        Bug pass — sidebar scroll + 7 other fixes
-Sprint 1  (2-3 days)     Polish, consistency, search, rate-limit, RLS
-Sprint 2A (2-3 days)     Real Twitter + LinkedIn publishing
-Sprint 2B (1-2 days)     Payments lifecycle + 14-day trial
-Sprint 2C (2 days)       Real analytics pull
-Sprint 2D (1 day)        Resend email infra
-Sprint 3  (later)        Growth surface
+Sprint A (1 session) — Foundation
+  ├─ Per-route head() for all public pages
+  ├─ OG image generation + commit to /public/og-image.png
+  ├─ Dynamic sitemap route + tightened robots.txt
+  └─ JSON-LD: Organization, WebSite, Product (pricing), FAQPage (landing)
+
+Sprint B (1 session) — Conversion pages
+  ├─ /features/* (3 pages)
+  ├─ /for/agencies, /for/creators
+  └─ Footer link mesh
+
+Sprint C (1 session) — Blog engine
+  ├─ blog_posts table + admin UI to publish (or seed via SQL)
+  ├─ /blog and /blog/$slug routes with markdown rendering
+  ├─ RSS feed
+  └─ Article JSON-LD + sitemap inclusion
+
+Sprint D (ongoing) — Content
+  └─ Publish 10 cornerstone posts using existing seo-blog generator
 ```
 
 ---
 
-## What I need you to decide
+## Technical notes (skip if non-technical)
 
-1. **Start point**: Should I start with **Sprint 0 today** (fix the sidebar + 7 other bugs you'd see immediately in the preview) or jump straight into a bigger sprint?
-2. **Sprint 2 order**: Once polish is done, what's more important to you — **publishing** (2A, the most-asked feature) or **payments lifecycle + trial** (2B, the biggest revenue lever)?
-3. **Email provider**: **Resend** (modern, dev-friendly, $0 for 3k emails/mo) or stick with the existing Lovable Cloud email path?
+- Sitemap uses TanStack server route file `src/routes/sitemap[.]xml.tsx` returning `text/xml`. Reads `repurpose_jobs WHERE is_public = true` and `blog_posts WHERE status='published'` via `supabaseAdmin`.
+- All `head()` follow the project's existing TanStack `createFileRoute({ head: () => ({...}) })` pattern; child meta override root meta automatically.
+- `noindex` pages get `<meta name="robots" content="noindex,nofollow">` in `head()` AND `Disallow:` in robots.txt (belt + braces).
+- Gallery item OG image derives from `job.outputs.images?.[0] ?? '/og-image.png'` so every shared link has a unique preview.
+- Blog posts use `marked` (~30KB, Worker-safe) for MD→HTML; sanitized with `DOMPurify` to prevent XSS in author content.
+- JSON-LD injected via `head().scripts: [{ type: 'application/ld+json', children: JSON.stringify(...) }]`.
 
-Reply with your picks and I'll execute.
+## What I won't touch unless you ask
+
+- Existing dashboard routes (already `noindex`-equivalent since auth-gated).
+- Brand voice / colors / copy — SEO-only changes.
+- Paddle/payment flows.
+- The `generated-images` public bucket (you accepted this risk).
+
+## Expected outcome
+
+Working backwards from goal: **organic Pro signups**. Phase 1 fixes the foundation that makes everything else effective (correct OG, sitemap, structured data → 2-4× CTR from search/social on existing traffic). Phase 2 captures bottom-funnel buyer queries. Phase 3 captures top-funnel awareness queries and feeds them into the funnel. Phase 4 is distribution.
+
+Realistic timeline to first organic Pro signups: **2-3 weeks after Sprint C ships** (Google indexing + ranking lag), accelerating from month 2 onward as content accumulates.
+
+Approve and I'll start with **Sprint A** (foundation) in the next message.
