@@ -5,6 +5,7 @@ import { Loader2, Check, MessageSquareWarning, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/review/$token")({
+  head: () => ({ meta: [{ title: "Content review — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: ReviewPage,
 });
 
