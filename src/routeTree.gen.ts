@@ -26,6 +26,11 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
+import { Route as ForCreatorsRouteImport } from './routes/for.creators'
+import { Route as ForAgenciesRouteImport } from './routes/for.agencies'
+import { Route as FeaturesYoutubeToTweetsRouteImport } from './routes/features.youtube-to-tweets'
+import { Route as FeaturesRepurposeBlogToSocialRouteImport } from './routes/features.repurpose-blog-to-social'
+import { Route as FeaturesLinkedinPostGeneratorRouteImport } from './routes/features.linkedin-post-generator'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
@@ -137,6 +142,33 @@ const GallerySlugRoute = GallerySlugRouteImport.update({
   path: '/gallery/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForCreatorsRoute = ForCreatorsRouteImport.update({
+  id: '/for/creators',
+  path: '/for/creators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForAgenciesRoute = ForAgenciesRouteImport.update({
+  id: '/for/agencies',
+  path: '/for/agencies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesYoutubeToTweetsRoute = FeaturesYoutubeToTweetsRouteImport.update({
+  id: '/features/youtube-to-tweets',
+  path: '/features/youtube-to-tweets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRepurposeBlogToSocialRoute =
+  FeaturesRepurposeBlogToSocialRouteImport.update({
+    id: '/features/repurpose-blog-to-social',
+    path: '/features/repurpose-blog-to-social',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const FeaturesLinkedinPostGeneratorRoute =
+  FeaturesLinkedinPostGeneratorRouteImport.update({
+    id: '/features/linkedin-post-generator',
+    path: '/features/linkedin-post-generator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
@@ -299,6 +331,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
+  '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
+  '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
+  '/for/agencies': typeof ForAgenciesRoute
+  '/for/creators': typeof ForCreatorsRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
@@ -342,6 +379,11 @@ export interface FileRoutesByTo {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
+  '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
+  '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
+  '/for/agencies': typeof ForAgenciesRoute
+  '/for/creators': typeof ForCreatorsRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
@@ -387,6 +429,11 @@ export interface FileRoutesById {
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
+  '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
+  '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
+  '/for/agencies': typeof ForAgenciesRoute
+  '/for/creators': typeof ForCreatorsRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
@@ -433,6 +480,11 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/email/unsubscribe'
+    | '/features/linkedin-post-generator'
+    | '/features/repurpose-blog-to-social'
+    | '/features/youtube-to-tweets'
+    | '/for/agencies'
+    | '/for/creators'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
@@ -476,6 +528,11 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/email/unsubscribe'
+    | '/features/linkedin-post-generator'
+    | '/features/repurpose-blog-to-social'
+    | '/features/youtube-to-tweets'
+    | '/for/agencies'
+    | '/for/creators'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
@@ -520,6 +577,11 @@ export interface FileRouteTypes {
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/email/unsubscribe'
+    | '/features/linkedin-post-generator'
+    | '/features/repurpose-blog-to-social'
+    | '/features/youtube-to-tweets'
+    | '/for/agencies'
+    | '/for/creators'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
@@ -550,6 +612,11 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  FeaturesLinkedinPostGeneratorRoute: typeof FeaturesLinkedinPostGeneratorRoute
+  FeaturesRepurposeBlogToSocialRoute: typeof FeaturesRepurposeBlogToSocialRoute
+  FeaturesYoutubeToTweetsRoute: typeof FeaturesYoutubeToTweetsRoute
+  ForAgenciesRoute: typeof ForAgenciesRoute
+  ForCreatorsRoute: typeof ForCreatorsRoute
   GallerySlugRoute: typeof GallerySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
@@ -682,6 +749,41 @@ declare module '@tanstack/react-router' {
       path: '/gallery/$slug'
       fullPath: '/gallery/$slug'
       preLoaderRoute: typeof GallerySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for/creators': {
+      id: '/for/creators'
+      path: '/for/creators'
+      fullPath: '/for/creators'
+      preLoaderRoute: typeof ForCreatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for/agencies': {
+      id: '/for/agencies'
+      path: '/for/agencies'
+      fullPath: '/for/agencies'
+      preLoaderRoute: typeof ForAgenciesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features/youtube-to-tweets': {
+      id: '/features/youtube-to-tweets'
+      path: '/features/youtube-to-tweets'
+      fullPath: '/features/youtube-to-tweets'
+      preLoaderRoute: typeof FeaturesYoutubeToTweetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features/repurpose-blog-to-social': {
+      id: '/features/repurpose-blog-to-social'
+      path: '/features/repurpose-blog-to-social'
+      fullPath: '/features/repurpose-blog-to-social'
+      preLoaderRoute: typeof FeaturesRepurposeBlogToSocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features/linkedin-post-generator': {
+      id: '/features/linkedin-post-generator'
+      path: '/features/linkedin-post-generator'
+      fullPath: '/features/linkedin-post-generator'
+      preLoaderRoute: typeof FeaturesLinkedinPostGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -920,6 +1022,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  FeaturesLinkedinPostGeneratorRoute: FeaturesLinkedinPostGeneratorRoute,
+  FeaturesRepurposeBlogToSocialRoute: FeaturesRepurposeBlogToSocialRoute,
+  FeaturesYoutubeToTweetsRoute: FeaturesYoutubeToTweetsRoute,
+  ForAgenciesRoute: ForAgenciesRoute,
+  ForCreatorsRoute: ForCreatorsRoute,
   GallerySlugRoute: GallerySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
