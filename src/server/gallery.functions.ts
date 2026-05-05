@@ -1,26 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL!;
-const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY!;
-
-function getAdmin() {
-  return createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
-}
-
-function makeSlug(title: string) {
-  const base = title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .slice(0, 50) || "post";
-  const rand = Math.random().toString(36).slice(2, 8);
-  return `${base}-${rand}`;
-}
+import { getAdmin, getAnon, makeSlug } from "./gallery.server";
 
 export const togglePublic = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -64,7 +45,7 @@ export const togglePublic = createServerFn({ method: "POST" })
 export const getGalleryFeed = createServerFn({ method: "GET" })
   .handler(async () => {
     // Public read: use anon client to leverage RLS public policy
-    const sb = createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: false } });
+    const sb = getAnon();
     const { data, error } = await (sb as any)
       .from("repurpose_jobs")
       .select("id, public_slug, title, input_text, outputs, created_at, view_count")
@@ -86,7 +67,7 @@ export const getGalleryFeed = createServerFn({ method: "GET" })
 export const getPublicPost = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ slug: z.string().min(3).max(80) }).parse(data))
   .handler(async ({ data }) => {
-    const sb = createClient(SUPABASE_URL, ANON_KEY, { auth: { persistSession: false } });
+    const sb = getAnon();
     const { data: row, error } = await (sb as any)
       .from("repurpose_jobs")
       .select("id, public_slug, title, input_text, outputs, created_at")
