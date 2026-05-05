@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Bookmark, Plus, Trash2, X, Loader2, Play } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { getTemplates, createTemplate, deleteTemplate } from "@/server/templates.functions";
+import { getTemplates, createTemplate, deleteTemplate } from "@/lib/templates.functions";
 
 const allTypes = [
   { id: "tweets", label: "Tweets" },

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { getReferralStats } from "@/server/referrals.functions";
+import { getReferralStats } from "@/lib/referrals.functions";
 import { Gift, Copy, Check, Users, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 

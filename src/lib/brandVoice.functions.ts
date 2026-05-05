@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { summarizeBrandVoice } from "./brandVoice.server";
+import { summarizeBrandVoice } from "@/server/brandVoice.server";
 
 export const listBrandVoices = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

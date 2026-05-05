@@ -5,7 +5,7 @@ import {
   scrapeUrl,
   transcribeWithElevenLabs,
   transcribeWithGemini,
-} from "./import.server";
+} from "@/server/import.server";
 
 export const importFromUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

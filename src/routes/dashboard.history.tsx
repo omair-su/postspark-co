@@ -6,7 +6,7 @@ import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Co
 import { exportToPdf } from "@/lib/exportPdf";
 import { toggleFavorite, bulkDeleteJobs } from "@/lib/repurpose.functions";
 import { togglePublic } from "@/lib/gallery.functions";
-import { createApprovalRequest } from "@/server/approvals.functions";
+import { createApprovalRequest } from "@/lib/approvals.functions";
 import { toast } from "sonner";
 
 interface Job {

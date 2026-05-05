@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Flame, Loader2, Copy, Check, Sparkles } from "lucide-react";
-import { generateHooks } from "@/server/hookLab.functions";
+import { generateHooks } from "@/lib/hookLab.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 
 interface Hook {

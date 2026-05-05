@@ -6,7 +6,7 @@ import {
   Upload, Link as LinkIcon, FileText, Mic, Loader2, Square, Sparkles, Send, AudioLines,
 } from "lucide-react";
 import { extractPdfText, extractDocxText, fileToBase64 } from "@/lib/clientImport";
-import { importFromUrl, transcribeAudio, checkProviders } from "@/server/import.functions";
+import { importFromUrl, transcribeAudio, checkProviders } from "@/lib/import.functions";
 
 export const Route = createFileRoute("/dashboard/import")({
   component: ImportStudioPage,

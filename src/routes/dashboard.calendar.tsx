@@ -9,7 +9,7 @@ import {
   deleteScheduledPost,
   updateScheduledPost,
   bulkImportScheduledPosts,
-} from "@/server/calendar.functions";
+} from "@/lib/calendar.functions";
 
 export const Route = createFileRoute("/dashboard/calendar")({
   component: CalendarPage,
