@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
-import { getAnalyticsData } from "@/server/repurpose.functions";
+import { getAnalyticsData } from "@/lib/repurpose.functions";
 import { BarChart3, PieChart, Type, Flame, TrendingUp } from "lucide-react";
 
 interface JobData {

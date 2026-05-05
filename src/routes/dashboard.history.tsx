@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck, Trash2 } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
-import { toggleFavorite, bulkDeleteJobs } from "@/server/repurpose.functions";
+import { toggleFavorite, bulkDeleteJobs } from "@/lib/repurpose.functions";
 import { togglePublic } from "@/lib/gallery.functions";
 import { createApprovalRequest } from "@/server/approvals.functions";
 import { toast } from "sonner";

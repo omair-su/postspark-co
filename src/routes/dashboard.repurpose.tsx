@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { withAIProgress } from "@/lib/aiProgress";
 import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type, Eye, FileText } from "lucide-react";
-import { repurposeContent, getMonthlyUsage } from "@/server/repurpose.functions";
+import { repurposeContent, getMonthlyUsage } from "@/lib/repurpose.functions";
 import { getBrandKit } from "@/server/brandKit.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { ToneSelector } from "@/components/ToneSelector";

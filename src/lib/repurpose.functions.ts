@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateRepurposedContent } from "./repurpose.server";
+import { generateRepurposedContent } from "@/server/repurpose.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 
