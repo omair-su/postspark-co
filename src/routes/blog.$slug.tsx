@@ -6,7 +6,7 @@ import type { BlogPostFull } from "@/lib/blog-types";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params }) => {
-    const { getPostBySlug } = await import("@/server/blog.functions");
+    const { getPostBySlug } = await import("@/lib/blog.functions");
     const post = await getPostBySlug({ data: { slug: params.slug } });
     if (!post) throw notFound();
     const html = renderMarkdown(post.content_md);

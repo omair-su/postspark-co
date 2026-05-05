@@ -9,7 +9,7 @@ const URL = "https://postspark.co/blog";
 
 export const Route = createFileRoute("/blog/")({
   loader: async () => {
-    const { listPosts, listCategories } = await import("@/server/blog.functions");
+    const { listPosts, listCategories } = await import("@/lib/blog.functions");
     const [posts, categories] = await Promise.all([listPosts({ data: {} }), listCategories()]);
     return { posts, categories };
   },

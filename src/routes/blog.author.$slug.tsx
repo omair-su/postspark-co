@@ -5,7 +5,7 @@ import type { BlogPostListItem, BlogAuthor } from "@/lib/blog-types";
 
 export const Route = createFileRoute("/blog/author/$slug")({
   loader: async ({ params }) => {
-    const { getAuthorBySlug, listPosts } = await import("@/server/blog.functions");
+    const { getAuthorBySlug, listPosts } = await import("@/lib/blog.functions");
     const author = await getAuthorBySlug({ data: { slug: params.slug } });
     if (!author) throw notFound();
     const posts = await listPosts({ data: { authorSlug: params.slug } });
