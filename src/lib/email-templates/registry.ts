@@ -7,6 +7,14 @@ export interface TemplateEntry {
   previewData?: Record<string, any>
   /** Fixed recipient — overrides caller-provided recipientEmail when set. */
   to?: string
+  /**
+   * Who is allowed to trigger this template via the public /lovable/email/transactional/send endpoint.
+   * - 'server_only': only the server (service role) may send. Authenticated user calls are rejected.
+   * - 'invite_owner': caller must own a pending workspace_invite for the recipient email.
+   * - 'self': recipient must equal the authenticated user's own email.
+   * Defaults to 'server_only' (deny by default).
+   */
+  callerRestriction?: 'server_only' | 'invite_owner' | 'self'
 }
 
 import { template as teamInvite } from './team-invite'
