@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Upload, Gift, Globe, Sparkles, Users, Building2, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
@@ -10,24 +10,53 @@ import { AIProgressBar } from "@/components/AIProgressBar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { getMyWorkspace, setActiveBrandKit } from "@/lib/workspace.functions";
 
-const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose" },
-  { to: "/dashboard/import", icon: Upload, label: "Import Studio" },
-  { to: "/dashboard/seo-blog", icon: FileText, label: "SEO Blog" },
-  { to: "/dashboard/hook-lab", icon: Flame, label: "Hook Lab" },
-  { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
-  { to: "/dashboard/calendar", icon: Calendar, label: "Calendar" },
-  { to: "/dashboard/brand-voice", icon: Mic, label: "Brand Voice" },
-  { to: "/dashboard/brand-kit", icon: Sparkles, label: "Brand Kit" },
-  { to: "/dashboard/history", icon: History, label: "History" },
-  { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
-  { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
-  { to: "/dashboard/referrals", icon: Gift, label: "Refer & Earn" },
-  { to: "/gallery", icon: Globe, label: "Gallery" },
-  { to: "/dashboard/team", icon: Users, label: "Team" },
-  { to: "/dashboard/agency-analytics", icon: Building2, label: "Agency Analytics" },
-  { to: "/dashboard/settings", icon: Settings, label: "Settings" },
+const navGroups = [
+  {
+    label: "Home",
+    items: [
+      { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    ],
+  },
+  {
+    label: "Create",
+    items: [
+      { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose" },
+      { to: "/dashboard/seo-blog", icon: FileText, label: "SEO Blog" },
+      { to: "/dashboard/hook-lab", icon: Flame, label: "Hook Lab" },
+      { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
+      { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
+    ],
+  },
+  {
+    label: "Plan & Publish",
+    items: [
+      { to: "/dashboard/calendar", icon: Calendar, label: "Calendar" },
+      { to: "/dashboard/history", icon: History, label: "History" },
+    ],
+  },
+  {
+    label: "Brand",
+    items: [
+      { to: "/dashboard/brand-kit", icon: Sparkles, label: "Brand Kit" },
+      { to: "/dashboard/brand-voice", icon: Mic, label: "Brand Voice" },
+    ],
+  },
+  {
+    label: "Insights & Team",
+    items: [
+      { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
+      { to: "/dashboard/agency-analytics", icon: Building2, label: "Agency Analytics" },
+      { to: "/dashboard/team", icon: Users, label: "Team" },
+    ],
+  },
+  {
+    label: "More",
+    items: [
+      { to: "/gallery", icon: Globe, label: "Gallery" },
+      { to: "/dashboard/referrals", icon: Gift, label: "Refer & Earn" },
+      { to: "/dashboard/settings", icon: Settings, label: "Settings" },
+    ],
+  },
 ] as const;
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -110,25 +139,36 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <nav className="sidebar-scroll flex-1 min-h-0 space-y-1 overflow-y-auto px-3 py-4">
-        {navItems.map((item) => {
-          const active = location.pathname === item.to;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
-              }`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="sidebar-scroll flex-1 min-h-0 overflow-y-auto px-3 py-4">
+        {navGroups.map((group, gi) => (
+          <div key={group.label} className={gi === 0 ? "" : "mt-4"}>
+            {gi !== 0 && (
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const active = location.pathname === item.to;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div className="shrink-0 border-t border-sidebar-border p-3">

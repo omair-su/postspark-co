@@ -9,6 +9,7 @@ import { getBrandKit } from "@/lib/brandKit.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { ToneSelector } from "@/components/ToneSelector";
 import { VisualPreview } from "@/components/VisualPreview";
+import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { Link } from "@tanstack/react-router";
 
 const contentTypes = [
@@ -34,9 +35,10 @@ export const Route = createFileRoute("/dashboard/repurpose")({
 
 function RepurposePage() {
   const { user, session } = useAuth();
-  const [tab, setTab] = useState<"text" | "youtube">("text");
+  const [tab, setTab] = useState<"text" | "import">("text");
+  const [importSubTab, setImportSubTab] = useState<"url" | "pdf" | "docx" | "audio">("url");
   const [inputText, setInputText] = useState("");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [importMeta, setImportMeta] = useState<string>("");
   const [selected, setSelected] = useState<Set<string>>(new Set(["tweets", "linkedin", "email", "video"]));
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ParsedResults | null>(null);
@@ -53,6 +55,8 @@ function RepurposePage() {
     preferred_tone: string | null;
   } | null>(null);
   const [overrideTone, setOverrideTone] = useState(false);
+
+  const [pendingAutoRun, setPendingAutoRun] = useState(false);
 
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
@@ -73,6 +77,11 @@ function RepurposePage() {
         setInputText(imported);
         setTab("text");
         sessionStorage.removeItem("postspark.import.text");
+      }
+      const autoRun = sessionStorage.getItem("postspark.autorun");
+      if (autoRun === "1") {
+        sessionStorage.removeItem("postspark.autorun");
+        setPendingAutoRun(true);
       }
     } catch {
       // ignore
@@ -159,7 +168,7 @@ function RepurposePage() {
       return;
     }
 
-    const input = tab === "text" ? inputText : `YouTube video: ${youtubeUrl}`;
+    const input = inputText;
     if (!input.trim()) {
       toast.error("Please enter some content first");
       return;
@@ -220,6 +229,15 @@ function RepurposePage() {
       setLoading(false);
     }
   };
+
+  // Auto-run repurpose when prefilled from a suggestion or onboarding sample
+  useEffect(() => {
+    if (!pendingAutoRun) return;
+    if (!session || !inputText.trim() || loading) return;
+    setPendingAutoRun(false);
+    handleRepurpose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAutoRun, session, inputText]);
 
   const remaining = usage ? usage.limit - usage.used : null;
 
@@ -283,7 +301,7 @@ function RepurposePage() {
       {/* Step 1: Input */}
       <div className="mt-4 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Step 1: Your Content</h2>
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={() => setTab("text")}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -293,12 +311,12 @@ function RepurposePage() {
             Paste Text
           </button>
           <button
-            onClick={() => setTab("youtube")}
+            onClick={() => setTab("import")}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-              tab === "youtube" ? "gradient-electric text-primary-foreground" : "bg-accent text-accent-foreground"
+              tab === "import" ? "gradient-electric text-primary-foreground" : "bg-accent text-accent-foreground"
             }`}
           >
-            YouTube URL
+            Import (URL · PDF · Word · Audio)
           </button>
         </div>
 
@@ -310,14 +328,24 @@ function RepurposePage() {
             className="mt-3 w-full resize-none rounded-lg border border-input bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring h-40"
           />
         ) : (
-          <input
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            placeholder="https://www.youtube.com/watch?v=..."
-            className="mt-3 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+          <div className="mt-3 space-y-3">
+            <ImportInputPanel
+              subTab={importSubTab}
+              onSubTabChange={setImportSubTab}
+              onExtracted={(text, meta) => {
+                setInputText(text);
+                setImportMeta(meta || "");
+                setTab("text");
+                toast.success("Loaded — review & edit below");
+              }}
+            />
+            {importMeta && (
+              <p className="text-xs text-muted-foreground">{importMeta}</p>
+            )}
+          </div>
         )}
       </div>
+
 
       {/* Step 2: Select types */}
       <div className="mt-4 rounded-xl border border-border bg-card p-5">

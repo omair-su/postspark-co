@@ -5,6 +5,7 @@ import { completeOnboarding, getOnboardingStatus } from "@/lib/onboarding.functi
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { toast } from "sonner";
+import { SAMPLE_SUGGESTIONS } from "@/lib/sampleSuggestions";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Welcome — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -66,8 +67,14 @@ function OnboardingPage() {
         data: { role, platforms },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      toast.success("You're all set! 🎉");
-      navigate({ to: "/dashboard", replace: true });
+      // Pre-load a sample so the user lands on a populated, generating Repurpose page
+      try {
+        const sample = SAMPLE_SUGGESTIONS[0];
+        sessionStorage.setItem("postspark.import.text", sample.text);
+        sessionStorage.setItem("postspark.autorun", "1");
+      } catch {}
+      toast.success("You're all set! Generating a sample for you… ✨");
+      navigate({ to: "/dashboard/repurpose", replace: true });
     } catch {
       toast.error("Could not save preferences. Try again.");
     } finally {

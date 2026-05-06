@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { Repeat, Sparkles, Clock, TrendingUp, Zap } from "lucide-react";
+import { Repeat, Sparkles, Clock, TrendingUp, Zap, Wand2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
+import { SAMPLE_SUGGESTIONS } from "@/lib/sampleSuggestions";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/dashboard/")({
 
 function DashboardHome() {
   const { user, session } = useAuth();
+  const navigate = useNavigate();
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
@@ -120,6 +122,40 @@ function DashboardHome() {
           <p className="text-xs text-muted-foreground">Transform content into multiple formats</p>
         </div>
       </Link>
+
+      {/* Suggest content widget */}
+      <div className="mt-8">
+        <div className="mb-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+            <Wand2 className="h-4 w-4 text-primary" /> Need an idea? Try a sample
+          </h2>
+          <p className="text-xs text-muted-foreground">One click — we'll prefill and run a repurpose for you.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {SAMPLE_SUGGESTIONS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => {
+                try {
+                  sessionStorage.setItem("postspark.import.text", s.text);
+                  sessionStorage.setItem("postspark.autorun", "1");
+                } catch {}
+                navigate({ to: "/dashboard/repurpose" });
+              }}
+              className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-md"
+            >
+              <span className="text-2xl leading-none">{s.emoji}</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">{s.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{s.description}</p>
+                <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                  Run sample <Sparkles className="h-3 w-3" />
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Recent activity */}
       <div className="mt-8">
