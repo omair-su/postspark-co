@@ -56,6 +56,8 @@ function RepurposePage() {
   } | null>(null);
   const [overrideTone, setOverrideTone] = useState(false);
 
+  const [pendingAutoRun, setPendingAutoRun] = useState(false);
+
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
     try {
@@ -75,6 +77,11 @@ function RepurposePage() {
         setInputText(imported);
         setTab("text");
         sessionStorage.removeItem("postspark.import.text");
+      }
+      const autoRun = sessionStorage.getItem("postspark.autorun");
+      if (autoRun === "1") {
+        sessionStorage.removeItem("postspark.autorun");
+        setPendingAutoRun(true);
       }
     } catch {
       // ignore
