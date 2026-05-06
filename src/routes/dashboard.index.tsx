@@ -123,6 +123,40 @@ function DashboardHome() {
         </div>
       </Link>
 
+      {/* Suggest content widget */}
+      <div className="mt-8">
+        <div className="mb-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+            <Wand2 className="h-4 w-4 text-primary" /> Need an idea? Try a sample
+          </h2>
+          <p className="text-xs text-muted-foreground">One click — we'll prefill and run a repurpose for you.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {SAMPLE_SUGGESTIONS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => {
+                try {
+                  sessionStorage.setItem("postspark.import.text", s.text);
+                  sessionStorage.setItem("postspark.autorun", "1");
+                } catch {}
+                navigate({ to: "/dashboard/repurpose" });
+              }}
+              className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-md"
+            >
+              <span className="text-2xl leading-none">{s.emoji}</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">{s.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{s.description}</p>
+                <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                  Run sample <Sparkles className="h-3 w-3" />
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Recent activity */}
       <div className="mt-8">
         <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
