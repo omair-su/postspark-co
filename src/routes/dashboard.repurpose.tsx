@@ -9,6 +9,7 @@ import { getBrandKit } from "@/lib/brandKit.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { ToneSelector } from "@/components/ToneSelector";
 import { VisualPreview } from "@/components/VisualPreview";
+import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { Link } from "@tanstack/react-router";
 
 const contentTypes = [
@@ -34,9 +35,10 @@ export const Route = createFileRoute("/dashboard/repurpose")({
 
 function RepurposePage() {
   const { user, session } = useAuth();
-  const [tab, setTab] = useState<"text" | "youtube">("text");
+  const [tab, setTab] = useState<"text" | "import">("text");
+  const [importSubTab, setImportSubTab] = useState<"url" | "pdf" | "docx" | "audio">("url");
   const [inputText, setInputText] = useState("");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [importMeta, setImportMeta] = useState<string>("");
   const [selected, setSelected] = useState<Set<string>>(new Set(["tweets", "linkedin", "email", "video"]));
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ParsedResults | null>(null);
