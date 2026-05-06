@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { Repeat, Sparkles, Clock, TrendingUp, Zap } from "lucide-react";
+import { Repeat, Sparkles, Clock, TrendingUp, Zap, Wand2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
+import { SAMPLE_SUGGESTIONS } from "@/lib/sampleSuggestions";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/dashboard/")({
 
 function DashboardHome() {
   const { user, session } = useAuth();
+  const navigate = useNavigate();
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
