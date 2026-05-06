@@ -230,6 +230,15 @@ function RepurposePage() {
     }
   };
 
+  // Auto-run repurpose when prefilled from a suggestion or onboarding sample
+  useEffect(() => {
+    if (!pendingAutoRun) return;
+    if (!session || !inputText.trim() || loading) return;
+    setPendingAutoRun(false);
+    handleRepurpose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAutoRun, session, inputText]);
+
   const remaining = usage ? usage.limit - usage.used : null;
 
   const typeLabels: Record<string, string> = {};
