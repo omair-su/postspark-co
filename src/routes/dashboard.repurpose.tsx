@@ -161,7 +161,7 @@ function RepurposePage() {
       return;
     }
 
-    const input = tab === "text" ? inputText : `YouTube video: ${youtubeUrl}`;
+    const input = inputText;
     if (!input.trim()) {
       toast.error("Please enter some content first");
       return;
