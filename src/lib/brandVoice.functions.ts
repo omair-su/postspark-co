@@ -66,6 +66,7 @@ export const trainBrandVoice = createServerFn({ method: "POST" })
         name: data.name,
         samples: data.samples,
         style_summary: result.summary,
+        quality_score: result.score,
         is_active: false,
       })
       .select()

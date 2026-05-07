@@ -17,6 +17,7 @@ interface Voice {
   samples: string[];
   is_active: boolean;
   created_at: string;
+  quality_score: number | null;
 }
 
 export const Route = createFileRoute("/dashboard/brand-voice")({
@@ -216,6 +217,20 @@ function BrandVoicePage() {
                       </span>
                     )}
                     <span className="text-[10px] text-muted-foreground">{v.samples.length} samples</span>
+                    {typeof v.quality_score === "number" && (
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          v.quality_score >= 80
+                            ? "bg-emerald-500/15 text-emerald-500"
+                            : v.quality_score >= 50
+                              ? "bg-amber-500/15 text-amber-500"
+                              : "bg-red-500/15 text-red-500"
+                        }`}
+                        title="Quality score: how well-trained this voice is. Add more / longer samples to improve."
+                      >
+                        Quality {v.quality_score}/100
+                      </span>
+                    )}
                   </div>
                   {v.style_summary && (
                     <p className="mt-2 text-xs text-muted-foreground line-clamp-3 whitespace-pre-wrap">{v.style_summary}</p>

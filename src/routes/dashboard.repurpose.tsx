@@ -10,6 +10,7 @@ import { exportToPdf } from "@/lib/exportPdf";
 import { ToneSelector } from "@/components/ToneSelector";
 import { VisualPreview } from "@/components/VisualPreview";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
+import { PublishMenu } from "@/components/PublishMenu";
 import { Link } from "@tanstack/react-router";
 
 const contentTypes = [
@@ -562,6 +563,7 @@ function ResultCard({
           >
             <RefreshCw className="h-3 w-3" /> Regenerate
           </button>
+          <PublishMenu content={content} formatId={id} />
         </div>
       </div>
 

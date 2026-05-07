@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getGalleryFeed } from "@/lib/gallery.functions";
-import { Sparkles, Eye, ArrowRight, Loader2 } from "lucide-react";
+import { Sparkles, Eye, ArrowRight, Loader2, Star, User } from "lucide-react";
 
 interface Item {
   id: string;
@@ -11,6 +11,8 @@ interface Item {
   formats: string[];
   createdAt: string;
   views: number;
+  featured?: boolean;
+  author?: { name: string; avatar: string | null };
 }
 
 export const Route = createFileRoute("/gallery/")({
@@ -81,9 +83,16 @@ function GalleryPage() {
                 params={{ slug: item.slug }}
                 className="group flex flex-col rounded-xl border border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md"
               >
-                <h2 className="line-clamp-2 text-base font-semibold text-foreground group-hover:text-primary">
-                  {item.title}
-                </h2>
+                <div className="flex items-start justify-between gap-2">
+                  <h2 className="line-clamp-2 text-base font-semibold text-foreground group-hover:text-primary">
+                    {item.title}
+                  </h2>
+                  {item.featured && (
+                    <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">
+                      <Star className="h-3 w-3" /> Featured
+                    </span>
+                  )}
+                </div>
                 <p className="mt-2 line-clamp-3 flex-1 text-sm text-muted-foreground">{item.preview}</p>
                 <div className="mt-4 flex flex-wrap gap-1">
                   {item.formats.slice(0, 4).map((f) => (
@@ -96,7 +105,14 @@ function GalleryPage() {
                   ))}
                 </div>
                 <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1.5">
+                    {item.author?.avatar ? (
+                      <img src={item.author.avatar} alt="" className="h-4 w-4 rounded-full object-cover" />
+                    ) : (
+                      <User className="h-3 w-3" />
+                    )}
+                    <span className="truncate max-w-[100px]">{item.author?.name || "Anonymous"}</span>
+                    <span>·</span>
                     <Eye className="h-3 w-3" /> {item.views}
                   </span>
                   <span className="flex items-center gap-1 text-primary">

@@ -1,6 +1,6 @@
 import { callClaude } from "./anthropic.server";
 
-export async function summarizeBrandVoice(samples: string[]): Promise<{ summary: string; error?: string }> {
+export async function summarizeBrandVoice(samples: string[]): Promise<{ summary: string; score: number; error?: string }> {
   const joined = samples
     .map((s, i) => `--- SAMPLE ${i + 1} ---\n${s.trim()}`)
     .join("\n\n");
@@ -24,6 +24,19 @@ Return ONLY the style guide as plain prose. No preamble. Start directly with "Vo
     maxTokens: 1000,
   });
 
-  if (result.error) return { summary: "", error: result.error };
-  return { summary: result.text };
+  if (result.error) return { summary: "", score: 0, error: result.error };
+
+  // Heuristic quality score: based on sample count, total length, lexical diversity
+  const totalChars = samples.reduce((s, x) => s + x.trim().length, 0);
+  const avgLen = totalChars / Math.max(samples.length, 1);
+  const allWords = samples.join(" ").toLowerCase().split(/\W+/).filter(Boolean);
+  const uniqueRatio = new Set(allWords).size / Math.max(allWords.length, 1);
+
+  let score = 0;
+  score += Math.min(samples.length * 12, 60); // up to 60 for 5 samples
+  score += Math.min((avgLen / 400) * 20, 20); // up to 20 for ~400+ chars/sample
+  score += Math.min(uniqueRatio * 50, 20);    // up to 20 for vocabulary diversity
+  score = Math.max(20, Math.min(100, Math.round(score)));
+
+  return { summary: result.text, score };
 }
