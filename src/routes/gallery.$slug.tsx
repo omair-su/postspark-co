@@ -1,5 +1,5 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Sparkles, ArrowLeft } from "lucide-react";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { Sparkles, ArrowLeft, User, Wand2 } from "lucide-react";
 import { getPublicPost } from "@/lib/gallery.functions";
 
 export const Route = createFileRoute("/gallery/$slug")({
