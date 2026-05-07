@@ -66,9 +66,21 @@ function GalleryPostPage() {
           <ArrowLeft className="h-3 w-3" /> Back to Gallery
         </Link>
         <h1 className="mt-3 text-3xl font-bold text-foreground">{post.title}</h1>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Shared {new Date(post.createdAt).toLocaleDateString()}
-        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {(post as any).author?.avatar ? (
+              <img src={(post as any).author.avatar} alt="" className="h-6 w-6 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
+                <User className="h-3 w-3" />
+              </div>
+            )}
+            <span>by <strong className="text-foreground">{(post as any).author?.name || "Anonymous"}</strong></span>
+            <span>·</span>
+            <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+          </div>
+          <RemixButton input={post.input} />
+        </div>
 
         <div className="mt-6 rounded-xl border border-border bg-card p-5">
           <h2 className="text-sm font-semibold text-foreground">Original Input</h2>
@@ -96,5 +108,23 @@ function GalleryPostPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function RemixButton({ input }: { input: string }) {
+  const navigate = useNavigate();
+  const handleRemix = () => {
+    try {
+      sessionStorage.setItem("postspark.import.text", input);
+    } catch {}
+    navigate({ to: "/dashboard/repurpose" });
+  };
+  return (
+    <button
+      onClick={handleRemix}
+      className="inline-flex items-center gap-1.5 rounded-lg gradient-electric px-3 py-1.5 text-xs font-bold text-primary-foreground hover:opacity-90 glow-electric"
+    >
+      <Wand2 className="h-3.5 w-3.5" /> Remix this
+    </button>
   );
 }
