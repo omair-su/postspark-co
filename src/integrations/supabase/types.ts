@@ -319,6 +319,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          quality_score: number | null
           samples: Json
           style_summary: string | null
           updated_at: string
@@ -330,6 +331,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          quality_score?: number | null
           samples?: Json
           style_summary?: string | null
           updated_at?: string
@@ -341,6 +343,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          quality_score?: number | null
           samples?: Json
           style_summary?: string | null
           updated_at?: string
@@ -617,6 +620,7 @@ export type Database = {
           id: string
           input_text: string
           is_favorite: boolean
+          is_featured: boolean
           is_public: boolean
           outputs: Json | null
           public_slug: string | null
@@ -631,6 +635,7 @@ export type Database = {
           id?: string
           input_text: string
           is_favorite?: boolean
+          is_featured?: boolean
           is_public?: boolean
           outputs?: Json | null
           public_slug?: string | null
@@ -645,6 +650,7 @@ export type Database = {
           id?: string
           input_text?: string
           is_favorite?: boolean
+          is_featured?: boolean
           is_public?: boolean
           outputs?: Json | null
           public_slug?: string | null
