@@ -67,13 +67,15 @@ function OnboardingPage() {
         data: { role, platforms },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      // Pre-load a sample so the user lands on a populated, generating Repurpose page
+      // Land on Repurpose with a friendly nudge — but DO NOT autorun on the user's behalf.
       try {
         const sample = SAMPLE_SUGGESTIONS[0];
-        sessionStorage.setItem("postspark.import.text", sample.text);
-        sessionStorage.setItem("postspark.autorun", "1");
+        sessionStorage.setItem(
+          "postspark.preset",
+          JSON.stringify({ types: sample.selectedTypes, guidance: sample.guidance, title: sample.title }),
+        );
       } catch {}
-      toast.success("You're all set! Generating a sample for you… ✨");
+      toast.success("You're all set! Try a sample on the Repurpose page ✨");
       navigate({ to: "/dashboard/repurpose", replace: true });
     } catch {
       toast.error("Could not save preferences. Try again.");

@@ -62,6 +62,11 @@ function RepurposePage() {
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
     try {
+      const openTab = sessionStorage.getItem("postspark.openTab");
+      if (openTab === "import" || openTab === "text") {
+        setTab(openTab as "import" | "text");
+        sessionStorage.removeItem("postspark.openTab");
+      }
       const url = new URL(window.location.href);
       const tpl = url.searchParams.get("tpl");
       if (tpl) {
@@ -83,6 +88,21 @@ function RepurposePage() {
       if (autoRun === "1") {
         sessionStorage.removeItem("postspark.autorun");
         setPendingAutoRun(true);
+      }
+      // Suggest-content widget: prefill formats only, no autorun.
+      const presetRaw = sessionStorage.getItem("postspark.preset");
+      if (presetRaw) {
+        sessionStorage.removeItem("postspark.preset");
+        try {
+          const preset = JSON.parse(presetRaw) as { types?: string[]; guidance?: string; title?: string };
+          if (Array.isArray(preset.types) && preset.types.length) setSelected(new Set(preset.types));
+          if (preset.guidance) setCustomInstructions(preset.guidance);
+          setTab("text");
+          if (preset.title) {
+            // Soft toast nudge
+            try { (window as any).__psPresetTitle = preset.title; } catch {}
+          }
+        } catch {}
       }
     } catch {
       // ignore

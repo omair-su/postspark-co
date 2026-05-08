@@ -137,8 +137,13 @@ function DashboardHome() {
               key={s.id}
               onClick={() => {
                 try {
-                  sessionStorage.setItem("postspark.import.text", s.text);
-                  sessionStorage.setItem("postspark.autorun", "1");
+                  // Pre-select formats only — user fills their own content, no autorun.
+                  sessionStorage.setItem(
+                    "postspark.preset",
+                    JSON.stringify({ types: s.selectedTypes, guidance: s.guidance, title: s.title }),
+                  );
+                  sessionStorage.removeItem("postspark.import.text");
+                  sessionStorage.removeItem("postspark.autorun");
                 } catch {}
                 navigate({ to: "/dashboard/repurpose" });
               }}

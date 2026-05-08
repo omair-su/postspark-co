@@ -14,6 +14,65 @@ import {
 const FREE_MONTHLY_LIMIT = 5; // free tier preview generations
 const PRO_MONTHLY_LIMIT = 500; // soft cap for Pro/Agency
 
+// Persist a generated image (data: URL or remote http(s) URL) to storage and
+// insert a row in generated_images. Returns the public storage URL on success.
+async function persistGeneratedImage(opts: {
+  userId: string;
+  imageUrl: string;
+  prompt: string;
+  style?: string;
+  aspect?: string;
+  template?: string;
+  source?: string;
+}): Promise<string | null> {
+  try {
+    let bytes: Uint8Array | null = null;
+    let mime = "image/png";
+
+    if (opts.imageUrl.startsWith("data:")) {
+      const m = opts.imageUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+      if (!m) return null;
+      mime = m[1];
+      bytes = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
+    } else if (/^https?:\/\//i.test(opts.imageUrl)) {
+      const r = await fetch(opts.imageUrl);
+      if (!r.ok) return null;
+      mime = (r.headers.get("content-type") || "image/png").split(";")[0];
+      bytes = new Uint8Array(await r.arrayBuffer());
+    } else {
+      return null;
+    }
+    if (!bytes) return null;
+
+    const ext = mime.split("/")[1].replace("jpeg", "jpg");
+    const path = `${opts.userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: upErr } = await supabaseAdmin.storage
+      .from("generated-images")
+      .upload(path, bytes, { contentType: mime, upsert: false });
+    if (upErr) {
+      console.error("persistGeneratedImage upload error:", upErr);
+      return null;
+    }
+    const { data: pub } = supabaseAdmin.storage.from("generated-images").getPublicUrl(path);
+    const publicUrl = pub.publicUrl;
+
+    const { error: insErr } = await supabaseAdmin.from("generated_images").insert({
+      user_id: opts.userId,
+      image_url: publicUrl,
+      prompt: opts.prompt,
+      style: opts.style,
+      aspect: opts.aspect,
+      template: opts.template,
+      source: opts.source || "generate",
+    });
+    if (insErr) console.error("persistGeneratedImage insert error:", insErr);
+    return publicUrl;
+  } catch (e) {
+    console.error("persistGeneratedImage error:", e);
+    return null;
+  }
+}
+
 async function getPlan(supabase: any, userId: string): Promise<string> {
   const { data: profile } = await supabase
     .from("profiles")
@@ -67,7 +126,20 @@ export const generateImage = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
-    return generateSocialImage(data.prompt, data.style, data.aspect, data.template);
+    const res = await generateSocialImage(data.prompt, data.style, data.aspect, data.template);
+    if (res.imageUrl) {
+      const persisted = await persistGeneratedImage({
+        userId,
+        imageUrl: res.imageUrl,
+        prompt: data.prompt,
+        style: data.style,
+        aspect: data.aspect,
+        template: data.template,
+        source: "generate",
+      });
+      if (persisted) res.imageUrl = persisted;
+    }
+    return res;
   });
 
 export const generateImageVariations = createServerFn({ method: "POST" })
@@ -93,6 +165,22 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       data.template,
       data.count,
     );
+    // Auto-persist every successful variation
+    await Promise.all(
+      results.map(async (r) => {
+        if (!r.imageUrl) return;
+        const persisted = await persistGeneratedImage({
+          userId,
+          imageUrl: r.imageUrl,
+          prompt: data.prompt,
+          style: data.style,
+          aspect: data.aspect,
+          template: data.template,
+          source: "variations",
+        });
+        if (persisted) r.imageUrl = persisted;
+      }),
+    );
     return { results };
   });
 
@@ -114,6 +202,22 @@ export const generateCarousel = createServerFn({ method: "POST" })
         error: "Carousel generation is a Pro feature. Upgrade to unlock.",
       };
     const out = await generateCarouselSet(data.topic, data.style);
+    await Promise.all(
+      (out.results || []).map(async (r: any, i: number) => {
+        if (!r?.imageUrl) return;
+        const slideTitle = out.slides?.[i]?.title || `Slide ${i + 1}`;
+        const persisted = await persistGeneratedImage({
+          userId,
+          imageUrl: r.imageUrl,
+          prompt: `${data.topic} — ${slideTitle}`,
+          style: data.style,
+          aspect: "square",
+          template: "carousel",
+          source: "carousel",
+        });
+        if (persisted) r.imageUrl = persisted;
+      }),
+    );
     return out;
   });
 
@@ -130,7 +234,17 @@ export const editUploadedImage = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Image editing is a Pro feature. Upgrade to unlock." };
-    return editImage(data.imageDataUrl, data.instruction);
+    const res = await editImage(data.imageDataUrl, data.instruction);
+    if (res.imageUrl) {
+      const persisted = await persistGeneratedImage({
+        userId,
+        imageUrl: res.imageUrl,
+        prompt: data.instruction,
+        source: "edit",
+      });
+      if (persisted) res.imageUrl = persisted;
+    }
+    return res;
   });
 
 export const captionForImage = createServerFn({ method: "POST" })

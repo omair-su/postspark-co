@@ -21,6 +21,7 @@ const navGroups = [
     label: "Create",
     items: [
       { to: "/dashboard/repurpose", icon: Repeat, label: "Repurpose" },
+      { to: "/dashboard/import", icon: FileText, label: "Import Studio" },
       { to: "/dashboard/seo-blog", icon: FileText, label: "SEO Blog" },
       { to: "/dashboard/hook-lab", icon: Flame, label: "Hook Lab" },
       { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
