@@ -84,6 +84,21 @@ function RepurposePage() {
         sessionStorage.removeItem("postspark.autorun");
         setPendingAutoRun(true);
       }
+      // Suggest-content widget: prefill formats only, no autorun.
+      const presetRaw = sessionStorage.getItem("postspark.preset");
+      if (presetRaw) {
+        sessionStorage.removeItem("postspark.preset");
+        try {
+          const preset = JSON.parse(presetRaw) as { types?: string[]; guidance?: string; title?: string };
+          if (Array.isArray(preset.types) && preset.types.length) setSelected(new Set(preset.types));
+          if (preset.guidance) setCustomInstructions(preset.guidance);
+          setTab("text");
+          if (preset.title) {
+            // Soft toast nudge
+            try { (window as any).__psPresetTitle = preset.title; } catch {}
+          }
+        } catch {}
+      }
     } catch {
       // ignore
     }
