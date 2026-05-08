@@ -202,6 +202,22 @@ export const generateCarousel = createServerFn({ method: "POST" })
         error: "Carousel generation is a Pro feature. Upgrade to unlock.",
       };
     const out = await generateCarouselSet(data.topic, data.style);
+    await Promise.all(
+      (out.results || []).map(async (r: any, i: number) => {
+        if (!r?.imageUrl) return;
+        const slideTitle = out.slides?.[i]?.title || `Slide ${i + 1}`;
+        const persisted = await persistGeneratedImage({
+          userId,
+          imageUrl: r.imageUrl,
+          prompt: `${data.topic} — ${slideTitle}`,
+          style: data.style,
+          aspect: "square",
+          template: "carousel",
+          source: "carousel",
+        });
+        if (persisted) r.imageUrl = persisted;
+      }),
+    );
     return out;
   });
 
