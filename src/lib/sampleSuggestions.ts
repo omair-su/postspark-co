@@ -5,7 +5,8 @@ export type SampleSuggestion = {
   title: string;
   emoji: string;
   description: string;
-  text: string;
+  guidance: string;
+  selectedTypes: string[];
 };
 
 export const SAMPLE_SUGGESTIONS: SampleSuggestion[] = [
@@ -13,51 +14,32 @@ export const SAMPLE_SUGGESTIONS: SampleSuggestion[] = [
     id: "founder-lesson",
     title: "Founder lesson",
     emoji: "🚀",
-    description: "Turn a hard-won lesson into a thread, LinkedIn post, and email.",
-    text:
-      "After 3 years of building my SaaS, here's the one lesson I wish I learned sooner: " +
-      "your first 100 customers will not come from product features — they will come from " +
-      "showing up consistently in one channel and being genuinely useful before you ever " +
-      "ask for the sale. I spent year one obsessing over a perfect feature roadmap. " +
-      "What actually moved revenue: writing 3 honest posts a week, replying to every comment, " +
-      "and shipping small wins publicly. Distribution beats polish in the early days.",
+    description: "Set up a thread, LinkedIn post, and email from your own lesson.",
+    guidance: "Turn the user's own founder lesson into practical, story-driven content with a clear takeaway and CTA.",
+    selectedTypes: ["thread", "linkedin", "email"],
   },
   {
     id: "creator-hook",
     title: "Creator playbook",
     emoji: "✍️",
-    description: "Repurpose a content tip into multiple platforms instantly.",
-    text:
-      "The hook is 80% of your post. Here's how I write hooks that stop the scroll: " +
-      "1) Promise a specific outcome, not a vague benefit. " +
-      "2) Use a number — odd numbers convert better than round ones. " +
-      "3) Lead with the pain your reader felt yesterday, not a generic problem. " +
-      "4) Cut every word that isn't earning its place. " +
-      "If your first line doesn't make the reader curious about line two, nothing else matters.",
+    description: "Prepare formats for your own content tip or playbook.",
+    guidance: "Repurpose the user's own creator tip into punchy, actionable posts with strong hooks and examples.",
+    selectedTypes: ["tweets", "linkedin", "instagram"],
   },
   {
     id: "product-launch",
     title: "Product launch",
     emoji: "🎉",
-    description: "Announce a new feature across X, LinkedIn, and email.",
-    text:
-      "Today we're launching our biggest update yet. Three things changed: " +
-      "First, our new editor is 4x faster and works offline. " +
-      "Second, we added one-click publishing to LinkedIn and X. " +
-      "Third, every paid plan now includes unlimited brand voices. " +
-      "We built this because our users told us the editor was the #1 thing slowing them down. " +
-      "Free users get the new editor today. Paid users also get publishing and brand voices.",
+    description: "Set up launch formats for your own product or feature update.",
+    guidance: "Turn the user's own product launch details into clear announcement copy with benefits, proof, and CTA.",
+    selectedTypes: ["tweets", "linkedin", "email"],
   },
   {
     id: "marketing-tip",
     title: "Marketing tip",
     emoji: "📈",
-    description: "Convert a marketing insight into shareable formats.",
-    text:
-      "Stop writing for everyone. The best-performing content I've ever shipped was written " +
-      "for one specific person — usually a customer I had just talked to. When you write to " +
-      "one person, your message gets sharper, your examples get concrete, and your tone gets " +
-      "human. The irony: writing for one person is what makes content resonate with thousands. " +
-      "Generic content gets generic results. Specific content gets shared.",
+    description: "Prepare formats for your own marketing insight.",
+    guidance: "Convert the user's own marketing insight into concise, shareable, platform-native content.",
+    selectedTypes: ["thread", "linkedin", "seo"],
   },
 ];
