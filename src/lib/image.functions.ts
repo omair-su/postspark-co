@@ -165,6 +165,22 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       data.template,
       data.count,
     );
+    // Auto-persist every successful variation
+    await Promise.all(
+      results.map(async (r) => {
+        if (!r.imageUrl) return;
+        const persisted = await persistGeneratedImage({
+          userId,
+          imageUrl: r.imageUrl,
+          prompt: data.prompt,
+          style: data.style,
+          aspect: data.aspect,
+          template: data.template,
+          source: "variations",
+        });
+        if (persisted) r.imageUrl = persisted;
+      }),
+    );
     return { results };
   });
 
