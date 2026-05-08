@@ -408,7 +408,10 @@ function ImageStudioPage() {
   };
 
   const save = async (url: string, src = "generate", overridePrompt?: string) => {
-    if (!url.startsWith("data:")) return toast.error("Already saved");
+    if (!url.startsWith("data:")) {
+      toast.success("Already saved to your library");
+      return;
+    }
     let finalUrl = url;
     if (watermarkOn && watermarkText.trim()) {
       try {
