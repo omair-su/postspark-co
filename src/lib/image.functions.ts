@@ -126,7 +126,20 @@ export const generateImage = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
-    return generateSocialImage(data.prompt, data.style, data.aspect, data.template);
+    const res = await generateSocialImage(data.prompt, data.style, data.aspect, data.template);
+    if (res.imageUrl) {
+      const persisted = await persistGeneratedImage({
+        userId,
+        imageUrl: res.imageUrl,
+        prompt: data.prompt,
+        style: data.style,
+        aspect: data.aspect,
+        template: data.template,
+        source: "generate",
+      });
+      if (persisted) res.imageUrl = persisted;
+    }
+    return res;
   });
 
 export const generateImageVariations = createServerFn({ method: "POST" })
