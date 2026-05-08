@@ -234,7 +234,17 @@ export const editUploadedImage = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Image editing is a Pro feature. Upgrade to unlock." };
-    return editImage(data.imageDataUrl, data.instruction);
+    const res = await editImage(data.imageDataUrl, data.instruction);
+    if (res.imageUrl) {
+      const persisted = await persistGeneratedImage({
+        userId,
+        imageUrl: res.imageUrl,
+        prompt: data.instruction,
+        source: "edit",
+      });
+      if (persisted) res.imageUrl = persisted;
+    }
+    return res;
   });
 
 export const captionForImage = createServerFn({ method: "POST" })
