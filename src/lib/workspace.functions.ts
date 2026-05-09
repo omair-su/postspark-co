@@ -172,7 +172,10 @@ export const acceptInvite = createServerFn({ method: "POST" })
     if (!invite) return { success: false, error: "Invite not found." };
     if (invite.accepted_at) return { success: false, error: "Invite already used." };
     if (new Date(invite.expires_at).getTime() < Date.now()) return { success: false, error: "Invite expired." };
-    if (email && invite.email.toLowerCase() !== email) {
+    if (!email) {
+      return { success: false, error: "Your account must have a verified email to accept invites." };
+    }
+    if (invite.email.toLowerCase() !== email) {
       return { success: false, error: `Invite is for ${invite.email}. Sign in with that email.` };
     }
 
