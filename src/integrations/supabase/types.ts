@@ -192,6 +192,7 @@ export type Database = {
           meta_title: string | null
           published_at: string | null
           reading_time_minutes: number | null
+          scheduled_at: string | null
           slug: string
           status: string
           title: string
@@ -209,6 +210,7 @@ export type Database = {
           meta_title?: string | null
           published_at?: string | null
           reading_time_minutes?: number | null
+          scheduled_at?: string | null
           slug: string
           status?: string
           title: string
@@ -226,6 +228,7 @@ export type Database = {
           meta_title?: string | null
           published_at?: string | null
           reading_time_minutes?: number | null
+          scheduled_at?: string | null
           slug?: string
           status?: string
           title?: string
@@ -910,6 +913,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       workspace_invites: {
         Row: {
           accepted_at: string | null
@@ -1031,6 +1055,13 @@ export type Database = {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_workspace_member: {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
@@ -1067,7 +1098,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1194,6 +1225,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

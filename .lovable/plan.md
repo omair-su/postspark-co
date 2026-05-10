@@ -1,154 +1,131 @@
-# PostSpark — Full Product Audit & Next-Level Plan
 
-A page-by-page review followed by a prioritized roadmap. Goal: make PostSpark feel obviously better than the alternatives so creators try it organically and convert.
+# PostSpark — Post-Launch Refinement & Growth Plan
 
----
-
-## Part 1 — What you have today (page-by-page audit)
-
-### A. Marketing site (public)
-
-| Page | Status | What works | What's hurting conversion |
-|---|---|---|---|
-| `/` (landing) | Mostly good | Strong hero, premium features grid, JSON-LD, FAQ schema | Hero has only **one CTA** and **no demo/social proof above the fold**. Navbar uses `scrollTo` (broken when on other pages — hash anchors don't navigate). "Trusted by 1,000+" with no logos = looks fake. Only 3 generic testimonials with no photo/handle/source. No live demo or interactive sample. |
-| `/pricing` | OK | Clean, JSON-LD Product, 14-day trial copy | No comparison table (Free vs Pro vs Agency feature grid). No "what you save vs Jasper/Buffer" math. No annual toggle / savings. No money-back guarantee badge. |
-| `/login`, `/signup` | Functional | Google OAuth, referral capture | No social proof on signup ("Join 1,000+ creators"). No preview of what they'll get. No trust badges. |
-| `/features/*` (3 pages) | Solid templated SEO pages | SeoLandingPage has FAQ, JSON-LD, internal links | All 3 use the **same template** → look identical → low time-on-page. No actual screenshots/demos of the feature. |
-| `/for/creators`, `/for/agencies` | Same template as features | Good for SEO | Same templating issue. Agency page should have a calculator ("hours saved per client × clients = $"). |
-| `/gallery`, `/gallery/$slug` | Live but empty-feeling | Public showcase exists, OG images per item | Likely has near-zero items (no seed). No category filters, no "remix this" CTA, no creator attribution that drives signups. |
-| `/blog`, `/blog/$slug`, RSS | Infrastructure ready | Routes + categories + authors exist | Need seeded cornerstone posts to actually rank. |
-| `/privacy`, `/terms`, `/refunds` | Standard | Required, present | Fine. |
-| `/onboarding` | 2-step (role + platforms) | Captures intent | **Doesn't lead to a "wow" moment**. After onboarding user lands on empty dashboard instead of a pre-filled first repurpose. |
-
-### B. Dashboard (authed app)
-
-The sidebar lists **17 nav items**. That's a LOT. Audit:
-
-| Item | State | Verdict |
-|---|---|---|
-| Dashboard | Stats + recent jobs | Fine but bland — no "next best action" |
-| Repurpose | Core flow, 558 LoC | Powerful but **dense**: 10 format chips, tone selector, custom instructions, brand override toggle, language, YouTube tab — overwhelming on first use |
-| Import Studio | YouTube/PDF/URL import | Good differentiator, but separate from Repurpose causes friction (user has to import → switch page → paste → repurpose) |
-| SEO Blog | Long-form generator | Good Pro hook |
-| Hook Lab | Hook variants | Good Pro hook |
-| Image Studio | AI images | Good but expensive — needs usage caps shown |
-| Calendar | Drag-drop scheduling | High-value but **only useful if there's a publishing integration** — currently planning-only |
-| Brand Voice | Sample upload | Great Pro feature, often hidden |
-| Brand Kit | Logo/colors/fonts | Great, often hidden |
-| History | Past jobs | Functional |
-| Analytics | Usage stats | Vague — what does the user do with it? |
-| Templates | Saved configs | Useful, under-discovered |
-| Refer & Earn | Referrals | Good growth loop, buried at #13 in nav |
-| Gallery | Public showcase | Belongs in marketing nav too |
-| Team | Multi-seat | Agency only |
-| Agency Analytics | Rollup | Agency only |
-| Settings | Account, plan, etc. | Fine |
-
-### C. Cross-cutting issues
-
-1. **Navbar's `scrollTo`** uses `document.getElementById` — works on `/` but on any other page (pricing, gallery, blog) clicking "Features" silently fails.
-2. **Hero has no live preview** — every winning AI tool ships a demo (Jasper, Copy.ai, Notion AI). PostSpark just shows static text.
-3. **No "before/after" with real content** — the BeforeAfter section shows abstract icons, not actual generated tweets.
-4. **Onboarding doesn't deliver the aha moment** — user lands on empty dashboard. Should auto-run a sample repurpose with their stated platforms.
-5. **No usage feedback loop** — when a free user hits 3/3, the upgrade prompt is the only path. There's no "share to earn more" or "invite a friend for +1 repurpose" inline.
-6. **No public proof** — testimonials are generic stock names. No real Twitter/LinkedIn screenshots, no Product Hunt badge, no user count, no logos.
-7. **Free tier is too thin** — 3/month is barely enough to evaluate quality. Competitors give 10–50 free generations.
-8. **Mobile sidebar nav has 17 items** — overwhelming on the 506px viewport the user is testing.
-9. **No "What changed" / changelog** — premium features are labeled "New" forever; should link to a real changelog page.
-10. **Email lifecycle is reactive only** — transactional emails work, but no Day-1 onboarding email, no Day-3 "here's what to try", no Day-7 upgrade nudge.
+Two priorities go in **Sprint 1** (per your request), followed by a polished audit-fix sprint and a growth sprint.
 
 ---
 
-## Part 2 — Prioritized roadmap (4 phases)
+## Sprint 1 — Critical fixes (do first, tonight)
 
-### Phase 1 — Conversion fundamentals (1–2 sessions, biggest ROI)
+### 1.1 Branded auth emails (replace Lovable logo with PostSpark)
 
-Goal: 2× landing → signup, 2× signup → first repurpose.
+**Problem:** Signup verification, password reset, magic-link, and email-change emails currently render Lovable's default templates (Lovable logo + generic copy). The "Allow PostSpark to send/receive email" page the user sees during signup confirmation also inherits that default branding.
 
-1. **Real hero demo** — replace the static hero subtitle with an interactive paste box: user types/pastes a sentence, clicks "See it work", and sees 3 sample outputs (tweet, LinkedIn, hook) generate in front of them. Falls back to a pre-rendered animated example for SSR/no-JS. This is the single highest-leverage change.
-2. **Fix Navbar cross-page nav** — replace `scrollTo` with `<Link to="/#features">` patterns + a `useEffect` on `/` that scrolls to `location.hash` on mount. Otherwise nav is broken everywhere except `/`.
-3. **Real social proof bar** — replace "Trusted by Creators / Agencies / Marketers" with actual logos (even 4–6 small startups) OR Twitter/LinkedIn screenshot carousel. Include real handle, photo, and link.
-4. **Pricing comparison table** — add a feature-by-feature grid (Free / Pro / Agency) below the cards. Add "Replaces $X/mo of tools" math. Add money-back guarantee badge. Add annual toggle (e.g. 2 months free).
-5. **Bump Free tier to 5–10 repurposes/month** — 3 is below the threshold where users can fairly evaluate quality. The cost is small; the conversion gain is large.
-6. **Onboarding → instant aha** — at the end of onboarding, auto-run a curated sample repurpose tailored to the chosen platforms, so the user lands on a *populated* result page, not an empty dashboard. Show "This is what PostSpark made for you in 4 seconds. Now try with your own content →".
+**Root cause:** No custom auth email templates have been scaffolded yet — `supabase/functions/_shared/email-templates/` doesn't exist. Only the transactional templates under `src/lib/email-templates/` are branded.
 
-### Phase 2 — Activation & retention (1–2 sessions)
+**Fix:**
+1. Scaffold the 6 auth email templates (signup, magic-link, recovery, invite, email-change, reauthentication) into `supabase/functions/_shared/email-templates/` with the auth-email-hook wired to Lovable's email queue.
+2. Apply PostSpark brand styling to every template:
+   - White email body background (#ffffff) — required even though our app is dark.
+   - PostSpark wordmark (lightning icon + "PostSpark") at the top, hosted from `postspark.co`.
+   - Electric purple primary CTA button (#7c3aed → #6d28d9 gradient), navy headings (#1a1a2e), Inter font stack.
+   - Friendly copy in the PostSpark voice ("Confirm your email to start repurposing", "Welcome to PostSpark — turn 1 post into 30").
+   - Footer: postspark.co link, unsubscribe (where applicable), 2026 © PostSpark.
+3. Verify `notify.postspark.co` domain is `active`; if still `awaiting_dns`, no action needed — emails go live when DNS verifies.
+4. Test with the auth email preview route, then trigger a real signup on staging to confirm the branded version renders.
 
-Goal: more first-week repurposes per signup, more day-7 returns.
+### 1.2 Daily blogging MVP — publish posts to Google for organic SEO
 
-1. **Merge Import + Repurpose** — make Import a tab inside the Repurpose page (Text / YouTube / Upload / URL). Removes one nav item, removes a context switch.
-2. **First-run guided tour** — 3-step tooltip walkthrough on first dashboard visit (Repurpose → Brand Voice → Calendar). Skippable. Stored on profile.
-3. **"Suggest content" widget** — on the dashboard home, show 3 trending topics for the user's stated platforms, each as a one-click "Generate now" prompt. Solves the blank-page problem.
-4. **Inline upgrade nudges with reward path** — when free user hits 3/3, show two paths: "Upgrade to Pro" AND "Invite 1 friend → +2 free repurposes this month". Already have referrals — just surface it at the limit moment.
-5. **Email lifecycle (4 emails)** — Day 0 welcome with 3 sample inputs to try, Day 2 "your brand voice is empty — train it in 60s", Day 5 social proof + upgrade, Day 12 "your trial ends in 2 days — here's what you've created".
-6. **Sidebar trim** — collapse 17 items into 4 sections with sub-nav: **Create** (Repurpose, SEO Blog, Hook Lab, Image Studio, Import), **Plan** (Calendar, Templates, History), **Brand** (Brand Voice, Brand Kit), **Account** (Analytics, Referrals, Team, Settings). Gallery moves to a top-bar link.
+**Goal:** A simple, reliable workflow where you (admin) can publish a fresh SEO-optimized blog post every day at `postspark.co/blog/<slug>`, indexed by Google through the existing sitemap/RSS.
 
-### Phase 3 — Differentiation & virality (2–3 sessions)
+**What already exists ✅**
+- Public blog routes: `/blog`, `/blog/$slug`, `/blog/category/$slug`, `/blog/author/$slug`
+- DB tables: `blog_posts`, `blog_categories`, `blog_authors` (with status, slug, content_md, cover_image_url, published_at, meta_title, meta_description, reading_time)
+- `sitemap.xml` + `rss.xml` routes
+- Markdown sanitizer (just hardened)
+- AI SEO blog generator at `/dashboard/seo-blog` (Pro-only, generates title + outline + markdown + FAQ)
 
-Goal: organic word-of-mouth, defensible moat.
+**What's missing ❌**
+- No "Publish to blog" button — the SEO Blog generator only outputs markdown to copy/paste.
+- No admin role gating — anyone Pro could publish to your public blog.
+- No editor UI to review/edit/schedule before publishing.
+- No automatic cover image, slug uniqueness check, or JSON-LD Article schema on the blog detail page.
+- Sitemap may not include blog URLs.
 
-1. **Brand Voice quality bar** — current upload-and-pray needs visible feedback: "Your voice is 87% trained. Add 2 more samples for best results." Show before/after sample on every save.
-2. **Public gallery seeding + remix** — seed gallery with 30–50 hand-picked examples across niches. Add "Remix this" button on every gallery item that pre-fills the repurpose page with the source. Add creator attribution that links back to their profile (drives signups via virality).
-3. **Publisher integration (at least one)** — Calendar without publishing is half-built. Ship a Buffer/Typefully/Make.com webhook integration so users can actually push to Twitter/LinkedIn. This unlocks Calendar's value and is a major moat vs Jasper/Copy.ai.
-4. **Live changelog page** (`/changelog`) — replaces the perpetual "New" badges, gives SEO surface, builds trust that the product ships.
-5. **Public roadmap + voting** — Trello-style board (can be a single route reading from a `roadmap_items` table). Creators love feeling heard; this is also a content-marketing surface.
-6. **Embeddable "Generated with PostSpark" badge** — opt-in attribution badge on shared content + on review/approval pages → free top-of-funnel.
+**Sprint 1.2 deliverables:**
 
-### Phase 4 — SEO & content engine (ongoing, but kick off in 1 session)
+1. **Admin role**
+   - Add `app_role` enum (`admin`, `user`) and `user_roles` table with the standard `has_role()` security-definer function (per project security rules).
+   - Seed your account as `admin`.
 
-Goal: organic traffic that compounds.
+2. **Blog admin page** at `/dashboard/blog-admin` (admin-only, hidden from sidebar for non-admins):
+   - List posts (draft / scheduled / published) with status filter.
+   - "New post" → form with title, slug (auto-generated, editable, uniqueness checked), category, author, cover image upload, excerpt, meta_title, meta_description, content_md (markdown editor with live preview), publish status, scheduled_at.
+   - "Generate with AI" button → reuses the existing `generateBlog` server function, fills the form fields, lets you tweak before saving.
+   - "Save draft" / "Publish now" / "Schedule for…" actions.
 
-1. **Differentiate the 5 SEO landing pages** — currently all use the same `SeoLandingPage` template. Add unique hero screenshots, unique testimonial, unique sample output for each. Templates are SEO-penalized as duplicate intent.
-2. **Seed 3 cornerstone blog posts** using the existing SEO Blog generator (e.g. "Repurpose a YouTube video to LinkedIn", "Best AI tools for content repurposing 2026", "How agencies scale content with AI"). Linked from footer + relevant feature pages.
-3. **Comparison pages** (`/compare/postspark-vs-jasper`, `/vs-buffer`, `/vs-typefully`) — these rank fast for high-intent buyer queries.
-4. **Gallery as SEO surface** — every `/gallery/$slug` already has per-item meta — make sure they're in the dynamic sitemap and the index page links to top items, not just a feed.
-5. **Submit to** Product Hunt, There's An AI For That, AlternativeTo, Futurepedia, G2.
+3. **Daily scheduler** (pg_cron):
+   - Cron job runs every 15 min, flips `status='scheduled' AND scheduled_at <= now()` rows to `status='published'` and stamps `published_at`.
+   - Lets you batch-prepare a week of posts and have them auto-publish.
 
----
+4. **SEO hardening on blog detail page**:
+   - JSON-LD `Article` schema (headline, author, datePublished, image, publisher).
+   - Canonical URL, OG image = cover_image_url.
+   - Reading time and breadcrumb structured data.
 
-## Part 3 — Suggested execution order
+5. **Sitemap & discovery**:
+   - Confirm `sitemap.xml` includes every published blog post with `<lastmod>`.
+   - Confirm `rss.xml` lists latest 50 posts.
+   - Add a `<link rel="alternate" type="application/rss+xml">` on the blog index.
 
-```text
-Sprint 1 — "Make the landing page actually convert"
-  ├─ Interactive hero demo (live or pre-rendered fallback)
-  ├─ Fix Navbar cross-page nav (Link + hash scroll)
-  ├─ Real social proof (logos OR tweet screenshots)
-  ├─ Pricing comparison table + annual toggle
-  └─ Bump free tier to 5–10/month
-
-Sprint 2 — "Make new users succeed in their first session"
-  ├─ Onboarding → auto-run sample repurpose
-  ├─ Merge Import into Repurpose tabs
-  ├─ Dashboard "Suggest content" widget
-  └─ Sidebar IA refactor (4 grouped sections)
-
-Sprint 3 — "Build the moat"
-  ├─ Buffer/Typefully publishing integration
-  ├─ Gallery seeding + Remix button + creator attribution
-  ├─ Brand Voice quality scoring
-  └─ Changelog + Public Roadmap pages
-
-Sprint 4 — "Compound organic growth"
-  ├─ Differentiate SEO landing templates
-  ├─ Seed 3 cornerstone blog posts
-  ├─ Comparison pages (vs Jasper / vs Buffer / vs Typefully)
-  └─ Email lifecycle (4-step drip)
-```
+6. **Google Search Console kickoff** (manual checklist for you):
+   - Verify `postspark.co` ownership.
+   - Submit `https://postspark.co/sitemap.xml`.
+   - Use "URL Inspection → Request Indexing" for each new post (takes 30 seconds/day).
 
 ---
 
-## Part 4 — Things I deliberately won't change
+## Sprint 2 — Audit refinements (this week)
 
-- Brand colors / typography / logo (already strong, on-brand)
-- Paddle billing flow (working, regulated, don't touch)
-- Auth flow (email + Google works well)
-- Core Anthropic Claude integration for generation
-- Existing dashboard route names (would break user bookmarks/emails)
+These are real issues I found while re-auditing. None are launch-blockers, but each polishes the experience.
+
+| # | Area | Issue | Fix |
+|---|------|-------|-----|
+| 1 | Dashboard home | "Suggest content" widget guidance prompts are still slightly generic — they don't pre-pause to ask the user for their actual lesson | Already changed to non-autorun; verify the wording one more pass |
+| 2 | Image Studio history | Confirm generated images list reloads after refresh and shows correct count (was reported broken) | Re-test, fix `generated_images` query if pagination off |
+| 3 | Templates page | Some sections clipped due to scroll container | Audit `dashboard.templates.tsx` for `overflow-hidden` on outer wrapper |
+| 4 | Hook Lab | Verify Pro-gating + usage counter increments correctly |
+| 5 | Brand Voice | Confirm "auto-apply" toggle persists per generation |
+| 6 | Calendar | Drag-to-reschedule UX, mobile usability |
+| 7 | Onboarding | After first repurpose, push user to `/dashboard` (not stuck on success screen) |
+| 8 | Settings → Billing | Show current period_end + "Cancel keeps access until X" message |
+| 9 | 404 / error boundaries | Confirm every loader-route has both `errorComponent` and `notFoundComponent` |
+| 10 | Mobile nav | Test sidebar drawer on iOS Safari |
 
 ---
 
-## What I need from you to start
+## Sprint 3 — Growth & monetization (next week)
 
-Pick the sprint you want me to ship first (recommend **Sprint 1** — biggest conversion lift, no schema changes). I'll implement it end-to-end in the next message. We can tackle one sprint per follow-up so each ship is reviewable.
+Now that we're live with traffic (200 visitors / 696 pageviews this week, mostly from US + PK), we lean into conversion.
 
-If you want, I can also call out which 1–2 items in each sprint give 80% of the value if you'd rather do a "best-of" sprint instead of phase-by-phase.
+1. **Landing page A/B**: hero headline test ("Turn 1 Post Into 30" vs "AI Content Repurposing for Creators"). Track with Lovable analytics.
+2. **Blog content engine** (built in Sprint 1.2): publish 1 post/day for 30 days targeting long-tail keywords ("how to repurpose linkedin posts", "youtube to twitter thread", "blog to social media tool"). Each post links to `/signup` with a contextual CTA.
+3. **Referral program polish**: in-app share card with one-click X / LinkedIn share text, leaderboard for top referrers.
+4. **Lifecycle emails** (transactional infra already exists):
+   - Day 1 after signup: "Did your first repurpose work?" with a tutorial GIF.
+   - Day 3: "Here's what other creators made this week" (Gallery highlights).
+   - Day 7 (if still free): "Unlock unlimited for $19" with a 20% first-month code.
+5. **Product Hunt launch checklist**: Hunter assets, gallery video, first-comment script, friendly upvoter list.
+6. **Public roadmap voting**: let users upvote `/roadmap` items (writes to `roadmap_votes`).
+
+---
+
+## Technical notes (for the agent)
+
+- Auth emails: use `email_domain--scaffold_auth_email_templates`, then brand-style the 6 templates. White body BG mandatory.
+- Blog admin page: gate with `_authenticated/` parent + a server-side `has_role(auth.uid(), 'admin')` check on every mutation server function. Never trust the client.
+- Blog scheduler: `cron.schedule('publish-scheduled-posts', '*/15 * * * *', $$ UPDATE blog_posts SET status='published', published_at=now() WHERE status='scheduled' AND scheduled_at <= now() $$)` — pure SQL, no HTTP needed.
+- Slug uniqueness: enforce `UNIQUE` on `blog_posts.slug` (likely already there) + auto-suffix `-2`, `-3` on collision in the form.
+- Cover image upload: reuse the existing `generated_images` storage bucket or add a `blog-covers` bucket with public read.
+- JSON-LD: render in `head()` of `blog.$slug.tsx` from loader data.
+
+---
+
+## Recommended order tonight
+
+1. **Auth email branding** (1.1) — 20 min, immediately visible to every new signup.
+2. **Blog admin + scheduler** (1.2) — 60–90 min, unlocks daily SEO publishing starting tomorrow.
+3. Publish your first 3 backlog posts using the new admin page.
+4. Submit sitemap to Google Search Console.
+
+After Sprint 1 ships, we move to Sprint 2 audit refinements. Approve this plan and I'll start with auth email branding.
