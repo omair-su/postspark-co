@@ -11,6 +11,7 @@ import {
   Preview,
   Text,
 } from '@react-email/components'
+import { BrandHeader, BrandFooter } from './_brand-header'
 
 interface InviteEmailProps {
   siteName: string
@@ -28,6 +29,7 @@ export const InviteEmail = ({
     <Preview>You've been invited to join {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
+        <BrandHeader siteUrl={siteUrl} />
         <Heading style={h1}>You've been invited</Heading>
         <Text style={text}>
           You've been invited to join{' '}
@@ -44,6 +46,7 @@ export const InviteEmail = ({
           If you weren't expecting this invitation, you can safely ignore this
           email.
         </Text>
+        <BrandFooter />
       </Container>
     </Body>
   </Html>
