@@ -49,6 +49,7 @@ import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history
 import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
 import { Route as DashboardBrandKitRouteImport } from './routes/dashboard.brand-kit'
+import { Route as DashboardBlogAdminRouteImport } from './routes/dashboard.blog-admin'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard.agency-analytics'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
@@ -266,6 +267,11 @@ const DashboardBrandKitRoute = DashboardBrandKitRouteImport.update({
   path: '/brand-kit',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBlogAdminRoute = DashboardBlogAdminRouteImport.update({
+  id: '/blog-admin',
+  path: '/blog-admin',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -363,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
@@ -418,6 +425,7 @@ export interface FileRoutesByTo {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
@@ -475,6 +483,7 @@ export interface FileRoutesById {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
@@ -533,6 +542,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
+    | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
@@ -588,6 +598,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
+    | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
@@ -644,6 +655,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
+    | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
@@ -1003,6 +1015,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBrandKitRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/blog-admin': {
+      id: '/dashboard/blog-admin'
+      path: '/blog-admin'
+      fullPath: '/dashboard/blog-admin'
+      preLoaderRoute: typeof DashboardBlogAdminRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/analytics': {
       id: '/dashboard/analytics'
       path: '/analytics'
@@ -1107,6 +1126,7 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardAgencyAnalyticsRoute: typeof DashboardAgencyAnalyticsRoute
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardBlogAdminRoute: typeof DashboardBlogAdminRoute
   DashboardBrandKitRoute: typeof DashboardBrandKitRoute
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
   DashboardCalendarRoute: typeof DashboardCalendarRoute
@@ -1126,6 +1146,7 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAgencyAnalyticsRoute: DashboardAgencyAnalyticsRoute,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardBlogAdminRoute: DashboardBlogAdminRoute,
   DashboardBrandKitRoute: DashboardBrandKitRoute,
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
   DashboardCalendarRoute: DashboardCalendarRoute,
