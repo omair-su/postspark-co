@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield } from "lucide-react";
+import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
@@ -70,6 +71,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     brandKits: Array<{ id: string; brand_name: string | null }>;
     activeBrandKitId: string | null;
   }>({ workspace: null, brandKits: [], activeBrandKitId: null });
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!session) return;
+    isCurrentUserAdmin({ headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then((r: any) => setIsAdmin(!!r?.isAdmin))
+      .catch(() => setIsAdmin(false));
+  }, [session]);
 
   useEffect(() => {
     if (!session) return;
@@ -141,7 +150,15 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       )}
 
       <nav className="sidebar-scroll flex-1 min-h-0 overflow-y-auto px-3 py-4">
-        {navGroups.map((group, gi) => (
+        {[
+          ...navGroups,
+          ...(isAdmin
+            ? [{
+                label: "Admin",
+                items: [{ to: "/dashboard/blog-admin", icon: Shield, label: "Blog Admin" }],
+              } as const]
+            : []),
+        ].map((group, gi) => (
           <div key={group.label} className={gi === 0 ? "" : "mt-4"}>
             {gi !== 0 && (
               <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
