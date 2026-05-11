@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Flame, Loader2, Copy, Check, Sparkles } from "lucide-react";
+import { Flame, Loader2, Copy, Check, Sparkles, Repeat, ClipboardCopy } from "lucide-react";
 import { generateHooks } from "@/lib/hookLab.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 
