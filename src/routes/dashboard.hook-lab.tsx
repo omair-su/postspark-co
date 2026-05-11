@@ -25,11 +25,13 @@ const PLATFORMS = [
 
 function HookLabPage() {
   const { session } = useAuth();
+  const navigate = useNavigate();
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]["id"]>("twitter");
   const [loading, setLoading] = useState(false);
   const [hooks, setHooks] = useState<Hook[]>([]);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
 
   const handleGenerate = async () => {
     if (!session) return toast.error("Please sign in");
