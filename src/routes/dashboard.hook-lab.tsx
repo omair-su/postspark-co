@@ -62,6 +62,22 @@ function HookLabPage() {
     setTimeout(() => setCopiedIdx(null), 1500);
   };
 
+  const copyAll = () => {
+    const txt = hooks.map((h, i) => `${i + 1}. ${h.text}  (${h.framework})`).join("\n");
+    navigator.clipboard.writeText(txt);
+    setCopiedAll(true);
+    toast.success("All hooks copied");
+    setTimeout(() => setCopiedAll(false), 1500);
+  };
+
+  const sendToRepurpose = (text: string) => {
+    try {
+      sessionStorage.setItem("postspark.import.text", text);
+    } catch {}
+    toast.success("Hook sent to Repurpose");
+    navigate({ to: "/dashboard/repurpose" });
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center gap-3">
