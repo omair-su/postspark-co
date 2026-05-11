@@ -214,9 +214,18 @@ function OnboardingPage() {
           )}
         </div>
 
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          You can change these anytime in Settings.
-        </p>
+        <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+          <span>You can change these anytime in Settings.</span>
+          {step > 1 && (
+            <button
+              onClick={finish}
+              disabled={submitting}
+              className="font-medium text-primary hover:underline disabled:opacity-50"
+            >
+              Skip for now →
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
