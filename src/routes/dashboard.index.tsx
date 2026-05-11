@@ -175,15 +175,45 @@ function DashboardHome() {
             ))}
           </div>
         ) : recentJobs.length === 0 ? (
-          <div className="mt-4 rounded-xl border border-border bg-card p-8 text-center">
-            <Clock className="mx-auto h-8 w-8 text-muted-foreground" />
-            <p className="mt-3 text-sm text-muted-foreground">No repurposes yet. Create your first one!</p>
-            <Link
-              to="/dashboard/repurpose"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground"
-            >
-              <Sparkles className="h-3.5 w-3.5" /> Get Started
-            </Link>
+          <div className="mt-4 rounded-xl border border-border bg-card p-6">
+            <div className="text-center">
+              <Clock className="mx-auto h-8 w-8 text-muted-foreground" />
+              <p className="mt-3 text-sm font-medium text-foreground">Welcome aboard! Here's a 60-second checklist:</p>
+            </div>
+            <ul className="mt-5 space-y-2.5 text-sm">
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">1</span>
+                <Link to="/dashboard/brand-kit" className="flex-1 text-foreground hover:text-primary">
+                  Set up your <span className="font-semibold">Brand Kit</span> — logo, colors & tone
+                </Link>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">2</span>
+                <Link to="/dashboard/brand-voice" className="flex-1 text-foreground hover:text-primary">
+                  Train your <span className="font-semibold">Brand Voice</span> with 3 past posts <span className="text-[10px] uppercase text-primary">Pro</span>
+                </Link>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">3</span>
+                <Link to="/dashboard/repurpose" className="flex-1 text-foreground hover:text-primary">
+                  Run your first <span className="font-semibold">Repurpose</span> — paste a blog or YouTube URL
+                </Link>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">4</span>
+                <Link to="/dashboard/calendar" className="flex-1 text-foreground hover:text-primary">
+                  Schedule posts on the <span className="font-semibold">Calendar</span>
+                </Link>
+              </li>
+            </ul>
+            <div className="mt-5 text-center">
+              <Link
+                to="/dashboard/repurpose"
+                className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Get Started
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="mt-4 space-y-2">
