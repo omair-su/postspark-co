@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Flame, Loader2, Copy, Check, Sparkles } from "lucide-react";
+import { Flame, Loader2, Copy, Check, Sparkles, Repeat, ClipboardCopy } from "lucide-react";
 import { generateHooks } from "@/lib/hookLab.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 
@@ -25,11 +25,13 @@ const PLATFORMS = [
 
 function HookLabPage() {
   const { session } = useAuth();
+  const navigate = useNavigate();
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]["id"]>("twitter");
   const [loading, setLoading] = useState(false);
   const [hooks, setHooks] = useState<Hook[]>([]);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
 
   const handleGenerate = async () => {
     if (!session) return toast.error("Please sign in");
@@ -58,6 +60,22 @@ function HookLabPage() {
     navigator.clipboard.writeText(text);
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 1500);
+  };
+
+  const copyAll = () => {
+    const txt = hooks.map((h, i) => `${i + 1}. ${h.text}  (${h.framework})`).join("\n");
+    navigator.clipboard.writeText(txt);
+    setCopiedAll(true);
+    toast.success("All hooks copied");
+    setTimeout(() => setCopiedAll(false), 1500);
+  };
+
+  const sendToRepurpose = (text: string) => {
+    try {
+      sessionStorage.setItem("postspark.import.text", text);
+    } catch {}
+    toast.success("Hook sent to Repurpose");
+    navigate({ to: "/dashboard/repurpose" });
   };
 
   return (
@@ -123,28 +141,49 @@ function HookLabPage() {
       </div>
 
       {hooks.length > 0 && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {hooks.map((h, i) => (
-            <div
-              key={i}
-              className="group rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
+        <>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">{hooks.length} hooks · click any to copy or send to Repurpose</p>
+            <button
+              onClick={copyAll}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
             >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground">
-                  {h.framework}
-                </span>
-                <button
-                  onClick={() => copy(h.text, i)}
-                  className="text-muted-foreground hover:text-foreground"
-                  title="Copy"
-                >
-                  {copiedIdx === i ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </button>
+              {copiedAll ? <Check className="h-3.5 w-3.5" /> : <ClipboardCopy className="h-3.5 w-3.5" />}
+              Copy all
+            </button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {hooks.map((h, i) => (
+              <div
+                key={i}
+                className="group rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground">
+                    {h.framework}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => sendToRepurpose(h.text)}
+                      className="text-muted-foreground hover:text-primary"
+                      title="Send to Repurpose"
+                    >
+                      <Repeat className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => copy(h.text, i)}
+                      className="text-muted-foreground hover:text-foreground"
+                      title="Copy"
+                    >
+                      {copiedIdx === i ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm leading-relaxed text-foreground">{h.text}</p>
               </div>
-              <p className="text-sm leading-relaxed text-foreground">{h.text}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
