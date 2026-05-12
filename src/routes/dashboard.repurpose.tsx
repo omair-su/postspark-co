@@ -45,7 +45,7 @@ function RepurposePage() {
   const [results, setResults] = useState<ParsedResults | null>(null);
   const [rawOutput, setRawOutput] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
-  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
+  const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [tone, setTone] = useState("professional");
   const [customInstructions, setCustomInstructions] = useState("");
@@ -184,7 +184,7 @@ function RepurposePage() {
   };
 
   const handleRepurpose = async () => {
-    if (usage && usage.used >= usage.limit) {
+    if (usage && usage.limit !== -1 && usage.used >= usage.limit) {
       setShowUpgradeModal(true);
       return;
     }
@@ -260,7 +260,8 @@ function RepurposePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingAutoRun, session, inputText]);
 
-  const remaining = usage ? usage.limit - usage.used : null;
+  const isUnlimited = usage?.limit === -1;
+  const remaining = usage && !isUnlimited ? usage.limit - usage.used : null;
 
   const typeLabels: Record<string, string> = {};
   for (const ct of contentTypes) {
@@ -297,7 +298,15 @@ function RepurposePage() {
       )}
 
       {/* Usage banner */}
-      {usage && (
+      {usage && isUnlimited && (
+        <div className="mt-4 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+          <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+          <span>
+            <strong className="capitalize">{usage.plan}</strong> plan — unlimited repurposes. Used <strong>{usage.used}</strong> this month.
+          </span>
+        </div>
+      )}
+      {usage && !isUnlimited && (
         <div className={`mt-4 flex items-center gap-3 rounded-xl border p-4 text-sm ${
           remaining === 0
             ? "border-destructive/30 bg-destructive/5 text-destructive"
