@@ -45,7 +45,7 @@ function RepurposePage() {
   const [results, setResults] = useState<ParsedResults | null>(null);
   const [rawOutput, setRawOutput] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
-  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
+  const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [tone, setTone] = useState("professional");
   const [customInstructions, setCustomInstructions] = useState("");
