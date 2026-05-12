@@ -4,7 +4,14 @@ import { Repeat, Sparkles, Clock, TrendingUp, Zap, Wand2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
-import { SAMPLE_SUGGESTIONS } from "@/lib/sampleSuggestions";
+import { GuidedIntakeModal, type IntakeKind } from "@/components/GuidedIntakeModal";
+
+const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description: string }> = [
+  { id: "founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into thread + LinkedIn + email." },
+  { id: "creator-playbook", title: "Creator Playbook", emoji: "✍️", description: "Repurpose a content tip into shareable posts." },
+  { id: "product-launch", title: "Product Launch", emoji: "🎉", description: "Launch-ready announcements for product or feature." },
+  { id: "marketing-tip", title: "Marketing Tip", emoji: "📈", description: "Turn a marketing insight into platform-native posts." },
+];
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
