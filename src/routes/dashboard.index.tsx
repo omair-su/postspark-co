@@ -24,6 +24,7 @@ function DashboardHome() {
   const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [intakeKind, setIntakeKind] = useState<IntakeKind | null>(null);
 
   useEffect(() => {
     if (!user || !session) return;
