@@ -108,37 +108,36 @@ function HeroDemo() {
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden gradient-hero pt-28 pb-20 sm:pt-36 sm:pb-24">
+    <section className="relative overflow-hidden gradient-hero pt-20 pb-14 sm:pt-32 sm:pb-24">
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-electric blur-[120px]" />
         <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-electric blur-[150px]" />
       </div>
 
       <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6 animate-fade-in">
-        <div className="mb-6 flex justify-center">
+        <div className="mb-4 flex justify-center sm:mb-6">
           <PostSparkLogo
             variant="icon"
-            size={72}
-            className="drop-shadow-[0_0_40px_rgba(167,139,250,0.4)]"
+            size={56}
+            className="drop-shadow-[0_0_40px_rgba(167,139,250,0.4)] sm:!h-[72px] sm:!w-[72px]"
           />
         </div>
 
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1.5">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1.5 sm:mb-5">
           <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
           <span className="text-[11px] font-medium text-primary-foreground">
             AI-Powered Content Repurposing
           </span>
         </div>
 
-        <h1 className="text-4xl font-extrabold tracking-tight text-primary-foreground sm:text-6xl lg:text-7xl">
+        <h1 className="text-[2rem] font-extrabold leading-[1.1] tracking-tight text-primary-foreground sm:text-6xl lg:text-7xl">
           Turn 1 Piece of Content
           <br />
           <span className="text-gradient">Into 30 — Instantly</span>
         </h1>
 
-        <p className="mx-auto mt-5 max-w-2xl text-base text-primary-foreground/75 sm:text-lg">
-          Paste a blog post, YouTube link, or PDF. Get tweets, LinkedIn posts, newsletters, and
-          video scripts in seconds — in your voice, on your brand.
+        <p className="mx-auto mt-4 max-w-2xl text-sm text-primary-foreground/80 sm:mt-5 sm:text-lg">
+          Paste a blog, YouTube link, or PDF. Get tweets, LinkedIn posts, newsletters & video scripts in seconds — in your voice.
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

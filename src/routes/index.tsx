@@ -71,7 +71,7 @@ function LandingPage() {
       <Navbar />
       <HeroSection />
       <TrustedBySection />
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
         <BeforeAfterSection />
         <FeaturesSection />
         <PremiumFeaturesSection />

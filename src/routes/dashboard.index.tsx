@@ -4,7 +4,14 @@ import { Repeat, Sparkles, Clock, TrendingUp, Zap, Wand2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
-import { SAMPLE_SUGGESTIONS } from "@/lib/sampleSuggestions";
+import { GuidedIntakeModal, type IntakeKind } from "@/components/GuidedIntakeModal";
+
+const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description: string }> = [
+  { id: "founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into thread + LinkedIn + email." },
+  { id: "creator-playbook", title: "Creator Playbook", emoji: "✍️", description: "Repurpose a content tip into shareable posts." },
+  { id: "product-launch", title: "Product Launch", emoji: "🎉", description: "Launch-ready announcements for product or feature." },
+  { id: "marketing-tip", title: "Marketing Tip", emoji: "📈", description: "Turn a marketing insight into platform-native posts." },
+];
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
@@ -17,6 +24,7 @@ function DashboardHome() {
   const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [intakeKind, setIntakeKind] = useState<IntakeKind | null>(null);
 
   useEffect(() => {
     if (!user || !session) return;
@@ -123,44 +131,41 @@ function DashboardHome() {
         </div>
       </Link>
 
-      {/* Suggest content widget */}
+      {/* Guided content tools */}
       <div className="mt-8">
         <div className="mb-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-            <Wand2 className="h-4 w-4 text-primary" /> Need an idea? Try a sample
+            <Wand2 className="h-4 w-4 text-primary" /> Guided Content Tools
           </h2>
-          <p className="text-xs text-muted-foreground">One click — we'll prefill and run a repurpose for you.</p>
+          <p className="text-xs text-muted-foreground">
+            Pick a content type — fill a quick form — get tailored posts. Each tool uses its own prompt and format mix.
+          </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          {SAMPLE_SUGGESTIONS.map((s) => (
+          {WIDGETS.map((w) => (
             <button
-              key={s.id}
-              onClick={() => {
-                try {
-                  // Pre-select formats only — user fills their own content, no autorun.
-                  sessionStorage.setItem(
-                    "postspark.preset",
-                    JSON.stringify({ types: s.selectedTypes, guidance: s.guidance, title: s.title }),
-                  );
-                  sessionStorage.removeItem("postspark.import.text");
-                  sessionStorage.removeItem("postspark.autorun");
-                } catch {}
-                navigate({ to: "/dashboard/repurpose" });
-              }}
+              key={w.id}
+              onClick={() => setIntakeKind(w.id)}
               className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-md"
             >
-              <span className="text-2xl leading-none">{s.emoji}</span>
+              <span className="text-2xl leading-none">{w.emoji}</span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground">{s.title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{s.description}</p>
+                <p className="text-sm font-semibold text-foreground">{w.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{w.description}</p>
                 <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                  Run sample <Sparkles className="h-3 w-3" />
+                  Open guided form <Sparkles className="h-3 w-3" />
                 </p>
               </div>
             </button>
           ))}
         </div>
       </div>
+
+      <GuidedIntakeModal
+        kind={intakeKind}
+        open={intakeKind !== null}
+        onClose={() => setIntakeKind(null)}
+      />
 
       {/* Recent activity */}
       <div className="mt-8">
