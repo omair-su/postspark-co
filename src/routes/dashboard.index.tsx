@@ -131,44 +131,41 @@ function DashboardHome() {
         </div>
       </Link>
 
-      {/* Suggest content widget */}
+      {/* Guided content tools */}
       <div className="mt-8">
         <div className="mb-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-            <Wand2 className="h-4 w-4 text-primary" /> Need an idea? Try a sample
+            <Wand2 className="h-4 w-4 text-primary" /> Guided Content Tools
           </h2>
-          <p className="text-xs text-muted-foreground">One click — we'll prefill and run a repurpose for you.</p>
+          <p className="text-xs text-muted-foreground">
+            Pick a content type — fill a quick form — get tailored posts. Each tool uses its own prompt and format mix.
+          </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          {SAMPLE_SUGGESTIONS.map((s) => (
+          {WIDGETS.map((w) => (
             <button
-              key={s.id}
-              onClick={() => {
-                try {
-                  // Pre-select formats only — user fills their own content, no autorun.
-                  sessionStorage.setItem(
-                    "postspark.preset",
-                    JSON.stringify({ types: s.selectedTypes, guidance: s.guidance, title: s.title }),
-                  );
-                  sessionStorage.removeItem("postspark.import.text");
-                  sessionStorage.removeItem("postspark.autorun");
-                } catch {}
-                navigate({ to: "/dashboard/repurpose" });
-              }}
+              key={w.id}
+              onClick={() => setIntakeKind(w.id)}
               className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-md"
             >
-              <span className="text-2xl leading-none">{s.emoji}</span>
+              <span className="text-2xl leading-none">{w.emoji}</span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground">{s.title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{s.description}</p>
+                <p className="text-sm font-semibold text-foreground">{w.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{w.description}</p>
                 <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                  Run sample <Sparkles className="h-3 w-3" />
+                  Open guided form <Sparkles className="h-3 w-3" />
                 </p>
               </div>
             </button>
           ))}
         </div>
       </div>
+
+      <GuidedIntakeModal
+        kind={intakeKind}
+        open={intakeKind !== null}
+        onClose={() => setIntakeKind(null)}
+      />
 
       {/* Recent activity */}
       <div className="mt-8">
