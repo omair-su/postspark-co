@@ -74,6 +74,15 @@ function isBlockedHost(hostname: string): boolean {
 
 export async function scrapeUrl(url: string): Promise<ImportResult> {
   try {
+    // Special handling for YouTube — page HTML is heavily JS-rendered and bot-blocked.
+    // Use oEmbed for title/author + try to fetch transcript metadata via the watch page.
+    const ytId = extractYouTubeId(url);
+    if (ytId) {
+      const yt = await fetchYouTube(ytId, url);
+      if (yt.text) return yt;
+      // fall through to normal scraping if YouTube returned nothing useful
+    }
+
     let currentUrl = url;
     let res: Response | null = null;
 
@@ -89,8 +98,11 @@ export async function scrapeUrl(url: string): Promise<ImportResult> {
 
       res = await fetch(currentUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; PostSparkBot/1.0; +https://postspark.app)",
-          Accept: "text/html,application/xhtml+xml",
+          // Real browser UA — many sites (Medium, Substack, news sites) block bot UAs.
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
         },
         redirect: "manual",
       });
@@ -107,12 +119,13 @@ export async function scrapeUrl(url: string): Promise<ImportResult> {
     if (!res) return { text: "", error: "Failed to fetch URL." };
 
     if (!res.ok) {
-      return { text: "", error: `Failed to fetch URL (${res.status}).` };
+      return { text: "", error: `Site returned ${res.status}. It may block scrapers — try pasting the text directly.` };
     }
 
-    const ct = res.headers.get("content-type") || "";
-    if (!ct.includes("text/html") && !ct.includes("xml")) {
-      return { text: "", error: "URL did not return HTML content." };
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    // Be permissive — many sites return text/plain or omit content-type.
+    if (ct && !ct.includes("text/") && !ct.includes("xml") && !ct.includes("html") && !ct.includes("json")) {
+      return { text: "", error: "URL did not return text content." };
     }
 
     const html = await res.text();
@@ -130,6 +143,104 @@ export async function scrapeUrl(url: string): Promise<ImportResult> {
     console.error("scrapeUrl error:", err);
     return { text: "", error: "Failed to fetch URL." };
   }
+}
+
+/** Pull a YouTube video ID from any common URL form, or null. */
+function extractYouTubeId(input: string): string | null {
+  try {
+    const u = new URL(input);
+    const host = u.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") return u.pathname.slice(1).split("/")[0] || null;
+    if (host.endsWith("youtube.com") || host.endsWith("youtube-nocookie.com")) {
+      if (u.pathname === "/watch") return u.searchParams.get("v");
+      const m = u.pathname.match(/^\/(embed|shorts|v|live)\/([^/?#]+)/);
+      if (m) return m[2];
+    }
+  } catch {}
+  return null;
+}
+
+/**
+ * Fetch metadata + best-effort transcript for a YouTube video.
+ * - oEmbed gives us title + author (always works, no API key).
+ * - Try the timedtext endpoint for an auto-generated English transcript.
+ *   When unavailable, we still return a useful summary (title + channel + URL)
+ *   so the user can repurpose the video idea instead of failing outright.
+ */
+async function fetchYouTube(videoId: string, originalUrl: string): Promise<ImportResult> {
+  let title = "";
+  let author = "";
+  let description = "";
+
+  try {
+    const oembed = await fetch(
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(
+        `https://www.youtube.com/watch?v=${videoId}`,
+      )}&format=json`,
+      { headers: { "User-Agent": "Mozilla/5.0" } },
+    );
+    if (oembed.ok) {
+      const j: any = await oembed.json();
+      title = j.title || "";
+      author = j.author_name || "";
+    }
+  } catch (e) {
+    console.warn("YouTube oEmbed failed:", e);
+  }
+
+  // Attempt transcript via public timedtext endpoint.
+  let transcript = "";
+  for (const lang of ["en", "en-US", "en-GB"]) {
+    try {
+      const r = await fetch(
+        `https://www.youtube.com/api/timedtext?lang=${lang}&v=${videoId}`,
+        { headers: { "User-Agent": "Mozilla/5.0" } },
+      );
+      if (r.ok) {
+        const xml = await r.text();
+        if (xml && xml.includes("<text")) {
+          transcript = xml
+            .replace(/<text[^>]*>/g, "\n")
+            .replace(/<\/text>/g, "")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/&amp;/g, "&")
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&nbsp;/g, " ")
+            .replace(/[ \t]+/g, " ")
+            .replace(/\n\s*\n+/g, "\n")
+            .trim();
+          if (transcript.length > 100) break;
+        }
+      }
+    } catch {}
+  }
+
+  if (!title && !transcript) {
+    return { text: "", error: "Could not fetch this YouTube video. Try pasting the transcript or description directly." };
+  }
+
+  const parts: string[] = [];
+  if (title) parts.push(`Video title: ${title}`);
+  if (author) parts.push(`Channel: ${author}`);
+  parts.push(`URL: ${originalUrl}`);
+  if (transcript) {
+    parts.push("");
+    parts.push("Transcript:");
+    parts.push(transcript.length > 38000 ? transcript.slice(0, 38000) + "\n\n[…truncated]" : transcript);
+  } else {
+    parts.push("");
+    parts.push("(No transcript available — repurpose based on the title and channel context.)");
+  }
+  if (description) parts.push(description);
+
+  return {
+    text: parts.join("\n"),
+    title: title || `YouTube video ${videoId}`,
+    source: originalUrl,
+  };
 }
 
 export interface TranscriptionResult {
