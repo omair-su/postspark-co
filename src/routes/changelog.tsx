@@ -8,6 +8,27 @@ export const Route = createFileRoute("/changelog")({
       { name: "description", content: "What's new in PostSpark — features, improvements, and fixes shipped each week." },
       { property: "og:title", content: "PostSpark Changelog" },
       { property: "og:description", content: "Weekly updates: new formats, integrations, AI improvements." },
+      { property: "og:url", content: "https://postspark.co/changelog" },
+      { property: "og:type", content: "article" },
+    ],
+    links: [{ rel: "canonical", href: "https://postspark.co/changelog" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: "PostSpark Changelog",
+          description: "What's new in PostSpark — features, improvements, and fixes shipped each week.",
+          author: { "@type": "Organization", name: "PostSpark" },
+          publisher: {
+            "@type": "Organization",
+            name: "PostSpark",
+            logo: { "@type": "ImageObject", url: "https://postspark.co/og-image.png" },
+          },
+          mainEntityOfPage: { "@type": "WebPage", "@id": "https://postspark.co/changelog" },
+        }),
+      },
     ],
   }),
   component: ChangelogPage,

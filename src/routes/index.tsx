@@ -18,7 +18,7 @@ const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PostSpark — AI Content Repurposing Tool | Turn 1 Post Into 30" },
+      { title: "PostSpark — AI Content Repurposing | Turn 1 Post Into 30" },
       { name: "description", content: "PostSpark uses AI to repurpose your blog posts, YouTube videos and PDFs into tweets, LinkedIn posts, email newsletters and video scripts instantly. Try free." },
       { property: "og:title", content: "PostSpark — Turn 1 Post Into 30 Instantly" },
       { property: "og:description", content: "AI-powered content repurposing for creators" },

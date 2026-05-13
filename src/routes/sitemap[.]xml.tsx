@@ -13,6 +13,8 @@ const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string 
   { path: "/features/linkedin-post-generator", priority: "0.8", changefreq: "monthly" },
   { path: "/for/creators", priority: "0.8", changefreq: "monthly" },
   { path: "/for/agencies", priority: "0.8", changefreq: "monthly" },
+  { path: "/changelog", priority: "0.6", changefreq: "weekly" },
+  { path: "/roadmap", priority: "0.6", changefreq: "weekly" },
   { path: "/signup", priority: "0.6", changefreq: "monthly" },
   { path: "/login", priority: "0.4", changefreq: "yearly" },
   { path: "/privacy", priority: "0.3", changefreq: "yearly" },

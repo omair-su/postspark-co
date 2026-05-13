@@ -68,7 +68,6 @@ export const Route = createRootRoute({
       { property: "og:site_name", content: "PostSpark" },
       { property: "og:title", content: "PostSpark — Turn 1 Post Into 30 Instantly" },
       { property: "og:description", content: "AI-powered content repurposing for creators and agencies." },
-      { property: "og:url", content: "https://postspark.co" },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://postspark.co/og-image.png" },
       { property: "og:image:width", content: "1200" },
@@ -93,7 +92,6 @@ export const Route = createRootRoute({
       { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.json" },
-      { rel: "canonical", href: "https://postspark.co" },
     ],
     scripts: [
       { type: "application/ld+json", children: JSON.stringify(ORG_JSONLD) },
