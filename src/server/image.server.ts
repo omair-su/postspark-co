@@ -236,17 +236,27 @@ async function callImageAI(messages: any[]): Promise<ImageGenResult> {
   return last;
 }
 
-// Premium text-to-image: try Replicate Flux 1.1 Pro first, fall back to Lovable AI.
+// Text-to-image: try Lovable AI Gateway (Gemini image) first because it's
+// fast and reliable inside the Worker. Fall back to Replicate Flux 1.1 Pro
+// only if the gateway returns a retriable failure (network / no image).
+// Replicate's polling pattern is more fragile under Cloudflare Workers so
+// we treat it as the backup, not the default.
 async function generateFromPrompt(
   fullPrompt: string,
   aspect: "square" | "portrait" | "landscape",
 ): Promise<ImageGenResult> {
+  const primary = await callImageAI([{ role: "user", content: fullPrompt }]);
+  if (primary.imageUrl) return primary;
+  // Don't retry on hard failures (rate limit / no credits).
+  if (primary.error && /credits|rate limit/i.test(primary.error)) return primary;
+
   if (process.env.REPLICATE_API_TOKEN) {
     const r = await callReplicateFlux(fullPrompt, aspect);
     if (r.imageUrl) return r;
-    console.warn("Replicate failed, falling back to Lovable AI:", r.error);
+    console.warn("Replicate fallback also failed:", r.error);
+    return r;
   }
-  return callImageAI([{ role: "user", content: fullPrompt }]);
+  return primary;
 }
 
 export async function generateSocialImage(
