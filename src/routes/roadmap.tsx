@@ -8,7 +8,9 @@ export const Route = createFileRoute("/roadmap")({
       { name: "description", content: "See what we're building next at PostSpark and vote on what matters most to you." },
       { property: "og:title", content: "PostSpark Public Roadmap" },
       { property: "og:description", content: "What's in progress, planned, and shipped at PostSpark." },
+      { property: "og:url", content: "https://postspark.co/roadmap" },
     ],
+    links: [{ rel: "canonical", href: "https://postspark.co/roadmap" }],
   }),
   component: RoadmapPage,
 });

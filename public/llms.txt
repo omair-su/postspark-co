@@ -1,0 +1,27 @@
+# PostSpark
+
+> AI content repurposing for creators and agencies. Turn one blog post, YouTube video, or PDF into 30+ ready-to-publish pieces — tweets, LinkedIn posts, email newsletters, and video scripts — in seconds.
+
+PostSpark is a SaaS tool that uses AI (Claude, Gemini, GPT) to repurpose long-form content into multi-channel social posts. It supports brand voice training, brand kits, team workspaces, agency client approvals, scheduling, a public gallery, and a built-in blog/SEO toolkit.
+
+## Pages
+
+- [Home](/): Product overview and live demo.
+- [Pricing](/pricing): Free (10 repurposes/mo), Pro $19/mo unlimited, Agency $49/mo with team seats.
+- [Gallery](/gallery): Public examples of repurposed content from real users.
+- [Blog](/blog): Articles on content repurposing, creator workflows, and AI writing.
+- [Changelog](/changelog): What's new each week.
+- [Roadmap](/roadmap): What's in progress and planned.
+- [For Creators](/for/creators): Use case page for solo creators.
+- [For Agencies](/for/agencies): Use case page for marketing agencies.
+- [Repurpose Blog to Social](/features/repurpose-blog-to-social): Feature page.
+- [YouTube to Tweets](/features/youtube-to-tweets): Feature page.
+- [LinkedIn Post Generator](/features/linkedin-post-generator): Feature page.
+- [Sign up](/signup): Create a free account.
+- [Login](/login): Sign in.
+
+## Optional
+
+- [Privacy](/privacy): Privacy policy.
+- [Terms](/terms): Terms of service.
+- [Refunds](/refunds): Refund policy.

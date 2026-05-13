@@ -22,6 +22,21 @@ export const Route = createFileRoute("/gallery/")({
       { name: "description", content: "Browse posts created and shared by the PostSpark community." },
       { property: "og:title", content: "PostSpark Gallery" },
       { property: "og:description", content: "Real examples of repurposed content from creators." },
+      { property: "og:url", content: "https://postspark.co/gallery" },
+    ],
+    links: [{ rel: "canonical", href: "https://postspark.co/gallery" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "PostSpark Community Gallery",
+          description: "Browse posts created and shared by the PostSpark community.",
+          url: "https://postspark.co/gallery",
+          isPartOf: { "@type": "WebSite", name: "PostSpark", url: "https://postspark.co" },
+        }),
+      },
     ],
   }),
   component: GalleryPage,
