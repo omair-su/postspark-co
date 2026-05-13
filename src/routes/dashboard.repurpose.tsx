@@ -62,12 +62,15 @@ function RepurposePage() {
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
     try {
+      const url = new URL(window.location.href);
+      const tabParam = url.searchParams.get("tab");
       const openTab = sessionStorage.getItem("postspark.openTab");
-      if (openTab === "import" || openTab === "text") {
+      if (tabParam === "import" || tabParam === "text") {
+        setTab(tabParam as "import" | "text");
+      } else if (openTab === "import" || openTab === "text") {
         setTab(openTab as "import" | "text");
         sessionStorage.removeItem("postspark.openTab");
       }
-      const url = new URL(window.location.href);
       const tpl = url.searchParams.get("tpl");
       if (tpl) {
         const p = new URLSearchParams(tpl);
