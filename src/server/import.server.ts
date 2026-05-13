@@ -74,6 +74,15 @@ function isBlockedHost(hostname: string): boolean {
 
 export async function scrapeUrl(url: string): Promise<ImportResult> {
   try {
+    // Special handling for YouTube — page HTML is heavily JS-rendered and bot-blocked.
+    // Use oEmbed for title/author + try to fetch transcript metadata via the watch page.
+    const ytId = extractYouTubeId(url);
+    if (ytId) {
+      const yt = await fetchYouTube(ytId, url);
+      if (yt.text) return yt;
+      // fall through to normal scraping if YouTube returned nothing useful
+    }
+
     let currentUrl = url;
     let res: Response | null = null;
 
@@ -89,8 +98,11 @@ export async function scrapeUrl(url: string): Promise<ImportResult> {
 
       res = await fetch(currentUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; PostSparkBot/1.0; +https://postspark.app)",
-          Accept: "text/html,application/xhtml+xml",
+          // Real browser UA — many sites (Medium, Substack, news sites) block bot UAs.
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
         },
         redirect: "manual",
       });
@@ -107,12 +119,13 @@ export async function scrapeUrl(url: string): Promise<ImportResult> {
     if (!res) return { text: "", error: "Failed to fetch URL." };
 
     if (!res.ok) {
-      return { text: "", error: `Failed to fetch URL (${res.status}).` };
+      return { text: "", error: `Site returned ${res.status}. It may block scrapers — try pasting the text directly.` };
     }
 
-    const ct = res.headers.get("content-type") || "";
-    if (!ct.includes("text/html") && !ct.includes("xml")) {
-      return { text: "", error: "URL did not return HTML content." };
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
+    // Be permissive — many sites return text/plain or omit content-type.
+    if (ct && !ct.includes("text/") && !ct.includes("xml") && !ct.includes("html") && !ct.includes("json")) {
+      return { text: "", error: "URL did not return text content." };
     }
 
     const html = await res.text();
