@@ -9,7 +9,9 @@ export const Route = createFileRoute("/terms")({
       { name: "description", content: "PostSpark Terms of Service governing use of our AI content repurposing platform." },
       { property: "og:title", content: "Terms of Service — PostSpark" },
       { property: "og:description", content: "PostSpark Terms of Service governing use of our AI content repurposing platform." },
+      { property: "og:url", content: "https://postspark.co/terms" },
     ],
+    links: [{ rel: "canonical", href: "https://postspark.co/terms" }],
   }),
   component: TermsPage,
 });
