@@ -429,7 +429,9 @@ function ImageStudioPage() {
 
   const save = async (url: string, src = "generate", overridePrompt?: string) => {
     if (!url.startsWith("data:")) {
-      toast.success("Already saved to your library");
+      // Server already auto-persists generated images. Refresh library so it shows up.
+      loadLibrary();
+      toast.success("Saved to your library");
       return;
     }
     let finalUrl = url;
