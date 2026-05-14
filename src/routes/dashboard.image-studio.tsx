@@ -400,11 +400,31 @@ function ImageStudioPage() {
     }
   };
 
-  const download = (url: string, name?: string) => {
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = name || `postspark-${Date.now()}.png`;
-    a.click();
+  const download = async (url: string, name?: string) => {
+    const filename = name || `postspark-${Date.now()}.png`;
+    try {
+      let blob: Blob;
+      if (url.startsWith("data:")) {
+        blob = await (await fetch(url)).blob();
+      } else {
+        const res = await fetch(url, { mode: "cors", cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        blob = await res.blob();
+      }
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch (e) {
+      console.error("download error", e);
+      // Fallback: open in new tab so user can right-click → save
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.message("Opened image in new tab — right-click to save");
+    }
   };
 
   const save = async (url: string, src = "generate", overridePrompt?: string) => {
