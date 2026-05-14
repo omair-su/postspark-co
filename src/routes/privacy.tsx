@@ -9,7 +9,9 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "How PostSpark collects, uses and protects your personal data." },
       { property: "og:title", content: "Privacy Notice — PostSpark" },
       { property: "og:description", content: "How PostSpark collects, uses and protects your personal data." },
+      { property: "og:url", content: "https://postspark.co/privacy" },
     ],
+    links: [{ rel: "canonical", href: "https://postspark.co/privacy" }],
   }),
   component: PrivacyPage,
 });
