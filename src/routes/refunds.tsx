@@ -9,7 +9,9 @@ export const Route = createFileRoute("/refunds")({
       { name: "description", content: "PostSpark's 30-day money-back guarantee and how to request a refund via Paddle." },
       { property: "og:title", content: "Refund Policy — PostSpark" },
       { property: "og:description", content: "PostSpark's 30-day money-back guarantee and how to request a refund via Paddle." },
+      { property: "og:url", content: "https://postspark.co/refunds" },
     ],
+    links: [{ rel: "canonical", href: "https://postspark.co/refunds" }],
   }),
   component: RefundsPage,
 });
