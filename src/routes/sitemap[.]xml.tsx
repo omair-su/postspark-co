@@ -3,11 +3,15 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const SITE = "https://postspark.co";
 
+// Note: /onboarding, /reset-password, /unsubscribe, and /auth/callback are
+// intentionally excluded — they are private user-flow pages disallowed in
+// robots.txt and should not be indexed.
 const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string }> = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
   { path: "/pricing", priority: "0.9", changefreq: "monthly" },
   { path: "/gallery", priority: "0.8", changefreq: "daily" },
   { path: "/blog", priority: "0.9", changefreq: "daily" },
+  { path: "/rss.xml", priority: "0.5", changefreq: "daily" },
   { path: "/features/repurpose-blog-to-social", priority: "0.8", changefreq: "monthly" },
   { path: "/features/youtube-to-tweets", priority: "0.8", changefreq: "monthly" },
   { path: "/features/linkedin-post-generator", priority: "0.8", changefreq: "monthly" },
