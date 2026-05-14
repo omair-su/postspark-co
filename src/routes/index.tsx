@@ -25,6 +25,7 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "https://postspark.co" },
       { property: "og:image", content: "https://postspark.co/og-image.png" },
     ],
+    links: [{ rel: "canonical", href: "https://postspark.co" }],
     scripts: [
       {
         type: "application/ld+json",
