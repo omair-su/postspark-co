@@ -1073,6 +1073,38 @@ function ImageStudioPage() {
                 </>
               )}
             </button>
+
+            <div className="rounded-xl border border-border bg-muted/30 p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                One-click tools
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={handleBgRemove}
+                  disabled={loading || !uploadedUrl}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-background px-2 py-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <Droplet className="h-3.5 w-3.5" /> Remove BG
+                </button>
+                <button
+                  onClick={() => handleUpscale(2)}
+                  disabled={loading || !uploadedUrl}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-background px-2 py-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <Zap className="h-3.5 w-3.5" /> Upscale 2x
+                </button>
+                <button
+                  onClick={() => handleUpscale(4)}
+                  disabled={loading || !uploadedUrl}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-background px-2 py-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <Zap className="h-3.5 w-3.5" /> Upscale 4x
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Powered by Real-ESRGAN &amp; background-remover (Pro).
+              </p>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-5">
