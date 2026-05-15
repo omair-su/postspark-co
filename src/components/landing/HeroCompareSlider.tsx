@@ -190,20 +190,14 @@ export function HeroCompareSlider() {
             style={{ left: `${pos}%` }}
           />
 
-          {/* Handle */}
-          <button
-            type="button"
-            aria-label="Drag to compare"
-            className="absolute top-1/2 z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white shadow-[0_12px_30px_-6px_rgba(26,26,46,0.4)] transition-transform hover:scale-110 active:scale-95"
+          {/* Handle — visual only, the wrapper captures all pointer events */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white shadow-[0_12px_30px_-6px_rgba(26,26,46,0.4)] transition-transform"
             style={{ left: `${pos}%` }}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              dragging.current = true;
-              (e.target as Element).setPointerCapture?.(e.pointerId);
-            }}
           >
             <GripVertical className="h-5 w-5 text-[#1a1a2e]" />
-          </button>
+          </div>
 
           {/* Labels */}
           <span className="absolute left-4 top-4 rounded-full bg-white/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1a1a2e] backdrop-blur-md">
