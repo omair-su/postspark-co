@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateCarousel } from "@/server/carousel.server";
+import { generateCarousel, rewriteSlideClaude } from "@/server/carousel.server";
 
 const FREE_MONTHLY_LIMIT = 10;
 
