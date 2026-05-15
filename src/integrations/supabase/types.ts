@@ -363,6 +363,65 @@ export type Database = {
           },
         ]
       }
+      copilot_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      copilot_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "copilot_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "copilot_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -635,6 +694,7 @@ export type Database = {
           outputs: Json | null
           public_slug: string | null
           title: string | null
+          tool: string
           user_id: string
           view_count: number
           winning_hook_index: number | null
@@ -652,6 +712,7 @@ export type Database = {
           outputs?: Json | null
           public_slug?: string | null
           title?: string | null
+          tool?: string
           user_id: string
           view_count?: number
           winning_hook_index?: number | null
@@ -669,6 +730,7 @@ export type Database = {
           outputs?: Json | null
           public_slug?: string | null
           title?: string | null
+          tool?: string
           user_id?: string
           view_count?: number
           winning_hook_index?: number | null

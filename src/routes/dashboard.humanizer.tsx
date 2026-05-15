@@ -4,6 +4,8 @@ import { Sparkles, Loader2, Copy, Check, Wand2 } from "lucide-react";
 import { humanize } from "@/lib/copilot.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard/humanizer")({
   component: HumanizerPage,
@@ -32,7 +34,11 @@ function HumanizerPage() {
     try {
       const r = await withAIProgress(humanize({ data: { text: input, intensity } }));
       if (r.error) {
-        toast.error(r.error);
+        if (r.error === "LIMIT_REACHED") {
+          toast.error("Monthly free limit reached. Upgrade to Pro for unlimited.");
+        } else {
+          toast.error(r.error);
+        }
       } else {
         setOutput(r.output);
       }

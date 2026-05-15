@@ -18,7 +18,15 @@ interface Job {
   is_public?: boolean;
   public_slug?: string | null;
   title?: string | null;
+  tool?: string | null;
 }
+
+const TOOL_LABEL: Record<string, string> = {
+  repurpose: "Repurpose",
+  humanizer: "Humanizer",
+  reply_generator: "Reply Gen",
+  copilot: "Copilot",
+};
 
 export const Route = createFileRoute("/dashboard/history")({
   component: HistoryPage,
@@ -387,8 +395,13 @@ function HistoryPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     <FileText className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                     <span className="truncate text-sm text-foreground">
-                      {job.input_text.slice(0, 50)}...
+                      {(job.title || job.input_text).slice(0, 50)}...
                     </span>
+                    {job.tool && job.tool !== "repurpose" && (
+                      <span className="shrink-0 rounded-full bg-electric/10 text-electric px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                        {TOOL_LABEL[job.tool] || job.tool}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                     <span className="text-xs text-muted-foreground">

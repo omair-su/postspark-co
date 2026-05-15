@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Crown, User, Sparkles, ArrowRight, ExternalLink, Trash2 } from "lucide-react";
+import { Loader2, Crown, User, Sparkles, ArrowRight, ExternalLink, Trash2, Mic } from "lucide-react";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
@@ -153,6 +153,23 @@ function SettingsPage() {
           <div>
             <p className="text-sm font-semibold text-foreground">Brand Kit</p>
             <p className="text-xs text-muted-foreground">Logo, colors, fonts & preferred tone — auto-applied to every generation.</p>
+          </div>
+        </div>
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+
+      {/* Brand Voice shortcut — used by Spark Copilot, Repurpose, Reply Generator */}
+      <Link
+        to="/dashboard/brand-voice"
+        className="mt-4 flex items-center justify-between rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-electric to-electric/70">
+            <Mic className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Brand Voice / Style</p>
+            <p className="text-xs text-muted-foreground">Train Spark to write replies and content in your exact tone.</p>
           </div>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
