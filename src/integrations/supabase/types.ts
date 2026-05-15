@@ -610,15 +610,19 @@ export type Database = {
           display_name: string | null
           handle: string | null
           id: string
+          last_active_date: string | null
+          longest_streak: number
           onboarding_completed: boolean
           plan: string
           primary_platforms: Json
           primary_role: string | null
           referral_code: string | null
           referred_by: string | null
+          streak_days: number
           tagline: string | null
           updated_at: string
           user_id: string
+          weekly_digest_enabled: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -626,15 +630,19 @@ export type Database = {
           display_name?: string | null
           handle?: string | null
           id?: string
+          last_active_date?: string | null
+          longest_streak?: number
           onboarding_completed?: boolean
           plan?: string
           primary_platforms?: Json
           primary_role?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          streak_days?: number
           tagline?: string | null
           updated_at?: string
           user_id: string
+          weekly_digest_enabled?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -642,15 +650,19 @@ export type Database = {
           display_name?: string | null
           handle?: string | null
           id?: string
+          last_active_date?: string | null
+          longest_streak?: number
           onboarding_completed?: boolean
           plan?: string
           primary_platforms?: Json
           primary_role?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          streak_days?: number
           tagline?: string | null
           updated_at?: string
           user_id?: string
+          weekly_digest_enabled?: boolean
         }
         Relationships: []
       }
@@ -945,35 +957,50 @@ export type Database = {
       }
       templates: {
         Row: {
+          category: string | null
           created_at: string
           custom_instructions: string | null
+          description: string | null
           id: string
+          is_public: boolean
           name: string
           selected_types: Json
+          slug: string | null
           tone: string
           updated_at: string
+          use_count: number
           user_id: string
           workspace_id: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           custom_instructions?: string | null
+          description?: string | null
           id?: string
+          is_public?: boolean
           name: string
           selected_types?: Json
+          slug?: string | null
           tone?: string
           updated_at?: string
+          use_count?: number
           user_id: string
           workspace_id?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           custom_instructions?: string | null
+          description?: string | null
           id?: string
+          is_public?: boolean
           name?: string
           selected_types?: Json
+          slug?: string | null
           tone?: string
           updated_at?: string
+          use_count?: number
           user_id?: string
           workspace_id?: string | null
         }
