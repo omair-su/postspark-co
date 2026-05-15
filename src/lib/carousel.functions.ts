@@ -90,3 +90,20 @@ export const createCarousel = createServerFn({ method: "POST" })
 
     return result;
   });
+
+export const rewriteSlide = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      title: z.string().max(200),
+      body: z.string().max(800),
+      kind: z.enum(["cover", "content", "cta"]),
+      instruction: z.string().max(300).optional(),
+      tone: z.string().max(50).optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    if (rateLimited(context.userId)) return { title: data.title, body: data.body, error: "Rate limit. Try again." };
+    const r = await rewriteSlideClaude(data);
+    return r;
+  });
