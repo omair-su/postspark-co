@@ -483,3 +483,132 @@ function PostModal({
     </div>
   );
 }
+
+function AIPlanModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const { session } = useAuth();
+  const [niche, setNiche] = useState("");
+  const [cadence, setCadence] = useState<"daily" | "3x" | "weekly">("3x");
+  const [days, setDays] = useState<number>(30);
+  const [selected, setSelected] = useState<string[]>(["twitter", "linkedin"]);
+  const [loading, setLoading] = useState(false);
+
+  const togglePlatform = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length >= 5 ? prev : [...prev, id],
+    );
+  };
+
+  const generate = async () => {
+    if (!session) return toast.error("Please sign in");
+    if (niche.trim().length < 3) return toast.error("Add a niche or topic");
+    if (selected.length === 0) return toast.error("Pick at least one platform");
+    setLoading(true);
+    try {
+      const res: any = await withAIProgress(generateAIPlan({
+        data: { niche: niche.trim(), platforms: selected as any, cadence, days },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }));
+      if (!res.success) {
+        if (res.error === "LIMIT_REACHED") toast.error("Free monthly limit reached. Upgrade to keep planning.");
+        else toast.error(res.error || "Plan generation failed");
+        return;
+      }
+      toast.success(`Created ${res.inserted} drafts on your calendar`);
+      onDone();
+    } catch (e) {
+      console.error(e);
+      toast.error("Plan generation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> AI 30-day planner</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium">Niche / topic</label>
+            <textarea
+              value={niche}
+              onChange={(e) => setNiche(e.target.value)}
+              rows={2}
+              placeholder="e.g. B2B SaaS founders building AI tools"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-medium">Platforms (max 5)</label>
+            <div className="flex flex-wrap gap-2">
+              {PLATFORMS.map((p) => {
+                const on = selected.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => togglePlatform(p.id)}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                      on ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium">Cadence</label>
+              <select
+                value={cadence}
+                onChange={(e) => setCadence(e.target.value as any)}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="daily">Daily</option>
+                <option value="3x">3× per week</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Days ahead</label>
+              <select
+                value={days}
+                onChange={(e) => setDays(Number(e.target.value))}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value={7}>7 days</option>
+                <option value={14}>14 days</option>
+                <option value={30}>30 days</option>
+              </select>
+            </div>
+          </div>
+
+          <p className="rounded-lg border border-border bg-muted/30 p-2 text-[11px] text-muted-foreground">
+            Drafts will be added to your calendar starting tomorrow at 9am local time. Edit, reschedule, or delete any of them.
+          </p>
+        </div>
+
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button onClick={onClose} className="rounded-lg border border-input px-4 py-2 text-sm hover:bg-accent">Cancel</button>
+          <button
+            onClick={generate}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+          >
+            {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Planning…</> : <><Sparkles className="h-4 w-4" /> Generate plan</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
