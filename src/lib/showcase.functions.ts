@@ -75,7 +75,7 @@ export const getMyShowcaseInfo = createServerFn({ method: "GET" })
   });
 
 export const getCreatorShowcase = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ handle: z.string().min(1).max(40) }).parse)
+  .inputValidator((input: unknown) => z.object({ handle: z.string().min(1).max(40) }).parse(input))
   .handler(async ({ data }) => {
     const handle = data.handle.toLowerCase();
     const sb = admin();
