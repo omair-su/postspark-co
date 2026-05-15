@@ -21,53 +21,61 @@ function admin() {
 
 export const setHandle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .inputValidator((input: unknown) =>
     z.object({
       handle: z.string().min(3).max(30),
       tagline: z.string().max(160).optional(),
-    }).parse,
+    }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const handle = data.handle.toLowerCase().trim();
     if (!HANDLE_RE.test(handle)) {
-      return { ok: false, error: "Handle must be 3-30 chars, letters/numbers/_- only." };
+      return { ok: false as const, error: "Handle must be 3-30 chars, letters/numbers/_- only." };
     }
     if (RESERVED.has(handle)) {
-      return { ok: false, error: "That handle is reserved." };
+      return { ok: false as const, error: "That handle is reserved." };
     }
 
-    // uniqueness
     const { data: clash } = await supabase
       .from("profiles")
       .select("user_id")
       .ilike("handle", handle)
       .neq("user_id", userId)
       .maybeSingle();
-    if (clash) return { ok: false, error: "Handle already taken." };
+    if (clash) return { ok: false as const, error: "Handle already taken." };
 
     const { error } = await supabase
       .from("profiles")
       .update({ handle, tagline: data.tagline ?? null })
       .eq("user_id", userId);
-    if (error) return { ok: false, error: error.message };
-    return { ok: true, handle };
+    if (error) return { ok: false as const, error: error.message };
+    return { ok: true as const, handle };
   });
 
 export const getMyShowcaseInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data } = await supabase
-      .from("profiles")
-      .select("handle, tagline, display_name, avatar_url")
-      .eq("user_id", userId)
-      .maybeSingle();
-    return { profile: data || null };
+    try {
+      const { supabase, userId } = context;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("handle, tagline, display_name, avatar_url")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) {
+        console.warn("[getMyShowcaseInfo] select error:", error.message);
+        return { profile: null };
+      }
+      return { profile: data ?? null };
+    } catch (err) {
+      console.warn("[getMyShowcaseInfo] unexpected error:", err);
+      return { profile: null };
+    }
   });
 
 export const getCreatorShowcase = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ handle: z.string().min(1).max(40) }).parse)
+  .inputValidator((input: unknown) => z.object({ handle: z.string().min(1).max(40) }).parse(input))
   .handler(async ({ data }) => {
     const handle = data.handle.toLowerCase();
     const sb = admin();
