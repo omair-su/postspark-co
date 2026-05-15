@@ -1,4 +1,4 @@
-import { callClaudeWithTool } from "./anthropic.server";
+import { callClaude, callClaudeWithTool } from "./anthropic.server";
 
 export interface CarouselSlide {
   title: string;
