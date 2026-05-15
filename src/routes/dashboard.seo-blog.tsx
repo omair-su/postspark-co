@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { FileText, Loader2, Sparkles, Copy, Check, Download } from "lucide-react";
-import { generateBlog } from "@/lib/seoBlog.functions";
+import { FileText, Loader2, Sparkles, Copy, Check, Download, Search, Plus, Trash2 } from "lucide-react";
+import { generateBlog, generateOutline } from "@/lib/seoBlog.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 
 export const Route = createFileRoute("/dashboard/seo-blog")({
@@ -25,8 +25,16 @@ const LANGS = [
   "Chinese (Simplified)","Russian","Ukrainian","Indonesian","Vietnamese",
 ];
 
+interface Outline {
+  title: string;
+  outline: { h2: string; h3?: string[] }[];
+  competitorHeadings: { url: string; headings: string[] }[];
+  suggestedInternalLinks: { title: string; slug: string; anchor: string }[];
+}
+
 function SeoBlogPage() {
   const { session } = useAuth();
+  const [tab, setTab] = useState<"blog" | "outline">("blog");
   const [topic, setTopic] = useState("");
   const [keyword, setKeyword] = useState("");
   const [wordTarget, setWordTarget] = useState(1200);
@@ -34,6 +42,36 @@ function SeoBlogPage() {
   const [loading, setLoading] = useState(false);
   const [blog, setBlog] = useState<Blog | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+
+  // Outline tab state
+  const [competitors, setCompetitors] = useState<string[]>([""]);
+  const [outline, setOutline] = useState<Outline | null>(null);
+  const [outlineLoading, setOutlineLoading] = useState(false);
+  const [selectedLinks, setSelectedLinks] = useState<Set<number>>(new Set());
+
+  const generateOutlineFn = async () => {
+    if (!session) return toast.error("Please sign in");
+    if (topic.trim().length < 3) return toast.error("Add a topic");
+    if (keyword.trim().length < 2) return toast.error("Add a target keyword");
+    setOutlineLoading(true);
+    setOutline(null);
+    setSelectedLinks(new Set());
+    try {
+      const urls = competitors.map((u) => u.trim()).filter((u) => /^https?:\/\//i.test(u));
+      const res: any = await withAIProgress(generateOutline({
+        data: { topic: topic.trim(), keyword: keyword.trim(), language, competitorUrls: urls },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }));
+      if (res.error) toast.error(res.error);
+      else if (!res.outline?.length) toast.error("No outline returned");
+      else { setOutline(res); toast.success("Outline ready"); }
+    } catch (e) {
+      console.error(e);
+      toast.error("Outline failed");
+    } finally {
+      setOutlineLoading(false);
+    }
+  };
 
   const generate = async () => {
     if (!session) return toast.error("Please sign in");
