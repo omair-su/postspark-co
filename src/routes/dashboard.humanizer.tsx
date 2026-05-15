@@ -4,6 +4,8 @@ import { Sparkles, Loader2, Copy, Check, Wand2 } from "lucide-react";
 import { humanize } from "@/lib/copilot.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard/humanizer")({
   component: HumanizerPage,
