@@ -165,6 +165,7 @@ export const repurposeContent = createServerFn({ method: "POST" })
           outputs: { raw: result.output },
           brand_kit_id: brandKitId,
           workspace_id: workspaceId,
+          tool: data.tool || "repurpose",
         } as any)
         .select("id")
         .single();
