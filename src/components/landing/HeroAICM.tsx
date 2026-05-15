@@ -1,0 +1,216 @@
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, Search } from "lucide-react";
+import { useEffect, useRef } from "react";
+import heroSculpture from "@/assets/hero-ceramic-ring.jpg";
+
+/**
+ * AICM-style hero: light cream BG, huge bold navy headline,
+ * 3D ceramic sculpture floating on the right with parallax + slow rotation.
+ * No WebGL — pure CSS so it renders everywhere (incl. sandboxed previews).
+ */
+export function HeroAICM() {
+  const sculptRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let raf = 0;
+    let tx = 0;
+    let ty = 0;
+    let cx = 0;
+    let cy = 0;
+
+    const onMove = (e: MouseEvent) => {
+      tx = (e.clientX / window.innerWidth - 0.5) * 24;
+      ty = (e.clientY / window.innerHeight - 0.5) * 18;
+    };
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (sculptRef.current) {
+        sculptRef.current.style.setProperty("--scroll-y", `${y * 0.15}px`);
+      }
+    };
+    const loop = () => {
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+      if (sculptRef.current) {
+        sculptRef.current.style.setProperty("--mx", `${cx}px`);
+        sculptRef.current.style.setProperty("--my", `${cy}px`);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  return (
+    <section
+      className="relative isolate overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, #f5ede2 0%, #f3e3d3 40%, #f0d9c5 100%)",
+        fontFamily:
+          "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+      }}
+    >
+      {/* Soft grain */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-multiply"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+        }}
+      />
+
+      {/* Subtle diagonal grid lines like AICM */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            "linear-gradient(45deg, #1a1a2e 1px, transparent 1px), linear-gradient(-45deg, #1a1a2e 1px, transparent 1px)",
+          backgroundSize: "180px 180px",
+        }}
+      />
+
+      {/* 3D sculpture — floats on right, drifts with cursor + scroll, slowly spins */}
+      <div
+        ref={sculptRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-[-10%] z-0 w-[110%] sm:right-[-5%] sm:w-[80%] lg:right-[-8%] lg:w-[65%]"
+        style={
+          {
+            // CSS vars for parallax
+            ["--mx" as string]: "0px",
+            ["--my" as string]: "0px",
+            ["--scroll-y" as string]: "0px",
+            transform:
+              "translate3d(var(--mx), calc(var(--my) + var(--scroll-y)), 0)",
+            willChange: "transform",
+          } as React.CSSProperties
+        }
+      >
+        <div className="absolute inset-0 animate-[heroSpin_38s_linear_infinite]">
+          <img
+            src={heroSculpture}
+            alt=""
+            width={1920}
+            height={1080}
+            className="h-full w-full object-cover object-center opacity-95 mix-blend-multiply"
+            style={{ filter: "saturate(1.05) contrast(1.02)" }}
+          />
+        </div>
+      </div>
+
+      {/* Soft fade so text stays legible */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[1]"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(245,237,226,0.92) 0%, rgba(245,237,226,0.55) 45%, rgba(245,237,226,0) 70%)",
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 mx-auto flex min-h-[88svh] max-w-7xl flex-col justify-center px-5 pb-20 pt-28 sm:px-8 sm:pt-36">
+        <div className="max-w-3xl">
+          <div
+            className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#1a1a2e]/15 bg-white/40 px-3 py-1.5 backdrop-blur-md"
+          >
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#7c3aed]" />
+            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#1a1a2e]/80">
+              AI Content Repurposing · Live
+            </span>
+          </div>
+
+          <h1
+            className="font-extrabold tracking-[-0.035em] text-[#1a1a2e]"
+            style={{
+              fontSize: "clamp(2.6rem, 8.5vw, 6.5rem)",
+              lineHeight: 0.95,
+              letterSpacing: "-0.04em",
+            }}
+          >
+            <span className="block animate-[heroRise_0.9s_ease-out_both]">
+              The Smarter,
+            </span>
+            <span
+              className="block animate-[heroRise_0.9s_0.12s_ease-out_both]"
+            >
+              AI-Powered
+            </span>
+            <span
+              className="block animate-[heroRise_0.9s_0.24s_ease-out_both]"
+              style={{
+                background:
+                  "linear-gradient(120deg, #1a1a2e 0%, #4c1d95 55%, #7c3aed 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Content Engine
+            </span>
+          </h1>
+
+          <p
+            className="mt-7 max-w-xl text-base leading-relaxed text-[#1a1a2e]/70 sm:text-lg animate-[heroRise_0.9s_0.4s_ease-out_both]"
+          >
+            Paste a blog, YouTube link, or PDF. PostSpark turns one piece of
+            content into 30+ posts — tweets, LinkedIn, newsletters &amp; scripts —
+            in your voice, in seconds.
+          </p>
+
+          <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center animate-[heroRise_0.9s_0.55s_ease-out_both]">
+            <Link
+              to="/signup"
+              className="group inline-flex items-center gap-3 rounded-full bg-[#1a1a2e] px-7 py-4 text-sm font-semibold text-white shadow-[0_20px_50px_-15px_rgba(26,26,46,0.5)] transition-all hover:scale-[1.02] hover:bg-[#2a2a4a]"
+            >
+              <Search className="h-4 w-4" />
+              Start with PostSpark
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-2 rounded-full border border-[#1a1a2e]/20 bg-white/30 px-7 py-4 text-sm font-semibold text-[#1a1a2e] backdrop-blur-md transition-all hover:bg-white/60"
+            >
+              See pricing
+            </Link>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] uppercase tracking-[0.18em] text-[#1a1a2e]/55 animate-[heroRise_0.9s_0.7s_ease-out_both]">
+            <span>★ 4.9 / 5 · 127 reviews</span>
+            <span>No credit card</span>
+            <span>10 free repurposes / month</span>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes heroSpin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes heroRise {
+          from { opacity: 0; transform: translate3d(0, 24px, 0); }
+          to   { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [class*="animate-[heroSpin"], [class*="animate-[heroRise"] {
+            animation: none !important;
+          }
+        }
+      `}</style>
+    </section>
+  );
+}
