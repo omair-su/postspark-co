@@ -66,25 +66,15 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   const { session, loading } = useAuth();
-  useLenis();
 
   if (!loading && session) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
-    <div className="min-h-screen scroll-smooth bg-[#06060f]">
+    <div className="min-h-screen scroll-smooth">
       <Navbar />
-      {/* 3D luxury hero on client; SSR + reduced-motion fall back to original HeroSection */}
-      <ClientOnly fallback={<HeroSection />}>
-        <Suspense fallback={<HeroSection />}>
-          <LuxuryHero />
-          <MagneticCursor />
-        </Suspense>
-      </ClientOnly>
-
-      <MarqueeStrip />
-      <AnimatedMetrics />
+      <HeroSection />
 
       <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
         <TrustedBySection />
