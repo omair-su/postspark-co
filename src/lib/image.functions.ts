@@ -249,6 +249,55 @@ export const editUploadedImage = createServerFn({ method: "POST" })
     return res;
   });
 
+export const removeImageBackground = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({ imageDataUrl: z.string().min(20).max(20_000_000) }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const plan = await getPlan(supabase, userId);
+    if (!(await isPro(plan)))
+      return { imageUrl: "", error: "Background removal is a Pro feature. Upgrade to unlock." };
+    const res = await removeBackgroundServer(data.imageDataUrl);
+    if (res.imageUrl) {
+      const persisted = await persistGeneratedImage({
+        userId,
+        imageUrl: res.imageUrl,
+        prompt: "Background removed",
+        source: "bg-remove",
+      });
+      if (persisted) res.imageUrl = persisted;
+    }
+    return res;
+  });
+
+export const upscaleUploadedImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      imageDataUrl: z.string().min(20).max(20_000_000),
+      scale: z.union([z.literal(2), z.literal(4)]).default(2),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const plan = await getPlan(supabase, userId);
+    if (!(await isPro(plan)))
+      return { imageUrl: "", error: "Upscale is a Pro feature. Upgrade to unlock." };
+    const res = await upscaleImageServer(data.imageDataUrl, data.scale);
+    if (res.imageUrl) {
+      const persisted = await persistGeneratedImage({
+        userId,
+        imageUrl: res.imageUrl,
+        prompt: `Upscaled ${data.scale}x`,
+        source: "upscale",
+      });
+      if (persisted) res.imageUrl = persisted;
+    }
+    return res;
+  });
+
 export const captionForImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ prompt: z.string().min(1).max(2000) }).parse)
