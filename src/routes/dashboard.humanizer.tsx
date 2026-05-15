@@ -34,7 +34,11 @@ function HumanizerPage() {
     try {
       const r = await withAIProgress(humanize({ data: { text: input, intensity } }));
       if (r.error) {
-        toast.error(r.error);
+        if (r.error === "LIMIT_REACHED") {
+          toast.error("Monthly free limit reached. Upgrade to Pro for unlimited.");
+        } else {
+          toast.error(r.error);
+        }
       } else {
         setOutput(r.output);
       }

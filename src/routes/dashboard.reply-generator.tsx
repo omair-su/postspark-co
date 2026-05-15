@@ -48,8 +48,10 @@ function ReplyGeneratorPage() {
     setOut([]);
     try {
       const r = await withAIProgress(repliesFn({ data: { originalPost: post, goal, platform } }));
-      if (r.error) toast.error(r.error);
-      else setOut(r.replies);
+      if (r.error) {
+        if (r.error === "LIMIT_REACHED") toast.error("Monthly free limit reached. Upgrade to Pro for unlimited.");
+        else toast.error(r.error);
+      } else setOut(r.replies);
     } catch (e: any) {
       toast.error(e?.message || "Something went wrong.");
     } finally {
