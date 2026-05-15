@@ -315,6 +315,87 @@
   .ai-progress-bar { animation: none; opacity: 0.6; }
 }
 
+/* Global reduced-motion safety net.
+   Fast-forwards all animations/transitions to their end state so elements
+   that fade/slide in stay fully visible — no clipping, no layout shift. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Creamy luxury surface tokens (landing) ───────────────────────── */
+.cream-surface {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(124,58,237,0.08), transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, rgba(232,93,58,0.07), transparent 60%),
+    linear-gradient(180deg, #f7efe4 0%, #f3e6d3 100%);
+  color: #1a1a2e;
+}
+.cream-surface-alt {
+  background:
+    radial-gradient(900px 500px at 100% 0%, rgba(124,58,237,0.07), transparent 55%),
+    linear-gradient(180deg, #f3e6d3 0%, #f5ede2 100%);
+  color: #1a1a2e;
+}
+.cream-grain {
+  position: absolute; inset: 0; pointer-events: none;
+  opacity: 0.06; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.luxury-card {
+  position: relative;
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.45) 100%);
+  border: 1px solid rgba(26,26,46,0.08);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.6) inset,
+    0 20px 50px -25px rgba(26,26,46,0.25);
+  transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+}
+.luxury-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(124,58,237,0.35);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 30px 60px -20px rgba(124,58,237,0.30),
+    0 12px 30px -15px rgba(232,93,58,0.20);
+}
+.luxury-chip {
+  display: inline-flex; align-items: center; gap: .5rem;
+  border-radius: 9999px;
+  padding: .35rem .75rem;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(26,26,46,0.75);
+  background: rgba(255,255,255,0.5);
+  border: 1px solid rgba(26,26,46,0.12);
+  backdrop-filter: blur(8px);
+}
+.luxury-heading {
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: #1a1a2e;
+}
+.luxury-gradient-text {
+  background: linear-gradient(120deg, #1a1a2e 0%, #4c1d95 55%, #7c3aed 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+@keyframes luxFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+.lux-float { animation: luxFloat 7s ease-in-out infinite; }
+
 /* Sidebar scrollbar — match dark sidebar background */
 .sidebar-scroll {
   scrollbar-width: thin;

@@ -10,33 +10,44 @@ import heroSculpture from "@/assets/hero-ceramic-ring.png";
  */
 export function HeroAICM() {
   const sculptRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
 
     let raf = 0;
-    let tx = 0;
-    let ty = 0;
-    let cx = 0;
-    let cy = 0;
+    let tx = 0, ty = 0, cx = 0, cy = 0;
+    let targetIntensity = 0.55, intensity = 0.55;
 
     const onMove = (e: MouseEvent) => {
-      tx = (e.clientX / window.innerWidth - 0.5) * 24;
-      ty = (e.clientY / window.innerHeight - 0.5) * 18;
+      const nx = e.clientX / window.innerWidth - 0.5;
+      const ny = e.clientY / window.innerHeight - 0.5;
+      tx = nx * 24;
+      ty = ny * 18;
+      // closer to ring (right side) → brighter glow
+      const dist = Math.hypot(nx - 0.25, ny);
+      targetIntensity = Math.max(0.45, Math.min(1, 1.1 - dist * 1.4));
     };
     const onScroll = () => {
       const y = window.scrollY;
-      if (sculptRef.current) {
-        sculptRef.current.style.setProperty("--scroll-y", `${y * 0.15}px`);
-      }
+      sculptRef.current?.style.setProperty("--scroll-y", `${y * 0.15}px`);
+      // tilt the ring slightly with scroll, ring stays fully on-screen
+      sculptRef.current?.style.setProperty("--scroll-tilt", `${Math.min(y * 0.04, 12)}deg`);
     };
     const loop = () => {
       cx += (tx - cx) * 0.08;
       cy += (ty - cy) * 0.08;
+      intensity += (targetIntensity - intensity) * 0.06;
       if (sculptRef.current) {
         sculptRef.current.style.setProperty("--mx", `${cx}px`);
         sculptRef.current.style.setProperty("--my", `${cy}px`);
+        sculptRef.current.style.setProperty("--cursor-tilt", `${cx * 0.25}deg`);
+      }
+      if (glowRef.current) {
+        glowRef.current.style.opacity = intensity.toFixed(3);
+        glowRef.current.style.transform = `translate3d(${cx * 1.4}px, ${cy * 1.2}px, 0)`;
       }
       raf = requestAnimationFrame(loop);
     };
@@ -89,30 +100,49 @@ export function HeroAICM() {
         className="pointer-events-none absolute inset-y-0 right-[-10%] z-0 w-[110%] sm:right-[-5%] sm:w-[80%] lg:right-[-8%] lg:w-[65%]"
         style={
           {
-            // CSS vars for parallax
             ["--mx" as string]: "0px",
             ["--my" as string]: "0px",
             ["--scroll-y" as string]: "0px",
+            ["--scroll-tilt" as string]: "0deg",
+            ["--cursor-tilt" as string]: "0deg",
             transform:
               "translate3d(var(--mx), calc(var(--my) + var(--scroll-y)), 0)",
             willChange: "transform",
           } as React.CSSProperties
         }
       >
+        {/* Reactive glow halo behind ring */}
         <div
-          className="absolute inset-0 flex items-center justify-center animate-[heroFloat_8s_ease-in-out_infinite]"
-        >
-          <img
-            src={heroSculpture}
-            alt=""
-            width={1280}
-            height={1280}
-            className="h-[90%] w-[90%] object-contain animate-[heroSpin_42s_linear_infinite]"
+          ref={glowRef}
+          aria-hidden
+          className="absolute inset-0 transition-opacity duration-300"
+          style={{
+            background:
+              "radial-gradient(closest-side, rgba(167,139,250,0.55) 0%, rgba(232,93,58,0.25) 35%, transparent 70%)",
+            filter: "blur(40px)",
+            opacity: 0.55,
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center lux-float">
+          <div
+            className="h-[90%] w-[90%]"
             style={{
-              filter:
-                "drop-shadow(0 40px 80px rgba(124,58,237,0.25)) drop-shadow(0 20px 40px rgba(232,93,58,0.15)) saturate(1.08) contrast(1.03)",
+              transform: "rotate(var(--cursor-tilt)) rotate(var(--scroll-tilt))",
+              transition: "transform 0.4s ease-out",
             }}
-          />
+          >
+            <img
+              src={heroSculpture}
+              alt=""
+              width={1280}
+              height={1280}
+              className="h-full w-full object-contain animate-[heroSpin_42s_linear_infinite]"
+              style={{
+                filter:
+                  "drop-shadow(0 40px 80px rgba(124,58,237,0.30)) drop-shadow(0 20px 40px rgba(232,93,58,0.18)) saturate(1.08) contrast(1.03)",
+              }}
+            />
+          </div>
         </div>
       </div>
 
