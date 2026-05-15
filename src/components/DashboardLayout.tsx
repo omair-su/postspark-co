@@ -232,7 +232,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4">
+        <header className="cream-header flex h-14 items-center justify-between px-4">
           <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5 text-foreground" />
           </button>
@@ -240,14 +240,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
+              className="hidden items-center gap-2 rounded-lg border border-border bg-card/70 px-2.5 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent hover:text-foreground sm:flex"
               aria-label="Open command palette"
             >
               Search…
               <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
             </button>
             {ws.workspace && (
-              <div className="hidden items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1 text-xs sm:flex">
+              <div className="hidden items-center gap-2 rounded-lg border border-border bg-card/70 px-2.5 py-1 text-xs shadow-sm backdrop-blur sm:flex">
                 <Building2 className="h-3.5 w-3.5 text-primary" />
                 <span className="font-medium text-foreground">{ws.workspace.name}</span>
                 {ws.brandKits.length > 0 && (
@@ -273,7 +273,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
         <SubscriptionBanner />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="cream-page flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
       <PWAInstallPrompt />
       <AIProgressBar />
