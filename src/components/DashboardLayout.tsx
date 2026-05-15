@@ -9,6 +9,7 @@ import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AIProgressBar } from "@/components/AIProgressBar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
+import { CommandPaletteRoot } from "@/components/CommandPalette";
 import { getMyWorkspace, setActiveBrandKit } from "@/lib/workspace.functions";
 
 const navGroups = [
@@ -236,6 +237,15 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <Menu className="h-5 w-5 text-foreground" />
           </button>
           <div className="ml-auto flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+              className="hidden items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
+              aria-label="Open command palette"
+            >
+              Search…
+              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
+            </button>
             {ws.workspace && (
               <div className="hidden items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1 text-xs sm:flex">
                 <Building2 className="h-3.5 w-3.5 text-primary" />
@@ -267,6 +277,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </div>
       <PWAInstallPrompt />
       <AIProgressBar />
+      <CommandPaletteRoot />
     </div>
   );
 }
