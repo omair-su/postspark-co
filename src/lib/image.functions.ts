@@ -9,6 +9,8 @@ import {
   generateCarouselSet,
   checkPromptSafety,
   generateCaption,
+  removeBackground as removeBackgroundServer,
+  upscaleImage as upscaleImageServer,
 } from "@/server/image.server";
 
 const FREE_MONTHLY_LIMIT = 5; // free tier preview generations
