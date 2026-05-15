@@ -1,61 +1,57 @@
-## Plan — Phase C polish & consolidation
+## Phase D — Stickiness & SEO
 
-Ten changes across Repurpose, Carousel, Thumbnail/Cover, Image Studio, Podcast, and History. Grouped by area below. Each item lists the user-visible outcome + technical touch points.
+Four feature areas across two turns. Turn 1 = Calendar Planner + SEO upgrade. Turn 2 = Marketplace + Streaks/Digest.
 
-### 1. Carousel inside Repurpose
-- Add **Carousel** as a selectable output type alongside Threads / LinkedIn / etc. on `dashboard.repurpose.tsx`.
-- When chosen, the existing repurpose pipeline calls `generateCarousel()` server-side and stores `outputs.carousel`.
-- One-click URL / YouTube hero auto-includes Carousel when selected.
+---
 
-### 2. Inline slide editing + per-slide AI rewrite (Carousel page)
-- Make title/body editable in `dashboard.carousel.tsx` (contentEditable / textarea on click).
-- New server fn `rewriteSlide` in `src/lib/carousel.functions.ts` → Claude call that rewrites a single slide given tone/instruction.
-- "✨ Rewrite" button on each slide.
+### Turn 1
 
-### 3. Carousel themes (Minimal / Bold / Neon, plus current Brand)
-- Theme picker above generate button. Each theme = preset `{bg, accent, font, layout}` overriding brand kit when selected.
-- Applied in both `SlideCanvas` preview and PDF/PNG export.
+#### 1. 30-day AI Calendar Planner (#10)
+- New server fn `generatePlan` in `src/lib/calendar.functions.ts` → Claude call that returns 30 days of post ideas (date, platform, hook, topic, angle) given user's niche + active brand voice + brand kit tone.
+- New "AI Plan" button on `dashboard.calendar.tsx` opens a dialog: niche/topic + platforms + cadence (daily/3x/weekly).
+- On generate: insert N rows into `scheduled_posts` (status=`draft`, `scheduled_for` spread across next 30 days). Each row links back via `outputs` JSON or content body.
+- Counts as 1 credit (planning, not per-post). Uses `checkRepurposeQuota`.
+- Inline "Regenerate day" button per draft → calls `generatePlan` with single-day scope.
 
-### 4. PNG / JPG export per slide
-- Use `html2canvas` (already common) on the rendered `SlideCanvas` for each slide, download as PNG. Bulk "Download all PNGs" via JSZip.
-- Add `bun add html2canvas jszip` if missing.
+#### 2. SEO competitor-aware outline + internal links (#11)
+- Extend `src/lib/seoBlog.functions.ts` with new fn `generateOutline` (separate from full blog).
+- Inputs: keyword, optional 1-3 competitor URLs.
+- Server-side (`seoBlog.server.ts`):
+  - If competitor URLs: fetch + extract H1/H2/H3 via simple HTML parse (no new dep — cheerio already common, fallback to regex).
+  - Pass competitor headings + keyword to Claude → returns outline (H2/H3 tree) + suggested internal links (from user's existing `blog_posts` where `status='published'`).
+- New tab "Outline + Competitors" on `dashboard.seo-blog.tsx` with competitor URL inputs and outline preview before full generation.
+- Internal links rendered as a checklist; selected ones auto-injected into final markdown.
 
-### 5. Copy caption / hashtags / "Copy All"
-- Three explicit buttons in carousel results panel: Copy caption, Copy hashtags, Copy All (caption + hashtags + all slides text).
+---
 
-### 6. Save thumbnail/cover + image edits to History
-- `dashboard.thumbnail.tsx`: after composing canvas, upload PNG to `generated-images` bucket and insert a `repurpose_jobs` row with `tool='thumbnail'`, outputs containing image URL + overlay settings.
-- `dashboard.image-studio.tsx`: when bg-remove / upscale completes, persist to `repurpose_jobs` with `tool='image-edit'` (variant: removed-bg / upscaled).
-- Update `dashboard.history.tsx` to render `thumbnail` and `image-edit` rows with image preview, download, and copy-URL.
+### Turn 2
 
-### 7. Download buttons for generated images
-- Thumbnail page: explicit "Download PNG" + "Download JPG" buttons after composition.
-- Image Studio bg-remove result: "Download transparent PNG" button (already PNG from Replicate; just ensure download attribute + `.png` filename).
-- Upscaled output: "Download" button.
+#### 3. Swipe file + public template marketplace (#14, #17)
+- DB migration: add `is_public boolean default false`, `category text`, `description text`, `use_count int default 0`, `slug text unique` to `templates`. Keep existing RLS (own-user write); add new policy "Public templates viewable by all".
+- New route `src/routes/templates.gallery.tsx` (public) → lists `templates` where `is_public=true`. Filter by category, search by name.
+- New route `src/routes/templates.$slug.tsx` (public detail page, SEO head with template name + description).
+- "Use this template" button (auth-gated) → server fn `cloneTemplate` copies row to current user, increments `use_count`.
+- Add toggle "Publish to gallery" + category picker on `dashboard.templates.tsx`.
+- Add "Browse marketplace" link in templates page header.
 
-### 8. Credit tracking + LIMIT_REACHED for image/audio tools
-- Reuse the same `checkPlan` helper pattern from `carousel.functions.ts`.
-- Wrap server fns: thumbnail generation, bg-remove, upscale, podcast transcribe→repurpose. Each inserts a `repurpose_jobs` row so the monthly counter ticks.
-- Surface `LIMIT_REACHED` toast + upgrade hint in each UI.
+#### 4. Streaks + weekly digest email (#16, #15)
+- DB migration: add `streak_days int default 0`, `last_active_date date` to `profiles`.
+- New server fn `pingStreak` called from dashboard mount. If `last_active_date = today`: noop. If `= yesterday`: `streak_days++`. Else reset to 1.
+- Streak badge in `DashboardLayout` header next to brand switcher: "🔥 5-day streak".
+- Weekly digest email:
+  - New transactional email template via `email_domain--scaffold_transactional_email` named `weekly_digest` (subject, hero, stats: posts created this week, current streak, top performing post).
+  - New cron route `src/routes/api/public/hooks/weekly-digest.ts` — iterates active users, computes stats from `repurpose_jobs` last 7 days, calls `sendTransactionalEmail`.
+  - pg_cron schedule: every Monday 9 AM.
+- Settings toggle "Weekly digest emails" on `dashboard.settings.tsx` → new `email_prefs` jsonb on profiles (or simple `weekly_digest_enabled boolean`).
 
-### 9. Podcast transcript editor
-- After transcription returns, show editable `<textarea>` of the transcript.
-- Optional timestamp toggle: ask the transcriber for `with_timestamps`, display lines with `[mm:ss]` prefixes the user can keep or strip.
-- "Repurpose this transcript" uses the edited text.
+---
 
-### 10. Save Podcast outputs to History
-- Insert `repurpose_jobs` with `tool='podcast'`, `input_text=<transcript>`, `outputs={ transcript, repurpose: {...} }`.
-- History row: badge "Podcast", click expands transcript + per-platform outputs, copy buttons.
+### Files / deps
+- edit: `src/lib/calendar.functions.ts`, `src/routes/dashboard.calendar.tsx`, `src/lib/seoBlog.functions.ts`, `src/server/seoBlog.server.ts`, `src/routes/dashboard.seo-blog.tsx`, `src/lib/templates.functions.ts`, `src/routes/dashboard.templates.tsx`, `src/components/DashboardLayout.tsx`, `src/routes/dashboard.settings.tsx`
+- new: `src/routes/templates.gallery.tsx`, `src/routes/templates.$slug.tsx`, `src/lib/streak.functions.ts`, `src/routes/api/public/hooks/weekly-digest.ts`
+- migrations: `templates` marketplace columns, `profiles` streak + digest pref columns
+- cron: weekly digest Monday 9am
+- email: `weekly_digest` transactional template
+- no new npm deps needed
 
-### Files touched
-- edit: `src/routes/dashboard.repurpose.tsx`, `src/routes/dashboard.carousel.tsx`, `src/routes/dashboard.thumbnail.tsx`, `src/routes/dashboard.image-studio.tsx`, `src/routes/dashboard.podcast.tsx`, `src/routes/dashboard.history.tsx`
-- edit: `src/lib/carousel.functions.ts`, `src/lib/image.functions.ts`, `src/server/image.server.ts`, `src/server/carousel.server.ts`, `src/server/repurpose.server.ts` (add carousel slot), `src/lib/repurpose.functions.ts`
-- new: `src/lib/podcast.functions.ts`, `src/server/podcast.server.ts` (extract from current podcast route logic)
-- new deps: `html2canvas`, `jszip`
-- DB: no schema changes — reuse `repurpose_jobs.tool` (already added in Phase B).
-
-### Out of scope
-- No new tables, no migrations, no payment changes.
-- Hashtags export remains text-only (no image).
-
-After approval I'll implement all ten in one pass, batching parallel file edits.
+After approval I'll ship Turn 1 first, then Turn 2.
