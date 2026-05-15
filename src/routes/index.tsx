@@ -2,7 +2,9 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroAICM } from "@/components/landing/HeroAICM";
+import { HeroCompareSlider } from "@/components/landing/HeroCompareSlider";
 import { TrustedBySection } from "@/components/landing/TrustedBySection";
+import { LandingLayoutGuard } from "@/components/landing/LandingLayoutGuard";
 import { useAuth } from "@/hooks/useAuth";
 
 const BeforeAfterSection = lazy(() => import("@/components/landing/BeforeAfterSection").then(m => ({ default: m.BeforeAfterSection })));
@@ -72,9 +74,10 @@ function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen scroll-smooth">
+    <div className="min-h-screen scroll-smooth overflow-x-clip">
       <Navbar />
       <HeroAICM />
+      <HeroCompareSlider />
 
       <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
         <TrustedBySection />
@@ -88,6 +91,7 @@ function LandingPage() {
         <CTABanner />
         <Footer />
       </Suspense>
+      <LandingLayoutGuard />
     </div>
   );
 }

@@ -118,29 +118,34 @@ export function PremiumFeaturesSection() {
     setOpenIndex((current) => (current === i ? null : i));
 
   return (
-    <section id="premium-features" className="relative py-24 overflow-hidden">
-      {/* Ambient background */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-electric/10 blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl" />
-      </div>
+    <section id="premium-features" className="relative isolate overflow-hidden cream-surface py-24">
+      <div className="cream-grain" aria-hidden />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 left-1/4 h-96 w-96 rounded-full opacity-40 blur-3xl lux-float"
+        style={{ background: "radial-gradient(closest-side, rgba(124,58,237,0.30), transparent 70%)" }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-32 right-1/4 h-96 w-96 rounded-full opacity-40 blur-3xl lux-float"
+        style={{ animationDelay: "1.6s", background: "radial-gradient(closest-side, rgba(232,93,58,0.25), transparent 70%)" }}
+      />
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-electric/30 bg-electric/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-electric backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5" />
+          <span className="luxury-chip">
+            <Sparkles className="h-3.5 w-3.5 text-[#7c3aed]" />
             Premium Suite
-          </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
-            A Full <span className="text-gradient">AI Content Studio</span>
+          </span>
+          <h2 className="mt-5 luxury-heading" style={{ fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
+            A Full <span className="luxury-gradient-text">AI Content Studio</span>
             <br className="hidden sm:block" />
             in One Workspace
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Beyond simple repurposing — PostSpark is the complete creator OS.
-            Train your voice, design assets, plan your calendar, and grow your reach. All powered by AI.
+          <p className="mx-auto mt-5 max-w-2xl text-base text-[#1a1a2e]/65 sm:text-lg">
+            Beyond simple repurposing — PostSpark is the complete creator OS. Train your voice, design assets, plan your calendar, and grow your reach. All powered by AI.
           </p>
-          <p className="mt-3 text-xs uppercase tracking-wider text-muted-foreground/70">
+          <p className="mt-3 text-xs uppercase tracking-[0.2em] text-[#1a1a2e]/50">
             Tap any card to expand
           </p>
         </div>
@@ -154,10 +159,8 @@ export function PremiumFeaturesSection() {
                 type="button"
                 onClick={() => toggle(i)}
                 aria-expanded={isOpen}
-                className={`group relative overflow-hidden rounded-2xl border bg-card/80 p-6 text-left backdrop-blur-sm transition-all duration-300 animate-fade-in hover:-translate-y-1 hover:shadow-2xl hover:shadow-electric/10 ${
-                  isOpen
-                    ? "border-electric/60 shadow-2xl shadow-electric/20"
-                    : "border-border/60 hover:border-electric/40"
+                className={`luxury-card group relative overflow-hidden p-6 text-left transition-all duration-300 animate-fade-in hover:-translate-y-1 ${
+                  isOpen ? "ring-2 ring-[#7c3aed]/40" : ""
                 }`}
                 style={{ animationDelay: `${i * 70}ms` }}
               >
@@ -188,15 +191,15 @@ export function PremiumFeaturesSection() {
                   </span>
                 </div>
 
-                <h3 className="mt-5 flex items-center justify-between gap-2 text-lg font-bold text-foreground">
+                <h3 className="mt-5 flex items-center justify-between gap-2 text-lg font-semibold luxury-heading">
                   <span>{f.title}</span>
                   <ChevronDown
-                    className={`h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform duration-300 ${
-                      isOpen ? "rotate-180 text-electric" : ""
+                    className={`h-4 w-4 flex-shrink-0 text-[#1a1a2e]/40 transition-transform duration-300 ${
+                      isOpen ? "rotate-180 text-[#7c3aed]" : ""
                     }`}
                   />
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
+                <p className="mt-2 text-sm leading-relaxed text-[#1a1a2e]/65">{f.desc}</p>
 
                 {/* Animated expandable highlights */}
                 <div
@@ -205,19 +208,19 @@ export function PremiumFeaturesSection() {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="border-t border-electric/20 pt-4">
+                    <div className="border-t border-[#1a1a2e]/10 pt-4">
                       <ul className="space-y-2">
                         {f.highlights.map((h, hi) => (
                           <li
                             key={h}
-                            className="flex items-start gap-2 text-xs text-foreground/80"
+                            className="flex items-start gap-2 text-xs text-[#1a1a2e]/75"
                             style={{
                               animation: isOpen
                                 ? `fade-in 0.4s ease-out ${hi * 80}ms both`
                                 : "none",
                             }}
                           >
-                            <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-electric shadow-[0_0_8px_rgba(124,58,237,0.8)]" />
+                            <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#7c3aed] shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
                             <span>{h}</span>
                           </li>
                         ))}
@@ -230,23 +233,22 @@ export function PremiumFeaturesSection() {
           })}
         </div>
 
-        {/* Bottom luxury strip */}
-        <div className="mt-16 rounded-2xl border border-border/60 bg-gradient-to-r from-card via-card/80 to-card p-8 text-center backdrop-blur-sm">
-          <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+        <div className="luxury-card mt-16 p-8 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#1a1a2e]/55">
             Replaces 8+ tools
           </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#1a1a2e]/70">
             <span className="line-through opacity-60">Jasper</span>
-            <span className="text-electric">+</span>
+            <span className="text-[#7c3aed]">+</span>
             <span className="line-through opacity-60">Canva</span>
-            <span className="text-electric">+</span>
+            <span className="text-[#7c3aed]">+</span>
             <span className="line-through opacity-60">Buffer</span>
-            <span className="text-electric">+</span>
+            <span className="text-[#7c3aed]">+</span>
             <span className="line-through opacity-60">Surfer SEO</span>
-            <span className="text-electric">+</span>
+            <span className="text-[#7c3aed]">+</span>
             <span className="line-through opacity-60">Descript</span>
-            <span className="text-electric">=</span>
-            <span className="font-bold text-foreground">PostSpark</span>
+            <span className="text-[#7c3aed]">=</span>
+            <span className="font-bold luxury-heading">PostSpark</span>
           </div>
         </div>
       </div>

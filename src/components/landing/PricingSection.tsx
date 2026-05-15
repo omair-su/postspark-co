@@ -112,13 +112,23 @@ export function PricingSection() {
   };
 
   return (
-    <section className="py-20 bg-surface" id="pricing">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <section className="relative isolate overflow-hidden cream-surface py-24" id="pricing">
+      <div className="cream-grain" aria-hidden />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 right-0 h-80 w-80 rounded-full opacity-40 blur-3xl lux-float"
+        style={{ background: "radial-gradient(closest-side, rgba(124,58,237,0.3), transparent 70%)" }}
+      />
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-            Simple, Transparent <span className="text-gradient">Pricing</span>
+          <span className="luxury-chip">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#7c3aed]" />
+            Pricing
+          </span>
+          <h2 className="mt-5 luxury-heading" style={{ fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
+            Simple, Transparent <span className="luxury-gradient-text">Pricing</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-xl text-[#1a1a2e]/65">
             Start free, or try Pro &amp; Agency free for 14 days. Cancel anytime.
           </p>
 
@@ -156,15 +166,16 @@ export function PricingSection() {
             return (
               <div
                 key={t.name}
-                className={`relative rounded-xl border p-6 animate-fade-in ${
-                  t.popular
-                    ? "border-primary bg-card shadow-lg glow-electric"
-                    : "border-border bg-card"
+                className={`luxury-card relative p-6 animate-fade-in ${
+                  t.popular ? "ring-2 ring-[#7c3aed]/50" : ""
                 }`}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
                 {t.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full gradient-electric px-3 py-0.5 text-xs font-semibold text-primary-foreground">
+                  <div
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-xs font-semibold text-white"
+                    style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #4c1d95 60%, #7c3aed 100%)" }}
+                  >
                     Most Popular
                   </div>
                 )}
