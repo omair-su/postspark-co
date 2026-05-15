@@ -20,6 +20,7 @@ export interface TemplateEntry {
 
 import { template as teamInvite } from './team-invite'
 import { template as approvalRequest } from './approval-request'
+import { template as weeklyDigest } from './weekly-digest'
 import { PaymentFailedEmail } from './payment-failed'
 import { SubscriptionCanceledEmail } from './subscription-canceled'
 import { AccountDeletedEmail } from './account-deleted'
@@ -28,6 +29,7 @@ import { WelcomePaidEmail } from './welcome-paid'
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'team-invite': { ...teamInvite, callerRestriction: 'invite_owner' },
   'approval-request': { ...approvalRequest, callerRestriction: 'approval_owner' },
+  'weekly-digest': { ...weeklyDigest, callerRestriction: 'server_only' },
   'welcome-paid': {
     component: WelcomePaidEmail,
     subject: (d: any) => `Welcome to PostSpark ${d?.planName ?? 'Premium'} 🎉`,
