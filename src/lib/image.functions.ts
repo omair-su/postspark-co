@@ -158,7 +158,9 @@ export const generateImage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
-    if (!(await isPro(plan)))
+    if (!(await checkRepurposeQuota(userId, plan)))
+      return { imageUrl: "", error: "LIMIT_REACHED" };
+    if (!(await isPro(plan)) && data.template !== "thumbnail" && data.template !== "blog-cover")
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
     const res = await generateSocialImage(data.prompt, data.style, data.aspect, data.template);
     if (res.imageUrl) {
@@ -169,9 +171,17 @@ export const generateImage = createServerFn({ method: "POST" })
         style: data.style,
         aspect: data.aspect,
         template: data.template,
-        source: "generate",
+        source: data.template === "thumbnail" || data.template === "blog-cover" ? "thumbnail" : "generate",
       });
       if (persisted) res.imageUrl = persisted;
+      const isThumb = data.template === "thumbnail" || data.template === "blog-cover";
+      await logToHistory({
+        userId,
+        tool: isThumb ? "thumbnail" : "image",
+        title: data.prompt.slice(0, 80),
+        inputText: data.prompt,
+        outputs: { image_url: res.imageUrl, style: data.style, aspect: data.aspect, template: data.template || "" },
+      });
     }
     return res;
   });
