@@ -202,7 +202,7 @@ function HistoryPage() {
                   { title: "Original Input", content: selected.input_text },
                   ...Object.entries(selected.outputs || {}).map(([key, val]) => ({
                     title: key.charAt(0).toUpperCase() + key.slice(1),
-                    content: val,
+                    content: typeof val === "string" ? val : JSON.stringify(val, null, 2),
                   })),
                 ];
                 exportToPdf(sections, `repurpose-${selected.id.slice(0, 8)}`);
