@@ -196,22 +196,150 @@ function SeoBlogPage() {
           </div>
         </div>
 
-        <button
-          onClick={generate}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90 disabled:opacity-60"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Writing your article…
-            </>
+        {tab === "outline" && (
+          <div className="space-y-2 rounded-lg border border-dashed border-border p-3">
+            <label className="block text-sm font-medium">Competitor URLs (up to 3)</label>
+            {competitors.map((url, i) => (
+              <div key={i} className="flex gap-2">
+                <input
+                  value={url}
+                  onChange={(e) => {
+                    const next = [...competitors];
+                    next[i] = e.target.value;
+                    setCompetitors(next);
+                  }}
+                  placeholder="https://competitor.com/article"
+                  className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setCompetitors(competitors.filter((_, idx) => idx !== i))}
+                  className="rounded-lg border border-input p-2 text-muted-foreground hover:bg-accent"
+                  aria-label="Remove URL"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+            {competitors.length < 3 && (
+              <button
+                type="button"
+                onClick={() => setCompetitors([...competitors, ""])}
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <Plus className="h-3 w-3" /> Add competitor
+              </button>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          {tab === "blog" ? (
+            <button
+              onClick={generate}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90 disabled:opacity-60"
+            >
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Writing your article…</> : <><Sparkles className="h-4 w-4" /> Generate SEO blog</>}
+            </button>
           ) : (
-            <>
-              <Sparkles className="h-4 w-4" /> Generate SEO blog
-            </>
+            <button
+              onClick={generateOutlineFn}
+              disabled={outlineLoading}
+              className="inline-flex items-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90 disabled:opacity-60"
+            >
+              {outlineLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing competitors…</> : <><Search className="h-4 w-4" /> Generate outline</>}
+            </button>
           )}
-        </button>
+        </div>
       </div>
+
+      {tab === "outline" && outline && (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Suggested title</h3>
+            <p className="text-base font-semibold text-foreground">{outline.title}</p>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h3 className="mb-3 text-sm font-semibold">Proposed outline</h3>
+            <ol className="list-decimal space-y-3 pl-5 text-sm text-foreground">
+              {outline.outline.map((s, i) => (
+                <li key={i}>
+                  <p className="font-semibold">{s.h2}</p>
+                  {s.h3 && s.h3.length > 0 && (
+                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-muted-foreground">
+                      {s.h3.map((h, j) => <li key={j}>{h}</li>)}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {outline.suggestedInternalLinks.length > 0 && (
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <h3 className="mb-3 text-sm font-semibold">Internal links to include</h3>
+              <div className="space-y-2">
+                {outline.suggestedInternalLinks.map((l, i) => (
+                  <label key={i} className="flex cursor-pointer items-start gap-2 rounded-lg border border-border p-2 hover:bg-accent">
+                    <input
+                      type="checkbox"
+                      checked={selectedLinks.has(i)}
+                      onChange={(e) => {
+                        const next = new Set(selectedLinks);
+                        if (e.target.checked) next.add(i);
+                        else next.delete(i);
+                        setSelectedLinks(next);
+                      }}
+                      className="mt-1"
+                    />
+                    <div className="flex-1 text-sm">
+                      <p className="font-medium text-foreground">{l.title}</p>
+                      <p className="text-xs text-muted-foreground">/blog/{l.slug} → "<span className="italic">{l.anchor}</span>"</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              {selectedLinks.size > 0 && (
+                <button
+                  onClick={() => {
+                    const md = Array.from(selectedLinks)
+                      .map((i) => outline.suggestedInternalLinks[i])
+                      .map((l) => `[${l.anchor}](/blog/${l.slug})`)
+                      .join("\n");
+                    navigator.clipboard.writeText(md);
+                    toast.success("Copied as markdown links");
+                  }}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-input px-3 py-1.5 text-xs hover:bg-accent"
+                >
+                  <Copy className="h-3 w-3" /> Copy {selectedLinks.size} as markdown
+                </button>
+              )}
+            </div>
+          )}
+
+          {outline.competitorHeadings.length > 0 && (
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <h3 className="mb-3 text-sm font-semibold">Competitor headings analyzed</h3>
+              <div className="space-y-3">
+                {outline.competitorHeadings.map((c, i) => (
+                  <div key={i}>
+                    <p className="truncate text-xs font-mono text-muted-foreground">{c.url}</p>
+                    {c.headings.length > 0 ? (
+                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs">
+                        {c.headings.slice(0, 12).map((h, j) => <li key={j}>{h}</li>)}
+                      </ul>
+                    ) : (
+                      <p className="text-xs italic text-muted-foreground">No headings extracted (page may block bots)</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {blog && (
         <div className="space-y-4">
