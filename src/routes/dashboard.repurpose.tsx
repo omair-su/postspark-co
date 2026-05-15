@@ -477,7 +477,7 @@ function RepurposePage() {
 
       {/* Results */}
       {results && (
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4 animate-fade-in">
           <HookABTester inputText={inputText} jobId={lastJobId} />
           {Object.entries(results).map(([key, content]) => {
             if (!selected.has(key) && key !== "tweets") return null;
@@ -491,6 +491,7 @@ function RepurposePage() {
                 onCopy={handleCopy}
                 copied={copied}
                 onRegenerate={handleRepurpose}
+                isRegenerating={loading}
               />
             );
           })}
