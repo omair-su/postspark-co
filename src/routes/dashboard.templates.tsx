@@ -29,6 +29,11 @@ interface Template {
   custom_instructions: string;
   selected_types: string[];
   created_at: string;
+  is_public?: boolean;
+  category?: string | null;
+  description?: string | null;
+  slug?: string | null;
+  use_count?: number;
 }
 
 export const Route = createFileRoute("/dashboard/templates")({
@@ -124,6 +129,31 @@ function TemplatesPage() {
     setSelectedTypes(next);
   };
 
+  const handlePublishToggle = async (t: Template) => {
+    if (!session) return;
+    const next = !t.is_public;
+    let category = t.category || "social";
+    let description = t.description || "";
+    if (next) {
+      const c = window.prompt("Category (social, newsletter, video, thread, launch, other):", category);
+      if (c === null) return;
+      category = c.trim() || "social";
+      const d = window.prompt("Short description (max 280 chars):", description);
+      if (d === null) return;
+      description = (d || "").slice(0, 280);
+    }
+    const res: any = await togglePublishTemplate({
+      data: { id: t.id, isPublic: next, category, description },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    } as any);
+    if (res.success) {
+      toast.success(next ? "Published to marketplace" : "Unpublished");
+      loadTemplates();
+    } else {
+      toast.error(res.error || "Failed to update");
+    }
+  };
+
   return (
     <div className="mx-auto max-w-3xl animate-fade-in">
       <div className="flex items-center justify-between">
@@ -131,12 +161,20 @@ function TemplatesPage() {
           <h1 className="text-2xl font-bold text-foreground">Templates</h1>
           <p className="mt-1 text-sm text-muted-foreground">Save your favorite format & tone combinations.</p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 rounded-xl gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground"
-        >
-          <Plus className="h-4 w-4" /> New Template
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/templates/gallery"
+            className="hidden sm:flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent"
+          >
+            <Store className="h-4 w-4" /> Marketplace
+          </Link>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 rounded-xl gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            <Plus className="h-4 w-4" /> New Template
+          </button>
+        </div>
       </div>
 
       {/* Create modal */}
@@ -256,6 +294,16 @@ function TemplatesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handlePublishToggle(t)}
+                    className={`flex items-center gap-1 rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors ${
+                      t.is_public ? "border-primary/40 bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-accent"
+                    }`}
+                    title={t.is_public ? "Public — click to unpublish" : "Private — click to publish to marketplace"}
+                  >
+                    {t.is_public ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                    {t.is_public ? "Public" : "Private"}
+                  </button>
                   <button
                     onClick={() => handleApply(t)}
                     className="flex items-center gap-1 rounded-lg gradient-electric px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90"
