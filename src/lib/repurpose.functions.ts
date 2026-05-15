@@ -66,6 +66,7 @@ export const repurposeContent = createServerFn({ method: "POST" })
       tone: z.string().max(50).optional(),
       customInstructions: z.string().max(500).optional(),
       language: z.string().max(40).optional(),
+      tool: z.enum(["repurpose", "podcast", "humanizer", "reply_generator"]).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -164,6 +165,7 @@ export const repurposeContent = createServerFn({ method: "POST" })
           outputs: { raw: result.output },
           brand_kit_id: brandKitId,
           workspace_id: workspaceId,
+          tool: data.tool || "repurpose",
         } as any)
         .select("id")
         .single();

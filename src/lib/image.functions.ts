@@ -103,6 +103,38 @@ async function countMonthlyGenerations(userId: string): Promise<number> {
   return count || 0;
 }
 
+const FREE_REPURPOSE_LIMIT = 10;
+async function checkRepurposeQuota(userId: string, plan: string): Promise<boolean> {
+  if (plan === "pro" || plan === "agency") return true;
+  const since = await monthStartIso();
+  const { count } = await supabaseAdmin
+    .from("repurpose_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", since);
+  return (count ?? 0) < FREE_REPURPOSE_LIMIT;
+}
+
+async function logToHistory(opts: {
+  userId: string;
+  tool: string;
+  title: string;
+  inputText: string;
+  outputs: Record<string, any>;
+}) {
+  try {
+    await supabaseAdmin.from("repurpose_jobs").insert({
+      user_id: opts.userId,
+      tool: opts.tool,
+      title: opts.title.slice(0, 200),
+      input_text: opts.inputText.slice(0, 5000),
+      outputs: opts.outputs,
+    } as any);
+  } catch (e) {
+    console.error("logToHistory error:", e);
+  }
+}
+
 export const getImageUsage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -126,7 +158,9 @@ export const generateImage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
-    if (!(await isPro(plan)))
+    if (!(await checkRepurposeQuota(userId, plan)))
+      return { imageUrl: "", error: "LIMIT_REACHED" };
+    if (!(await isPro(plan)) && data.template !== "thumbnail" && data.template !== "blog-cover")
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
     const res = await generateSocialImage(data.prompt, data.style, data.aspect, data.template);
     if (res.imageUrl) {
@@ -137,9 +171,17 @@ export const generateImage = createServerFn({ method: "POST" })
         style: data.style,
         aspect: data.aspect,
         template: data.template,
-        source: "generate",
+        source: data.template === "thumbnail" || data.template === "blog-cover" ? "thumbnail" : "generate",
       });
       if (persisted) res.imageUrl = persisted;
+      const isThumb = data.template === "thumbnail" || data.template === "blog-cover";
+      await logToHistory({
+        userId,
+        tool: isThumb ? "thumbnail" : "image",
+        title: data.prompt.slice(0, 80),
+        inputText: data.prompt,
+        outputs: { image_url: res.imageUrl, style: data.style, aspect: data.aspect, template: data.template || "" },
+      });
     }
     return res;
   });
@@ -257,6 +299,8 @@ export const removeImageBackground = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
+    if (!(await checkRepurposeQuota(userId, plan)))
+      return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Background removal is a Pro feature. Upgrade to unlock." };
     const res = await removeBackgroundServer(data.imageDataUrl);
@@ -268,6 +312,13 @@ export const removeImageBackground = createServerFn({ method: "POST" })
         source: "bg-remove",
       });
       if (persisted) res.imageUrl = persisted;
+      await logToHistory({
+        userId,
+        tool: "image-edit",
+        title: "Background removed",
+        inputText: "Background removal",
+        outputs: { image_url: res.imageUrl, variant: "bg-remove" },
+      });
     }
     return res;
   });
@@ -283,6 +334,8 @@ export const upscaleUploadedImage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
+    if (!(await checkRepurposeQuota(userId, plan)))
+      return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Upscale is a Pro feature. Upgrade to unlock." };
     const res = await upscaleImageServer(data.imageDataUrl, data.scale);
@@ -294,6 +347,13 @@ export const upscaleUploadedImage = createServerFn({ method: "POST" })
         source: "upscale",
       });
       if (persisted) res.imageUrl = persisted;
+      await logToHistory({
+        userId,
+        tool: "image-edit",
+        title: `Upscaled ${data.scale}x`,
+        inputText: `Upscale ${data.scale}x`,
+        outputs: { image_url: res.imageUrl, variant: `upscale-${data.scale}x` },
+      });
     }
     return res;
   });
