@@ -16,15 +16,19 @@ export function PublicShowcaseSettings() {
 
   useEffect(() => {
     if (typeof window !== "undefined") setOrigin(window.location.origin);
-    fetchMine({}).then((r) => {
-      const h = r.profile?.handle as string | undefined;
-      const t = r.profile?.tagline as string | undefined;
-      if (h) {
-        setHandleVal(h);
-        setSavedHandle(h);
-      }
-      if (t) setTagline(t);
-    }).catch(() => {});
+    fetchMine()
+      .then((r) => {
+        const h = r?.profile?.handle as string | undefined;
+        const t = r?.profile?.tagline as string | undefined;
+        if (h) {
+          setHandleVal(h);
+          setSavedHandle(h);
+        }
+        if (t) setTagline(t);
+      })
+      .catch((err) => {
+        console.warn("[showcase] failed to load profile", err);
+      });
   }, [fetchMine]);
 
   const onSave = async (e: React.FormEvent) => {
