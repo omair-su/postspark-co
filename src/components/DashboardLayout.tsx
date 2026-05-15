@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare } from "lucide-react";
+import { SparkCopilot } from "@/components/SparkCopilot";
 import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
@@ -27,6 +28,8 @@ const navGroups = [
       { to: "/dashboard/seo-blog", icon: FileText, label: "SEO Blog" },
       { to: "/dashboard/hook-lab", icon: Flame, label: "Hook Lab" },
       { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
+      { to: "/dashboard/humanizer", icon: Wand2, label: "AI Humanizer" },
+      { to: "/dashboard/reply-generator", icon: MessageSquare, label: "Reply Generator" },
       { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
     ],
   },
@@ -276,6 +279,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <PWAInstallPrompt />
       <AIProgressBar />
       <CommandPaletteRoot />
+      <SparkCopilot />
     </div>
   );
 }
