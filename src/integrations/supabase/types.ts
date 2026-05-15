@@ -549,6 +549,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          handle: string | null
           id: string
           onboarding_completed: boolean
           plan: string
@@ -556,6 +557,7 @@ export type Database = {
           primary_role: string | null
           referral_code: string | null
           referred_by: string | null
+          tagline: string | null
           updated_at: string
           user_id: string
         }
@@ -563,6 +565,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          handle?: string | null
           id?: string
           onboarding_completed?: boolean
           plan?: string
@@ -570,6 +573,7 @@ export type Database = {
           primary_role?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          tagline?: string | null
           updated_at?: string
           user_id: string
         }
@@ -577,6 +581,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          handle?: string | null
           id?: string
           onboarding_completed?: boolean
           plan?: string
@@ -584,6 +589,7 @@ export type Database = {
           primary_role?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          tagline?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -620,6 +626,7 @@ export type Database = {
         Row: {
           brand_kit_id: string | null
           created_at: string
+          hook_variants: Json
           id: string
           input_text: string
           is_favorite: boolean
@@ -630,11 +637,13 @@ export type Database = {
           title: string | null
           user_id: string
           view_count: number
+          winning_hook_index: number | null
           workspace_id: string | null
         }
         Insert: {
           brand_kit_id?: string | null
           created_at?: string
+          hook_variants?: Json
           id?: string
           input_text: string
           is_favorite?: boolean
@@ -645,11 +654,13 @@ export type Database = {
           title?: string | null
           user_id: string
           view_count?: number
+          winning_hook_index?: number | null
           workspace_id?: string | null
         }
         Update: {
           brand_kit_id?: string | null
           created_at?: string
+          hook_variants?: Json
           id?: string
           input_text?: string
           is_favorite?: boolean
@@ -660,6 +671,7 @@ export type Database = {
           title?: string | null
           user_id?: string
           view_count?: number
+          winning_hook_index?: number | null
           workspace_id?: string | null
         }
         Relationships: [
