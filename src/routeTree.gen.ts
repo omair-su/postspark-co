@@ -37,6 +37,7 @@ import { Route as FeaturesYoutubeToTweetsRouteImport } from './routes/features.y
 import { Route as FeaturesRepurposeBlogToSocialRouteImport } from './routes/features.repurpose-blog-to-social'
 import { Route as FeaturesLinkedinPostGeneratorRouteImport } from './routes/features.linkedin-post-generator'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as DashboardThumbnailRouteImport } from './routes/dashboard.thumbnail'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
@@ -210,6 +211,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardThumbnailRoute = DashboardThumbnailRouteImport.update({
+  id: '/thumbnail',
+  path: '/thumbnail',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardTemplatesRoute = DashboardTemplatesRouteImport.update({
   id: '/templates',
@@ -410,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -470,6 +477,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -532,6 +540,7 @@ export interface FileRoutesById {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -595,6 +604,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard/templates'
+    | '/dashboard/thumbnail'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -655,6 +665,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard/templates'
+    | '/dashboard/thumbnail'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -716,6 +727,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard/templates'
+    | '/dashboard/thumbnail'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -980,6 +992,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/thumbnail': {
+      id: '/dashboard/thumbnail'
+      path: '/thumbnail'
+      fullPath: '/dashboard/thumbnail'
+      preLoaderRoute: typeof DashboardThumbnailRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/templates': {
       id: '/dashboard/templates'
       path: '/templates'
@@ -1220,6 +1239,7 @@ interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardTeamRoute: typeof DashboardTeamRoute
   DashboardTemplatesRoute: typeof DashboardTemplatesRoute
+  DashboardThumbnailRoute: typeof DashboardThumbnailRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
@@ -1243,6 +1263,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardTeamRoute: DashboardTeamRoute,
   DashboardTemplatesRoute: DashboardTemplatesRoute,
+  DashboardThumbnailRoute: DashboardThumbnailRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
