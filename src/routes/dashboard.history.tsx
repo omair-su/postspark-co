@@ -116,7 +116,7 @@ function HistoryPage() {
       { title: `Input (${new Date(j.created_at).toLocaleDateString()})`, content: j.input_text },
       ...Object.entries(j.outputs || {}).map(([k, v]) => ({
         title: k.charAt(0).toUpperCase() + k.slice(1),
-        content: v,
+        content: typeof v === "string" ? v : JSON.stringify(v, null, 2),
       })),
     ]);
     exportToPdf(sections, `repurpose-bulk-${toExport.length}`);
@@ -132,7 +132,10 @@ function HistoryPage() {
     const header = "Date,Input,Outputs\n";
     const rows = toExport.map((j) => {
       const outputs = Object.entries(j.outputs || {})
-        .map(([k, v]) => `${k}: ${v.replace(/"/g, '""').substring(0, 500)}`)
+        .map(([k, v]) => {
+          const s = typeof v === "string" ? v : JSON.stringify(v);
+          return `${k}: ${s.replace(/"/g, '""').substring(0, 500)}`;
+        })
         .join(" | ");
       return `"${new Date(j.created_at).toLocaleDateString()}","${j.input_text.replace(/"/g, '""').substring(0, 200)}","${outputs.replace(/"/g, '""')}"`;
     });
