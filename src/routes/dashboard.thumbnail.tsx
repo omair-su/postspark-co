@@ -275,22 +275,28 @@ function ThumbnailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, presetId]);
 
-  const download = () => {
+  const downloadAs = (format: "png" | "jpg") => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.toBlob((blob) => {
-      if (!blob) return toast.error("Export failed");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${preset.id}-${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success("Downloaded");
-    }, "image/png");
+    const mime = format === "jpg" ? "image/jpeg" : "image/png";
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return toast.error("Export failed");
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${preset.id}-${Date.now()}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast.success(`Downloaded ${format.toUpperCase()}`);
+      },
+      mime,
+      format === "jpg" ? 0.92 : undefined,
+    );
   };
+  const download = () => downloadAs("png");
 
   const previewAspect =
     preset.aspect === "square"
@@ -465,12 +471,20 @@ function ThumbnailPage() {
             <div className="text-xs text-muted-foreground">
               <Type className="mr-1 inline h-3.5 w-3.5" /> Live preview · text rendered crisply at full export size
             </div>
-            <button
-              onClick={download}
-              className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90"
-            >
-              <Download className="h-4 w-4" /> Download PNG
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => downloadAs("png")}
+                className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90"
+              >
+                <Download className="h-4 w-4" /> PNG
+              </button>
+              <button
+                onClick={() => downloadAs("jpg")}
+                className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-4 py-2 text-sm font-semibold hover:bg-accent"
+              >
+                <Download className="h-4 w-4" /> JPG
+              </button>
+            </div>
           </div>
         </div>
       </div>

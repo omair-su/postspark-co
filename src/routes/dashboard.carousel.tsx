@@ -53,6 +53,16 @@ function CarouselPage() {
       .catch(() => {});
   }, [session]);
 
+  // Prefill topic from URL ?topic=… (e.g. coming from Repurpose)
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const t = url.searchParams.get("topic");
+      if (t && !topic) setTopic(t.slice(0, 2000));
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const t = THEMES[theme];
   const primary = theme === "brand" ? (kit?.primary_color || DEFAULTS.primary) : t.primary;
   const accent = theme === "brand" ? (kit?.accent_color || DEFAULTS.accent) : t.accent;

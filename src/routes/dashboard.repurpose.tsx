@@ -26,6 +26,7 @@ const contentTypes = [
   { id: "tiktok", label: "TikTok Scripts", emoji: "🎵" },
   { id: "podcast", label: "Podcast Notes", emoji: "🎙️" },
   { id: "seo", label: "SEO / Blog Summary", emoji: "🔍" },
+  { id: "carousel", label: "Carousel (swipes)", emoji: "🖼️" },
 ];
 
 interface ParsedResults {
@@ -544,7 +545,25 @@ function RepurposePage() {
       {results && (
         <div className="mt-6 space-y-4 animate-fade-in">
           <HookABTester inputText={inputText} jobId={lastJobId} />
+          {selected.has("carousel") && (
+            <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-5">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">🖼️ Carousel ready to design</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">Open the Carousel Generator with this topic prefilled — pick a theme, edit slides inline, export PNG/PDF.</p>
+                </div>
+                <Link
+                  to="/dashboard/carousel"
+                  search={{ topic: inputText.slice(0, 500) } as any}
+                  className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-xs font-bold text-primary-foreground glow-electric hover:opacity-90"
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> Generate carousel
+                </Link>
+              </div>
+            </div>
+          )}
           {Object.entries(results).map(([key, content]) => {
+            if (key === "carousel") return null;
             if (!selected.has(key) && key !== "tweets") return null;
             const label = typeLabels[key] || key;
             return (
