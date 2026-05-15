@@ -61,6 +61,42 @@ function RepurposePage() {
   const [overrideTone, setOverrideTone] = useState(false);
 
   const [pendingAutoRun, setPendingAutoRun] = useState(false);
+  const [oneClickUrl, setOneClickUrl] = useState("");
+  const [oneClickBusy, setOneClickBusy] = useState(false);
+
+  const handleOneClick = async () => {
+    if (!session) return toast.error("Please sign in");
+    const url = oneClickUrl.trim();
+    if (!url) return toast.error("Paste a URL or YouTube link");
+    if (usage && usage.limit !== -1 && usage.used >= usage.limit) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setOneClickBusy(true);
+    try {
+      const res = await importFromUrl({
+        data: { url },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.error || !res.text) {
+        toast.error(res.error || "Couldn't fetch that URL");
+        return;
+      }
+      setInputText(res.text);
+      setImportMeta(res.title ? `From: ${res.title}` : `From: ${url}`);
+      setTab("text");
+      toast.success("Imported — generating now…");
+      // ensure defaults
+      if (selected.size === 0) {
+        setSelected(new Set(["tweets", "linkedin", "email", "video"]));
+      }
+      setPendingAutoRun(true);
+    } catch {
+      toast.error("Import failed");
+    } finally {
+      setOneClickBusy(false);
+    }
+  };
 
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
