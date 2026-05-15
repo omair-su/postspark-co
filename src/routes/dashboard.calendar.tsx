@@ -2,14 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2, X, Loader2, Upload } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Trash2, X, Loader2, Upload, Sparkles } from "lucide-react";
 import {
   listScheduledPosts,
   createScheduledPost,
   deleteScheduledPost,
   updateScheduledPost,
   bulkImportScheduledPosts,
+  generateAIPlan,
 } from "@/lib/calendar.functions";
+import { withAIProgress } from "@/lib/aiProgress";
 
 export const Route = createFileRoute("/dashboard/calendar")({
   component: CalendarPage,
@@ -50,6 +52,7 @@ function CalendarPage() {
   const [editing, setEditing] = useState<Post | null>(null);
   const [defaultDate, setDefaultDate] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"all" | "scheduled" | "published" | "failed">("all");
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const monthLabel = cursor.toLocaleString(undefined, { month: "long", year: "numeric" });
@@ -209,6 +212,12 @@ function CalendarPage() {
             />
           </label>
           <button
+            onClick={() => setShowPlanModal(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary/20"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> AI 30-day plan
+          </button>
+          <button
             onClick={() => openNew(new Date())}
             className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90"
           >
@@ -320,6 +329,16 @@ function CalendarPage() {
             load();
           }}
           onDelete={handleDelete}
+        />
+      )}
+
+      {showPlanModal && (
+        <AIPlanModal
+          onClose={() => setShowPlanModal(false)}
+          onDone={() => {
+            setShowPlanModal(false);
+            load();
+          }}
         />
       )}
     </div>
