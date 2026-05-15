@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
 import { GuidedIntakeModal, type IntakeKind } from "@/components/GuidedIntakeModal";
+import { DailySpark } from "@/components/DailySpark";
+import { ActivationChecklist } from "@/components/ActivationChecklist";
+import { CardSkeleton, ListSkeleton } from "@/components/skeletons";
 
 const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description: string }> = [
   { id: "founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into thread + LinkedIn + email." },
@@ -52,12 +55,29 @@ function DashboardHome() {
   const isUnlimited = usage?.limit === -1;
 
   return (
-    <div className="mx-auto max-w-3xl animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Welcome to PostSpark 👋</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Here's your content repurposing overview.</p>
+    <div className="mx-auto max-w-3xl animate-fade-in space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Welcome back, {name.split(" ")[0]} 👋</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Press <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd> to jump anywhere — or pick today's spark below.</p>
+      </div>
+
+      <DailySpark />
+      <ActivationChecklist />
 
       {/* Stats cards */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
+        {loading ? (
+          <>
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </>
+        ) : (
+          <></>
+        )}
+        {!loading && (
+          <></>
+        )}
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
