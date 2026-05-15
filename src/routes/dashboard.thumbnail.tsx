@@ -275,22 +275,28 @@ function ThumbnailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, presetId]);
 
-  const download = () => {
+  const downloadAs = (format: "png" | "jpg") => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.toBlob((blob) => {
-      if (!blob) return toast.error("Export failed");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${preset.id}-${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success("Downloaded");
-    }, "image/png");
+    const mime = format === "jpg" ? "image/jpeg" : "image/png";
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return toast.error("Export failed");
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${preset.id}-${Date.now()}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast.success(`Downloaded ${format.toUpperCase()}`);
+      },
+      mime,
+      format === "jpg" ? 0.92 : undefined,
+    );
   };
+  const download = () => downloadAs("png");
 
   const previewAspect =
     preset.aspect === "square"
