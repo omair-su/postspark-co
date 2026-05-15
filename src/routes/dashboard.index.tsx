@@ -73,45 +73,44 @@ function DashboardHome() {
             <CardSkeleton />
           </>
         ) : (
-          <></>
+          <>
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
+                  <Repeat className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{usage?.used ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">This month</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
+                  <TrendingUp className="h-4 w-4 text-accent-foreground" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{totalJobs}</p>
+                  <p className="text-xs text-muted-foreground">Total all time</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
+                  <Zap className="h-4 w-4 text-accent-foreground" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground capitalize">{plan}</p>
+                  <p className="text-xs text-muted-foreground">Current plan</p>
+                </div>
+              </div>
+            </div>
+          </>
         )}
-        {!loading && (<>
-        </>)}
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
-              <Repeat className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{usage?.used ?? 0}</p>
-              <p className="text-xs text-muted-foreground">This month</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-              <TrendingUp className="h-4 w-4 text-accent-foreground" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{totalJobs}</p>
-              <p className="text-xs text-muted-foreground">Total all time</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-              <Zap className="h-4 w-4 text-accent-foreground" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground capitalize">{plan}</p>
-              <p className="text-xs text-muted-foreground">Current plan</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Usage progress */}
