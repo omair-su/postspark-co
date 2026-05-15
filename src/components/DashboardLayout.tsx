@@ -113,8 +113,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const displayEmail = user?.email || "";
 
   const sidebar = (
-    <div className="flex h-full min-h-0 flex-col bg-navy text-sidebar-foreground">
-      <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b border-sidebar-border bg-gradient-to-r from-navy via-navy-light to-navy">
+    <div className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground">
+      <div className="relative flex h-16 shrink-0 items-center justify-between px-4 border-b border-white/5">
         <div className="ps-sidebar-logo">
           <PostSparkLogo variant="wordmark" size={32} tone="light" />
         </div>
@@ -129,9 +129,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile-only brand switcher */}
       {ws.workspace && (
-        <div className="md:hidden shrink-0 border-b border-sidebar-border px-3 py-2">
-          <div className="flex items-center gap-2 rounded-lg bg-sidebar-accent/30 px-2.5 py-1.5 text-xs">
-            <Building2 className="h-3.5 w-3.5 text-primary" />
+        <div className="md:hidden relative shrink-0 border-b border-white/5 px-3 py-2">
+          <div className="flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs backdrop-blur">
+            <Building2 className="h-3.5 w-3.5 text-[#c4b5fd]" />
             <span className="truncate font-medium text-sidebar-foreground">{ws.workspace.name}</span>
             {ws.brandKits.length > 0 && (
               <select
@@ -150,7 +150,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <nav className="sidebar-scroll flex-1 min-h-0 overflow-y-auto px-3 py-4">
+      <nav className="sidebar-scroll relative flex-1 min-h-0 overflow-y-auto px-3 py-4">
         {[
           ...navGroups,
           ...(isAdmin
@@ -160,13 +160,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               } as const]
             : []),
         ].map((group, gi) => (
-          <div key={group.label} className={gi === 0 ? "" : "mt-4"}>
+          <div key={group.label} className={gi === 0 ? "" : "mt-5"}>
             {gi !== 0 && (
-              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+              <p className="lux-group-label px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em]">
                 {group.label}
               </p>
             )}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {group.items.map((item: any) => {
                 const active = location.pathname === item.to && !item.search;
                 return (
@@ -175,13 +175,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     to={item.to}
                     search={item.search}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      active
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                    className={`lux-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
+                      active ? "lux-nav-active" : "text-sidebar-foreground/65"
                     }`}
                   >
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className="lux-nav-icon h-4 w-4" />
                     {item.label}
                   </Link>
                 );
@@ -191,14 +189,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
-      <div className="shrink-0 border-t border-sidebar-border p-3">
+      <div className="relative shrink-0 border-t border-white/5 p-3">
         {/* User info */}
-        <div className="mb-3 flex items-center gap-3 px-3">
+        <div className="mb-3 flex items-center gap-3 rounded-lg bg-white/[0.03] px-3 py-2 backdrop-blur">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+            <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10" />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
-              <User className="h-3.5 w-3.5 text-sidebar-accent-foreground" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4c1d95] ring-1 ring-white/10">
+              <User className="h-3.5 w-3.5 text-white" />
             </div>
           )}
           <div className="min-w-0">
@@ -209,9 +207,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         <button
           onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+          className="lux-nav-item flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/65"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="lux-nav-icon h-4 w-4" />
           Sign Out
         </button>
       </div>
