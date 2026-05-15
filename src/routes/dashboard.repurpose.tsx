@@ -543,7 +543,7 @@ function ResultCard({
 }) {
   const wordCount = content.split(/\s+/).filter(Boolean).length;
   const charCount = content.length;
-  const previewable = ["tweets", "thread", "linkedin", "instagram", "facebook"].includes(id);
+  const previewable = ["tweets", "thread", "linkedin", "instagram", "facebook", "tiktok", "email"].includes(id);
   const [view, setView] = useState<"raw" | "preview">(previewable ? "preview" : "raw");
   const [triggeredRegen, setTriggeredRegen] = useState(false);
   const cardLoading = isRegenerating && triggeredRegen;
