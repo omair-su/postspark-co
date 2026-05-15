@@ -27,6 +27,7 @@ import {
   Users,
   LayoutDashboard,
   HelpCircle,
+  Layers,
 } from "lucide-react";
 
 type Action = {
@@ -42,6 +43,7 @@ const ACTIONS: Action[] = [
   { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard, group: "Navigate", shortcut: "G D" },
   { label: "New Repurpose", to: "/dashboard/repurpose", icon: Repeat, group: "Create", shortcut: "G R", keywords: "create generate post tweet linkedin" },
   { label: "Image Studio", to: "/dashboard/image-studio", icon: ImageIcon, group: "Create", shortcut: "G I", keywords: "ai picture thumbnail" },
+  { label: "Carousel Generator", to: "/dashboard/carousel", icon: Layers, group: "Create", keywords: "slides linkedin instagram swipe" },
   { label: "Hook Lab", to: "/dashboard/hook-lab", icon: Flame, group: "Create", keywords: "viral title intro" },
   { label: "SEO Blog Writer", to: "/dashboard/seo-blog", icon: FileText, group: "Create", keywords: "article long form" },
   { label: "Templates", to: "/dashboard/templates", icon: Bookmark, group: "Create" },
