@@ -299,6 +299,8 @@ export const removeImageBackground = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
+    if (!(await checkRepurposeQuota(userId, plan)))
+      return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Background removal is a Pro feature. Upgrade to unlock." };
     const res = await removeBackgroundServer(data.imageDataUrl);
@@ -310,6 +312,13 @@ export const removeImageBackground = createServerFn({ method: "POST" })
         source: "bg-remove",
       });
       if (persisted) res.imageUrl = persisted;
+      await logToHistory({
+        userId,
+        tool: "image-edit",
+        title: "Background removed",
+        inputText: "Background removal",
+        outputs: { image_url: res.imageUrl, variant: "bg-remove" },
+      });
     }
     return res;
   });
@@ -325,6 +334,8 @@ export const upscaleUploadedImage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
+    if (!(await checkRepurposeQuota(userId, plan)))
+      return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Upscale is a Pro feature. Upgrade to unlock." };
     const res = await upscaleImageServer(data.imageDataUrl, data.scale);
@@ -336,6 +347,13 @@ export const upscaleUploadedImage = createServerFn({ method: "POST" })
         source: "upscale",
       });
       if (persisted) res.imageUrl = persisted;
+      await logToHistory({
+        userId,
+        tool: "image-edit",
+        title: `Upscaled ${data.scale}x`,
+        inputText: `Upscale ${data.scale}x`,
+        outputs: { image_url: res.imageUrl, variant: `upscale-${data.scale}x` },
+      });
     }
     return res;
   });
