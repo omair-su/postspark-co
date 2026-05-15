@@ -10,33 +10,44 @@ import heroSculpture from "@/assets/hero-ceramic-ring.png";
  */
 export function HeroAICM() {
   const sculptRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
 
     let raf = 0;
-    let tx = 0;
-    let ty = 0;
-    let cx = 0;
-    let cy = 0;
+    let tx = 0, ty = 0, cx = 0, cy = 0;
+    let targetIntensity = 0.55, intensity = 0.55;
 
     const onMove = (e: MouseEvent) => {
-      tx = (e.clientX / window.innerWidth - 0.5) * 24;
-      ty = (e.clientY / window.innerHeight - 0.5) * 18;
+      const nx = e.clientX / window.innerWidth - 0.5;
+      const ny = e.clientY / window.innerHeight - 0.5;
+      tx = nx * 24;
+      ty = ny * 18;
+      // closer to ring (right side) → brighter glow
+      const dist = Math.hypot(nx - 0.25, ny);
+      targetIntensity = Math.max(0.45, Math.min(1, 1.1 - dist * 1.4));
     };
     const onScroll = () => {
       const y = window.scrollY;
-      if (sculptRef.current) {
-        sculptRef.current.style.setProperty("--scroll-y", `${y * 0.15}px`);
-      }
+      sculptRef.current?.style.setProperty("--scroll-y", `${y * 0.15}px`);
+      // tilt the ring slightly with scroll, ring stays fully on-screen
+      sculptRef.current?.style.setProperty("--scroll-tilt", `${Math.min(y * 0.04, 12)}deg`);
     };
     const loop = () => {
       cx += (tx - cx) * 0.08;
       cy += (ty - cy) * 0.08;
+      intensity += (targetIntensity - intensity) * 0.06;
       if (sculptRef.current) {
         sculptRef.current.style.setProperty("--mx", `${cx}px`);
         sculptRef.current.style.setProperty("--my", `${cy}px`);
+        sculptRef.current.style.setProperty("--cursor-tilt", `${cx * 0.25}deg`);
+      }
+      if (glowRef.current) {
+        glowRef.current.style.opacity = intensity.toFixed(3);
+        glowRef.current.style.transform = `translate3d(${cx * 1.4}px, ${cy * 1.2}px, 0)`;
       }
       raf = requestAnimationFrame(loop);
     };
