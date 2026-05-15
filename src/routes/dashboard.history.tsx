@@ -13,7 +13,7 @@ interface Job {
   id: string;
   created_at: string;
   input_text: string;
-  outputs: Record<string, string>;
+  outputs: Record<string, any>;
   is_favorite: boolean;
   is_public?: boolean;
   public_slug?: string | null;
