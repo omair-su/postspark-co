@@ -37,6 +37,7 @@ import { Route as FeaturesYoutubeToTweetsRouteImport } from './routes/features.y
 import { Route as FeaturesRepurposeBlogToSocialRouteImport } from './routes/features.repurpose-blog-to-social'
 import { Route as FeaturesLinkedinPostGeneratorRouteImport } from './routes/features.linkedin-post-generator'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as DashboardThumbnailRouteImport } from './routes/dashboard.thumbnail'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
@@ -44,6 +45,7 @@ import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blo
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
 import { Route as DashboardReplyGeneratorRouteImport } from './routes/dashboard.reply-generator'
 import { Route as DashboardReferralsRouteImport } from './routes/dashboard.referrals'
+import { Route as DashboardPodcastRouteImport } from './routes/dashboard.podcast'
 import { Route as DashboardImportRouteImport } from './routes/dashboard.import'
 import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
 import { Route as DashboardHumanizerRouteImport } from './routes/dashboard.humanizer'
@@ -211,6 +213,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardThumbnailRoute = DashboardThumbnailRouteImport.update({
+  id: '/thumbnail',
+  path: '/thumbnail',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardTemplatesRoute = DashboardTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -244,6 +251,11 @@ const DashboardReplyGeneratorRoute = DashboardReplyGeneratorRouteImport.update({
 const DashboardReferralsRoute = DashboardReferralsRouteImport.update({
   id: '/referrals',
   path: '/referrals',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardPodcastRoute = DashboardPodcastRouteImport.update({
+  id: '/podcast',
+  path: '/podcast',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardImportRoute = DashboardImportRouteImport.update({
@@ -403,6 +415,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -410,6 +423,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -463,6 +477,7 @@ export interface FileRoutesByTo {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -470,6 +485,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -525,6 +541,7 @@ export interface FileRoutesById {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -532,6 +549,7 @@ export interface FileRoutesById {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -588,6 +606,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/podcast'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -595,6 +614,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard/templates'
+    | '/dashboard/thumbnail'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -648,6 +668,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/podcast'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -655,6 +676,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard/templates'
+    | '/dashboard/thumbnail'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -709,6 +731,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/podcast'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -716,6 +739,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard/templates'
+    | '/dashboard/thumbnail'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -980,6 +1004,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/thumbnail': {
+      id: '/dashboard/thumbnail'
+      path: '/thumbnail'
+      fullPath: '/dashboard/thumbnail'
+      preLoaderRoute: typeof DashboardThumbnailRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/templates': {
       id: '/dashboard/templates'
       path: '/templates'
@@ -1027,6 +1058,13 @@ declare module '@tanstack/react-router' {
       path: '/referrals'
       fullPath: '/dashboard/referrals'
       preLoaderRoute: typeof DashboardReferralsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/podcast': {
+      id: '/dashboard/podcast'
+      path: '/podcast'
+      fullPath: '/dashboard/podcast'
+      preLoaderRoute: typeof DashboardPodcastRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/import': {
@@ -1213,6 +1251,7 @@ interface DashboardRouteChildren {
   DashboardHumanizerRoute: typeof DashboardHumanizerRoute
   DashboardImageStudioRoute: typeof DashboardImageStudioRoute
   DashboardImportRoute: typeof DashboardImportRoute
+  DashboardPodcastRoute: typeof DashboardPodcastRoute
   DashboardReferralsRoute: typeof DashboardReferralsRoute
   DashboardReplyGeneratorRoute: typeof DashboardReplyGeneratorRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
@@ -1220,6 +1259,7 @@ interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardTeamRoute: typeof DashboardTeamRoute
   DashboardTemplatesRoute: typeof DashboardTemplatesRoute
+  DashboardThumbnailRoute: typeof DashboardThumbnailRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
@@ -1236,6 +1276,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHumanizerRoute: DashboardHumanizerRoute,
   DashboardImageStudioRoute: DashboardImageStudioRoute,
   DashboardImportRoute: DashboardImportRoute,
+  DashboardPodcastRoute: DashboardPodcastRoute,
   DashboardReferralsRoute: DashboardReferralsRoute,
   DashboardReplyGeneratorRoute: DashboardReplyGeneratorRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
@@ -1243,6 +1284,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardTeamRoute: DashboardTeamRoute,
   DashboardTemplatesRoute: DashboardTemplatesRoute,
+  DashboardThumbnailRoute: DashboardThumbnailRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 

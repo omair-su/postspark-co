@@ -34,6 +34,8 @@ import {
   deleteLibraryImage,
   getImageUsage,
   captionForImage,
+  removeImageBackground,
+  upscaleUploadedImage,
 } from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import JSZip from "jszip";
@@ -398,6 +400,38 @@ function ImageStudioPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBgRemove = async () => {
+    if (!uploadedUrl) return toast.error("Upload an image first");
+    setLoading(true);
+    setEditedUrl("");
+    try {
+      const res = await withAIProgress(removeImageBackground({
+        data: { imageDataUrl: uploadedUrl },
+        headers: authHeaders,
+      }));
+      if (res.error) toast.error(res.error);
+      else if (!res.imageUrl) toast.error("No image returned");
+      else { setEditedUrl(res.imageUrl); toast.success("Background removed"); }
+    } catch (e) { console.error(e); toast.error("Failed"); }
+    finally { setLoading(false); }
+  };
+
+  const handleUpscale = async (scale: 2 | 4) => {
+    if (!uploadedUrl) return toast.error("Upload an image first");
+    setLoading(true);
+    setEditedUrl("");
+    try {
+      const res = await withAIProgress(upscaleUploadedImage({
+        data: { imageDataUrl: uploadedUrl, scale },
+        headers: authHeaders,
+      }));
+      if (res.error) toast.error(res.error);
+      else if (!res.imageUrl) toast.error("No image returned");
+      else { setEditedUrl(res.imageUrl); toast.success(`Upscaled ${scale}x`); }
+    } catch (e) { console.error(e); toast.error("Failed"); }
+    finally { setLoading(false); }
   };
 
   const download = async (url: string, name?: string) => {
@@ -1039,6 +1073,38 @@ function ImageStudioPage() {
                 </>
               )}
             </button>
+
+            <div className="rounded-xl border border-border bg-muted/30 p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                One-click tools
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={handleBgRemove}
+                  disabled={loading || !uploadedUrl}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-background px-2 py-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <Droplet className="h-3.5 w-3.5" /> Remove BG
+                </button>
+                <button
+                  onClick={() => handleUpscale(2)}
+                  disabled={loading || !uploadedUrl}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-background px-2 py-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <Zap className="h-3.5 w-3.5" /> Upscale 2x
+                </button>
+                <button
+                  onClick={() => handleUpscale(4)}
+                  disabled={loading || !uploadedUrl}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-background px-2 py-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <Zap className="h-3.5 w-3.5" /> Upscale 4x
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Powered by Real-ESRGAN &amp; background-remover (Pro).
+              </p>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-5">
