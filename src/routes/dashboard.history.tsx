@@ -302,15 +302,66 @@ function HistoryPage() {
         </div>
 
         {selected.outputs &&
-          Object.entries(selected.outputs).map(([key, val]) => (
-            <div key={key} className="mt-4 rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-foreground capitalize">{key}</h2>
-                <span className="text-[10px] text-muted-foreground">{val.split(/\s+/).filter(Boolean).length} words</span>
+          Object.entries(selected.outputs).map(([key, val]) => {
+            const isImageUrl = typeof val === "string" && key === "image_url" && /^https?:\/\//.test(val);
+            const isCarouselObj = key === "carousel" && val && typeof val === "object";
+            return (
+              <div key={key} className="mt-4 rounded-xl border border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-foreground capitalize">{key.replace(/_/g, " ")}</h2>
+                  {typeof val === "string" && !isImageUrl && (
+                    <span className="text-[10px] text-muted-foreground">{val.split(/\s+/).filter(Boolean).length} words</span>
+                  )}
+                </div>
+                {isImageUrl ? (
+                  <div className="mt-2 space-y-2">
+                    <img src={val as string} alt={key} className="max-h-96 w-auto rounded-lg border border-border" />
+                    <div className="flex gap-2">
+                      <a
+                        href={val as string}
+                        download
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
+                      >
+                        <Download className="h-3.5 w-3.5" /> Download
+                      </a>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(val as string); toast.success("URL copied"); }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
+                      >
+                        <Copy className="h-3.5 w-3.5" /> Copy URL
+                      </button>
+                    </div>
+                  </div>
+                ) : isCarouselObj ? (
+                  <div className="mt-2 space-y-2">
+                    {(val as any).caption && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground">Caption</p>
+                        <p className="whitespace-pre-wrap text-sm text-foreground">{(val as any).caption}</p>
+                      </div>
+                    )}
+                    {Array.isArray((val as any).slides) && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground">Slides ({(val as any).slides.length})</p>
+                        <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm text-foreground">
+                          {(val as any).slides.map((s: any, i: number) => (
+                            <li key={i}><strong>{s.title}</strong> — {s.body}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                    {Array.isArray((val as any).hashtags) && (val as any).hashtags.length > 0 && (
+                      <p className="text-xs text-muted-foreground">{(val as any).hashtags.join(" ")}</p>
+                    )}
+                  </div>
+                ) : typeof val === "string" ? (
+                  <pre className="mt-2 whitespace-pre-wrap text-sm text-foreground leading-relaxed">{val}</pre>
+                ) : (
+                  <pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">{JSON.stringify(val, null, 2)}</pre>
+                )}
               </div>
-              <pre className="mt-2 whitespace-pre-wrap text-sm text-foreground leading-relaxed">{val}</pre>
-            </div>
-          ))}
+            );
+          })}
       </div>
     );
   }
