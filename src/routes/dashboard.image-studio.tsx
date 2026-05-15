@@ -402,6 +402,38 @@ function ImageStudioPage() {
     }
   };
 
+  const handleBgRemove = async () => {
+    if (!uploadedUrl) return toast.error("Upload an image first");
+    setLoading(true);
+    setEditedUrl("");
+    try {
+      const res = await withAIProgress(removeImageBackground({
+        data: { imageDataUrl: uploadedUrl },
+        headers: authHeaders,
+      }));
+      if (res.error) toast.error(res.error);
+      else if (!res.imageUrl) toast.error("No image returned");
+      else { setEditedUrl(res.imageUrl); toast.success("Background removed"); }
+    } catch (e) { console.error(e); toast.error("Failed"); }
+    finally { setLoading(false); }
+  };
+
+  const handleUpscale = async (scale: 2 | 4) => {
+    if (!uploadedUrl) return toast.error("Upload an image first");
+    setLoading(true);
+    setEditedUrl("");
+    try {
+      const res = await withAIProgress(upscaleUploadedImage({
+        data: { imageDataUrl: uploadedUrl, scale },
+        headers: authHeaders,
+      }));
+      if (res.error) toast.error(res.error);
+      else if (!res.imageUrl) toast.error("No image returned");
+      else { setEditedUrl(res.imageUrl); toast.success(`Upscaled ${scale}x`); }
+    } catch (e) { console.error(e); toast.error("Failed"); }
+    finally { setLoading(false); }
+  };
+
   const download = async (url: string, name?: string) => {
     const filename = name || `postspark-${Date.now()}.png`;
     try {
