@@ -1,13 +1,15 @@
-import { Heart, MessageCircle, Repeat2, Send, Bookmark, MoreHorizontal, ThumbsUp, Globe } from "lucide-react";
+import { Heart, MessageCircle, Repeat2, Send, Bookmark, MoreHorizontal, ThumbsUp, Globe, Music, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-type Platform = "twitter" | "linkedin" | "instagram" | "facebook";
+type Platform = "twitter" | "linkedin" | "instagram" | "facebook" | "tiktok" | "email";
 
 function platformFor(typeId: string): Platform | null {
   if (typeId === "tweets" || typeId === "thread") return "twitter";
   if (typeId === "linkedin") return "linkedin";
   if (typeId === "instagram") return "instagram";
   if (typeId === "facebook") return "facebook";
+  if (typeId === "tiktok") return "tiktok";
+  if (typeId === "email") return "email";
   return null;
 }
 
@@ -63,7 +65,57 @@ function PlatformCard({ platform, text }: { platform: Platform; text: string }) 
   if (platform === "twitter") return <TwitterCard name={name} handle={handle} avatar={avatar} text={text} />;
   if (platform === "linkedin") return <LinkedInCard name={name} avatar={avatar} text={text} />;
   if (platform === "instagram") return <InstagramCard handle={handle} avatar={avatar} text={text} />;
+  if (platform === "tiktok") return <TikTokCard handle={handle} avatar={avatar} text={text} />;
+  if (platform === "email") return <EmailCard name={name} text={text} />;
   return <FacebookCard name={name} avatar={avatar} text={text} />;
+}
+
+function TikTokCard({ handle, avatar, text }: { handle: string; avatar?: string; text: string }) {
+  return (
+    <div className="relative mx-auto max-w-[300px] overflow-hidden rounded-2xl bg-black text-white shadow-xl" style={{ aspectRatio: "9 / 16" }}>
+      <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/40 via-cyan-400/20 to-black" />
+      <div className="absolute right-3 bottom-20 flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center text-[11px]">
+          <Avatar avatar={avatar} name={handle} size={44} />
+          <div className="-mt-2 h-5 w-5 rounded-full bg-pink-500 text-center text-xs leading-5 font-bold">+</div>
+        </div>
+        <div className="flex flex-col items-center text-[11px]"><Heart className="h-7 w-7" /> 84.2K</div>
+        <div className="flex flex-col items-center text-[11px]"><MessageCircle className="h-7 w-7" /> 1.2K</div>
+        <div className="flex flex-col items-center text-[11px]"><Send className="h-7 w-7" /> Share</div>
+        <Music className="h-6 w-6 animate-pulse" />
+      </div>
+      <div className="absolute bottom-3 left-3 right-16">
+        <div className="text-sm font-bold">@{handle}</div>
+        <p className="mt-1 line-clamp-6 text-[12px] leading-snug whitespace-pre-wrap break-words text-white/95">{text}</p>
+        <div className="mt-2 flex items-center gap-1 text-[11px] text-white/80">
+          <Music className="h-3 w-3" /> original sound · {handle}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmailCard({ name, text }: { name: string; text: string }) {
+  const lines = text.split("\n").filter(Boolean);
+  const subject = lines[0]?.replace(/^subject\s*:\s*/i, "") || "Your weekly insight";
+  const body = lines.slice(1).join("\n").trim() || text;
+  return (
+    <div className="rounded-xl border border-border bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 px-4 py-2.5 text-xs">
+        <Mail className="h-3.5 w-3.5 text-zinc-500" />
+        <span className="font-semibold">Inbox</span>
+        <span className="ml-auto text-zinc-500">9:24 AM</span>
+      </div>
+      <div className="p-4">
+        <div className="text-base font-bold leading-snug">{subject}</div>
+        <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+          <span className="font-semibold text-zinc-700 dark:text-zinc-300">{name}</span>
+          <span>· to me</span>
+        </div>
+        <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed">{body}</p>
+      </div>
+    </div>
+  );
 }
 
 function Avatar({ avatar, name, size = 40 }: { avatar?: string; name: string; size?: number }) {

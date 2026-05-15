@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { withAIProgress } from "@/lib/aiProgress";
-import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type, Eye, FileText } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type, Eye, FileText, Youtube, Link as LinkIcon } from "lucide-react";
 import { repurposeContent, getMonthlyUsage } from "@/lib/repurpose.functions";
+import { importFromUrl } from "@/lib/import.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { ToneSelector } from "@/components/ToneSelector";
@@ -60,6 +61,42 @@ function RepurposePage() {
   const [overrideTone, setOverrideTone] = useState(false);
 
   const [pendingAutoRun, setPendingAutoRun] = useState(false);
+  const [oneClickUrl, setOneClickUrl] = useState("");
+  const [oneClickBusy, setOneClickBusy] = useState(false);
+
+  const handleOneClick = async () => {
+    if (!session) return toast.error("Please sign in");
+    const url = oneClickUrl.trim();
+    if (!url) return toast.error("Paste a URL or YouTube link");
+    if (usage && usage.limit !== -1 && usage.used >= usage.limit) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setOneClickBusy(true);
+    try {
+      const res = await importFromUrl({
+        data: { url },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.error || !res.text) {
+        toast.error(res.error || "Couldn't fetch that URL");
+        return;
+      }
+      setInputText(res.text);
+      setImportMeta(res.title ? `From: ${res.title}` : `From: ${url}`);
+      setTab("text");
+      toast.success("Imported — generating now…");
+      // ensure defaults
+      if (selected.size === 0) {
+        setSelected(new Set(["tweets", "linkedin", "email", "video"]));
+      }
+      setPendingAutoRun(true);
+    } catch {
+      toast.error("Import failed");
+    } finally {
+      setOneClickBusy(false);
+    }
+  };
 
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
@@ -303,7 +340,35 @@ function RepurposePage() {
         </div>
       )}
 
-      {/* Usage banner */}
+      {/* One-click URL/YouTube hero */}
+      <div className="mt-4 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-5 shadow-lg">
+        <div className="flex items-center gap-2">
+          <Youtube className="h-5 w-5 text-primary" />
+          <h2 className="text-sm font-bold text-foreground">One-click repurpose from URL or YouTube</h2>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Paste any article, blog post, or YouTube video — we'll fetch the content and generate everything in one click.
+        </p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <div className="relative flex-1">
+            <LinkIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={oneClickUrl}
+              onChange={(e) => setOneClickUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !oneClickBusy) handleOneClick(); }}
+              placeholder="https://youtube.com/watch?v=… or https://example.com/article"
+              className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <button
+            onClick={handleOneClick}
+            disabled={oneClickBusy || loading}
+            className="inline-flex items-center justify-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-bold text-primary-foreground glow-electric hover:opacity-90 disabled:opacity-60"
+          >
+            {oneClickBusy ? <><Loader2 className="h-4 w-4 animate-spin" /> Fetching…</> : <><Sparkles className="h-4 w-4" /> Repurpose</>}
+          </button>
+        </div>
+      </div>
       {usage && isUnlimited && (
         <div className="mt-4 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
           <Sparkles className="h-4 w-4 shrink-0 text-primary" />
@@ -543,7 +608,7 @@ function ResultCard({
 }) {
   const wordCount = content.split(/\s+/).filter(Boolean).length;
   const charCount = content.length;
-  const previewable = ["tweets", "thread", "linkedin", "instagram", "facebook"].includes(id);
+  const previewable = ["tweets", "thread", "linkedin", "instagram", "facebook", "tiktok", "email"].includes(id);
   const [view, setView] = useState<"raw" | "preview">(previewable ? "preview" : "raw");
   const [triggeredRegen, setTriggeredRegen] = useState(false);
   const cardLoading = isRegenerating && triggeredRegen;
