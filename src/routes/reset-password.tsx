@@ -60,7 +60,7 @@ function ResetPasswordPage() {
 
   if (!isRecovery) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+      <div className="cream-page flex min-h-screen items-center justify-center px-4">
         <div className="max-w-sm text-center">
           <h1 className="text-xl font-bold text-foreground">Invalid or expired link</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -75,7 +75,7 @@ function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+    <div className="cream-page flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex items-center justify-center gap-2">
           <PostSparkLogo variant="wordmark" size={32} />

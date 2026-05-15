@@ -95,7 +95,7 @@ function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface px-4">
+    <div className="cream-page flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2">
           <PostSparkLogo variant="wordmark" size={32} />
