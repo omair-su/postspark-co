@@ -11,6 +11,7 @@ import { ToneSelector } from "@/components/ToneSelector";
 import { VisualPreview } from "@/components/VisualPreview";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
+import { HookABTester } from "@/components/HookABTester";
 import { Link } from "@tanstack/react-router";
 
 const contentTypes = [
@@ -43,6 +44,7 @@ function RepurposePage() {
   const [selected, setSelected] = useState<Set<string>>(new Set(["tweets", "linkedin", "email", "video"]));
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ParsedResults | null>(null);
+  const [lastJobId, setLastJobId] = useState<string | null>(null);
   const [rawOutput, setRawOutput] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
@@ -231,6 +233,7 @@ function RepurposePage() {
 
       setRawOutput(result.output);
       setResults(parseResults(result.output));
+      setLastJobId((result as any).jobId ?? null);
 
       if (session) {
         getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
@@ -475,6 +478,7 @@ function RepurposePage() {
       {/* Results */}
       {results && (
         <div className="mt-6 space-y-4">
+          <HookABTester inputText={inputText} jobId={lastJobId} />
           {Object.entries(results).map(([key, content]) => {
             if (!selected.has(key) && key !== "tweets") return null;
             const label = typeLabels[key] || key;
