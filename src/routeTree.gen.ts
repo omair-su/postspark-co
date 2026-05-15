@@ -42,9 +42,11 @@ import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blog'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
+import { Route as DashboardReplyGeneratorRouteImport } from './routes/dashboard.reply-generator'
 import { Route as DashboardReferralsRouteImport } from './routes/dashboard.referrals'
 import { Route as DashboardImportRouteImport } from './routes/dashboard.import'
 import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
+import { Route as DashboardHumanizerRouteImport } from './routes/dashboard.humanizer'
 import { Route as DashboardHookLabRouteImport } from './routes/dashboard.hook-lab'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
@@ -233,6 +235,11 @@ const DashboardRepurposeRoute = DashboardRepurposeRouteImport.update({
   path: '/repurpose',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardReplyGeneratorRoute = DashboardReplyGeneratorRouteImport.update({
+  id: '/reply-generator',
+  path: '/reply-generator',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardReferralsRoute = DashboardReferralsRouteImport.update({
   id: '/referrals',
   path: '/referrals',
@@ -246,6 +253,11 @@ const DashboardImportRoute = DashboardImportRouteImport.update({
 const DashboardImageStudioRoute = DashboardImageStudioRouteImport.update({
   id: '/image-studio',
   path: '/image-studio',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardHumanizerRoute = DashboardHumanizerRouteImport.update({
+  id: '/humanizer',
+  path: '/humanizer',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardHookLabRoute = DashboardHookLabRouteImport.update({
@@ -381,9 +393,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
+  '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
+  '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -438,9 +452,11 @@ export interface FileRoutesByTo {
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
+  '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
+  '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -497,9 +513,11 @@ export interface FileRoutesById {
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
+  '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
+  '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -557,9 +575,11 @@ export interface FileRouteTypes {
     | '/dashboard/calendar'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
+    | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
     | '/dashboard/referrals'
+    | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
@@ -614,9 +634,11 @@ export interface FileRouteTypes {
     | '/dashboard/calendar'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
+    | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
     | '/dashboard/referrals'
+    | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
@@ -672,9 +694,11 @@ export interface FileRouteTypes {
     | '/dashboard/calendar'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
+    | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
     | '/dashboard/referrals'
+    | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
@@ -979,6 +1003,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRepurposeRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/reply-generator': {
+      id: '/dashboard/reply-generator'
+      path: '/reply-generator'
+      fullPath: '/dashboard/reply-generator'
+      preLoaderRoute: typeof DashboardReplyGeneratorRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/referrals': {
       id: '/dashboard/referrals'
       path: '/referrals'
@@ -998,6 +1029,13 @@ declare module '@tanstack/react-router' {
       path: '/image-studio'
       fullPath: '/dashboard/image-studio'
       preLoaderRoute: typeof DashboardImageStudioRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/humanizer': {
+      id: '/dashboard/humanizer'
+      path: '/humanizer'
+      fullPath: '/dashboard/humanizer'
+      preLoaderRoute: typeof DashboardHumanizerRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/hook-lab': {
@@ -1152,9 +1190,11 @@ interface DashboardRouteChildren {
   DashboardCalendarRoute: typeof DashboardCalendarRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardHookLabRoute: typeof DashboardHookLabRoute
+  DashboardHumanizerRoute: typeof DashboardHumanizerRoute
   DashboardImageStudioRoute: typeof DashboardImageStudioRoute
   DashboardImportRoute: typeof DashboardImportRoute
   DashboardReferralsRoute: typeof DashboardReferralsRoute
+  DashboardReplyGeneratorRoute: typeof DashboardReplyGeneratorRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
@@ -1172,9 +1212,11 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardCalendarRoute: DashboardCalendarRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardHookLabRoute: DashboardHookLabRoute,
+  DashboardHumanizerRoute: DashboardHumanizerRoute,
   DashboardImageStudioRoute: DashboardImageStudioRoute,
   DashboardImportRoute: DashboardImportRoute,
   DashboardReferralsRoute: DashboardReferralsRoute,
+  DashboardReplyGeneratorRoute: DashboardReplyGeneratorRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSeoBlogRoute: DashboardSeoBlogRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
