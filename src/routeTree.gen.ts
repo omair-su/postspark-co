@@ -27,6 +27,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
@@ -153,6 +154,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewTokenRoute = ReviewTokenRouteImport.update({
@@ -392,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
@@ -448,6 +455,7 @@ export interface FileRoutesByTo {
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/u/$handle': typeof UHandleRoute
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
@@ -506,6 +514,7 @@ export interface FileRoutesById {
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
@@ -565,6 +574,7 @@ export interface FileRouteTypes {
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/u/$handle'
     | '/blog/'
     | '/dashboard/'
     | '/gallery/'
@@ -621,6 +631,7 @@ export interface FileRouteTypes {
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/u/$handle'
     | '/blog'
     | '/dashboard'
     | '/gallery'
@@ -678,6 +689,7 @@ export interface FileRouteTypes {
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/u/$handle'
     | '/blog/'
     | '/dashboard/'
     | '/gallery/'
@@ -720,6 +732,7 @@ export interface RootRouteChildren {
   GallerySlugRoute: typeof GallerySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
+  UHandleRoute: typeof UHandleRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
@@ -859,6 +872,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog/'
       preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/review/$token': {
@@ -1195,6 +1215,7 @@ const rootRouteChildren: RootRouteChildren = {
   GallerySlugRoute: GallerySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
+  UHandleRoute: UHandleRoute,
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
