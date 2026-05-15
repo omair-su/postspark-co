@@ -45,6 +45,7 @@ import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blo
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
 import { Route as DashboardReplyGeneratorRouteImport } from './routes/dashboard.reply-generator'
 import { Route as DashboardReferralsRouteImport } from './routes/dashboard.referrals'
+import { Route as DashboardPodcastRouteImport } from './routes/dashboard.podcast'
 import { Route as DashboardImportRouteImport } from './routes/dashboard.import'
 import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
 import { Route as DashboardHumanizerRouteImport } from './routes/dashboard.humanizer'
@@ -252,6 +253,11 @@ const DashboardReferralsRoute = DashboardReferralsRouteImport.update({
   path: '/referrals',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardPodcastRoute = DashboardPodcastRouteImport.update({
+  id: '/podcast',
+  path: '/podcast',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardImportRoute = DashboardImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -409,6 +415,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -470,6 +477,7 @@ export interface FileRoutesByTo {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -533,6 +541,7 @@ export interface FileRoutesById {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -597,6 +606,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/podcast'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -658,6 +668,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/podcast'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -720,6 +731,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/podcast'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -1048,6 +1060,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardReferralsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/podcast': {
+      id: '/dashboard/podcast'
+      path: '/podcast'
+      fullPath: '/dashboard/podcast'
+      preLoaderRoute: typeof DashboardPodcastRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/import': {
       id: '/dashboard/import'
       path: '/import'
@@ -1232,6 +1251,7 @@ interface DashboardRouteChildren {
   DashboardHumanizerRoute: typeof DashboardHumanizerRoute
   DashboardImageStudioRoute: typeof DashboardImageStudioRoute
   DashboardImportRoute: typeof DashboardImportRoute
+  DashboardPodcastRoute: typeof DashboardPodcastRoute
   DashboardReferralsRoute: typeof DashboardReferralsRoute
   DashboardReplyGeneratorRoute: typeof DashboardReplyGeneratorRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
@@ -1256,6 +1276,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHumanizerRoute: DashboardHumanizerRoute,
   DashboardImageStudioRoute: DashboardImageStudioRoute,
   DashboardImportRoute: DashboardImportRoute,
+  DashboardPodcastRoute: DashboardPodcastRoute,
   DashboardReferralsRoute: DashboardReferralsRoute,
   DashboardReplyGeneratorRoute: DashboardReplyGeneratorRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
