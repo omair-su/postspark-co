@@ -8,6 +8,7 @@ import { GuidedIntakeModal, type IntakeKind } from "@/components/GuidedIntakeMod
 import { DailySpark } from "@/components/DailySpark";
 import { ActivationChecklist } from "@/components/ActivationChecklist";
 import { CardSkeleton, ListSkeleton } from "@/components/skeletons";
+import { StreakBadge } from "@/components/StreakBadge";
 
 const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description: string }> = [
   { id: "founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into thread + LinkedIn + email." },
@@ -61,6 +62,7 @@ function DashboardHome() {
         <p className="mt-1 text-sm text-muted-foreground">Press <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd> to jump anywhere — or pick today's spark below.</p>
       </div>
 
+      <StreakBadge />
       <DailySpark />
       <ActivationChecklist />
 

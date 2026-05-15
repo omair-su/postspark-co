@@ -28,6 +28,8 @@ import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
+import { Route as TemplatesGalleryRouteImport } from './routes/templates.gallery'
+import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
@@ -70,6 +72,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
@@ -164,6 +167,16 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
 const UHandleRoute = UHandleRouteImport.update({
   id: '/u/$handle',
   path: '/u/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplatesGalleryRoute = TemplatesGalleryRouteImport.update({
+  id: '/templates/gallery',
+  path: '/templates/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplatesSlugRoute = TemplatesSlugRouteImport.update({
+  id: '/templates/$slug',
+  path: '/templates/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewTokenRoute = ReviewTokenRouteImport.update({
@@ -383,6 +396,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksWeeklyDigestRoute =
+  ApiPublicHooksWeeklyDigestRouteImport.update({
+    id: '/api/public/hooks/weekly-digest',
+    path: '/api/public/hooks/weekly-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -433,6 +452,8 @@ export interface FileRoutesByFullPath {
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/templates/$slug': typeof TemplatesSlugRoute
+  '/templates/gallery': typeof TemplatesGalleryRoute
   '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -440,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -495,6 +517,8 @@ export interface FileRoutesByTo {
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/templates/$slug': typeof TemplatesSlugRoute
+  '/templates/gallery': typeof TemplatesGalleryRoute
   '/u/$handle': typeof UHandleRoute
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -502,6 +526,7 @@ export interface FileRoutesByTo {
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -559,6 +584,8 @@ export interface FileRoutesById {
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
+  '/templates/$slug': typeof TemplatesSlugRoute
+  '/templates/gallery': typeof TemplatesGalleryRoute
   '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -566,6 +593,7 @@ export interface FileRoutesById {
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -624,6 +652,8 @@ export interface FileRouteTypes {
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/templates/$slug'
+    | '/templates/gallery'
     | '/u/$handle'
     | '/blog/'
     | '/dashboard/'
@@ -631,6 +661,7 @@ export interface FileRouteTypes {
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -686,6 +717,8 @@ export interface FileRouteTypes {
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/templates/$slug'
+    | '/templates/gallery'
     | '/u/$handle'
     | '/blog'
     | '/dashboard'
@@ -693,6 +726,7 @@ export interface FileRouteTypes {
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -749,6 +783,8 @@ export interface FileRouteTypes {
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
+    | '/templates/$slug'
+    | '/templates/gallery'
     | '/u/$handle'
     | '/blog/'
     | '/dashboard/'
@@ -756,6 +792,7 @@ export interface FileRouteTypes {
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -792,12 +829,15 @@ export interface RootRouteChildren {
   GallerySlugRoute: typeof GallerySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
+  TemplatesSlugRoute: typeof TemplatesSlugRoute
+  TemplatesGalleryRoute: typeof TemplatesGalleryRoute
   UHandleRoute: typeof UHandleRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -939,6 +979,20 @@ declare module '@tanstack/react-router' {
       path: '/u/$handle'
       fullPath: '/u/$handle'
       preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates/gallery': {
+      id: '/templates/gallery'
+      path: '/templates/gallery'
+      fullPath: '/templates/gallery'
+      preLoaderRoute: typeof TemplatesGalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates/$slug': {
+      id: '/templates/$slug'
+      path: '/templates/$slug'
+      fullPath: '/templates/$slug'
+      preLoaderRoute: typeof TemplatesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/review/$token': {
@@ -1235,6 +1289,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/weekly-digest': {
+      id: '/api/public/hooks/weekly-digest'
+      path: '/api/public/hooks/weekly-digest'
+      fullPath: '/api/public/hooks/weekly-digest'
+      preLoaderRoute: typeof ApiPublicHooksWeeklyDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1320,12 +1381,15 @@ const rootRouteChildren: RootRouteChildren = {
   GallerySlugRoute: GallerySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
+  TemplatesSlugRoute: TemplatesSlugRoute,
+  TemplatesGalleryRoute: TemplatesGalleryRoute,
   UHandleRoute: UHandleRoute,
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

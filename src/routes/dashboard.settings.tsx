@@ -115,6 +115,7 @@ function SettingsPage() {
       </div>
 
       <PublicShowcaseSettings />
+      <WeeklyDigestToggle />
 
       {/* Password */}
       <div className="mt-4 rounded-xl border border-border bg-card p-5">
@@ -445,6 +446,63 @@ function DangerZone() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function WeeklyDigestToggle() {
+  const { user } = useAuth();
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    (supabase as any)
+      .from("profiles")
+      .select("weekly_digest_enabled")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }: any) => setEnabled(data?.weekly_digest_enabled ?? true));
+  }, [user]);
+
+  const handleToggle = async () => {
+    if (!user || enabled === null) return;
+    setSaving(true);
+    const next = !enabled;
+    const { error } = await (supabase as any)
+      .from("profiles")
+      .update({ weekly_digest_enabled: next })
+      .eq("user_id", user.id);
+    setSaving(false);
+    if (error) {
+      toast.error("Could not update preference");
+    } else {
+      setEnabled(next);
+      toast.success(next ? "Weekly digest enabled" : "Weekly digest disabled");
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Weekly digest email</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Every Monday, get a summary of your scheduled drafts and recent generations with a quick CTA to review and edit.
+          </p>
+        </div>
+        <button
+          onClick={handleToggle}
+          disabled={enabled === null || saving}
+          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${enabled ? "bg-primary" : "bg-muted"}`}
+        >
+          <span
+            className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+              enabled ? "translate-x-5" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      </div>
     </div>
   );
 }
