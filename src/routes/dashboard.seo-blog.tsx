@@ -132,6 +132,21 @@ function SeoBlogPage() {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-border">
+        {(["blog", "outline"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${
+              tab === t ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t === "blog" ? "Full blog" : "Outline + competitors"}
+          </button>
+        ))}
+      </div>
+
       <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
         <div>
           <label className="mb-2 block text-sm font-medium">Topic / angle</label>
