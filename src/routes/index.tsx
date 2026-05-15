@@ -1,7 +1,7 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
-import { HeroSection } from "@/components/landing/HeroSection";
+import { HeroAICM } from "@/components/landing/HeroAICM";
 import { TrustedBySection } from "@/components/landing/TrustedBySection";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -74,7 +74,7 @@ function LandingPage() {
   return (
     <div className="min-h-screen scroll-smooth">
       <Navbar />
-      <HeroSection />
+      <HeroAICM />
 
       <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
         <TrustedBySection />
