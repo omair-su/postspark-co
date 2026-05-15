@@ -385,6 +385,101 @@ export async function generateCarouselSet(
   return { results, slides };
 }
 
+// Generic Replicate run-and-poll helper. Worker-safe (short subrequests).
+async function runReplicateModel(
+  modelPath: string, // e.g. "851-labs/background-remover" or "nightmareai/real-esrgan"
+  input: Record<string, any>,
+): Promise<ImageGenResult> {
+  const token = process.env.REPLICATE_API_TOKEN;
+  if (!token) return { imageUrl: "", error: "REPLICATE_API_TOKEN not configured" };
+
+  const MAX_WAIT_MS = 55_000;
+  const POLL_INTERVAL_MS = 1500;
+  const SUBREQUEST_TIMEOUT_MS = 8000;
+  const fetchWithTimeout = async (url: string, init: RequestInit, ms: number) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try { return await fetch(url, { ...init, signal: ctrl.signal }); }
+    finally { clearTimeout(t); }
+  };
+
+  let prediction: any;
+  try {
+    const res = await fetchWithTimeout(
+      `https://api.replicate.com/v1/models/${modelPath}/predictions`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ input }),
+      },
+      SUBREQUEST_TIMEOUT_MS,
+    );
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`Replicate ${modelPath} create error:`, res.status, text.slice(0, 300));
+      return { imageUrl: "", error: `Replicate error (${res.status})` };
+    }
+    prediction = await res.json();
+  } catch (err: any) {
+    console.error("Replicate create error:", err?.message || err);
+    return { imageUrl: "", error: "Failed to reach Replicate" };
+  }
+
+  const getUrl: string | undefined = prediction?.urls?.get;
+  if (!getUrl) return { imageUrl: "", error: "Replicate returned no poll URL" };
+
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const started = Date.now();
+  while (
+    prediction?.status !== "succeeded" &&
+    prediction?.status !== "failed" &&
+    prediction?.status !== "canceled"
+  ) {
+    if (Date.now() - started > MAX_WAIT_MS) {
+      return { imageUrl: "", error: "Replicate is taking longer than expected. Try again." };
+    }
+    await sleep(POLL_INTERVAL_MS);
+    try {
+      const r = await fetchWithTimeout(
+        getUrl,
+        { headers: { Authorization: `Bearer ${token}` } },
+        SUBREQUEST_TIMEOUT_MS,
+      );
+      if (!r.ok) {
+        if (r.status >= 500) continue;
+        return { imageUrl: "", error: `Replicate poll failed (${r.status})` };
+      }
+      prediction = await r.json();
+    } catch { continue; }
+  }
+
+  if (prediction?.status === "succeeded") {
+    const out = prediction.output;
+    const url = Array.isArray(out) ? out[0] : typeof out === "string" ? out : null;
+    if (url) return { imageUrl: url };
+    return { imageUrl: "", error: "Replicate returned no image" };
+  }
+  return {
+    imageUrl: "",
+    error: prediction?.error || `Replicate ${prediction?.status || "failed"}`,
+  };
+}
+
+export async function removeBackground(imageDataUrl: string): Promise<ImageGenResult> {
+  return runReplicateModel("851-labs/background-remover", { image: imageDataUrl });
+}
+
+export async function upscaleImage(
+  imageDataUrl: string,
+  scale: 2 | 4 = 2,
+): Promise<ImageGenResult> {
+  return runReplicateModel("nightmareai/real-esrgan", {
+    image: imageDataUrl,
+    scale,
+    face_enhance: false,
+  });
+}
+
 // Lightweight content safety check using a text model on the prompt
 export async function checkPromptSafety(
   prompt: string,
