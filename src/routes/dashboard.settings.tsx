@@ -114,6 +114,8 @@ function SettingsPage() {
         </form>
       </div>
 
+      <PublicShowcaseSettings />
+
       {/* Password */}
       <div className="mt-4 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Change Password</h2>
