@@ -1,16 +1,10 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { ClientOnly } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { TrustedBySection } from "@/components/landing/TrustedBySection";
-import { MarqueeStrip } from "@/components/landing/MarqueeStrip";
-import { AnimatedMetrics } from "@/components/landing/AnimatedMetrics";
 import { useAuth } from "@/hooks/useAuth";
-import { useLenis } from "@/hooks/useLenis";
 
-const LuxuryHero = lazy(() => import("@/components/landing/LuxuryHero").then(m => ({ default: m.LuxuryHero })));
-const MagneticCursor = lazy(() => import("@/components/landing/MagneticCursor").then(m => ({ default: m.MagneticCursor })));
 const BeforeAfterSection = lazy(() => import("@/components/landing/BeforeAfterSection").then(m => ({ default: m.BeforeAfterSection })));
 const FeaturesSection = lazy(() => import("@/components/landing/FeaturesSection").then(m => ({ default: m.FeaturesSection })));
 const PremiumFeaturesSection = lazy(() => import("@/components/landing/PremiumFeaturesSection").then(m => ({ default: m.PremiumFeaturesSection })));
