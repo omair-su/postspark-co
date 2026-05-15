@@ -1,7 +1,7 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
-import { HeroSection } from "@/components/landing/HeroSection";
+import { HeroAICM } from "@/components/landing/HeroAICM";
 import { TrustedBySection } from "@/components/landing/TrustedBySection";
 import { useAuth } from "@/hooks/useAuth";
 
