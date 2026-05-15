@@ -92,6 +92,7 @@ function PodcastPage() {
             selectedTypes: selected,
             tone: "conversational",
             customInstructions: "Source is a podcast/voice recording — keep voice authentic, lift quotable lines.",
+            tool: "podcast",
           },
           headers: authHeaders,
         }),
@@ -99,9 +100,14 @@ function PodcastPage() {
       if (res.error === "LIMIT_REACHED") toast.error("Monthly limit reached. Upgrade to continue.");
       else if (res.error) toast.error(res.error);
       else if (!res.output) toast.error("No output");
-      else { setOutput(res.output); toast.success("Content pack ready"); }
+      else { setOutput(res.output); toast.success("Content pack ready — saved to History"); }
     } catch { toast.error("Generation failed"); }
     finally { setGenerating(false); }
+  };
+
+  const stripTimestamps = () => {
+    setTranscript((t) => t.replace(/\[\d{1,2}:\d{2}(?::\d{2})?\]\s*/g, "").replace(/\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/g, ""));
+    toast.success("Timestamps stripped");
   };
 
   return (
