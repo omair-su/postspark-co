@@ -88,3 +88,30 @@ ${audience ? `- Audience: ${audience}.` : ""}`;
     caption: result.data.caption || "",
   };
 }
+
+export async function rewriteSlideClaude(opts: {
+  title: string;
+  body: string;
+  kind: "cover" | "content" | "cta";
+  instruction?: string;
+  tone?: string;
+}): Promise<{ title: string; body: string; error?: string }> {
+  const sys = `You rewrite a single carousel slide. Return strict JSON only: {"title":"...","body":"..."}.
+Rules:
+- Keep slide kind: ${opts.kind}.
+- Title ≤ 60 chars, punchy, no markdown.
+- Body ≤ 220 chars, plain text, 1–3 short sentences.
+${opts.tone ? `- Tone: ${opts.tone}.` : ""}
+${opts.instruction ? `- Follow this user instruction: ${opts.instruction}.` : "- Make it sharper, more scroll-stopping, and clearer."}`;
+  const user = `Current title: ${opts.title}\nCurrent body: ${opts.body}\n\nRewrite now.`;
+  const res = await callClaude({ systemPrompt: sys, userPrompt: user, maxTokens: 500 });
+  if (res.error) return { title: opts.title, body: opts.body, error: res.error };
+  const m = res.text.match(/\{[\s\S]*\}/);
+  if (!m) return { title: opts.title, body: opts.body, error: "Could not parse rewrite" };
+  try {
+    const j = JSON.parse(m[0]);
+    return { title: String(j.title || opts.title).slice(0, 200), body: String(j.body || opts.body).slice(0, 800) };
+  } catch {
+    return { title: opts.title, body: opts.body, error: "Invalid rewrite JSON" };
+  }
+}
