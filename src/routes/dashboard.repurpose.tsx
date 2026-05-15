@@ -531,6 +531,7 @@ function ResultCard({
   onCopy,
   copied,
   onRegenerate,
+  isRegenerating,
 }: {
   title: string;
   content: string;
@@ -538,24 +539,39 @@ function ResultCard({
   onCopy: (text: string, id: string) => void;
   copied: string | null;
   onRegenerate: () => void;
+  isRegenerating?: boolean;
 }) {
   const wordCount = content.split(/\s+/).filter(Boolean).length;
   const charCount = content.length;
   const previewable = ["tweets", "thread", "linkedin", "instagram", "facebook"].includes(id);
   const [view, setView] = useState<"raw" | "preview">(previewable ? "preview" : "raw");
+  const [triggeredRegen, setTriggeredRegen] = useState(false);
+  const cardLoading = isRegenerating && triggeredRegen;
+
+  // Reset trigger flag once regeneration finishes
+  useEffect(() => {
+    if (!isRegenerating && triggeredRegen) setTriggeredRegen(false);
+  }, [isRegenerating, triggeredRegen]);
+
+  const handleRegenClick = () => {
+    setTriggeredRegen(true);
+    onRegenerate();
+  };
 
   const handleExportPdf = () => {
     exportToPdf([{ title, content }], `repurpose-${id}`);
     toast.success("PDF downloaded!");
   };
 
+  const isCopied = copied === id;
+
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className={`lux-result-card p-5 ${cardLoading ? "is-regenerating" : ""}`}>
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <h3 className="text-sm font-semibold text-foreground tracking-tight">{title}</h3>
         <div className="flex gap-2 flex-wrap">
           {previewable && (
-            <div className="flex items-center rounded-lg border border-border overflow-hidden">
+            <div className="flex items-center rounded-lg border border-border overflow-hidden bg-card">
               <button
                 onClick={() => setView("preview")}
                 className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium transition-colors ${
@@ -576,29 +592,33 @@ function ResultCard({
           )}
           <button
             onClick={() => onCopy(content, id)}
-            className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            data-state={isCopied ? "success" : undefined}
+            className="lux-action-btn flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground"
           >
-            {copied === id ? (
+            {isCopied ? (
               <>
-                <Check className="h-3 w-3 text-primary" /> Copied! ✅
+                <Check className="lux-check h-3 w-3 text-primary" /> Copied
               </>
             ) : (
               <>
-                <Copy className="h-3 w-3" /> Copy All
+                <Copy className="h-3 w-3" /> Copy
               </>
             )}
           </button>
           <button
             onClick={handleExportPdf}
-            className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="lux-action-btn flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground"
           >
             <Download className="h-3 w-3" /> PDF
           </button>
           <button
-            onClick={onRegenerate}
-            className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            onClick={handleRegenClick}
+            disabled={cardLoading}
+            data-state={cardLoading ? "loading" : undefined}
+            className="lux-action-btn flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground disabled:opacity-70"
           >
-            <RefreshCw className="h-3 w-3" /> Regenerate
+            <RefreshCw className={`h-3 w-3 ${cardLoading ? "lux-spin" : ""}`} />
+            {cardLoading ? "Regenerating…" : "Regenerate"}
           </button>
           <PublishMenu content={content} formatId={id} />
         </div>
@@ -613,12 +633,19 @@ function ResultCard({
         )}
       </div>
 
-      {view === "preview" && previewable ? (
-        <div className="mt-4">
+      {cardLoading ? (
+        <div className="mt-4 space-y-2">
+          <div className="lux-skeleton h-4 w-[92%]" />
+          <div className="lux-skeleton h-4 w-[78%]" />
+          <div className="lux-skeleton h-4 w-[85%]" />
+          <div className="lux-skeleton h-4 w-[60%]" />
+        </div>
+      ) : view === "preview" && previewable ? (
+        <div className="mt-4 animate-fade-in">
           <VisualPreview typeId={id} content={content} />
         </div>
       ) : (
-        <pre className="mt-3 whitespace-pre-wrap text-sm text-foreground leading-relaxed">{content}</pre>
+        <pre className="mt-3 whitespace-pre-wrap text-sm text-foreground leading-relaxed animate-fade-in">{content}</pre>
       )}
     </div>
   );
