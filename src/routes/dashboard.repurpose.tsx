@@ -340,7 +340,35 @@ function RepurposePage() {
         </div>
       )}
 
-      {/* Usage banner */}
+      {/* One-click URL/YouTube hero */}
+      <div className="mt-4 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-5 shadow-lg">
+        <div className="flex items-center gap-2">
+          <Youtube className="h-5 w-5 text-primary" />
+          <h2 className="text-sm font-bold text-foreground">One-click repurpose from URL or YouTube</h2>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Paste any article, blog post, or YouTube video — we'll fetch the content and generate everything in one click.
+        </p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <div className="relative flex-1">
+            <LinkIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={oneClickUrl}
+              onChange={(e) => setOneClickUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !oneClickBusy) handleOneClick(); }}
+              placeholder="https://youtube.com/watch?v=… or https://example.com/article"
+              className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <button
+            onClick={handleOneClick}
+            disabled={oneClickBusy || loading}
+            className="inline-flex items-center justify-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-bold text-primary-foreground glow-electric hover:opacity-90 disabled:opacity-60"
+          >
+            {oneClickBusy ? <><Loader2 className="h-4 w-4 animate-spin" /> Fetching…</> : <><Sparkles className="h-4 w-4" /> Repurpose</>}
+          </button>
+        </div>
+      </div>
       {usage && isUnlimited && (
         <div className="mt-4 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
           <Sparkles className="h-4 w-4 shrink-0 text-primary" />
