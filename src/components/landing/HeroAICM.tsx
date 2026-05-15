@@ -100,19 +100,30 @@ export function HeroAICM() {
         className="pointer-events-none absolute inset-y-0 right-[-10%] z-0 w-[110%] sm:right-[-5%] sm:w-[80%] lg:right-[-8%] lg:w-[65%]"
         style={
           {
-            // CSS vars for parallax
             ["--mx" as string]: "0px",
             ["--my" as string]: "0px",
             ["--scroll-y" as string]: "0px",
+            ["--scroll-tilt" as string]: "0deg",
+            ["--cursor-tilt" as string]: "0deg",
             transform:
               "translate3d(var(--mx), calc(var(--my) + var(--scroll-y)), 0)",
             willChange: "transform",
           } as React.CSSProperties
         }
       >
+        {/* Reactive glow halo behind ring */}
         <div
-          className="absolute inset-0 flex items-center justify-center animate-[heroFloat_8s_ease-in-out_infinite]"
-        >
+          ref={glowRef}
+          aria-hidden
+          className="absolute inset-0 transition-opacity duration-300"
+          style={{
+            background:
+              "radial-gradient(closest-side, rgba(167,139,250,0.55) 0%, rgba(232,93,58,0.25) 35%, transparent 70%)",
+            filter: "blur(40px)",
+            opacity: 0.55,
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center lux-float">
           <img
             src={heroSculpture}
             alt=""
@@ -120,8 +131,10 @@ export function HeroAICM() {
             height={1280}
             className="h-[90%] w-[90%] object-contain animate-[heroSpin_42s_linear_infinite]"
             style={{
+              transform: "rotate(var(--cursor-tilt)) rotate(var(--scroll-tilt))",
+              transformOrigin: "center",
               filter:
-                "drop-shadow(0 40px 80px rgba(124,58,237,0.25)) drop-shadow(0 20px 40px rgba(232,93,58,0.15)) saturate(1.08) contrast(1.03)",
+                "drop-shadow(0 40px 80px rgba(124,58,237,0.30)) drop-shadow(0 20px 40px rgba(232,93,58,0.18)) saturate(1.08) contrast(1.03)",
             }}
           />
         </div>
