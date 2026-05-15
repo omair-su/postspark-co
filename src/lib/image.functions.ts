@@ -103,6 +103,38 @@ async function countMonthlyGenerations(userId: string): Promise<number> {
   return count || 0;
 }
 
+const FREE_REPURPOSE_LIMIT = 10;
+async function checkRepurposeQuota(userId: string, plan: string): Promise<boolean> {
+  if (plan === "pro" || plan === "agency") return true;
+  const since = await monthStartIso();
+  const { count } = await supabaseAdmin
+    .from("repurpose_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", since);
+  return (count ?? 0) < FREE_REPURPOSE_LIMIT;
+}
+
+async function logToHistory(opts: {
+  userId: string;
+  tool: string;
+  title: string;
+  inputText: string;
+  outputs: Record<string, any>;
+}) {
+  try {
+    await supabaseAdmin.from("repurpose_jobs").insert({
+      user_id: opts.userId,
+      tool: opts.tool,
+      title: opts.title.slice(0, 200),
+      input_text: opts.inputText.slice(0, 5000),
+      outputs: opts.outputs,
+    } as any);
+  } catch (e) {
+    console.error("logToHistory error:", e);
+  }
+}
+
 export const getImageUsage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
