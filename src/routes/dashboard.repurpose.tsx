@@ -26,6 +26,7 @@ const contentTypes = [
   { id: "tiktok", label: "TikTok Scripts", emoji: "🎵" },
   { id: "podcast", label: "Podcast Notes", emoji: "🎙️" },
   { id: "seo", label: "SEO / Blog Summary", emoji: "🔍" },
+  { id: "carousel", label: "Carousel (swipes)", emoji: "🖼️" },
 ];
 
 interface ParsedResults {
