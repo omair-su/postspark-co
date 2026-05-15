@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Search } from "lucide-react";
 import { useEffect, useRef } from "react";
-import heroSculpture from "@/assets/hero-ceramic-ring.jpg";
+import heroSculpture from "@/assets/hero-ceramic-ring.png";
 
 /**
  * AICM-style hero: light cream BG, huge bold navy headline,
@@ -99,14 +99,19 @@ export function HeroAICM() {
           } as React.CSSProperties
         }
       >
-        <div className="absolute inset-0 animate-[heroSpin_38s_linear_infinite]">
+        <div
+          className="absolute inset-0 flex items-center justify-center animate-[heroFloat_8s_ease-in-out_infinite]"
+        >
           <img
             src={heroSculpture}
             alt=""
-            width={1920}
-            height={1080}
-            className="h-full w-full object-cover object-center opacity-95 mix-blend-multiply"
-            style={{ filter: "saturate(1.05) contrast(1.02)" }}
+            width={1280}
+            height={1280}
+            className="h-[90%] w-[90%] object-contain animate-[heroSpin_42s_linear_infinite]"
+            style={{
+              filter:
+                "drop-shadow(0 40px 80px rgba(124,58,237,0.25)) drop-shadow(0 20px 40px rgba(232,93,58,0.15)) saturate(1.08) contrast(1.03)",
+            }}
           />
         </div>
       </div>
@@ -201,12 +206,18 @@ export function HeroAICM() {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
+        @keyframes heroFloat {
+          0%, 100% { transform: translateY(0px); }
+          50%      { transform: translateY(-18px); }
+        }
         @keyframes heroRise {
           from { opacity: 0; transform: translate3d(0, 24px, 0); }
           to   { opacity: 1; transform: translate3d(0, 0, 0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          [class*="animate-[heroSpin"], [class*="animate-[heroRise"] {
+          [class*="animate-[heroSpin"],
+          [class*="animate-[heroFloat"],
+          [class*="animate-[heroRise"] {
             animation: none !important;
           }
         }
