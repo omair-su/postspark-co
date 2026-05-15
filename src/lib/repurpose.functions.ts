@@ -154,17 +154,23 @@ export const repurposeContent = createServerFn({ method: "POST" })
       data.language || "English"
     );
 
+    let jobId: string | null = null;
     if (!result.error && result.output) {
-      await supabase.from("repurpose_jobs").insert({
-        user_id: userId,
-        input_text: data.inputText,
-        outputs: { raw: result.output },
-        brand_kit_id: brandKitId,
-        workspace_id: workspaceId,
-      } as any);
+      const { data: inserted } = await supabase
+        .from("repurpose_jobs")
+        .insert({
+          user_id: userId,
+          input_text: data.inputText,
+          outputs: { raw: result.output },
+          brand_kit_id: brandKitId,
+          workspace_id: workspaceId,
+        } as any)
+        .select("id")
+        .single();
+      jobId = (inserted as any)?.id ?? null;
     }
 
-    return result;
+    return { ...result, jobId };
   });
 
 export const toggleFavorite = createServerFn({ method: "POST" })
