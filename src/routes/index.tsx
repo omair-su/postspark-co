@@ -74,7 +74,7 @@ function LandingPage() {
   return (
     <div className="min-h-screen scroll-smooth">
       <Navbar />
-      <HeroSection />
+      <HeroAICM />
 
       <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
         <TrustedBySection />
