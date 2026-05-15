@@ -144,6 +144,7 @@ export function HeroAICM() {
             />
           </div>
         </div>
+      </div>
 
       {/* Soft fade so text stays legible */}
       <div
