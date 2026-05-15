@@ -26,6 +26,11 @@ const TOOL_LABEL: Record<string, string> = {
   humanizer: "Humanizer",
   reply_generator: "Reply Gen",
   copilot: "Copilot",
+  carousel: "Carousel",
+  thumbnail: "Thumbnail",
+  image: "Image",
+  "image-edit": "Image Edit",
+  podcast: "Podcast",
 };
 
 export const Route = createFileRoute("/dashboard/history")({
