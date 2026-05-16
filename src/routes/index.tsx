@@ -76,21 +76,23 @@ function LandingPage() {
   return (
     <div className="min-h-screen scroll-smooth overflow-x-clip">
       <Navbar />
-      <HeroAICM />
-      <HeroCompareSlider />
+      <main>
+        <HeroAICM />
+        <HeroCompareSlider />
 
-      <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
-        <TrustedBySection />
-        <BeforeAfterSection />
-        <FeaturesSection />
-        <PremiumFeaturesSection />
-        <HowItWorksSection />
-        <PricingSection />
-        <TestimonialsSection />
-        <FAQSection />
-        <CTABanner />
-        <Footer />
-      </Suspense>
+        <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
+          <TrustedBySection />
+          <BeforeAfterSection />
+          <FeaturesSection />
+          <PremiumFeaturesSection />
+          <HowItWorksSection />
+          <PricingSection />
+          <TestimonialsSection />
+          <FAQSection />
+          <CTABanner />
+          <Footer />
+        </Suspense>
+      </main>
       <LandingLayoutGuard />
     </div>
   );
