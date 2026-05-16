@@ -136,6 +136,8 @@ export function HeroAICM() {
               alt=""
               width={1280}
               height={1280}
+              fetchPriority="high"
+              decoding="async"
               className="h-full w-full object-contain animate-[heroSpin_42s_linear_infinite]"
               style={{
                 filter:
