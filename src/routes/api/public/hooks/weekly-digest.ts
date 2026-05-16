@@ -4,7 +4,15 @@ import { createClient } from "@supabase/supabase-js";
 export const Route = createFileRoute("/api/public/hooks/weekly-digest")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const apiKey = process.env.LOVABLE_API_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const authHeader = request.headers.get("authorization") || request.headers.get("Authorization");
+        if (!apiKey || authHeader !== `Bearer ${apiKey}`) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
         const supabase = createClient(
           process.env.SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!,
