@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, X, Send, Loader2, Bot, User as UserIcon, Wand2, MessageSquare, History as HistoryIcon, Plus, Trash2 } from "lucide-react";
+import { X, Send, Loader2, User as UserIcon, Wand2, MessageSquare, History as HistoryIcon, Plus, Trash2, Sparkles } from "lucide-react";
 import {
   sparkChat,
   listCopilotConversations,
@@ -8,6 +8,7 @@ import {
 } from "@/lib/copilot.functions";
 import { useAuth } from "@/hooks/useAuth";
 import ReactMarkdown from "react-markdown";
+import { AssistantOrb } from "@/components/AssistantOrb";
 
 interface Msg { role: "user" | "assistant"; content: string }
 interface Conv { id: string; title: string; updated_at: string }
