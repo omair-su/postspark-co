@@ -10,18 +10,96 @@ import {
   Gift,
   Sparkles,
   ChevronDown,
+  Wand2,
+  Headphones,
+  LayoutGrid,
+  MessageSquareReply,
+  ImagePlus,
+  BotMessageSquare,
 } from "lucide-react";
 
 const premiumFeatures = [
   {
+    icon: BotMessageSquare,
+    title: "Spark Copilot",
+    desc: "A built-in AI assistant that answers, drafts, and rewrites in-app. Like ChatGPT, fluent in your brand voice and tools.",
+    badge: "New",
+    gradient: "from-violet-500/20 to-fuchsia-500/20",
+    highlights: [
+      "Chat-based assistant inside every workspace",
+      "Knows your brand voice, kit and history",
+      "One click → draft, humanize, repurpose, reply",
+    ],
+  },
+  {
+    icon: Wand2,
+    title: "AI Humanizer",
+    desc: "Turn robotic AI text into natural, human-sounding writing that passes detectors and actually feels like you.",
+    badge: "New",
+    gradient: "from-purple-500/20 to-pink-500/20",
+    highlights: [
+      "Bypass AI detectors with one click",
+      "Preserves meaning, adjusts cadence + tone",
+      "Tune intensity from light polish → full rewrite",
+    ],
+  },
+  {
+    icon: Headphones,
+    title: "Podcast Studio",
+    desc: "Drop in an episode and get show notes, timestamps, tweet threads, LinkedIn carousels and a newsletter — instantly.",
+    badge: "New",
+    gradient: "from-amber-500/20 to-orange-500/20",
+    highlights: [
+      "Auto-transcribe with chapter timestamps",
+      "Generate show notes + key quotes",
+      "Spin one episode into 20+ social assets",
+    ],
+  },
+  {
+    icon: LayoutGrid,
+    title: "Carousel Generator",
+    desc: "Instagram & LinkedIn carousels designed in seconds — copy, layout, and on-brand visuals from one prompt.",
+    badge: "New",
+    gradient: "from-pink-500/20 to-rose-500/20",
+    highlights: [
+      "5–10 slide carousels in <15 seconds",
+      "Auto-applies your colors and fonts",
+      "Export PDF / PNG ready to upload",
+    ],
+  },
+  {
+    icon: MessageSquareReply,
+    title: "Reply Generator",
+    desc: "Grow by engaging — get 5 sharp reply options for any post on X, LinkedIn or Threads, in your voice.",
+    badge: "New",
+    gradient: "from-cyan-500/20 to-blue-500/20",
+    highlights: [
+      "5 reply angles per post (contrarian, witty, value)",
+      "Matches your tone and authority level",
+      "Copy-to-clipboard in one tap",
+    ],
+  },
+  {
+    icon: ImagePlus,
+    title: "Thumbnail Maker",
+    desc: "Click-worthy YouTube & blog thumbnails in seconds. Premium type, hierarchy and color — no Photoshop required.",
+    badge: "New",
+    gradient: "from-rose-500/20 to-orange-500/20",
+    highlights: [
+      "16:9 YouTube + 1:1 social presets",
+      "Curated layouts that actually convert",
+      "Edit headline and re-export instantly",
+    ],
+  },
+  {
     icon: Mic,
     title: "Brand Voice AI",
-    desc: "Train PostSpark on your writing samples. Every post sounds unmistakably you — auto-applied to every generation.",
+    desc: "Train PostSpark on your writing samples. Every post sounds unmistakably you — auto-applied everywhere.",
     badge: "Pro",
     gradient: "from-purple-500/20 to-fuchsia-500/20",
     highlights: [
-      "Upload 5–20 samples to fingerprint your tone",
-      "Auto-applied to every repurpose, hook, and email",
+      "Fingerprint your tone from 5–20 samples",
+      "Auto-applied to every generation",
       "Switch voices per project or client",
     ],
   },
@@ -29,30 +107,18 @@ const premiumFeatures = [
     icon: Flame,
     title: "Hook Lab",
     desc: "Generate 20+ scroll-stopping hooks in seconds. A/B test variants and pick winners backed by virality scoring.",
-    badge: "New",
+    badge: "Pro",
     gradient: "from-orange-500/20 to-red-500/20",
     highlights: [
-      "20+ hook variants per topic in <10 seconds",
+      "20+ hook variants per topic in <10s",
       "Virality score on every hook",
-      "Save winners to your personal swipe file",
-    ],
-  },
-  {
-    icon: ImageIcon,
-    title: "AI Image Studio",
-    desc: "Create on-brand thumbnails, quote cards, and carousel slides. No designer required — your colors, your fonts.",
-    badge: "New",
-    gradient: "from-pink-500/20 to-purple-500/20",
-    highlights: [
-      "Thumbnails, quote cards, and carousels",
-      "Brand kit: lock your colors and fonts",
-      "Export at platform-perfect dimensions",
+      "Save winners to your swipe file",
     ],
   },
   {
     icon: Calendar,
     title: "Content Calendar",
-    desc: "Schedule a full month of posts in one drag-and-drop view. Visual planning that ships consistency.",
+    desc: "Schedule a full month of posts in a drag-and-drop view. Visual planning that ships consistency.",
     badge: "New",
     gradient: "from-blue-500/20 to-cyan-500/20",
     highlights: [
@@ -74,13 +140,25 @@ const premiumFeatures = [
     ],
   },
   {
+    icon: ImageIcon,
+    title: "AI Image Studio",
+    desc: "Quote cards, hero images, social tiles — on-brand, in seconds, no designer required.",
+    badge: "Pro",
+    gradient: "from-fuchsia-500/20 to-purple-500/20",
+    highlights: [
+      "Quote cards, tiles, hero images",
+      "Brand kit locks your colors and fonts",
+      "Platform-perfect export dimensions",
+    ],
+  },
+  {
     icon: Upload,
     title: "Import Studio",
-    desc: "Pull in YouTube videos, podcasts, PDFs, or any URL. Auto-transcribed and ready to repurpose in one click.",
+    desc: "Pull in YouTube, podcasts, PDFs, or any URL. Auto-transcribed and ready to repurpose in one click.",
     badge: "New",
     gradient: "from-amber-500/20 to-orange-500/20",
     highlights: [
-      "YouTube, podcasts, PDFs, and URLs",
+      "YouTube, podcasts, PDFs, URLs",
       "Auto-transcription with timestamps",
       "One click → 30 pieces of content",
     ],
@@ -88,13 +166,13 @@ const premiumFeatures = [
   {
     icon: Globe,
     title: "Public Gallery",
-    desc: "Share your best generations to a public showcase. Get inspired by what other creators are shipping.",
+    desc: "Share your best generations to a public showcase. Get inspired by what's working for other creators.",
     badge: "New",
     gradient: "from-indigo-500/20 to-blue-500/20",
     highlights: [
       "Publish your best work in one click",
-      "Browse what's working for other creators",
-      "Remix any public post as a starting point",
+      "Browse what's working for creators",
+      "Remix any public post as a starter",
     ],
   },
   {
@@ -104,9 +182,9 @@ const premiumFeatures = [
     badge: "Rewards",
     gradient: "from-rose-500/20 to-pink-500/20",
     highlights: [
-      "Earn 1 free Pro month per referred signup",
-      "Track invites and rewards in real time",
-      "Stack rewards — no cap on free months",
+      "1 free Pro month per referred signup",
+      "Track invites and rewards live",
+      "Stack rewards — no cap",
     ],
   },
 ];
@@ -135,15 +213,15 @@ export function PremiumFeaturesSection() {
         <div className="text-center">
           <span className="luxury-chip">
             <Sparkles className="h-3.5 w-3.5 text-[#7c3aed]" />
-            Premium Suite
+            Premium Suite · 14 AI Tools
           </span>
-          <h2 className="mt-5 luxury-heading" style={{ fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
+          <h2 className="mt-5 luxury-heading" style={{ fontFamily: '"Instrument Serif", serif', fontWeight: 400, fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
             A Full <span className="luxury-gradient-text">AI Content Studio</span>
             <br className="hidden sm:block" />
             in One Workspace
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base text-[#1a1a2e]/65 sm:text-lg">
-            Beyond simple repurposing — PostSpark is the complete creator OS. Train your voice, design assets, plan your calendar, and grow your reach. All powered by AI.
+            Beyond simple repurposing — Spark Copilot, Humanizer, Podcast Studio, Carousels, Reply Generator, Thumbnails and more. The complete creator OS.
           </p>
           <p className="mt-3 text-xs uppercase tracking-[0.2em] text-[#1a1a2e]/50">
             Tap any card to expand
@@ -162,9 +240,8 @@ export function PremiumFeaturesSection() {
                 className={`luxury-card group relative overflow-hidden p-6 text-left transition-all duration-300 animate-fade-in hover:-translate-y-1 ${
                   isOpen ? "ring-2 ring-[#7c3aed]/40" : ""
                 }`}
-                style={{ animationDelay: `${i * 70}ms` }}
+                style={{ animationDelay: `${i * 60}ms` }}
               >
-                {/* Hover gradient sheen */}
                 <div
                   className={`absolute inset-0 -z-10 bg-gradient-to-br ${f.gradient} transition-opacity duration-500 ${
                     isOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
@@ -173,20 +250,17 @@ export function PremiumFeaturesSection() {
 
                 <div className="flex items-start justify-between">
                   <div
-                    className={`relative flex h-12 w-12 items-center justify-center rounded-xl gradient-electric shadow-lg shadow-electric/30 transition-transform duration-300 ${
-                      isOpen
-                        ? "scale-110 rotate-3"
-                        : "group-hover:scale-110 group-hover:rotate-3"
+                    className={`relative flex h-12 w-12 items-center justify-center rounded-xl shadow-lg transition-transform duration-300 ${
+                      isOpen ? "scale-110 rotate-3" : "group-hover:scale-110 group-hover:rotate-3"
                     }`}
+                    style={{
+                      background: "linear-gradient(135deg, #1a1a2e 0%, #4c1d95 55%, #7c3aed 100%)",
+                      boxShadow: "0 14px 30px -10px rgba(124,58,237,0.55)",
+                    }}
                   >
-                    <f.icon className="h-6 w-6 text-primary-foreground" />
-                    <div
-                      className={`absolute inset-0 rounded-xl bg-white/10 blur-xl transition-opacity duration-300 ${
-                        isOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                      }`}
-                    />
+                    <f.icon className="h-6 w-6 text-white" />
                   </div>
-                  <span className="rounded-full border border-electric/30 bg-electric/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-electric">
+                  <span className="rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#7c3aed]">
                     {f.badge}
                   </span>
                 </div>
@@ -201,7 +275,6 @@ export function PremiumFeaturesSection() {
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[#1a1a2e]/65">{f.desc}</p>
 
-                {/* Animated expandable highlights */}
                 <div
                   className={`grid transition-all duration-500 ease-out ${
                     isOpen ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
@@ -215,9 +288,7 @@ export function PremiumFeaturesSection() {
                             key={h}
                             className="flex items-start gap-2 text-xs text-[#1a1a2e]/75"
                             style={{
-                              animation: isOpen
-                                ? `fade-in 0.4s ease-out ${hi * 80}ms both`
-                                : "none",
+                              animation: isOpen ? `fade-in 0.4s ease-out ${hi * 80}ms both` : "none",
                             }}
                           >
                             <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#7c3aed] shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
@@ -235,18 +306,20 @@ export function PremiumFeaturesSection() {
 
         <div className="luxury-card mt-16 p-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#1a1a2e]/55">
-            Replaces 8+ tools
+            Replaces 10+ tools
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#1a1a2e]/70">
+            <span className="line-through opacity-60">ChatGPT Plus</span>
+            <span className="text-[#7c3aed]">+</span>
             <span className="line-through opacity-60">Jasper</span>
             <span className="text-[#7c3aed]">+</span>
             <span className="line-through opacity-60">Canva</span>
             <span className="text-[#7c3aed]">+</span>
+            <span className="line-through opacity-60">Descript</span>
+            <span className="text-[#7c3aed]">+</span>
             <span className="line-through opacity-60">Buffer</span>
             <span className="text-[#7c3aed]">+</span>
             <span className="line-through opacity-60">Surfer SEO</span>
-            <span className="text-[#7c3aed]">+</span>
-            <span className="line-through opacity-60">Descript</span>
             <span className="text-[#7c3aed]">=</span>
             <span className="font-bold luxury-heading">PostSpark</span>
           </div>

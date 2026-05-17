@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { Twitter, Linkedin, Mail, Play, Sparkles } from "lucide-react";
 
 type Output = {
   label: string;
   count: string;
-  platform: string;
+  Icon: typeof Twitter;
   accent: string;
-  glow: string;
   preview: string;
   metric: string;
 };
@@ -14,37 +14,33 @@ const outputs: Output[] = [
   {
     label: "Twitter / X Thread",
     count: "10",
-    platform: "x",
-    accent: "#22d3ee",
-    glow: "rgba(34,211,238,0.35)",
+    Icon: Twitter,
+    accent: "#7c3aed",
     preview: "The 3 mistakes killing your content reach in 2026 →",
     metric: "+312% reach",
   },
   {
     label: "LinkedIn Posts",
     count: "05",
-    platform: "in",
-    accent: "#60a5fa",
-    glow: "rgba(96,165,250,0.35)",
+    Icon: Linkedin,
+    accent: "#4c1d95",
     preview: "I analyzed 1,200 viral posts. Here's the pattern nobody talks about.",
     metric: "+184% engagement",
   },
   {
     label: "Email Newsletter",
     count: "01",
-    platform: "@",
-    accent: "#fb7185",
-    glow: "rgba(251,113,133,0.35)",
+    Icon: Mail,
+    accent: "#e85d3a",
     preview: "Issue 24 — The Repurposing Playbook",
     metric: "47% open rate",
   },
   {
     label: "Short-form Script",
     count: "01",
-    platform: "▶",
-    accent: "#facc15",
-    glow: "rgba(250,204,21,0.40)",
-    preview: "Hook: \"Stop writing content. Start engineering it.\"",
+    Icon: Play,
+    accent: "#b45309",
+    preview: 'Hook: "Stop writing content. Start engineering it."',
     metric: "Avg. 38s watch",
   },
 ];
@@ -54,7 +50,6 @@ export function BeforeAfterSection() {
   const [transformed, setTransformed] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // Cycle through outputs to feel "alive"
   useEffect(() => {
     const id = window.setInterval(() => {
       setActive((a) => (a + 1) % outputs.length);
@@ -62,7 +57,6 @@ export function BeforeAfterSection() {
     return () => window.clearInterval(id);
   }, []);
 
-  // Trigger transformation on scroll-in
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -75,7 +69,7 @@ export function BeforeAfterSection() {
           }
         });
       },
-      { threshold: 0.35 },
+      { threshold: 0.3 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -84,26 +78,32 @@ export function BeforeAfterSection() {
   return (
     <section
       ref={sectionRef}
-      className="ba-section relative isolate overflow-hidden py-28"
+      className="ba-section relative isolate overflow-hidden cream-surface-alt py-28"
     >
-      {/* Layered background */}
-      <div aria-hidden className="ba-bg" />
-      <div aria-hidden className="ba-grid" />
+      <div className="cream-grain" aria-hidden />
       <div aria-hidden className="ba-orb ba-orb-a" />
       <div aria-hidden className="ba-orb ba-orb-b" />
-      <div aria-hidden className="ba-orb ba-orb-c" />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         <div className="text-center">
-          <span className="ba-chip">
-            <span className="ba-chip-dot" />
+          <span className="luxury-chip">
+            <Sparkles className="h-3.5 w-3.5 text-[#7c3aed]" />
             Live Transformation
           </span>
-          <h2 className="ba-title mt-6">
+          <h2
+            className="mt-6 luxury-heading"
+            style={{
+              fontFamily: '"Instrument Serif", "Times New Roman", serif',
+              fontWeight: 400,
+              fontSize: "clamp(2rem, 4.8vw, 3.4rem)",
+              lineHeight: 1.05,
+              letterSpacing: "-0.01em",
+            }}
+          >
             One input.{" "}
-            <span className="ba-title-grad">An entire content engine.</span>
+            <span className="luxury-gradient-text">An entire content engine.</span>
           </h2>
-          <p className="ba-sub mx-auto mt-4 max-w-xl">
+          <p className="mx-auto mt-4 max-w-xl text-[#1a1a2e]/65">
             Watch a single blog post unfold into a multi-channel campaign in real time.
           </p>
         </div>
@@ -111,7 +111,7 @@ export function BeforeAfterSection() {
         {/* Stage */}
         <div className="ba-stage mt-16 grid items-stretch gap-10 lg:grid-cols-[1fr_auto_1.35fr]">
           {/* INPUT */}
-          <div className={`ba-panel ba-input ${transformed ? "is-on" : ""}`}>
+          <div className={`luxury-card ba-panel ${transformed ? "is-on" : ""}`}>
             <div className="ba-panel-label">
               <span className="ba-pulse" />
               Source · Markdown
@@ -135,7 +135,7 @@ export function BeforeAfterSection() {
             </div>
           </div>
 
-          {/* CORE / connector */}
+          {/* CORE */}
           <div className="ba-core">
             <div className="ba-rings">
               <div className="ba-ring" />
@@ -150,25 +150,24 @@ export function BeforeAfterSection() {
                 />
                 <defs>
                   <linearGradient id="sparkG" x1="0" y1="0" x2="24" y2="24">
-                    <stop offset="0%" stopColor="#22d3ee" />
-                    <stop offset="55%" stopColor="#a78bfa" />
-                    <stop offset="100%" stopColor="#fb7185" />
+                    <stop offset="0%" stopColor="#f5d7b6" />
+                    <stop offset="55%" stopColor="#c4b5fd" />
+                    <stop offset="100%" stopColor="#7c3aed" />
                   </linearGradient>
                 </defs>
               </svg>
             </div>
             <div className="ba-core-cap">Neural Repurpose v4</div>
 
-            {/* connector beams */}
             <svg className="ba-beams" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
               <defs>
                 <linearGradient id="beamL" x1="0" y1="50" x2="100" y2="50">
-                  <stop offset="0%" stopColor="rgba(167,139,250,0)" />
-                  <stop offset="100%" stopColor="rgba(167,139,250,0.9)" />
+                  <stop offset="0%" stopColor="rgba(124,58,237,0)" />
+                  <stop offset="100%" stopColor="rgba(124,58,237,0.7)" />
                 </linearGradient>
                 <linearGradient id="beamR" x1="0" y1="50" x2="100" y2="50">
-                  <stop offset="0%" stopColor="rgba(34,211,238,0.9)" />
-                  <stop offset="100%" stopColor="rgba(34,211,238,0)" />
+                  <stop offset="0%" stopColor="rgba(232,93,58,0.7)" />
+                  <stop offset="100%" stopColor="rgba(232,93,58,0)" />
                 </linearGradient>
               </defs>
               <line x1="0" y1="50" x2="50" y2="50" stroke="url(#beamL)" strokeWidth="0.6" />
@@ -189,20 +188,19 @@ export function BeforeAfterSection() {
               {outputs.map((o, i) => (
                 <article
                   key={o.label}
-                  className={`ba-card ${active === i ? "is-active" : ""} ${
+                  className={`luxury-card ba-card ${active === i ? "is-active" : ""} ${
                     transformed ? "is-on" : ""
                   }`}
                   style={
                     {
                       "--accent": o.accent,
-                      "--glow": o.glow,
                       animationDelay: `${i * 120 + 120}ms`,
                     } as React.CSSProperties
                   }
                 >
                   <div className="ba-card-top">
                     <span className="ba-platform" aria-hidden>
-                      {o.platform}
+                      <o.Icon className="h-4 w-4" />
                     </span>
                     <span className="ba-count">{o.count}</span>
                   </div>
@@ -214,7 +212,6 @@ export function BeforeAfterSection() {
                     </div>
                     <span className="ba-metric">{o.metric}</span>
                   </div>
-                  <div className="ba-card-sheen" aria-hidden />
                 </article>
               ))}
             </div>
@@ -238,66 +235,13 @@ export function BeforeAfterSection() {
       </div>
 
       <style>{`
-        .ba-section {
-          background:
-            radial-gradient(120% 80% at 50% 0%, #0b1024 0%, #070a1a 55%, #05060f 100%);
-          color: #e7ecff;
-        }
-        .ba-bg {
-          position: absolute; inset: 0;
-          background:
-            radial-gradient(60% 40% at 20% 20%, rgba(99,102,241,0.18), transparent 70%),
-            radial-gradient(50% 35% at 85% 75%, rgba(34,211,238,0.16), transparent 70%),
-            radial-gradient(40% 30% at 50% 100%, rgba(251,113,133,0.14), transparent 70%);
-          pointer-events: none;
-        }
-        .ba-grid {
-          position: absolute; inset: 0;
-          background-image:
-            linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
-          background-size: 56px 56px;
-          mask-image: radial-gradient(80% 60% at 50% 40%, #000 40%, transparent 100%);
-          opacity: .55;
-          pointer-events: none;
-        }
-        .ba-orb { position:absolute; border-radius:9999px; filter: blur(60px); opacity:.55; pointer-events:none; }
-        .ba-orb-a { width:380px; height:380px; left:-80px; top:-60px; background: radial-gradient(closest-side, rgba(99,102,241,0.55), transparent 70%); animation: baFloat 14s ease-in-out infinite; }
-        .ba-orb-b { width:320px; height:320px; right:-60px; bottom:-40px; background: radial-gradient(closest-side, rgba(34,211,238,0.55), transparent 70%); animation: baFloat 17s ease-in-out infinite reverse; }
-        .ba-orb-c { width:260px; height:260px; left:50%; top:60%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(251,113,133,0.45), transparent 70%); animation: baFloat 19s ease-in-out infinite; }
-
-        .ba-chip {
-          display:inline-flex; align-items:center; gap:.5rem;
-          padding:.4rem .85rem; border-radius:9999px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.12);
-          backdrop-filter: blur(10px);
-          font-size:.72rem; letter-spacing:.2em; text-transform:uppercase;
-          color: rgba(231,236,255,0.85);
-        }
-        .ba-chip-dot { width:6px; height:6px; border-radius:9999px; background:#22d3ee; box-shadow:0 0 12px #22d3ee; }
-        .ba-title {
-          font-family: "Instrument Serif", "Times New Roman", serif;
-          font-weight: 400;
-          font-size: clamp(2rem, 4.8vw, 3.4rem);
-          line-height: 1.05;
-          letter-spacing: -0.01em;
-        }
-        .ba-title-grad {
-          background: linear-gradient(100deg, #a78bfa 0%, #22d3ee 45%, #fb7185 100%);
-          -webkit-background-clip: text; background-clip: text; color: transparent;
-        }
-        .ba-sub { color: rgba(231,236,255,0.65); font-size: 1rem; }
+        .ba-orb { position:absolute; border-radius:9999px; filter: blur(70px); opacity:.55; pointer-events:none; }
+        .ba-orb-a { width:380px; height:380px; left:-80px; top:-60px; background: radial-gradient(closest-side, rgba(124,58,237,0.30), transparent 70%); animation: baFloat 14s ease-in-out infinite; }
+        .ba-orb-b { width:320px; height:320px; right:-60px; bottom:-40px; background: radial-gradient(closest-side, rgba(232,93,58,0.25), transparent 70%); animation: baFloat 17s ease-in-out infinite reverse; }
 
         /* INPUT */
         .ba-panel {
-          position:relative;
-          border-radius: 22px;
           padding: 22px;
-          background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-          border: 1px solid rgba(255,255,255,0.10);
-          box-shadow: 0 30px 80px -40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
-          backdrop-filter: blur(14px);
           min-height: 360px;
           opacity: 0; transform: translateY(14px);
           transition: opacity .7s ease, transform .7s ease;
@@ -306,21 +250,21 @@ export function BeforeAfterSection() {
         .ba-panel-label {
           display:flex; align-items:center; gap:.5rem;
           font-size:.7rem; letter-spacing:.22em; text-transform:uppercase;
-          color: rgba(231,236,255,0.65);
+          color: rgba(26,26,46,0.6);
         }
-        .ba-pulse { width:8px; height:8px; border-radius:9999px; background:#a78bfa; box-shadow:0 0 10px #a78bfa; animation: baBlink 1.4s ease-in-out infinite; }
+        .ba-pulse { width:8px; height:8px; border-radius:9999px; background:#7c3aed; box-shadow:0 0 10px rgba(124,58,237,0.6); animation: baBlink 1.4s ease-in-out infinite; }
         .ba-doc { margin-top:14px; }
-        .ba-doc-title { font-weight:600; font-size:1.05rem; color:#fff; }
-        .ba-doc-meta { font-size:.75rem; color: rgba(231,236,255,0.55); margin-top:2px; }
+        .ba-doc-title { font-weight:600; font-size:1.05rem; color:#1a1a2e; font-family: "Instrument Serif", "Times New Roman", serif; font-weight: 500; font-size: 1.35rem; letter-spacing: -0.01em; }
+        .ba-doc-meta { font-size:.75rem; color: rgba(26,26,46,0.55); margin-top:2px; }
         .ba-doc-lines { margin-top:18px; display:flex; flex-direction:column; gap:9px; }
         .ba-line {
           height:8px; border-radius:6px;
-          background: linear-gradient(90deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+          background: linear-gradient(90deg, rgba(26,26,46,0.10), rgba(26,26,46,0.04));
           position:relative; overflow:hidden;
         }
         .ba-line::after {
           content:""; position:absolute; inset:0;
-          background: linear-gradient(90deg, transparent, rgba(167,139,250,0.45), transparent);
+          background: linear-gradient(90deg, transparent, rgba(124,58,237,0.40), transparent);
           transform: translateX(-100%);
           animation: baSweep 3.4s ease-in-out infinite;
         }
@@ -334,138 +278,112 @@ export function BeforeAfterSection() {
         .ba-tag {
           font-size:.65rem; letter-spacing:.18em; text-transform:uppercase;
           padding:.3rem .6rem; border-radius:6px;
-          background: rgba(167,139,250,0.15); color:#c4b5fd;
-          border:1px solid rgba(167,139,250,0.25);
+          background: rgba(124,58,237,0.10); color:#4c1d95;
+          border:1px solid rgba(124,58,237,0.20);
         }
-        .ba-tag-alt { background: rgba(34,211,238,0.12); color:#7dd3fc; border-color: rgba(34,211,238,0.25); }
+        .ba-tag-alt { background: rgba(232,93,58,0.10); color:#b45309; border-color: rgba(232,93,58,0.25); }
 
         /* CORE */
         .ba-core {
           position:relative;
-          width: 140px; height: 100%;
+          width: 140px; min-height: 360px;
           display:flex; align-items:center; justify-content:center;
           margin: 0 auto;
         }
         .ba-rings { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
         .ba-ring {
           position:absolute; width:110px; height:110px; border-radius:9999px;
-          border:1px solid rgba(167,139,250,0.35);
+          border:1px solid rgba(124,58,237,0.30);
           animation: baRing 3.2s ease-out infinite;
         }
-        .ba-ring-2 { animation-delay: 1.0s; border-color: rgba(34,211,238,0.35); }
-        .ba-ring-3 { animation-delay: 2.0s; border-color: rgba(251,113,133,0.35); }
+        .ba-ring-2 { animation-delay: 1.0s; border-color: rgba(232,93,58,0.30); }
+        .ba-ring-3 { animation-delay: 2.0s; border-color: rgba(245,215,182,0.55); }
         .ba-core-disc {
           position:relative; width:84px; height:84px; border-radius:9999px;
           display:flex; align-items:center; justify-content:center;
           background:
-            radial-gradient(closest-side, rgba(255,255,255,0.12), rgba(255,255,255,0.02) 70%),
-            conic-gradient(from 0deg, #22d3ee, #a78bfa, #fb7185, #facc15, #22d3ee);
-          box-shadow: 0 0 40px rgba(167,139,250,0.45), inset 0 0 20px rgba(255,255,255,0.15);
+            radial-gradient(closest-side, rgba(255,255,255,0.4), rgba(255,255,255,0.05) 70%),
+            conic-gradient(from 0deg, #7c3aed, #c4b5fd, #f5d7b6, #e85d3a, #7c3aed);
+          box-shadow: 0 0 40px rgba(124,58,237,0.35), inset 0 0 20px rgba(255,255,255,0.4);
           animation: baSpin 14s linear infinite;
         }
-        .ba-spark { width: 38px; height: 38px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45)); }
+        .ba-spark { width: 38px; height: 38px; filter: drop-shadow(0 2px 6px rgba(26,26,46,0.25)); }
         .ba-core-cap {
-          position:absolute; bottom: 8%; left:50%; transform:translateX(-50%);
+          position:absolute; bottom: 0; left:50%; transform:translateX(-50%);
           font-size:.6rem; letter-spacing:.22em; text-transform:uppercase;
-          color: rgba(231,236,255,0.7); white-space: nowrap;
+          color: rgba(26,26,46,0.6); white-space: nowrap;
         }
-        .ba-beams {
-          position:absolute; inset:0; width:100%; height:100%; z-index:-1;
-        }
+        .ba-beams { position:absolute; inset:0; width:100%; height:100%; z-index:-1; }
         @media (max-width: 1023px) {
-          .ba-core { width:100%; height: 90px; }
+          .ba-core { width:100%; min-height: 90px; }
           .ba-beams { display:none; }
         }
 
         /* OUTPUTS */
         .ba-outputs { display:flex; flex-direction:column; gap:14px; }
         .ba-outputs-head { display:flex; align-items:center; justify-content:space-between; }
-        .ba-outputs-label { font-size:.7rem; letter-spacing:.22em; text-transform:uppercase; color: rgba(231,236,255,0.7); }
+        .ba-outputs-label { font-size:.7rem; letter-spacing:.22em; text-transform:uppercase; color: rgba(26,26,46,0.65); }
         .ba-outputs-live {
           display:inline-flex; align-items:center; gap:.45rem;
           font-size:.65rem; letter-spacing:.2em; text-transform:uppercase;
           padding:.3rem .6rem; border-radius:9999px;
-          background: rgba(34,197,94,0.12); color:#86efac;
+          background: rgba(34,197,94,0.10); color:#15803d;
           border:1px solid rgba(34,197,94,0.25);
         }
         .ba-live-dot { width:6px; height:6px; border-radius:9999px; background:#22c55e; box-shadow:0 0 10px #22c55e; animation: baBlink 1.2s ease-in-out infinite; }
 
         .ba-grid-cards { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; }
         .ba-card {
-          position:relative; overflow:hidden;
-          border-radius:18px; padding:16px;
-          background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-          border:1px solid rgba(255,255,255,0.10);
-          backdrop-filter: blur(14px);
+          padding:16px;
           opacity:0; transform: translateY(16px);
           animation: baRise .7s ease-out both;
           transition: transform .4s ease, border-color .4s ease, box-shadow .4s ease;
         }
         .ba-card.is-on { opacity:1; }
-        .ba-card:hover { transform: translateY(-4px); border-color: color-mix(in oklab, var(--accent) 60%, transparent); box-shadow: 0 24px 50px -28px var(--glow); }
         .ba-card.is-active {
-          border-color: color-mix(in oklab, var(--accent) 70%, transparent);
-          box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent), 0 30px 60px -30px var(--glow);
+          border-color: color-mix(in oklab, var(--accent) 60%, rgba(26,26,46,0.08));
+          box-shadow:
+            0 1px 0 rgba(255,255,255,0.85) inset,
+            0 28px 50px -24px color-mix(in oklab, var(--accent) 45%, transparent);
         }
         .ba-card-top { display:flex; align-items:center; justify-content:space-between; }
         .ba-platform {
           display:inline-flex; align-items:center; justify-content:center;
           width:32px; height:32px; border-radius:10px;
-          background: color-mix(in oklab, var(--accent) 18%, transparent);
+          background: color-mix(in oklab, var(--accent) 14%, white);
           color: var(--accent);
-          font-weight:700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+          border: 1px solid color-mix(in oklab, var(--accent) 25%, transparent);
         }
-        .ba-count { font-family: "Instrument Serif", serif; font-size:1.6rem; color:#fff; opacity:.9; }
-        .ba-card-label { margin-top:10px; font-size:.78rem; letter-spacing:.16em; text-transform:uppercase; color: rgba(231,236,255,0.75); }
-        .ba-card-preview { margin-top:6px; font-size:.85rem; line-height:1.35; color:#fff; opacity:.92; min-height:38px; }
-        .ba-card-foot { margin-top:12px; display:flex; align-items:center; justify-content:space-between; }
-        .ba-bars { display:flex; gap:3px; align-items:end; height:18px; }
-        .ba-bars span {
-          width:4px; border-radius:2px;
-          background: color-mix(in oklab, var(--accent) 80%, white 0%);
-          animation: baBar 1.6s ease-in-out infinite;
-        }
-        .ba-bars span:nth-child(1){ height:40%; animation-delay:.0s }
-        .ba-bars span:nth-child(2){ height:70%; animation-delay:.15s }
-        .ba-bars span:nth-child(3){ height:55%; animation-delay:.30s }
-        .ba-bars span:nth-child(4){ height:90%; animation-delay:.45s }
-        .ba-bars span:nth-child(5){ height:60%; animation-delay:.60s }
+        .ba-count { font-family: "Instrument Serif", serif; font-size: 1.5rem; color:#1a1a2e; opacity:.85; }
+        .ba-card-label { margin-top:10px; font-size:.7rem; letter-spacing:.18em; text-transform:uppercase; color: rgba(26,26,46,0.55); }
+        .ba-card-preview { margin-top:6px; font-size:.85rem; line-height:1.45; color:#1a1a2e; }
+        .ba-card-foot { margin-top:14px; display:flex; align-items:center; justify-content:space-between; }
+        .ba-bars { display:inline-flex; align-items:flex-end; gap:3px; height:14px; }
+        .ba-bars span { width:3px; background: color-mix(in oklab, var(--accent) 70%, transparent); border-radius:2px; }
+        .ba-bars span:nth-child(1) { height:30%; }
+        .ba-bars span:nth-child(2) { height:55%; }
+        .ba-bars span:nth-child(3) { height:75%; }
+        .ba-bars span:nth-child(4) { height:45%; }
+        .ba-bars span:nth-child(5) { height:90%; }
         .ba-metric { font-size:.7rem; color: var(--accent); font-weight:600; }
-        .ba-card-sheen {
-          position:absolute; inset:0; pointer-events:none;
-          background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.10) 50%, transparent 70%);
-          transform: translateX(-100%);
-          transition: transform .9s ease;
-        }
-        .ba-card:hover .ba-card-sheen, .ba-card.is-active .ba-card-sheen { transform: translateX(100%); }
 
-        .ba-foot-row {
-          margin-top: 6px;
-          display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-          padding: 14px;
-          border-radius: 16px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-        }
-        .ba-stat { text-align:center; }
-        .ba-stat-n {
-          font-family: "Instrument Serif", serif; font-size: 1.4rem;
-          background: linear-gradient(100deg, #a78bfa, #22d3ee);
-          -webkit-background-clip:text; background-clip:text; color:transparent;
-        }
-        .ba-stat-l { font-size:.65rem; letter-spacing:.18em; text-transform:uppercase; color: rgba(231,236,255,0.6); }
+        .ba-foot-row { margin-top:8px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+        .ba-stat { text-align:center; padding:10px; border-radius:14px; background: rgba(255,255,255,0.55); border:1px solid rgba(26,26,46,0.08); backdrop-filter: blur(8px); }
+        .ba-stat-n { font-family: "Instrument Serif", serif; font-size: 1.4rem; color:#1a1a2e; }
+        .ba-stat-l { font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color: rgba(26,26,46,0.55); margin-top:2px; }
 
-        @keyframes baFloat { 0%,100%{ transform: translate3d(0,0,0) } 50%{ transform: translate3d(0,-22px,0) } }
-        @keyframes baBlink { 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
-        @keyframes baSweep { 0%{ transform: translateX(-100%) } 60%,100%{ transform: translateX(100%) } }
-        @keyframes baSpin { to { transform: rotate(360deg) } }
-        @keyframes baRing { 0%{ transform: scale(.6); opacity:.9 } 100%{ transform: scale(1.5); opacity:0 } }
-        @keyframes baRise { from { opacity:0; transform: translateY(16px) } to { opacity:1; transform: translateY(0) } }
-        @keyframes baBar { 0%,100%{ transform: scaleY(.6) } 50%{ transform: scaleY(1) } }
+        @keyframes baFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+        @keyframes baBlink { 0%,100%{opacity:1} 50%{opacity:.35} }
+        @keyframes baSweep { 0%{transform:translateX(-100%)} 60%,100%{transform:translateX(100%)} }
+        @keyframes baRing {
+          0% { transform: scale(.6); opacity:.9; }
+          100% { transform: scale(1.5); opacity:0; }
+        }
+        @keyframes baSpin { to { transform: rotate(360deg); } }
+        @keyframes baRise { 0%{opacity:0; transform:translateY(16px)} 100%{opacity:1; transform:translateY(0)} }
 
         @media (prefers-reduced-motion: reduce) {
-          .ba-orb, .ba-ring, .ba-core-disc, .ba-line::after, .ba-bars span, .ba-pulse, .ba-live-dot { animation: none !important; }
+          .ba-orb, .ba-ring, .ba-core-disc, .ba-line::after, .ba-pulse, .ba-live-dot { animation: none !important; }
         }
       `}</style>
     </section>
