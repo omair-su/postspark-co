@@ -225,7 +225,7 @@ export function HeroAICM() {
             </Link>
           </div>
 
-          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] uppercase tracking-[0.18em] text-[#1a1a2e]/55 animate-[heroRise_0.9s_0.7s_ease-out_both]">
+          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] uppercase tracking-[0.18em] text-[#1a1a2e]/80 animate-[heroRise_0.9s_0.7s_ease-out_both]">
             <span>★ 4.9 / 5 · 127 reviews</span>
             <span>No credit card</span>
             <span>10 free repurposes / month</span>
