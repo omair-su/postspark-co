@@ -1,64 +1,37 @@
 import { marked } from "marked";
+import sanitizeHtml from "sanitize-html";
 
 marked.setOptions({ gfm: true, breaks: false });
 
-// Tags fully removed (including their content)
-const FORBIDDEN_TAGS_WITH_CONTENT = [
-  "script",
-  "style",
-  "iframe",
-  "object",
-  "embed",
-  "noscript",
-  "template",
-  "form",
-];
-
-// Tags whose opening/closing tags are stripped but inner content kept
-const FORBIDDEN_TAGS_KEEP_CONTENT = ["base", "meta", "link"];
-
 /**
- * Render markdown to HTML.
+ * Render markdown to sanitized HTML.
  *
- * Blog post content is authored by admins only (RLS allows insert via
- * supabaseAdmin / migrations only — no user-generated input). This
- * sanitizer is defense-in-depth against future regressions where user
- * input might reach the renderer.
+ * Blog post content is admin-authored only, but the rendered HTML is still
+ * passed through sanitize-html with an explicit allowlist as
+ * defense-in-depth. The previous regex sanitizer was bypassable via
+ * `<svg/onload=...>` and similar tag/attr separator tricks.
  */
 export function renderMarkdown(md: string): string {
   const rawHtml = marked.parse(md, { async: false }) as string;
-  let html = rawHtml;
-
-  // Strip forbidden tags + their content
-  for (const tag of FORBIDDEN_TAGS_WITH_CONTENT) {
-    html = html.replace(
-      new RegExp(`<${tag}\\b[\\s\\S]*?</${tag}\\s*>`, "gi"),
-      ""
-    );
-    // Self-closing/unclosed variants
-    html = html.replace(new RegExp(`<${tag}\\b[^>]*/?>`, "gi"), "");
-  }
-
-  // Strip forbidden tags but keep content
-  for (const tag of FORBIDDEN_TAGS_KEEP_CONTENT) {
-    html = html.replace(new RegExp(`</?${tag}\\b[^>]*>`, "gi"), "");
-  }
-
-  // Remove ALL event handler attributes (quoted, single-quoted, and unquoted)
-  html = html
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
-    .replace(/\son\w+\s*=\s*[^\s>]+/gi, "");
-
-  // Block dangerous URL schemes in href/src/xlink:href/formaction/srcdoc
-  html = html.replace(
-    /\s(href|src|xlink:href|formaction|srcdoc|action)\s*=\s*("|')\s*(javascript|vbscript|data)\s*:[^"']*\2/gi,
-    ""
-  );
-  html = html.replace(
-    /\s(href|src|xlink:href|formaction|srcdoc|action)\s*=\s*(javascript|vbscript|data):[^\s>]*/gi,
-    ""
-  );
-
-  return html;
+  return sanitizeHtml(rawHtml, {
+    allowedTags: [
+      "a", "abbr", "b", "blockquote", "br", "code", "em", "h1", "h2", "h3",
+      "h4", "h5", "h6", "hr", "i", "img", "li", "ol", "p", "pre", "s",
+      "small", "span", "strong", "sub", "sup", "table", "tbody", "td", "th",
+      "thead", "tr", "u", "ul", "figure", "figcaption",
+    ],
+    allowedAttributes: {
+      a: ["href", "title", "target", "rel"],
+      img: ["src", "alt", "title", "width", "height"],
+      "*": ["class", "id"],
+      td: ["colspan", "rowspan", "align"],
+      th: ["colspan", "rowspan", "align"],
+    },
+    allowedSchemes: ["http", "https", "mailto", "tel"],
+    allowedSchemesByTag: { img: ["http", "https"] },
+    disallowedTagsMode: "discard",
+    transformTags: {
+      a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer", target: "_blank" }),
+    },
+  });
 }
