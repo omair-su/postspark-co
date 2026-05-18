@@ -252,46 +252,68 @@ export function BeforeAfterSection() {
         /* INPUT */
         .ba-panel {
           padding: 22px;
-          min-height: 360px;
+          min-height: 420px;
+          display:flex; flex-direction:column;
           opacity: 0; transform: translateY(14px);
           transition: opacity .7s ease, transform .7s ease;
         }
         .ba-panel.is-on { opacity:1; transform: translateY(0); }
+        .ba-panel-head { display:flex; align-items:center; justify-content:space-between; }
         .ba-panel-label {
           display:flex; align-items:center; gap:.5rem;
           font-size:.7rem; letter-spacing:.22em; text-transform:uppercase;
           color: rgba(26,26,46,0.6);
         }
+        .ba-traffic { display:inline-flex; gap:6px; }
+        .ba-traffic span { width:10px; height:10px; border-radius:9999px; background: rgba(26,26,46,0.12); }
+        .ba-traffic span:nth-child(1) { background:#f87171; }
+        .ba-traffic span:nth-child(2) { background:#fbbf24; }
+        .ba-traffic span:nth-child(3) { background:#34d399; }
         .ba-pulse { width:8px; height:8px; border-radius:9999px; background:#7c3aed; box-shadow:0 0 10px rgba(124,58,237,0.6); animation: baBlink 1.4s ease-in-out infinite; }
-        .ba-doc { margin-top:14px; }
-        .ba-doc-title { font-weight:600; font-size:1.05rem; color:#1a1a2e; font-family: "Instrument Serif", "Times New Roman", serif; font-weight: 500; font-size: 1.35rem; letter-spacing: -0.01em; }
-        .ba-doc-meta { font-size:.75rem; color: rgba(26,26,46,0.55); margin-top:2px; }
-        .ba-doc-lines { margin-top:18px; display:flex; flex-direction:column; gap:9px; }
-        .ba-line {
-          height:8px; border-radius:6px;
-          background: linear-gradient(90deg, rgba(26,26,46,0.10), rgba(26,26,46,0.04));
-          position:relative; overflow:hidden;
+        .ba-doc { margin-top:14px; display:flex; flex-direction:column; flex:1; }
+        .ba-doc-title {
+          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; color:#1a1a2e;
         }
-        .ba-line::after {
-          content:""; position:absolute; inset:0;
-          background: linear-gradient(90deg, transparent, rgba(124,58,237,0.40), transparent);
-          transform: translateX(-100%);
-          animation: baSweep 3.4s ease-in-out infinite;
+        .ba-doc-meta { font-size:.72rem; color: rgba(26,26,46,0.55); margin-top:2px; letter-spacing:.04em; }
+        .ba-doc-md {
+          margin-top:16px; flex:1;
+          font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+          font-size: 12.5px; line-height: 1.7;
+          color: rgba(26,26,46,0.82);
+          background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25));
+          border: 1px solid rgba(26,26,46,0.08);
+          border-radius: 12px;
+          padding: 14px 16px;
+          white-space: pre-wrap; overflow:hidden;
+          position:relative;
+          animation: baTypeReveal 2.2s ease-out both;
         }
-        .ba-doc-lines .ba-line:nth-child(2)::after { animation-delay:.4s }
-        .ba-doc-lines .ba-line:nth-child(3)::after { animation-delay:.8s }
-        .ba-doc-lines .ba-line:nth-child(4)::after { animation-delay:1.2s }
-        .ba-doc-lines .ba-line:nth-child(5)::after { animation-delay:1.6s }
-        .ba-doc-lines .ba-line:nth-child(6)::after { animation-delay:2.0s }
-        .ba-doc-lines .ba-line:nth-child(7)::after { animation-delay:2.4s }
-        .ba-doc-foot { margin-top:18px; display:flex; gap:8px; }
+        .ba-doc-md::after {
+          content:""; position:absolute; left:16px; bottom:14px;
+          width:8px; height:14px; background:#7c3aed;
+          animation: baCaret 1s steps(2) infinite;
+        }
+        .ba-md-h { color:#4c1d95; font-weight:700; }
+        .ba-md-h2 { color:#7c3aed; font-weight:700; }
+        .ba-md-mute { color: rgba(26,26,46,0.45); font-style: italic; }
+        .ba-md-em { color:#b45309; font-style: italic; }
+        .ba-md-li { color: rgba(26,26,46,0.85); }
+        .ba-md-quote { color: rgba(26,26,46,0.7); font-style: italic; border-left: 2px solid #c4b5fd; padding-left: 8px; display:inline-block; }
+        @keyframes baTypeReveal {
+          from { clip-path: inset(0 100% 0 0); }
+          to   { clip-path: inset(0 0 0 0); }
+        }
+        @keyframes baCaret { 50% { opacity: 0; } }
+        .ba-doc-foot { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
         .ba-tag {
-          font-size:.65rem; letter-spacing:.18em; text-transform:uppercase;
+          font-size:.62rem; letter-spacing:.18em; text-transform:uppercase;
           padding:.3rem .6rem; border-radius:6px;
           background: rgba(124,58,237,0.10); color:#4c1d95;
           border:1px solid rgba(124,58,237,0.20);
         }
         .ba-tag-alt { background: rgba(232,93,58,0.10); color:#b45309; border-color: rgba(232,93,58,0.25); }
+        .ba-tag-mute { background: rgba(26,26,46,0.05); color: rgba(26,26,46,0.55); border-color: rgba(26,26,46,0.12); }
 
         /* CORE */
         .ba-core {
