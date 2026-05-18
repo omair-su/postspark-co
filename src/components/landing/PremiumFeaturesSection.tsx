@@ -215,7 +215,14 @@ export function PremiumFeaturesSection() {
             <Sparkles className="h-3.5 w-3.5 text-[#7c3aed]" />
             Premium Suite · 14 AI Tools
           </span>
-          <h2 className="mt-5 luxury-heading" style={{ fontFamily: '"Instrument Serif", serif', fontWeight: 400, fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
+          <h2
+            className="mt-5 font-extrabold tracking-[-0.04em] text-[#1a1a2e]"
+            style={{
+              fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+              fontSize: "clamp(2rem, 5vw, 3.4rem)",
+              lineHeight: 1.02,
+            }}
+          >
             A Full <span className="luxury-gradient-text">AI Content Studio</span>
             <br className="hidden sm:block" />
             in One Workspace
