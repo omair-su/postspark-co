@@ -364,7 +364,8 @@ export function BeforeAfterSection() {
         }
         .ba-live-dot { width:6px; height:6px; border-radius:9999px; background:#22c55e; box-shadow:0 0 10px #22c55e; animation: baBlink 1.2s ease-in-out infinite; }
 
-        .ba-grid-cards { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; }
+        .ba-grid-cards { display:grid; grid-template-columns: 1fr; gap:12px; }
+        @media (min-width: 520px) { .ba-grid-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         .ba-card {
           padding:16px;
           opacity:0; transform: translateY(16px);
