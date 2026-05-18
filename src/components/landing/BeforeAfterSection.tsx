@@ -402,7 +402,7 @@ export function BeforeAfterSection() {
 
         .ba-foot-row { margin-top:8px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
         .ba-stat { text-align:center; padding:10px; border-radius:14px; background: rgba(255,255,255,0.55); border:1px solid rgba(26,26,46,0.08); backdrop-filter: blur(8px); }
-        .ba-stat-n { font-family: "Instrument Serif", serif; font-size: 1.4rem; color:#1a1a2e; }
+        .ba-stat-n { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-weight:800; letter-spacing:-0.03em; font-size: 1.25rem; color:#1a1a2e; }
         .ba-stat-l { font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color: rgba(26,26,46,0.55); margin-top:2px; }
 
         @keyframes baFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
