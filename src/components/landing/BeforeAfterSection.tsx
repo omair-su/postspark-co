@@ -91,13 +91,11 @@ export function BeforeAfterSection() {
             Live Transformation
           </span>
           <h2
-            className="mt-6 luxury-heading"
+            className="mt-6 font-extrabold tracking-[-0.04em] text-[#1a1a2e]"
             style={{
-              fontFamily: '"Instrument Serif", "Times New Roman", serif',
-              fontWeight: 400,
-              fontSize: "clamp(2rem, 4.8vw, 3.4rem)",
-              lineHeight: 1.05,
-              letterSpacing: "-0.01em",
+              fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+              fontSize: "clamp(2rem, 5vw, 3.4rem)",
+              lineHeight: 1.02,
             }}
           >
             One input.{" "}
@@ -109,28 +107,40 @@ export function BeforeAfterSection() {
         </div>
 
         {/* Stage */}
-        <div className="ba-stage mt-16 grid items-stretch gap-10 lg:grid-cols-[1fr_auto_1.35fr]">
+        <div className="ba-stage mt-16 grid items-stretch gap-8 lg:grid-cols-[1.05fr_auto_1.35fr]">
           {/* INPUT */}
           <div className={`luxury-card ba-panel ${transformed ? "is-on" : ""}`}>
-            <div className="ba-panel-label">
-              <span className="ba-pulse" />
-              Source · Markdown
+            <div className="ba-panel-head">
+              <div className="ba-panel-label">
+                <span className="ba-pulse" />
+                Source · Markdown
+              </div>
+              <div className="ba-traffic" aria-hidden>
+                <span /><span /><span />
+              </div>
             </div>
             <div className="ba-doc">
               <div className="ba-doc-title">The Repurposing Playbook</div>
               <div className="ba-doc-meta">1,248 words · 8 min read</div>
-              <div className="ba-doc-lines">
-                <div className="ba-line w-[94%]" />
-                <div className="ba-line w-[88%]" />
-                <div className="ba-line w-[72%]" />
-                <div className="ba-line w-[90%]" />
-                <div className="ba-line w-[64%]" />
-                <div className="ba-line w-[82%]" />
-                <div className="ba-line w-[58%]" />
-              </div>
+              <pre className="ba-doc-md">
+                <code>
+                  <span className="ba-md-h"># The Repurposing Playbook</span>{"\n"}
+                  <span className="ba-md-mute">_Last updated · May 18, 2026_</span>{"\n\n"}
+                  <span className="ba-md-h2">## Why most creators burn out</span>{"\n"}
+                  Writing one great post a week is hard. Writing thirty is{" "}
+                  <span className="ba-md-em">impossible</span> — unless you{"\n"}
+                  stop creating from scratch every time.{"\n\n"}
+                  <span className="ba-md-h2">## The 3-step engine</span>{"\n"}
+                  <span className="ba-md-li">1. Capture one deep idea (blog, talk, podcast).</span>{"\n"}
+                  <span className="ba-md-li">2. Atomize it into hooks, threads, carousels.</span>{"\n"}
+                  <span className="ba-md-li">3. Distribute on autopilot in your voice.</span>{"\n\n"}
+                  <span className="ba-md-quote">&gt; "Your best ideas deserve more than one tweet."</span>
+                </code>
+              </pre>
               <div className="ba-doc-foot">
                 <span className="ba-tag">/blog</span>
                 <span className="ba-tag ba-tag-alt">draft</span>
+                <span className="ba-tag ba-tag-mute">5 min ago</span>
               </div>
             </div>
           </div>
