@@ -386,7 +386,7 @@ export function BeforeAfterSection() {
           color: var(--accent);
           border: 1px solid color-mix(in oklab, var(--accent) 25%, transparent);
         }
-        .ba-count { font-family: "Instrument Serif", serif; font-size: 1.5rem; color:#1a1a2e; opacity:.85; }
+        .ba-count { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-weight:800; font-size: 1.35rem; letter-spacing:-0.03em; color:#1a1a2e; opacity:.9; }
         .ba-card-label { margin-top:10px; font-size:.7rem; letter-spacing:.18em; text-transform:uppercase; color: rgba(26,26,46,0.55); }
         .ba-card-preview { margin-top:6px; font-size:.85rem; line-height:1.45; color:#1a1a2e; }
         .ba-card-foot { margin-top:14px; display:flex; align-items:center; justify-content:space-between; }
