@@ -91,13 +91,11 @@ export function BeforeAfterSection() {
             Live Transformation
           </span>
           <h2
-            className="mt-6 luxury-heading"
+            className="mt-6 font-extrabold tracking-[-0.04em] text-[#1a1a2e]"
             style={{
-              fontFamily: '"Instrument Serif", "Times New Roman", serif',
-              fontWeight: 400,
-              fontSize: "clamp(2rem, 4.8vw, 3.4rem)",
-              lineHeight: 1.05,
-              letterSpacing: "-0.01em",
+              fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+              fontSize: "clamp(2rem, 5vw, 3.4rem)",
+              lineHeight: 1.02,
             }}
           >
             One input.{" "}
@@ -109,28 +107,40 @@ export function BeforeAfterSection() {
         </div>
 
         {/* Stage */}
-        <div className="ba-stage mt-16 grid items-stretch gap-10 lg:grid-cols-[1fr_auto_1.35fr]">
+        <div className="ba-stage mt-16 grid items-stretch gap-8 lg:grid-cols-[1.05fr_auto_1.35fr]">
           {/* INPUT */}
           <div className={`luxury-card ba-panel ${transformed ? "is-on" : ""}`}>
-            <div className="ba-panel-label">
-              <span className="ba-pulse" />
-              Source · Markdown
+            <div className="ba-panel-head">
+              <div className="ba-panel-label">
+                <span className="ba-pulse" />
+                Source · Markdown
+              </div>
+              <div className="ba-traffic" aria-hidden>
+                <span /><span /><span />
+              </div>
             </div>
             <div className="ba-doc">
               <div className="ba-doc-title">The Repurposing Playbook</div>
               <div className="ba-doc-meta">1,248 words · 8 min read</div>
-              <div className="ba-doc-lines">
-                <div className="ba-line w-[94%]" />
-                <div className="ba-line w-[88%]" />
-                <div className="ba-line w-[72%]" />
-                <div className="ba-line w-[90%]" />
-                <div className="ba-line w-[64%]" />
-                <div className="ba-line w-[82%]" />
-                <div className="ba-line w-[58%]" />
-              </div>
+              <pre className="ba-doc-md">
+                <code>
+                  <span className="ba-md-h"># The Repurposing Playbook</span>{"\n"}
+                  <span className="ba-md-mute">_Last updated · May 18, 2026_</span>{"\n\n"}
+                  <span className="ba-md-h2">## Why most creators burn out</span>{"\n"}
+                  Writing one great post a week is hard. Writing thirty is{" "}
+                  <span className="ba-md-em">impossible</span> — unless you{"\n"}
+                  stop creating from scratch every time.{"\n\n"}
+                  <span className="ba-md-h2">## The 3-step engine</span>{"\n"}
+                  <span className="ba-md-li">1. Capture one deep idea (blog, talk, podcast).</span>{"\n"}
+                  <span className="ba-md-li">2. Atomize it into hooks, threads, carousels.</span>{"\n"}
+                  <span className="ba-md-li">3. Distribute on autopilot in your voice.</span>{"\n\n"}
+                  <span className="ba-md-quote">&gt; "Your best ideas deserve more than one tweet."</span>
+                </code>
+              </pre>
               <div className="ba-doc-foot">
                 <span className="ba-tag">/blog</span>
                 <span className="ba-tag ba-tag-alt">draft</span>
+                <span className="ba-tag ba-tag-mute">5 min ago</span>
               </div>
             </div>
           </div>
@@ -242,46 +252,68 @@ export function BeforeAfterSection() {
         /* INPUT */
         .ba-panel {
           padding: 22px;
-          min-height: 360px;
+          min-height: 420px;
+          display:flex; flex-direction:column;
           opacity: 0; transform: translateY(14px);
           transition: opacity .7s ease, transform .7s ease;
         }
         .ba-panel.is-on { opacity:1; transform: translateY(0); }
+        .ba-panel-head { display:flex; align-items:center; justify-content:space-between; }
         .ba-panel-label {
           display:flex; align-items:center; gap:.5rem;
           font-size:.7rem; letter-spacing:.22em; text-transform:uppercase;
           color: rgba(26,26,46,0.6);
         }
+        .ba-traffic { display:inline-flex; gap:6px; }
+        .ba-traffic span { width:10px; height:10px; border-radius:9999px; background: rgba(26,26,46,0.12); }
+        .ba-traffic span:nth-child(1) { background:#f87171; }
+        .ba-traffic span:nth-child(2) { background:#fbbf24; }
+        .ba-traffic span:nth-child(3) { background:#34d399; }
         .ba-pulse { width:8px; height:8px; border-radius:9999px; background:#7c3aed; box-shadow:0 0 10px rgba(124,58,237,0.6); animation: baBlink 1.4s ease-in-out infinite; }
-        .ba-doc { margin-top:14px; }
-        .ba-doc-title { font-weight:600; font-size:1.05rem; color:#1a1a2e; font-family: "Instrument Serif", "Times New Roman", serif; font-weight: 500; font-size: 1.35rem; letter-spacing: -0.01em; }
-        .ba-doc-meta { font-size:.75rem; color: rgba(26,26,46,0.55); margin-top:2px; }
-        .ba-doc-lines { margin-top:18px; display:flex; flex-direction:column; gap:9px; }
-        .ba-line {
-          height:8px; border-radius:6px;
-          background: linear-gradient(90deg, rgba(26,26,46,0.10), rgba(26,26,46,0.04));
-          position:relative; overflow:hidden;
+        .ba-doc { margin-top:14px; display:flex; flex-direction:column; flex:1; }
+        .ba-doc-title {
+          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; color:#1a1a2e;
         }
-        .ba-line::after {
-          content:""; position:absolute; inset:0;
-          background: linear-gradient(90deg, transparent, rgba(124,58,237,0.40), transparent);
-          transform: translateX(-100%);
-          animation: baSweep 3.4s ease-in-out infinite;
+        .ba-doc-meta { font-size:.72rem; color: rgba(26,26,46,0.55); margin-top:2px; letter-spacing:.04em; }
+        .ba-doc-md {
+          margin-top:16px; flex:1;
+          font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+          font-size: 12.5px; line-height: 1.7;
+          color: rgba(26,26,46,0.82);
+          background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25));
+          border: 1px solid rgba(26,26,46,0.08);
+          border-radius: 12px;
+          padding: 14px 16px;
+          white-space: pre-wrap; overflow:hidden;
+          position:relative;
+          animation: baTypeReveal 2.2s ease-out both;
         }
-        .ba-doc-lines .ba-line:nth-child(2)::after { animation-delay:.4s }
-        .ba-doc-lines .ba-line:nth-child(3)::after { animation-delay:.8s }
-        .ba-doc-lines .ba-line:nth-child(4)::after { animation-delay:1.2s }
-        .ba-doc-lines .ba-line:nth-child(5)::after { animation-delay:1.6s }
-        .ba-doc-lines .ba-line:nth-child(6)::after { animation-delay:2.0s }
-        .ba-doc-lines .ba-line:nth-child(7)::after { animation-delay:2.4s }
-        .ba-doc-foot { margin-top:18px; display:flex; gap:8px; }
+        .ba-doc-md::after {
+          content:""; position:absolute; left:16px; bottom:14px;
+          width:8px; height:14px; background:#7c3aed;
+          animation: baCaret 1s steps(2) infinite;
+        }
+        .ba-md-h { color:#4c1d95; font-weight:700; }
+        .ba-md-h2 { color:#7c3aed; font-weight:700; }
+        .ba-md-mute { color: rgba(26,26,46,0.45); font-style: italic; }
+        .ba-md-em { color:#b45309; font-style: italic; }
+        .ba-md-li { color: rgba(26,26,46,0.85); }
+        .ba-md-quote { color: rgba(26,26,46,0.7); font-style: italic; border-left: 2px solid #c4b5fd; padding-left: 8px; display:inline-block; }
+        @keyframes baTypeReveal {
+          from { clip-path: inset(0 100% 0 0); }
+          to   { clip-path: inset(0 0 0 0); }
+        }
+        @keyframes baCaret { 50% { opacity: 0; } }
+        .ba-doc-foot { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
         .ba-tag {
-          font-size:.65rem; letter-spacing:.18em; text-transform:uppercase;
+          font-size:.62rem; letter-spacing:.18em; text-transform:uppercase;
           padding:.3rem .6rem; border-radius:6px;
           background: rgba(124,58,237,0.10); color:#4c1d95;
           border:1px solid rgba(124,58,237,0.20);
         }
         .ba-tag-alt { background: rgba(232,93,58,0.10); color:#b45309; border-color: rgba(232,93,58,0.25); }
+        .ba-tag-mute { background: rgba(26,26,46,0.05); color: rgba(26,26,46,0.55); border-color: rgba(26,26,46,0.12); }
 
         /* CORE */
         .ba-core {
@@ -332,7 +364,8 @@ export function BeforeAfterSection() {
         }
         .ba-live-dot { width:6px; height:6px; border-radius:9999px; background:#22c55e; box-shadow:0 0 10px #22c55e; animation: baBlink 1.2s ease-in-out infinite; }
 
-        .ba-grid-cards { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px; }
+        .ba-grid-cards { display:grid; grid-template-columns: 1fr; gap:12px; }
+        @media (min-width: 520px) { .ba-grid-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         .ba-card {
           padding:16px;
           opacity:0; transform: translateY(16px);
@@ -354,7 +387,7 @@ export function BeforeAfterSection() {
           color: var(--accent);
           border: 1px solid color-mix(in oklab, var(--accent) 25%, transparent);
         }
-        .ba-count { font-family: "Instrument Serif", serif; font-size: 1.5rem; color:#1a1a2e; opacity:.85; }
+        .ba-count { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-weight:800; font-size: 1.35rem; letter-spacing:-0.03em; color:#1a1a2e; opacity:.9; }
         .ba-card-label { margin-top:10px; font-size:.7rem; letter-spacing:.18em; text-transform:uppercase; color: rgba(26,26,46,0.55); }
         .ba-card-preview { margin-top:6px; font-size:.85rem; line-height:1.45; color:#1a1a2e; }
         .ba-card-foot { margin-top:14px; display:flex; align-items:center; justify-content:space-between; }
@@ -369,7 +402,7 @@ export function BeforeAfterSection() {
 
         .ba-foot-row { margin-top:8px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
         .ba-stat { text-align:center; padding:10px; border-radius:14px; background: rgba(255,255,255,0.55); border:1px solid rgba(26,26,46,0.08); backdrop-filter: blur(8px); }
-        .ba-stat-n { font-family: "Instrument Serif", serif; font-size: 1.4rem; color:#1a1a2e; }
+        .ba-stat-n { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-weight:800; letter-spacing:-0.03em; font-size: 1.25rem; color:#1a1a2e; }
         .ba-stat-l { font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color: rgba(26,26,46,0.55); margin-top:2px; }
 
         @keyframes baFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
