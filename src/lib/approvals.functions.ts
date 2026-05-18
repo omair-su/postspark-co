@@ -32,6 +32,7 @@ export const createApprovalRequest = createServerFn({ method: "POST" })
     await requireAgency(supabase, userId);
 
     const token = genToken();
+    // Insert via user-scoped client so RLS WITH CHECK applies (created_by = auth.uid()).
     const { data: ar, error } = await supabase
       .from("approval_requests")
       .insert({
@@ -41,10 +42,12 @@ export const createApprovalRequest = createServerFn({ method: "POST" })
         client_email: data.clientEmail ?? null,
         token,
       })
-      .select("id, token")
+      .select("id")
       .single();
     if (error) return { success: false, error: error.message };
-    return { success: true, token: ar.token, id: ar.id };
+    // `token` column SELECT is revoked from authenticated; return the
+    // value we just generated (already known to this server handler).
+    return { success: true, token, id: ar.id };
   });
 
 export const listApprovalRequests = createServerFn({ method: "POST" })
