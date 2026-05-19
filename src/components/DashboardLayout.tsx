@@ -11,6 +11,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AIProgressBar } from "@/components/AIProgressBar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { CommandPaletteRoot } from "@/components/CommandPalette";
+import { UpgradeNudgeModal } from "@/components/UpgradeNudgeModal";
 import { getMyWorkspace, setActiveBrandKit } from "@/lib/workspace.functions";
 
 const navGroups = [
@@ -283,6 +284,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <AIProgressBar />
       <CommandPaletteRoot />
       <SparkCopilot />
+      <UpgradeNudgeModal />
     </div>
   );
 }

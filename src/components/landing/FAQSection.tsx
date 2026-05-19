@@ -2,16 +2,30 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 const faqs = [
-  { q: "What types of content can I repurpose?", a: "You can paste any text — blog posts, articles, newsletters, transcripts, notes — or provide a YouTube URL. PostSpark transforms it into tweets, LinkedIn posts, Instagram captions, email newsletters, video scripts, TikTok scripts, podcast notes, X threads, and more." },
-  { q: "How does the free plan work?", a: "Free accounts get 10 AI-powered repurposes per month. Each repurpose can generate multiple output formats simultaneously. Upgrade to Pro for unlimited repurposes." },
-  { q: "Can I customize the tone and style?", a: "Yes! Choose from Professional, Casual, Humorous, Inspirational, or Educational tones. You can also add custom instructions like 'Write like Gary Vee' or 'Include emojis' for fully personalized output." },
-  { q: "What is the Templates feature?", a: "Templates let you save your favorite tone + format combinations for one-click reuse." },
-  { q: "Can I export my generated content?", a: "Absolutely! Export individual outputs or your entire history as PDF or CSV." },
-  { q: "Is my content private and secure?", a: "Yes. All your content is stored securely and only accessible to your account." },
+  {
+    q: "Is there really a free plan? What's the catch?",
+    a: "Yes — 10 free repurposes every month, no credit card required. The catch is fair: heavy users on Pro fund the free tier. If 10 isn't enough, upgrade to Pro ($19/mo) for unlimited.",
+  },
+  {
+    q: "Can I cancel anytime? What if I'm not satisfied?",
+    a: "Cancel any time from Settings in one click — and we offer a 30-day money-back guarantee. If PostSpark doesn't save you hours in the first month, email us for a full refund, no questions asked.",
+  },
+  {
+    q: "Will the output actually sound like me, not generic AI?",
+    a: "Yes. Pro and Agency users train PostSpark on writing samples + a Brand Kit (logo, colors, tone). Generations match your voice — so closely your audience won't notice the difference.",
+  },
+  {
+    q: "How is PostSpark different from ChatGPT or other AI tools?",
+    a: "ChatGPT is a blank prompt. PostSpark is a full content engine: brand voice training, image studio, podcast → posts, SEO blog writer, content calendar, agency client approvals, and more — all in one workflow built for creators and agencies.",
+  },
+  {
+    q: "Do you offer team seats and white-label for agencies?",
+    a: "Yes — the Agency plan ($49/mo) includes 5 team seats, multi-brand workspaces, white-label client approval links, and agency-wide analytics. Built specifically for content agencies managing multiple clients.",
+  },
 ];
 
 export function FAQSection() {
-  const [open, setOpen] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(0);
 
   return (
     <section className="relative isolate overflow-hidden cream-surface py-24 px-6">
@@ -25,7 +39,7 @@ export function FAQSection() {
           <h2 className="mt-5 luxury-heading" style={{ fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
             Frequently Asked <span className="luxury-gradient-text">Questions</span>
           </h2>
-          <p className="mt-4 text-[#1a1a2e]/65">Everything you need to know about PostSpark.</p>
+          <p className="mt-4 text-[#1a1a2e]/65">The 5 things buyers ask before signing up.</p>
         </div>
 
         <div className="space-y-3">

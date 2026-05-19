@@ -9,6 +9,7 @@ import { DailySpark } from "@/components/DailySpark";
 import { ActivationChecklist } from "@/components/ActivationChecklist";
 import { CardSkeleton, ListSkeleton } from "@/components/skeletons";
 import { StreakBadge } from "@/components/StreakBadge";
+import { ReferralBanner } from "@/components/ReferralBanner";
 
 const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description: string }> = [
   { id: "founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into thread + LinkedIn + email." },
@@ -63,6 +64,7 @@ function DashboardHome() {
       </div>
 
       <StreakBadge />
+      <ReferralBanner />
       <DailySpark />
       <ActivationChecklist />
 

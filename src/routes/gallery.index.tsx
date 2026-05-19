@@ -19,10 +19,15 @@ export const Route = createFileRoute("/gallery/")({
   head: () => ({
     meta: [
       { title: "Public Content Gallery — PostSpark" },
-      { name: "description", content: "Browse posts created and shared by the PostSpark community." },
-      { property: "og:title", content: "PostSpark Gallery" },
-      { property: "og:description", content: "Real examples of repurposed content from creators." },
+      { name: "description", content: "Real examples of blog posts, podcasts, and videos repurposed into tweets, LinkedIn posts, and newsletters with PostSpark AI. Get inspired by the community." },
+      { property: "og:title", content: "PostSpark Community Gallery" },
+      { property: "og:description", content: "Browse real AI-repurposed content from creators and agencies." },
       { property: "og:url", content: "https://postspark.co/gallery" },
+      { property: "og:image", content: "https://postspark.co/og-image.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "PostSpark Community Gallery" },
+      { name: "twitter:description", content: "Browse real AI-repurposed content from creators and agencies." },
+      { name: "twitter:image", content: "https://postspark.co/og-image.png" },
     ],
     links: [{ rel: "canonical", href: "https://postspark.co/gallery" }],
     scripts: [
