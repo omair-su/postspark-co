@@ -1,57 +1,81 @@
-## Phase D — Stickiness & SEO
 
-Four feature areas across two turns. Turn 1 = Calendar Planner + SEO upgrade. Turn 2 = Marketplace + Streaks/Digest.
+# PostSpark — First Paying Users Plan
 
----
+Two tracks running together: **(A) ship in-app growth features** that convert traffic to paid, and **(B) a marketing playbook** you execute outside the app. You've already invested heavily — now we need distribution + conversion, not more features.
 
-### Turn 1
-
-#### 1. 30-day AI Calendar Planner (#10)
-- New server fn `generatePlan` in `src/lib/calendar.functions.ts` → Claude call that returns 30 days of post ideas (date, platform, hook, topic, angle) given user's niche + active brand voice + brand kit tone.
-- New "AI Plan" button on `dashboard.calendar.tsx` opens a dialog: niche/topic + platforms + cadence (daily/3x/weekly).
-- On generate: insert N rows into `scheduled_posts` (status=`draft`, `scheduled_for` spread across next 30 days). Each row links back via `outputs` JSON or content body.
-- Counts as 1 credit (planning, not per-post). Uses `checkRepurposeQuota`.
-- Inline "Regenerate day" button per draft → calls `generatePlan` with single-day scope.
-
-#### 2. SEO competitor-aware outline + internal links (#11)
-- Extend `src/lib/seoBlog.functions.ts` with new fn `generateOutline` (separate from full blog).
-- Inputs: keyword, optional 1-3 competitor URLs.
-- Server-side (`seoBlog.server.ts`):
-  - If competitor URLs: fetch + extract H1/H2/H3 via simple HTML parse (no new dep — cheerio already common, fallback to regex).
-  - Pass competitor headings + keyword to Claude → returns outline (H2/H3 tree) + suggested internal links (from user's existing `blog_posts` where `status='published'`).
-- New tab "Outline + Competitors" on `dashboard.seo-blog.tsx` with competitor URL inputs and outline preview before full generation.
-- Internal links rendered as a checklist; selected ones auto-injected into final markdown.
+Honest diagnosis first: the product is feature-complete and premium. Zero sales after this much spend almost always means **distribution problem + friction in the funnel**, not a product problem.
 
 ---
 
-### Turn 2
+## Track A — In-App Changes I Will Build
 
-#### 3. Swipe file + public template marketplace (#14, #17)
-- DB migration: add `is_public boolean default false`, `category text`, `description text`, `use_count int default 0`, `slug text unique` to `templates`. Keep existing RLS (own-user write); add new policy "Public templates viewable by all".
-- New route `src/routes/templates.gallery.tsx` (public) → lists `templates` where `is_public=true`. Filter by category, search by name.
-- New route `src/routes/templates.$slug.tsx` (public detail page, SEO head with template name + description).
-- "Use this template" button (auth-gated) → server fn `cloneTemplate` copies row to current user, increments `use_count`.
-- Add toggle "Publish to gallery" + category picker on `dashboard.templates.tsx`.
-- Add "Browse marketplace" link in templates page header.
+### 1. Conversion funnel fixes (highest ROI)
+- **Public Gallery as SEO + social proof engine**: make `/gallery` index page indexable, add per-item Open Graph images, "Made with PostSpark" badge on each public output, and a "Remix this" CTA that pushes to signup with the source prefilled.
+- **Free tier limit tightening on output, looser on trial**: keep 3 repurposes/month but show a *blurred* 4th preview with "Upgrade to unlock" — proven 2–3x lift vs hard wall.
+- **Exit-intent + scroll-50% upgrade modal** on dashboard with annual discount (20% off) — only fires once per 7 days.
+- **Pricing page rewrite**: lead with Agency plan (anchor), social proof row, money-back guarantee line, FAQ trimmed to 5 objections.
+- **Onboarding → first "wow" in <60s**: skip optional steps, auto-run a sample repurpose from a demo URL so user sees output before they even paste anything.
 
-#### 4. Streaks + weekly digest email (#16, #15)
-- DB migration: add `streak_days int default 0`, `last_active_date date` to `profiles`.
-- New server fn `pingStreak` called from dashboard mount. If `last_active_date = today`: noop. If `= yesterday`: `streak_days++`. Else reset to 1.
-- Streak badge in `DashboardLayout` header next to brand switcher: "🔥 5-day streak".
-- Weekly digest email:
-  - New transactional email template via `email_domain--scaffold_transactional_email` named `weekly_digest` (subject, hero, stats: posts created this week, current streak, top performing post).
-  - New cron route `src/routes/api/public/hooks/weekly-digest.ts` — iterates active users, computes stats from `repurpose_jobs` last 7 days, calls `sendTransactionalEmail`.
-  - pg_cron schedule: every Monday 9 AM.
-- Settings toggle "Weekly digest emails" on `dashboard.settings.tsx` → new `email_prefs` jsonb on profiles (or simple `weekly_digest_enabled boolean`).
+### 2. Built-in viral loops
+- **Watermark on free-tier exports** (images, carousels, PDFs): subtle "Made with PostSpark →" with referral link. Removed on Pro.
+- **Referral program polish**: double-sided reward (referrer gets 1 month free, referred gets 20% off) — already in DB, needs prominent dashboard banner + share-image generator.
+- **Share-to-unlock**: "Tweet your result to unlock 2 bonus repurposes this month" on free tier.
+
+### 3. SEO content engine (compounding traffic)
+- **Programmatic SEO landing pages**: 20 pages like `/tools/youtube-to-twitter-thread`, `/tools/blog-to-linkedin-carousel`, `/tools/podcast-to-newsletter`. Each is a real free tool (1 free use, no signup) → signup wall after.
+- **Comparison pages**: `/vs/repurpose-io`, `/vs/castmagic`, `/vs/opus-clip` — high-intent keywords competitors won't write.
+- **Use-case pages**: `/for/podcasters`, `/for/youtubers`, `/for/coaches`, `/for/saas-marketers` (you already have `/for/creators` and `/for/agencies` — expand the pattern).
+
+### 4. Lifecycle emails (you have Lovable Emails infra)
+- Day 0: Welcome + 60-sec demo video
+- Day 1: "Did you try Brand Voice?" (highest-converting feature)
+- Day 3: Case study email (one customer success)
+- Day 6: "Your free credits reset in X days" + upgrade CTA
+- Day 14: Last-chance discount (15% off first month)
+- On 3rd repurpose used: immediate "You hit your limit" with upgrade CTA
+
+### 5. Trust & social proof
+- Real testimonials section (replace placeholders) — I'll add a CMS-style admin so you can add them as they come in
+- Live counter "X posts repurposed this week" (real number from `repurpose_jobs`)
+- Logo bar of tools we integrate with (YouTube, Notion, Substack, LinkedIn) — visual not endorsement
 
 ---
 
-### Files / deps
-- edit: `src/lib/calendar.functions.ts`, `src/routes/dashboard.calendar.tsx`, `src/lib/seoBlog.functions.ts`, `src/server/seoBlog.server.ts`, `src/routes/dashboard.seo-blog.tsx`, `src/lib/templates.functions.ts`, `src/routes/dashboard.templates.tsx`, `src/components/DashboardLayout.tsx`, `src/routes/dashboard.settings.tsx`
-- new: `src/routes/templates.gallery.tsx`, `src/routes/templates.$slug.tsx`, `src/lib/streak.functions.ts`, `src/routes/api/public/hooks/weekly-digest.ts`
-- migrations: `templates` marketplace columns, `profiles` streak + digest pref columns
-- cron: weekly digest Monday 9am
-- email: `weekly_digest` transactional template
-- no new npm deps needed
+## Track B — Marketing Playbook (You Execute, I Can't)
 
-After approval I'll ship Turn 1 first, then Turn 2.
+### Week 1–2: Foundation (free, do these first)
+1. **ProductHunt launch** — schedule for a Tuesday/Wednesday. I'll generate the assets (gallery images, GIFs, tagline variants, hunter outreach template).
+2. **Personal X/LinkedIn build-in-public thread**: post your $80k spend story honestly — "I built an AI content tool, spent $80k, made $0. Here's what I learned" — this kind of post regularly hits 100k+ views.
+3. **Reddit posts** (no link, just value): r/Entrepreneur, r/SideProject, r/SaaS, r/marketing, r/contentmarketing — share the build-in-public story, mention tool in comments only when asked.
+4. **Indie Hackers** milestone post + product listing.
+5. **BetaList / Uneed / Tinylaunch / Fazier / Peerlist** submissions — all free, take 2 hours total.
+
+### Week 2–4: Outbound to ICP (small B2B agencies + solo creators)
+6. **LinkedIn cold outreach to 20 agencies/day**: target "Content Marketing Agency" 2–10 employees. Script: free Agency-tier trial for 60 days in exchange for a testimonial. **Goal: 5 design partners, not sales.**
+7. **Cold email to podcasters/newsletter operators** using Apollo or Hunter (50/day) — pitch: "I'll repurpose your last episode into 10 posts for free, no signup."
+8. **Partner with 3 micro-influencers** in creator-economy niche (5k–30k followers) — give them lifetime Agency in exchange for one honest review video.
+
+### Week 4–8: Content engine
+9. **YouTube: 1 video/week** — "I repurposed Lex Fridman's podcast into 30 posts in 5 minutes" style — these rank fast on long-tail.
+10. **X: 3 posts/day** — output examples from PostSpark itself (eat your own dog food publicly).
+11. **SEO blog**: 2 posts/week targeting comparison + use-case keywords — your `seoBlog` feature can write them.
+
+### Paid (only after organic shows signal)
+12. **Reddit Ads** ($10/day) to r/podcasting, r/NewTubers — cheapest B2C creator targeting.
+13. **X Ads** to followers of competitors (@castmagic, @opusclip).
+14. **Skip Google Ads** until you have ≥1% conversion rate — too expensive for current funnel.
+
+### Pricing experiments to consider
+- **Lifetime deal on AppSumo** ($59 LTD) — controversial but reliably brings 500–2000 users + reviews + cash. Cap at 1000 codes.
+- **Annual plan**: $190/yr (vs $228) — better cashflow.
+- **Free Agency trial for verified agencies** (14 days, no card) — converts much better than free tier.
+
+---
+
+## What I Recommend We Ship First (Turn 1)
+
+If you approve this plan, I'll do **Track A items 1, 2, and 4** in the first turn (funnel fixes + viral loops + lifecycle emails). That's the highest-ROI in-app work. Track A item 3 (programmatic SEO) is Turn 2 because it's 20+ new routes. Track A item 5 (trust/proof) is Turn 3.
+
+Track B is yours to execute — but I can generate every asset you need (PH copy, X threads, cold email scripts, LinkedIn DM templates, video scripts, AppSumo listing copy) whenever you ask.
+
+**Reply "go" and I'll start Turn 1.** Or tell me which items to swap, skip, or prioritize.
