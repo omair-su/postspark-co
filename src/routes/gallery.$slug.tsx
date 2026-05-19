@@ -8,15 +8,53 @@ export const Route = createFileRoute("/gallery/$slug")({
     if (!post) throw notFound();
     return post;
   },
-  head: ({ loaderData }) => ({
+  head: ({ loaderData, params }) => ({
     meta: loaderData
       ? [
           { title: `${loaderData.title} — PostSpark Gallery` },
           { name: "description", content: loaderData.input.slice(0, 155) },
           { property: "og:title", content: loaderData.title },
           { property: "og:description", content: loaderData.input.slice(0, 155) },
+          { property: "og:type", content: "article" },
+          { property: "og:url", content: `https://postspark.co/gallery/${params.slug}` },
+          { property: "og:image", content: "https://postspark.co/og-image.png" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:title", content: loaderData.title },
+          { name: "twitter:description", content: loaderData.input.slice(0, 155) },
+          { name: "twitter:image", content: "https://postspark.co/og-image.png" },
         ]
       : [{ title: "Post — PostSpark Gallery" }],
+    links: loaderData
+      ? [{ rel: "canonical", href: `https://postspark.co/gallery/${params.slug}` }]
+      : [],
+    scripts: loaderData
+      ? [
+          {
+            type: "application/ld+json",
+            children: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Article",
+              headline: loaderData.title,
+              description: loaderData.input.slice(0, 200),
+              datePublished: loaderData.createdAt,
+              author: { "@type": "Person", name: (loaderData as any).author?.name || "PostSpark Creator" },
+              publisher: { "@type": "Organization", name: "PostSpark", url: "https://postspark.co" },
+              url: `https://postspark.co/gallery/${params.slug}`,
+            }),
+          },
+          {
+            type: "application/ld+json",
+            children: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Gallery", item: "https://postspark.co/gallery" },
+                { "@type": "ListItem", position: 2, name: loaderData.title, item: `https://postspark.co/gallery/${params.slug}` },
+              ],
+            }),
+          },
+        ]
+      : [],
   }),
   component: GalleryPostPage,
   notFoundComponent: () => (
@@ -91,6 +129,13 @@ function GalleryPostPage() {
           <div key={key} className="mt-4 rounded-xl border border-border bg-card p-5">
             <h2 className="text-sm font-semibold text-foreground capitalize">{key}</h2>
             <pre className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{String(val)}</pre>
+            <Link
+              to="/"
+              className="mt-3 inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-primary"
+            >
+              <Sparkles className="h-2.5 w-2.5 text-primary" />
+              Made with PostSpark
+            </Link>
           </div>
         ))}
 
