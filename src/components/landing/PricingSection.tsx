@@ -129,7 +129,7 @@ export function PricingSection() {
             Simple, Transparent <span className="luxury-gradient-text">Pricing</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[#1a1a2e]/65">
-            Start free, or try Pro &amp; Agency free for 14 days. Cancel anytime.
+            Start free, or try Pro &amp; Agency free for 14 days. <strong className="text-[#1a1a2e]">30-day money-back guarantee.</strong>
           </p>
 
           {/* Billing toggle */}
@@ -226,13 +226,15 @@ export function PricingSection() {
 
         {/* Trust strip */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> 14-day money-back guarantee
+          <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" /> 30-day money-back guarantee
           </span>
           <span>·</span>
           <span>Cancel anytime — keep access until period end</span>
           <span>·</span>
           <span>Secure checkout by Paddle</span>
+          <span>·</span>
+          <span>No credit card for free plan</span>
         </div>
 
         {/* Comparison table */}
