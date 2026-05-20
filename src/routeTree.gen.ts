@@ -29,6 +29,7 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as ToolsYoutubeToTwitterThreadRouteImport } from './routes/tools.youtube-to-twitter-thread'
+import { Route as ToolsPodcastToNewsletterRouteImport } from './routes/tools.podcast-to-newsletter'
 import { Route as ToolsBlogToLinkedinCarouselRouteImport } from './routes/tools.blog-to-linkedin-carousel'
 import { Route as TemplatesGalleryRouteImport } from './routes/templates.gallery'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
@@ -175,6 +176,12 @@ const ToolsYoutubeToTwitterThreadRoute =
   ToolsYoutubeToTwitterThreadRouteImport.update({
     id: '/tools/youtube-to-twitter-thread',
     path: '/tools/youtube-to-twitter-thread',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsPodcastToNewsletterRoute =
+  ToolsPodcastToNewsletterRouteImport.update({
+    id: '/tools/podcast-to-newsletter',
+    path: '/tools/podcast-to-newsletter',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ToolsBlogToLinkedinCarouselRoute =
@@ -469,6 +476,7 @@ export interface FileRoutesByFullPath {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
@@ -536,6 +544,7 @@ export interface FileRoutesByTo {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog': typeof BlogIndexRoute
@@ -605,6 +614,7 @@ export interface FileRoutesById {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
@@ -675,6 +685,7 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/templates/gallery'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog/'
@@ -742,6 +753,7 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/templates/gallery'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog'
@@ -810,6 +822,7 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/templates/gallery'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog/'
@@ -858,6 +871,7 @@ export interface RootRouteChildren {
   TemplatesSlugRoute: typeof TemplatesSlugRoute
   TemplatesGalleryRoute: typeof TemplatesGalleryRoute
   ToolsBlogToLinkedinCarouselRoute: typeof ToolsBlogToLinkedinCarouselRoute
+  ToolsPodcastToNewsletterRoute: typeof ToolsPodcastToNewsletterRoute
   ToolsYoutubeToTwitterThreadRoute: typeof ToolsYoutubeToTwitterThreadRoute
   UHandleRoute: typeof UHandleRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -1014,6 +1028,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/youtube-to-twitter-thread'
       fullPath: '/tools/youtube-to-twitter-thread'
       preLoaderRoute: typeof ToolsYoutubeToTwitterThreadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/podcast-to-newsletter': {
+      id: '/tools/podcast-to-newsletter'
+      path: '/tools/podcast-to-newsletter'
+      fullPath: '/tools/podcast-to-newsletter'
+      preLoaderRoute: typeof ToolsPodcastToNewsletterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/blog-to-linkedin-carousel': {
@@ -1426,6 +1447,7 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesSlugRoute: TemplatesSlugRoute,
   TemplatesGalleryRoute: TemplatesGalleryRoute,
   ToolsBlogToLinkedinCarouselRoute: ToolsBlogToLinkedinCarouselRoute,
+  ToolsPodcastToNewsletterRoute: ToolsPodcastToNewsletterRoute,
   ToolsYoutubeToTwitterThreadRoute: ToolsYoutubeToTwitterThreadRoute,
   UHandleRoute: UHandleRoute,
   BlogIndexRoute: BlogIndexRoute,
