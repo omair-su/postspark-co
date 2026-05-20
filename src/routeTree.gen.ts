@@ -37,6 +37,7 @@ import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
+import { Route as ForYoutubersRouteImport } from './routes/for.youtubers'
 import { Route as ForPodcastersRouteImport } from './routes/for.podcasters'
 import { Route as ForCreatorsRouteImport } from './routes/for.creators'
 import { Route as ForAgenciesRouteImport } from './routes/for.agencies'
@@ -220,6 +221,11 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
 const GallerySlugRoute = GallerySlugRouteImport.update({
   id: '/gallery/$slug',
   path: '/gallery/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForYoutubersRoute = ForYoutubersRouteImport.update({
+  id: '/for/youtubers',
+  path: '/for/youtubers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForPodcastersRoute = ForPodcastersRouteImport.update({
@@ -483,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/for/agencies': typeof ForAgenciesRoute
   '/for/creators': typeof ForCreatorsRoute
   '/for/podcasters': typeof ForPodcastersRoute
+  '/for/youtubers': typeof ForYoutubersRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
@@ -553,6 +560,7 @@ export interface FileRoutesByTo {
   '/for/agencies': typeof ForAgenciesRoute
   '/for/creators': typeof ForCreatorsRoute
   '/for/podcasters': typeof ForPodcastersRoute
+  '/for/youtubers': typeof ForYoutubersRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
@@ -625,6 +633,7 @@ export interface FileRoutesById {
   '/for/agencies': typeof ForAgenciesRoute
   '/for/creators': typeof ForCreatorsRoute
   '/for/podcasters': typeof ForPodcastersRoute
+  '/for/youtubers': typeof ForYoutubersRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
@@ -698,6 +707,7 @@ export interface FileRouteTypes {
     | '/for/agencies'
     | '/for/creators'
     | '/for/podcasters'
+    | '/for/youtubers'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
@@ -768,6 +778,7 @@ export interface FileRouteTypes {
     | '/for/agencies'
     | '/for/creators'
     | '/for/podcasters'
+    | '/for/youtubers'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
@@ -839,6 +850,7 @@ export interface FileRouteTypes {
     | '/for/agencies'
     | '/for/creators'
     | '/for/podcasters'
+    | '/for/youtubers'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
@@ -890,6 +902,7 @@ export interface RootRouteChildren {
   ForAgenciesRoute: typeof ForAgenciesRoute
   ForCreatorsRoute: typeof ForCreatorsRoute
   ForPodcastersRoute: typeof ForPodcastersRoute
+  ForYoutubersRoute: typeof ForYoutubersRoute
   GallerySlugRoute: typeof GallerySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
@@ -1110,6 +1123,13 @@ declare module '@tanstack/react-router' {
       path: '/gallery/$slug'
       fullPath: '/gallery/$slug'
       preLoaderRoute: typeof GallerySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for/youtubers': {
+      id: '/for/youtubers'
+      path: '/for/youtubers'
+      fullPath: '/for/youtubers'
+      preLoaderRoute: typeof ForYoutubersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/for/podcasters': {
@@ -1482,6 +1502,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForAgenciesRoute: ForAgenciesRoute,
   ForCreatorsRoute: ForCreatorsRoute,
   ForPodcastersRoute: ForPodcastersRoute,
+  ForYoutubersRoute: ForYoutubersRoute,
   GallerySlugRoute: GallerySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
