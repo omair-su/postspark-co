@@ -28,6 +28,7 @@ import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
+import { Route as ToolsYoutubeToTwitterThreadRouteImport } from './routes/tools.youtube-to-twitter-thread'
 import { Route as TemplatesGalleryRouteImport } from './routes/templates.gallery'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
@@ -169,6 +170,12 @@ const UHandleRoute = UHandleRouteImport.update({
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsYoutubeToTwitterThreadRoute =
+  ToolsYoutubeToTwitterThreadRouteImport.update({
+    id: '/tools/youtube-to-twitter-thread',
+    path: '/tools/youtube-to-twitter-thread',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TemplatesGalleryRoute = TemplatesGalleryRouteImport.update({
   id: '/templates/gallery',
   path: '/templates/gallery',
@@ -454,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -519,6 +527,7 @@ export interface FileRoutesByTo {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -586,6 +595,7 @@ export interface FileRoutesById {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -654,6 +664,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog/'
     | '/dashboard/'
@@ -719,6 +730,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog'
     | '/dashboard'
@@ -785,6 +797,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog/'
     | '/dashboard/'
@@ -831,6 +844,7 @@ export interface RootRouteChildren {
   ReviewTokenRoute: typeof ReviewTokenRoute
   TemplatesSlugRoute: typeof TemplatesSlugRoute
   TemplatesGalleryRoute: typeof TemplatesGalleryRoute
+  ToolsYoutubeToTwitterThreadRoute: typeof ToolsYoutubeToTwitterThreadRoute
   UHandleRoute: typeof UHandleRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
@@ -979,6 +993,13 @@ declare module '@tanstack/react-router' {
       path: '/u/$handle'
       fullPath: '/u/$handle'
       preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/youtube-to-twitter-thread': {
+      id: '/tools/youtube-to-twitter-thread'
+      path: '/tools/youtube-to-twitter-thread'
+      fullPath: '/tools/youtube-to-twitter-thread'
+      preLoaderRoute: typeof ToolsYoutubeToTwitterThreadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/templates/gallery': {
@@ -1383,6 +1404,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewTokenRoute: ReviewTokenRoute,
   TemplatesSlugRoute: TemplatesSlugRoute,
   TemplatesGalleryRoute: TemplatesGalleryRoute,
+  ToolsYoutubeToTwitterThreadRoute: ToolsYoutubeToTwitterThreadRoute,
   UHandleRoute: UHandleRoute,
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
@@ -1400,12 +1422,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
