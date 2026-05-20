@@ -121,7 +121,7 @@ function HistoryPage() {
         content: typeof v === "string" ? v : JSON.stringify(v, null, 2),
       })),
     ]);
-    exportToPdf(sections, `repurpose-bulk-${toExport.length}`);
+    exportToPdf(sections, `repurpose-bulk-${toExport.length}`, { watermark: tier === "free" });
     toast.success(`Exported ${toExport.length} items as PDF!`);
   };
 
