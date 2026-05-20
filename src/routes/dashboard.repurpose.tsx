@@ -642,10 +642,12 @@ function ResultCard({
     onRegenerate();
   };
 
+  const { tier } = useSubscription();
   const handleExportPdf = () => {
-    exportToPdf([{ title, content }], `repurpose-${id}`);
+    exportToPdf([{ title, content }], `repurpose-${id}`, { watermark: tier === "free" });
     toast.success("PDF downloaded!");
   };
+
 
   const isCopied = copied === id;
 
