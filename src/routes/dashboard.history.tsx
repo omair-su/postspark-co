@@ -207,7 +207,7 @@ function HistoryPage() {
                     content: typeof val === "string" ? val : JSON.stringify(val, null, 2),
                   })),
                 ];
-                exportToPdf(sections, `repurpose-${selected.id.slice(0, 8)}`);
+                exportToPdf(sections, `repurpose-${selected.id.slice(0, 8)}`, { watermark: tier === "free" });
                 toast.success("PDF downloaded!");
               }}
               className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
