@@ -40,6 +40,7 @@ export const Route = createFileRoute("/dashboard/history")({
 
 function HistoryPage() {
   const { user, session } = useAuth();
+  const { tier } = useSubscription();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selected, setSelected] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
