@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck, Trash2 } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
+import { useSubscription } from "@/hooks/useSubscription";
 import { toggleFavorite, bulkDeleteJobs } from "@/lib/repurpose.functions";
 import { togglePublic } from "@/lib/gallery.functions";
 import { createApprovalRequest } from "@/lib/approvals.functions";
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/dashboard/history")({
 
 function HistoryPage() {
   const { user, session } = useAuth();
+  const { tier } = useSubscription();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selected, setSelected] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,7 +121,7 @@ function HistoryPage() {
         content: typeof v === "string" ? v : JSON.stringify(v, null, 2),
       })),
     ]);
-    exportToPdf(sections, `repurpose-bulk-${toExport.length}`);
+    exportToPdf(sections, `repurpose-bulk-${toExport.length}`, { watermark: tier === "free" });
     toast.success(`Exported ${toExport.length} items as PDF!`);
   };
 
@@ -205,7 +207,7 @@ function HistoryPage() {
                     content: typeof val === "string" ? val : JSON.stringify(val, null, 2),
                   })),
                 ];
-                exportToPdf(sections, `repurpose-${selected.id.slice(0, 8)}`);
+                exportToPdf(sections, `repurpose-${selected.id.slice(0, 8)}`, { watermark: tier === "free" });
                 toast.success("PDF downloaded!");
               }}
               className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"

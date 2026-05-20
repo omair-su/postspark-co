@@ -28,11 +28,17 @@ import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
+import { Route as ToolsYoutubeToTwitterThreadRouteImport } from './routes/tools.youtube-to-twitter-thread'
+import { Route as ToolsPodcastToNewsletterRouteImport } from './routes/tools.podcast-to-newsletter'
+import { Route as ToolsNewsletterToSocialRouteImport } from './routes/tools.newsletter-to-social'
+import { Route as ToolsBlogToLinkedinCarouselRouteImport } from './routes/tools.blog-to-linkedin-carousel'
 import { Route as TemplatesGalleryRouteImport } from './routes/templates.gallery'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as GallerySlugRouteImport } from './routes/gallery.$slug'
+import { Route as ForYoutubersRouteImport } from './routes/for.youtubers'
+import { Route as ForPodcastersRouteImport } from './routes/for.podcasters'
 import { Route as ForCreatorsRouteImport } from './routes/for.creators'
 import { Route as ForAgenciesRouteImport } from './routes/for.agencies'
 import { Route as FeaturesYoutubeToTweetsRouteImport } from './routes/features.youtube-to-tweets'
@@ -169,6 +175,29 @@ const UHandleRoute = UHandleRouteImport.update({
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsYoutubeToTwitterThreadRoute =
+  ToolsYoutubeToTwitterThreadRouteImport.update({
+    id: '/tools/youtube-to-twitter-thread',
+    path: '/tools/youtube-to-twitter-thread',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsPodcastToNewsletterRoute =
+  ToolsPodcastToNewsletterRouteImport.update({
+    id: '/tools/podcast-to-newsletter',
+    path: '/tools/podcast-to-newsletter',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsNewsletterToSocialRoute = ToolsNewsletterToSocialRouteImport.update({
+  id: '/tools/newsletter-to-social',
+  path: '/tools/newsletter-to-social',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsBlogToLinkedinCarouselRoute =
+  ToolsBlogToLinkedinCarouselRouteImport.update({
+    id: '/tools/blog-to-linkedin-carousel',
+    path: '/tools/blog-to-linkedin-carousel',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TemplatesGalleryRoute = TemplatesGalleryRouteImport.update({
   id: '/templates/gallery',
   path: '/templates/gallery',
@@ -192,6 +221,16 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
 const GallerySlugRoute = GallerySlugRouteImport.update({
   id: '/gallery/$slug',
   path: '/gallery/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForYoutubersRoute = ForYoutubersRouteImport.update({
+  id: '/for/youtubers',
+  path: '/for/youtubers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForPodcastersRoute = ForPodcastersRouteImport.update({
+  id: '/for/podcasters',
+  path: '/for/podcasters',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForCreatorsRoute = ForCreatorsRouteImport.update({
@@ -449,11 +488,17 @@ export interface FileRoutesByFullPath {
   '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
   '/for/agencies': typeof ForAgenciesRoute
   '/for/creators': typeof ForCreatorsRoute
+  '/for/podcasters': typeof ForPodcastersRoute
+  '/for/youtubers': typeof ForYoutubersRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
+  '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
+  '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -514,11 +559,17 @@ export interface FileRoutesByTo {
   '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
   '/for/agencies': typeof ForAgenciesRoute
   '/for/creators': typeof ForCreatorsRoute
+  '/for/podcasters': typeof ForPodcastersRoute
+  '/for/youtubers': typeof ForYoutubersRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
+  '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
+  '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -581,11 +632,17 @@ export interface FileRoutesById {
   '/features/youtube-to-tweets': typeof FeaturesYoutubeToTweetsRoute
   '/for/agencies': typeof ForAgenciesRoute
   '/for/creators': typeof ForCreatorsRoute
+  '/for/podcasters': typeof ForPodcastersRoute
+  '/for/youtubers': typeof ForYoutubersRoute
   '/gallery/$slug': typeof GallerySlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
+  '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
+  '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -649,11 +706,17 @@ export interface FileRouteTypes {
     | '/features/youtube-to-tweets'
     | '/for/agencies'
     | '/for/creators'
+    | '/for/podcasters'
+    | '/for/youtubers'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/blog-to-linkedin-carousel'
+    | '/tools/newsletter-to-social'
+    | '/tools/podcast-to-newsletter'
+    | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog/'
     | '/dashboard/'
@@ -714,11 +777,17 @@ export interface FileRouteTypes {
     | '/features/youtube-to-tweets'
     | '/for/agencies'
     | '/for/creators'
+    | '/for/podcasters'
+    | '/for/youtubers'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/blog-to-linkedin-carousel'
+    | '/tools/newsletter-to-social'
+    | '/tools/podcast-to-newsletter'
+    | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog'
     | '/dashboard'
@@ -780,11 +849,17 @@ export interface FileRouteTypes {
     | '/features/youtube-to-tweets'
     | '/for/agencies'
     | '/for/creators'
+    | '/for/podcasters'
+    | '/for/youtubers'
     | '/gallery/$slug'
     | '/invite/$token'
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/blog-to-linkedin-carousel'
+    | '/tools/newsletter-to-social'
+    | '/tools/podcast-to-newsletter'
+    | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/blog/'
     | '/dashboard/'
@@ -826,11 +901,17 @@ export interface RootRouteChildren {
   FeaturesYoutubeToTweetsRoute: typeof FeaturesYoutubeToTweetsRoute
   ForAgenciesRoute: typeof ForAgenciesRoute
   ForCreatorsRoute: typeof ForCreatorsRoute
+  ForPodcastersRoute: typeof ForPodcastersRoute
+  ForYoutubersRoute: typeof ForYoutubersRoute
   GallerySlugRoute: typeof GallerySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ReviewTokenRoute: typeof ReviewTokenRoute
   TemplatesSlugRoute: typeof TemplatesSlugRoute
   TemplatesGalleryRoute: typeof TemplatesGalleryRoute
+  ToolsBlogToLinkedinCarouselRoute: typeof ToolsBlogToLinkedinCarouselRoute
+  ToolsNewsletterToSocialRoute: typeof ToolsNewsletterToSocialRoute
+  ToolsPodcastToNewsletterRoute: typeof ToolsPodcastToNewsletterRoute
+  ToolsYoutubeToTwitterThreadRoute: typeof ToolsYoutubeToTwitterThreadRoute
   UHandleRoute: typeof UHandleRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
@@ -981,6 +1062,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/youtube-to-twitter-thread': {
+      id: '/tools/youtube-to-twitter-thread'
+      path: '/tools/youtube-to-twitter-thread'
+      fullPath: '/tools/youtube-to-twitter-thread'
+      preLoaderRoute: typeof ToolsYoutubeToTwitterThreadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/podcast-to-newsletter': {
+      id: '/tools/podcast-to-newsletter'
+      path: '/tools/podcast-to-newsletter'
+      fullPath: '/tools/podcast-to-newsletter'
+      preLoaderRoute: typeof ToolsPodcastToNewsletterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/newsletter-to-social': {
+      id: '/tools/newsletter-to-social'
+      path: '/tools/newsletter-to-social'
+      fullPath: '/tools/newsletter-to-social'
+      preLoaderRoute: typeof ToolsNewsletterToSocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/blog-to-linkedin-carousel': {
+      id: '/tools/blog-to-linkedin-carousel'
+      path: '/tools/blog-to-linkedin-carousel'
+      fullPath: '/tools/blog-to-linkedin-carousel'
+      preLoaderRoute: typeof ToolsBlogToLinkedinCarouselRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates/gallery': {
       id: '/templates/gallery'
       path: '/templates/gallery'
@@ -1014,6 +1123,20 @@ declare module '@tanstack/react-router' {
       path: '/gallery/$slug'
       fullPath: '/gallery/$slug'
       preLoaderRoute: typeof GallerySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for/youtubers': {
+      id: '/for/youtubers'
+      path: '/for/youtubers'
+      fullPath: '/for/youtubers'
+      preLoaderRoute: typeof ForYoutubersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for/podcasters': {
+      id: '/for/podcasters'
+      path: '/for/podcasters'
+      fullPath: '/for/podcasters'
+      preLoaderRoute: typeof ForPodcastersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/for/creators': {
@@ -1378,11 +1501,17 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturesYoutubeToTweetsRoute: FeaturesYoutubeToTweetsRoute,
   ForAgenciesRoute: ForAgenciesRoute,
   ForCreatorsRoute: ForCreatorsRoute,
+  ForPodcastersRoute: ForPodcastersRoute,
+  ForYoutubersRoute: ForYoutubersRoute,
   GallerySlugRoute: GallerySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   ReviewTokenRoute: ReviewTokenRoute,
   TemplatesSlugRoute: TemplatesSlugRoute,
   TemplatesGalleryRoute: TemplatesGalleryRoute,
+  ToolsBlogToLinkedinCarouselRoute: ToolsBlogToLinkedinCarouselRoute,
+  ToolsNewsletterToSocialRoute: ToolsNewsletterToSocialRoute,
+  ToolsPodcastToNewsletterRoute: ToolsPodcastToNewsletterRoute,
+  ToolsYoutubeToTwitterThreadRoute: ToolsYoutubeToTwitterThreadRoute,
   UHandleRoute: UHandleRoute,
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
