@@ -1,12 +1,35 @@
 import { Star, Quote } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getPublishedTestimonials } from "@/lib/socialProof.functions";
 
-const testimonials = [
-  { name: "Sarah Chen", handle: "@sarahbuilds", role: "Newsletter creator · 18k subs", avatar: "SC", text: "I paste my Sunday essay into PostSpark and walk away with a full week of tweets, a LinkedIn post, and a podcast outline. It cut my Monday from 4 hours to 20 minutes." },
-  { name: "Marcus Johnson", handle: "@marcusgrowth", role: "Head of Content · B2B SaaS", avatar: "MJ", text: "Our team's social output tripled in the first month. Brand Voice nails our tone — readers don't realize anything changed except how often we post." },
-  { name: "Emily Rodriguez", handle: "@emilysolopreneur", role: "Solo founder · indie SaaS", avatar: "ER", text: "I'm a one-person team. PostSpark is the closest thing I have to a content department. The Hook Lab alone earned my Pro upgrade." },
+type Testimonial = {
+  id?: string;
+  name: string;
+  handle?: string | null;
+  role?: string | null;
+  avatar_initials?: string | null;
+  avatar_url?: string | null;
+  quote: string;
+  rating?: number | null;
+};
+
+const fallback: Testimonial[] = [
+  { name: "Sarah Chen", handle: "@sarahbuilds", role: "Newsletter creator · 18k subs", avatar_initials: "SC", quote: "I paste my Sunday essay into PostSpark and walk away with a full week of tweets, a LinkedIn post, and a podcast outline. It cut my Monday from 4 hours to 20 minutes." },
+  { name: "Marcus Johnson", handle: "@marcusgrowth", role: "Head of Content · B2B SaaS", avatar_initials: "MJ", quote: "Our team's social output tripled in the first month. Brand Voice nails our tone — readers don't realize anything changed except how often we post." },
+  { name: "Emily Rodriguez", handle: "@emilysolopreneur", role: "Solo founder · indie SaaS", avatar_initials: "ER", quote: "I'm a one-person team. PostSpark is the closest thing I have to a content department. The Hook Lab alone earned my Pro upgrade." },
 ];
 
 export function TestimonialsSection() {
+  const [items, setItems] = useState<Testimonial[]>(fallback);
+
+  useEffect(() => {
+    getPublishedTestimonials()
+      .then((r) => {
+        if (r.testimonials && r.testimonials.length > 0) setItems(r.testimonials as Testimonial[]);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section className="relative isolate overflow-hidden cream-surface-alt py-24">
       <div className="cream-grain" aria-hidden />
@@ -28,25 +51,31 @@ export function TestimonialsSection() {
         </div>
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {testimonials.map((t, i) => (
+          {items.slice(0, 6).map((t, i) => (
             <div
-              key={t.name}
+              key={t.id ?? t.name}
               className="luxury-card group relative p-6 animate-[heroRise_0.7s_ease-out_both]"
               style={{ animationDelay: `${i * 110}ms` }}
             >
               <Quote className="h-6 w-6 text-[#7c3aed]/50" />
-              <p className="mt-3 text-sm leading-relaxed text-[#1a1a2e]/85">"{t.text}"</p>
+              <p className="mt-3 text-sm leading-relaxed text-[#1a1a2e]/85">"{t.quote}"</p>
               <div className="mt-5 flex items-center gap-3 border-t border-[#1a1a2e]/10 pt-4">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #4c1d95 60%, #7c3aed 100%)" }}
-                >
-                  {t.avatar}
-                </div>
+                {t.avatar_url ? (
+                  <img src={t.avatar_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white"
+                    style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #4c1d95 60%, #7c3aed 100%)" }}
+                  >
+                    {t.avatar_initials || t.name.split(" ").map((s) => s[0]).join("").slice(0, 2)}
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold luxury-heading">{t.name}</p>
                   <p className="truncate text-xs text-[#1a1a2e]/60">
-                    <span className="font-medium text-[#7c3aed]">{t.handle}</span> · {t.role}
+                    {t.handle && <span className="font-medium text-[#7c3aed]">{t.handle}</span>}
+                    {t.handle && t.role && " · "}
+                    {t.role}
                   </p>
                 </div>
               </div>

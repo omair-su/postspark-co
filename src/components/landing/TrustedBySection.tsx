@@ -1,13 +1,28 @@
 import { Star, Users, Zap, TrendingUp } from "lucide-react";
-
-const stats = [
-  { icon: Users, value: "1,200+", label: "Active creators" },
-  { icon: Zap, value: "180k+", label: "Posts generated" },
-  { icon: Star, value: "4.9/5", label: "Avg. rating" },
-  { icon: TrendingUp, value: "10×", label: "Avg. output lift" },
-];
+import { useEffect, useState } from "react";
+import { getPostsThisWeek } from "@/lib/socialProof.functions";
 
 export function TrustedBySection() {
+  const [weekly, setWeekly] = useState<number | null>(null);
+
+  useEffect(() => {
+    getPostsThisWeek()
+      .then((r) => setWeekly(r.count))
+      .catch(() => setWeekly(null));
+  }, []);
+
+  const stats = [
+    { icon: Users, value: "1,200+", label: "Active creators" },
+    {
+      icon: Zap,
+      value: weekly !== null ? `${weekly.toLocaleString()}` : "180k+",
+      label: weekly !== null ? "Posts this week" : "Posts generated",
+      live: weekly !== null,
+    },
+    { icon: Star, value: "4.9/5", label: "Avg. rating" },
+    { icon: TrendingUp, value: "10×", label: "Avg. output lift" },
+  ];
+
   return (
     <section className="relative isolate overflow-hidden cream-surface-alt py-14 px-6">
       <div className="cream-grain" aria-hidden />
@@ -35,7 +50,15 @@ export function TrustedBySection() {
                 <s.icon className="h-4 w-4 text-white" />
               </div>
               <div className="text-left">
-                <p className="text-base font-bold leading-tight luxury-heading">{s.value}</p>
+                <p className="text-base font-bold leading-tight luxury-heading flex items-center gap-1.5">
+                  {s.value}
+                  {s.live && (
+                    <span className="relative inline-flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    </span>
+                  )}
+                </p>
                 <p className="text-[11px] leading-tight text-[#1a1a2e]/60">{s.label}</p>
               </div>
             </div>
