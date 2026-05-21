@@ -1014,6 +1014,51 @@ export type Database = {
           },
         ]
       }
+      testimonials: {
+        Row: {
+          avatar_initials: string | null
+          avatar_url: string | null
+          created_at: string
+          handle: string | null
+          id: string
+          is_published: boolean
+          name: string
+          quote: string
+          rating: number
+          role: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          avatar_initials?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          handle?: string | null
+          id?: string
+          is_published?: boolean
+          name: string
+          quote: string
+          rating?: number
+          role?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          avatar_initials?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          handle?: string | null
+          id?: string
+          is_published?: boolean
+          name?: string
+          quote?: string
+          rating?: number
+          role?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
