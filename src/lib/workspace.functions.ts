@@ -164,7 +164,10 @@ export const acceptInvite = createServerFn({ method: "POST" })
     const { supabase, userId, claims } = context;
     const email = (claims?.email as string | undefined)?.toLowerCase();
 
-    const { data: invite } = await supabase
+    // Use admin client: the `token` column is not readable via the user
+    // session (SELECT(token) revoked from authenticated/anon) to prevent
+    // workspace admins from harvesting other invitees' tokens.
+    const { data: invite } = await supabaseAdmin
       .from("workspace_invites")
       .select("*")
       .eq("token", data.token)
