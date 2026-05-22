@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: number
+          path: string | null
+          props: Json | null
+          referrer: string | null
+          session_id: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: number
+          path?: string | null
+          props?: Json | null
+          referrer?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: number
+          path?: string | null
+          props?: Json | null
+          referrer?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
       approval_audit_log: {
         Row: {
           action: string
@@ -421,6 +469,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      demo_uses: {
+        Row: {
+          created_at: string
+          id: number
+          input_chars: number | null
+          ip_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          input_chars?: number | null
+          ip_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          input_chars?: number | null
+          ip_hash?: string
+        }
+        Relationships: []
       }
       email_send_log: {
         Row: {
