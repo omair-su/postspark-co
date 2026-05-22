@@ -21,6 +21,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as IndexRouteImport } from './routes/index'
@@ -73,6 +74,8 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
+import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
+import { Route as ApiPublicDemoRouteImport } from './routes/api/public/demo'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -139,6 +142,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -408,6 +416,16 @@ const BlogAuthorSlugRoute = BlogAuthorSlugRouteImport.update({
   path: '/blog/author/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
+  id: '/api/public/track',
+  path: '/api/public/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDemoRoute = ApiPublicDemoRouteImport.update({
+  id: '/api/public/demo',
+  path: '/api/public/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -453,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/demo': typeof DemoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
@@ -511,6 +530,8 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
+  '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -525,6 +546,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
+  '/demo': typeof DemoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
@@ -583,6 +605,8 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
+  '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -599,6 +623,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/demo': typeof DemoRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
@@ -657,6 +682,8 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
+  '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
@@ -674,6 +701,7 @@ export interface FileRouteTypes {
     | '/'
     | '/changelog'
     | '/dashboard'
+    | '/demo'
     | '/login'
     | '/onboarding'
     | '/pricing'
@@ -732,6 +760,8 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/dashboard/'
     | '/gallery/'
+    | '/api/public/demo'
+    | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/lovable/email/suppression'
@@ -746,6 +776,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/changelog'
+    | '/demo'
     | '/login'
     | '/onboarding'
     | '/pricing'
@@ -804,6 +835,8 @@ export interface FileRouteTypes {
     | '/blog'
     | '/dashboard'
     | '/gallery'
+    | '/api/public/demo'
+    | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/lovable/email/suppression'
@@ -819,6 +852,7 @@ export interface FileRouteTypes {
     | '/'
     | '/changelog'
     | '/dashboard'
+    | '/demo'
     | '/login'
     | '/onboarding'
     | '/pricing'
@@ -877,6 +911,8 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/dashboard/'
     | '/gallery/'
+    | '/api/public/demo'
+    | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/lovable/email/suppression'
@@ -893,6 +929,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChangelogRoute: typeof ChangelogRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  DemoRoute: typeof DemoRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PricingRoute: typeof PricingRoute
@@ -928,6 +965,8 @@ export interface RootRouteChildren {
   UHandleRoute: typeof UHandleRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
+  ApiPublicDemoRoute: typeof ApiPublicDemoRoute
+  ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -1024,6 +1063,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -1390,6 +1436,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogAuthorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/track': {
+      id: '/api/public/track'
+      path: '/api/public/track'
+      fullPath: '/api/public/track'
+      preLoaderRoute: typeof ApiPublicTrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/demo': {
+      id: '/api/public/demo'
+      path: '/api/public/demo'
+      fullPath: '/api/public/demo'
+      preLoaderRoute: typeof ApiPublicDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -1502,6 +1562,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChangelogRoute: ChangelogRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  DemoRoute: DemoRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PricingRoute: PricingRoute,
@@ -1537,6 +1598,8 @@ const rootRouteChildren: RootRouteChildren = {
   UHandleRoute: UHandleRoute,
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
+  ApiPublicDemoRoute: ApiPublicDemoRoute,
+  ApiPublicTrackRoute: ApiPublicTrackRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
