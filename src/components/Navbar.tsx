@@ -49,6 +49,9 @@ export function Navbar() {
           <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Pricing
           </Link>
+          <Link to="/demo" className="text-sm font-medium text-primary hover:opacity-80 transition-opacity">
+            Try Demo
+          </Link>
           <Link to="/gallery" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Gallery
           </Link>
@@ -83,6 +86,9 @@ export function Navbar() {
             </button>
             <Link to="/pricing" className="text-sm font-medium text-muted-foreground" onClick={() => setOpen(false)}>
               Pricing
+            </Link>
+            <Link to="/demo" className="text-sm font-medium text-primary" onClick={() => setOpen(false)}>
+              Try Demo
             </Link>
             <Link to="/gallery" className="text-sm font-medium text-muted-foreground" onClick={() => setOpen(false)}>
               Gallery

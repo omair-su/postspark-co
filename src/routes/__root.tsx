@@ -1,7 +1,8 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouter } from "@tanstack/react-router";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import { captureUTMs, track } from "@/lib/analytics";
 
 const Toaster = lazy(() => import("sonner").then(m => ({ default: m.Toaster })));
 
@@ -122,6 +123,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const router = useRouter();
+  useEffect(() => {
+    captureUTMs();
+    track("page_view");
+    const unsub = router.subscribe("onResolved", () => {
+      track("page_view");
+    });
+    return () => { unsub(); };
+  }, [router]);
   return (
     <AuthProvider>
       <PaymentTestModeBanner />
