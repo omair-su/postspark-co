@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callClaude } from "@/server/anthropic.server";
 
 const Schema = z.object({
-  input: z.string().min(40).max(4000),
+  input: z.string().min(20).max(4000),
 });
 
 const DAILY_LIMIT = 3;
