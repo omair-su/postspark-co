@@ -43,9 +43,13 @@ function FunnelPage() {
   }, [session, authLoading, navigate]);
 
   const load = async (d = days) => {
+    if (!session) return;
     setLoading(true);
     try {
-      const r = await getFunnelSummary({ data: { days: d } });
+      const r = await getFunnelSummary({
+        data: { days: d },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       setData(r);
     } finally {
       setLoading(false);
