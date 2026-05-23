@@ -15,6 +15,7 @@ const TestimonialsSection = lazy(() => import("@/components/landing/Testimonials
 const FAQSection = lazy(() => import("@/components/landing/FAQSection").then(m => ({ default: m.FAQSection })));
 const CTABanner = lazy(() => import("@/components/landing/CTABanner").then(m => ({ default: m.CTABanner })));
 const IntegrationsLogoBar = lazy(() => import("@/components/landing/IntegrationsLogoBar").then(m => ({ default: m.IntegrationsLogoBar })));
+const LandingDemoSection = lazy(() => import("@/components/landing/LandingDemoSection").then(m => ({ default: m.LandingDemoSection })));
 const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 
 export const Route = createFileRoute("/")({
@@ -82,6 +83,7 @@ function LandingPage() {
         <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
           <TrustedBySection />
           <IntegrationsLogoBar />
+          <LandingDemoSection />
           <BeforeAfterSection />
           <PremiumFeaturesSection />
           <HowItWorksSection />

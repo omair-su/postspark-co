@@ -64,11 +64,11 @@ function DemoPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim().length < 40) {
-      setError("Paste at least 40 characters so we have something to work with.");
+    setError(null);
+    if (input.trim().length < 20) {
+      setError("Paste at least 20 characters so we have something to work with.");
       return;
     }
-    setError(null);
     setLoading(true);
     setPack(null);
     track("demo_generate_start", { chars: input.length });
@@ -122,12 +122,14 @@ function DemoPage() {
               maxLength={4000}
               required
             />
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="text-xs text-muted-foreground">{input.length} / 4000</span>
+            <div className="mt-3 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs text-muted-foreground">
+                {input.length} / 4000 {input.trim().length >= 20 ? "· ✓ ready" : `· ${Math.max(0, 20 - input.trim().length)} more chars`}
+              </span>
               <button
                 type="submit"
-                disabled={loading || input.trim().length < 40}
-                className="inline-flex items-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                disabled={loading}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60 sm:w-auto"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 {loading ? "Generating…" : "Generate 3 posts"}

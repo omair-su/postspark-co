@@ -61,6 +61,7 @@ import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.ima
 import { Route as DashboardHumanizerRouteImport } from './routes/dashboard.humanizer'
 import { Route as DashboardHookLabRouteImport } from './routes/dashboard.hook-lab'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
+import { Route as DashboardFunnelRouteImport } from './routes/dashboard.funnel'
 import { Route as DashboardCarouselRouteImport } from './routes/dashboard.carousel'
 import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
@@ -350,6 +351,11 @@ const DashboardHistoryRoute = DashboardHistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardFunnelRoute = DashboardFunnelRouteImport.update({
+  id: '/funnel',
+  path: '/funnel',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardCarouselRoute = DashboardCarouselRouteImport.update({
   id: '/carousel',
   path: '/carousel',
@@ -494,6 +500,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
+  '/dashboard/funnel': typeof DashboardFunnelRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
@@ -569,6 +576,7 @@ export interface FileRoutesByTo {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
+  '/dashboard/funnel': typeof DashboardFunnelRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
@@ -646,6 +654,7 @@ export interface FileRoutesById {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
+  '/dashboard/funnel': typeof DashboardFunnelRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
@@ -724,6 +733,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
     | '/dashboard/carousel'
+    | '/dashboard/funnel'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/humanizer'
@@ -799,6 +809,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
     | '/dashboard/carousel'
+    | '/dashboard/funnel'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/humanizer'
@@ -875,6 +886,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/calendar'
     | '/dashboard/carousel'
+    | '/dashboard/funnel'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
     | '/dashboard/humanizer'
@@ -1345,6 +1357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHistoryRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/funnel': {
+      id: '/dashboard/funnel'
+      path: '/funnel'
+      fullPath: '/dashboard/funnel'
+      preLoaderRoute: typeof DashboardFunnelRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/carousel': {
       id: '/dashboard/carousel'
       path: '/carousel'
@@ -1510,6 +1529,7 @@ interface DashboardRouteChildren {
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
   DashboardCalendarRoute: typeof DashboardCalendarRoute
   DashboardCarouselRoute: typeof DashboardCarouselRoute
+  DashboardFunnelRoute: typeof DashboardFunnelRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardHookLabRoute: typeof DashboardHookLabRoute
   DashboardHumanizerRoute: typeof DashboardHumanizerRoute
@@ -1536,6 +1556,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
   DashboardCalendarRoute: DashboardCalendarRoute,
   DashboardCarouselRoute: DashboardCarouselRoute,
+  DashboardFunnelRoute: DashboardFunnelRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardHookLabRoute: DashboardHookLabRoute,
   DashboardHumanizerRoute: DashboardHumanizerRoute,

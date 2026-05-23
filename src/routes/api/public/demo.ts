@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callClaude } from "@/server/anthropic.server";
 
 const Schema = z.object({
-  input: z.string().min(40).max(4000),
+  input: z.string().min(20).max(4000),
 });
 
 const DAILY_LIMIT = 3;
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/public/demo")({
         try { json = await request.json(); } catch { return Response.json({ error: "bad_json" }, { status: 400 }); }
         const parsed = Schema.safeParse(json);
         if (!parsed.success) {
-          return Response.json({ error: "Please paste at least 40 characters (up to 4000)." }, { status: 400 });
+          return Response.json({ error: "Please paste at least 20 characters (up to 4000)." }, { status: 400 });
         }
 
         const ipHash = hashIp(request);
