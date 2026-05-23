@@ -35,7 +35,7 @@ function FunnelPage() {
     if (!session) { navigate({ to: "/login" }); return; }
     (async () => {
       try {
-        const r = await isCurrentUserAdmin();
+        const r = await isCurrentUserAdmin({ headers: { Authorization: `Bearer ${session.access_token}` } });
         setIsAdmin(r.isAdmin);
       } catch { setIsAdmin(false); }
       setChecking(false);
