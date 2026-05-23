@@ -64,11 +64,11 @@ function DemoPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim().length < 40) {
-      setError("Paste at least 40 characters so we have something to work with.");
+    setError(null);
+    if (input.trim().length < 20) {
+      setError("Paste at least 20 characters so we have something to work with.");
       return;
     }
-    setError(null);
     setLoading(true);
     setPack(null);
     track("demo_generate_start", { chars: input.length });
