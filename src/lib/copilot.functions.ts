@@ -183,6 +183,10 @@ export const sparkChat = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     if (rateLimited(userId)) return { reply: "", error: "Rate limit reached. Try again in a moment.", conversationId: data.conversationId ?? null };
 
+    const usage = await checkUsageAndPlan(supabase, userId);
+    if (!usage.ok) return { reply: "", error: "LIMIT_REACHED", conversationId: data.conversationId ?? null };
+
+
     let voice = "";
     const { data: v } = await supabase
       .from("brand_voices")
