@@ -103,7 +103,10 @@ export const rewriteSlide = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
-    if (rateLimited(context.userId)) return { title: data.title, body: data.body, error: "Rate limit. Try again." };
+    const { supabase, userId } = context;
+    if (rateLimited(userId)) return { title: data.title, body: data.body, error: "Rate limit. Try again." };
+    const usage = await checkPlan(supabase, userId);
+    if (!usage.ok) return { title: data.title, body: data.body, error: "LIMIT_REACHED" };
     const r = await rewriteSlideClaude(data);
     return r;
   });

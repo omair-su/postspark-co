@@ -1,4 +1,5 @@
 import { callClaudeWithTool } from "./anthropic.server";
+import { isBlockedHost } from "./import.server";
 
 export interface OutlineSection {
   h2: string;
@@ -34,9 +35,13 @@ function extractHeadings(html: string): string[] {
 
 async function fetchCompetitor(url: string): Promise<{ url: string; headings: string[] }> {
   try {
+    const u = new URL(url);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return { url, headings: [] };
+    if (isBlockedHost(u.hostname)) return { url, headings: [] };
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0 PostSparkBot/1.0" },
       signal: AbortSignal.timeout(8000),
+      redirect: "manual",
     });
     if (!res.ok) return { url, headings: [] };
     const html = await res.text();
