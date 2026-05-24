@@ -358,10 +358,24 @@ export const upscaleUploadedImage = createServerFn({ method: "POST" })
     return res;
   });
 
+const CAPTION_RATE = new Map<string, number[]>();
+function captionRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const arr = (CAPTION_RATE.get(userId) || []).filter((t) => now - t < 60_000);
+  if (arr.length >= 10) { CAPTION_RATE.set(userId, arr); return true; }
+  arr.push(now);
+  CAPTION_RATE.set(userId, arr);
+  return false;
+}
+
 export const captionForImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ prompt: z.string().min(1).max(2000) }).parse)
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    if (captionRateLimited(userId)) return { caption: "", error: "Rate limit reached. Try again in a moment." };
+    const plan = await getPlan(supabase, userId);
+    if (!(await checkRepurposeQuota(userId, plan))) return { caption: "", error: "LIMIT_REACHED" };
     const caption = await generateCaption(data.prompt);
     return { caption };
   });
