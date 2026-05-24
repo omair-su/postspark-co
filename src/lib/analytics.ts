@@ -59,21 +59,32 @@ function getUTMs(): UTM {
   }
 }
 
+type DebugListener = (entry: { event: string; payload: any; at: number }) => void;
+const debugListeners = new Set<DebugListener>();
+export function subscribeAnalyticsDebug(fn: DebugListener) {
+  debugListeners.add(fn);
+  return () => debugListeners.delete(fn);
+}
+
 export function track(event: string, props?: Record<string, any>) {
   if (typeof window === "undefined") return;
   try {
-    const body = JSON.stringify({
+    const payload = {
       event,
       session_id: getSessionId(),
       path: window.location.pathname,
       ...getUTMs(),
       props: props || null,
-    });
+    };
+    const body = JSON.stringify(payload);
     const url = "/api/public/track";
     if (navigator.sendBeacon) {
       navigator.sendBeacon(url, new Blob([body], { type: "application/json" }));
     } else {
       fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
     }
+    debugListeners.forEach((fn) => {
+      try { fn({ event, payload, at: Date.now() }); } catch {}
+    });
   } catch {}
 }

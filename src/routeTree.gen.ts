@@ -21,6 +21,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FunnelRouteImport } from './routes/funnel'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ChangelogRouteImport } from './routes/changelog'
@@ -76,6 +77,8 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
+import { Route as ApiPublicFunnelRouteImport } from './routes/api/public/funnel'
+import { Route as ApiPublicDemoStatusRouteImport } from './routes/api/public/demo-status'
 import { Route as ApiPublicDemoRouteImport } from './routes/api/public/demo'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -143,6 +146,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FunnelRoute = FunnelRouteImport.update({
+  id: '/funnel',
+  path: '/funnel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -427,6 +435,16 @@ const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   path: '/api/public/track',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicFunnelRoute = ApiPublicFunnelRouteImport.update({
+  id: '/api/public/funnel',
+  path: '/api/public/funnel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDemoStatusRoute = ApiPublicDemoStatusRouteImport.update({
+  id: '/api/public/demo-status',
+  path: '/api/public/demo-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicDemoRoute = ApiPublicDemoRouteImport.update({
   id: '/api/public/demo',
   path: '/api/public/demo',
@@ -478,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/changelog': typeof ChangelogRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/demo': typeof DemoRoute
+  '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
@@ -538,6 +557,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
+  '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -554,6 +575,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
   '/demo': typeof DemoRoute
+  '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
@@ -614,6 +636,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
+  '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -632,6 +656,7 @@ export interface FileRoutesById {
   '/changelog': typeof ChangelogRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/demo': typeof DemoRoute
+  '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
@@ -692,6 +717,8 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
+  '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -711,6 +738,7 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/dashboard'
     | '/demo'
+    | '/funnel'
     | '/login'
     | '/onboarding'
     | '/pricing'
@@ -771,6 +799,8 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/gallery/'
     | '/api/public/demo'
+    | '/api/public/demo-status'
+    | '/api/public/funnel'
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -787,6 +817,7 @@ export interface FileRouteTypes {
     | '/'
     | '/changelog'
     | '/demo'
+    | '/funnel'
     | '/login'
     | '/onboarding'
     | '/pricing'
@@ -847,6 +878,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/gallery'
     | '/api/public/demo'
+    | '/api/public/demo-status'
+    | '/api/public/funnel'
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -864,6 +897,7 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/dashboard'
     | '/demo'
+    | '/funnel'
     | '/login'
     | '/onboarding'
     | '/pricing'
@@ -924,6 +958,8 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/gallery/'
     | '/api/public/demo'
+    | '/api/public/demo-status'
+    | '/api/public/funnel'
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -942,6 +978,7 @@ export interface RootRouteChildren {
   ChangelogRoute: typeof ChangelogRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   DemoRoute: typeof DemoRoute
+  FunnelRoute: typeof FunnelRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PricingRoute: typeof PricingRoute
@@ -978,6 +1015,8 @@ export interface RootRouteChildren {
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
   ApiPublicDemoRoute: typeof ApiPublicDemoRoute
+  ApiPublicDemoStatusRoute: typeof ApiPublicDemoStatusRoute
+  ApiPublicFunnelRoute: typeof ApiPublicFunnelRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
@@ -1075,6 +1114,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/funnel': {
+      id: '/funnel'
+      path: '/funnel'
+      fullPath: '/funnel'
+      preLoaderRoute: typeof FunnelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -1462,6 +1508,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTrackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/funnel': {
+      id: '/api/public/funnel'
+      path: '/api/public/funnel'
+      fullPath: '/api/public/funnel'
+      preLoaderRoute: typeof ApiPublicFunnelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/demo-status': {
+      id: '/api/public/demo-status'
+      path: '/api/public/demo-status'
+      fullPath: '/api/public/demo-status'
+      preLoaderRoute: typeof ApiPublicDemoStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/demo': {
       id: '/api/public/demo'
       path: '/api/public/demo'
@@ -1584,6 +1644,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChangelogRoute: ChangelogRoute,
   DashboardRoute: DashboardRouteWithChildren,
   DemoRoute: DemoRoute,
+  FunnelRoute: FunnelRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PricingRoute: PricingRoute,
@@ -1620,6 +1681,8 @@ const rootRouteChildren: RootRouteChildren = {
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
   ApiPublicDemoRoute: ApiPublicDemoRoute,
+  ApiPublicDemoStatusRoute: ApiPublicDemoStatusRoute,
+  ApiPublicFunnelRoute: ApiPublicFunnelRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
