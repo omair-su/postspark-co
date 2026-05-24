@@ -47,7 +47,7 @@ function stripHtml(html: string): { text: string; title?: string } {
 }
 
 /** Block private, loopback, link-local, and cloud metadata hosts to prevent SSRF. */
-function isBlockedHost(hostname: string): boolean {
+export function isBlockedHost(hostname: string): boolean {
   const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
   if (
     h === "localhost" ||
