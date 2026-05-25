@@ -1,81 +1,111 @@
+# PostSpark — Next-Level Growth Plan
 
-# PostSpark — First Paying Users Plan
-
-Two tracks running together: **(A) ship in-app growth features** that convert traffic to paid, and **(B) a marketing playbook** you execute outside the app. You've already invested heavily — now we need distribution + conversion, not more features.
-
-Honest diagnosis first: the product is feature-complete and premium. Zero sales after this much spend almost always means **distribution problem + friction in the funnel**, not a product problem.
+Honest diagnosis: the product is already feature-rich (repurpose, brand voice, brand kit, image studio, carousels, hooks, calendar, gallery, referrals, payments, demo, funnel, SEO blog, agency analytics). The bottleneck is **not features** — it's **distribution + funnel conversion + proof**. This plan focuses on shipping only what moves visitors → signup → paid, and giving you assets to drive traffic.
 
 ---
 
-## Track A — In-App Changes I Will Build
+## Phase 1 — Convert the traffic you already get (highest ROI, ship first)
 
-### 1. Conversion funnel fixes (highest ROI)
-- **Public Gallery as SEO + social proof engine**: make `/gallery` index page indexable, add per-item Open Graph images, "Made with PostSpark" badge on each public output, and a "Remix this" CTA that pushes to signup with the source prefilled.
-- **Free tier limit tightening on output, looser on trial**: keep 3 repurposes/month but show a *blurred* 4th preview with "Upgrade to unlock" — proven 2–3x lift vs hard wall.
-- **Exit-intent + scroll-50% upgrade modal** on dashboard with annual discount (20% off) — only fires once per 7 days.
-- **Pricing page rewrite**: lead with Agency plan (anchor), social proof row, money-back guarantee line, FAQ trimmed to 5 objections.
-- **Onboarding → first "wow" in <60s**: skip optional steps, auto-run a sample repurpose from a demo URL so user sees output before they even paste anything.
+Goal: lift signup rate from current baseline and unlock first 10 paid users.
 
-### 2. Built-in viral loops
-- **Watermark on free-tier exports** (images, carousels, PDFs): subtle "Made with PostSpark →" with referral link. Removed on Pro.
-- **Referral program polish**: double-sided reward (referrer gets 1 month free, referred gets 20% off) — already in DB, needs prominent dashboard banner + share-image generator.
-- **Share-to-unlock**: "Tweet your result to unlock 2 bonus repurposes this month" on free tier.
-
-### 3. SEO content engine (compounding traffic)
-- **Programmatic SEO landing pages**: 20 pages like `/tools/youtube-to-twitter-thread`, `/tools/blog-to-linkedin-carousel`, `/tools/podcast-to-newsletter`. Each is a real free tool (1 free use, no signup) → signup wall after.
-- **Comparison pages**: `/vs/repurpose-io`, `/vs/castmagic`, `/vs/opus-clip` — high-intent keywords competitors won't write.
-- **Use-case pages**: `/for/podcasters`, `/for/youtubers`, `/for/coaches`, `/for/saas-marketers` (you already have `/for/creators` and `/for/agencies` — expand the pattern).
-
-### 4. Lifecycle emails (you have Lovable Emails infra)
-- Day 0: Welcome + 60-sec demo video
-- Day 1: "Did you try Brand Voice?" (highest-converting feature)
-- Day 3: Case study email (one customer success)
-- Day 6: "Your free credits reset in X days" + upgrade CTA
-- Day 14: Last-chance discount (15% off first month)
-- On 3rd repurpose used: immediate "You hit your limit" with upgrade CTA
-
-### 5. Trust & social proof
-- Real testimonials section (replace placeholders) — I'll add a CMS-style admin so you can add them as they come in
-- Live counter "X posts repurposed this week" (real number from `repurpose_jobs`)
-- Logo bar of tools we integrate with (YouTube, Notion, Substack, LinkedIn) — visual not endorsement
+1. **Homepage rewrite around 1 promise + 1 proof**
+  - New hero: "Turn one idea into a week of posts in 60 seconds" + live mini-demo above the fold (move `LandingDemoSection` higher, right after Hero).
+  - Replace generic features grid with a "watch it work" video/GIF of an actual repurpose run.
+  - Add real outputs from `/gallery` as a scrolling proof strip.
+2. **Pricing page that closes**
+  - Anchor on Agency $49 (highlight), Pro $19 in middle, Free on right.
+  - Add money-back guarantee line, "no card for free", 5 FAQ objections only.
+  - Add annual toggle (save 20%) — better cashflow and commitment.
+3. **Demo → signup hand-off**
+  - After demo output, auto-save the input to `localStorage` so the signup flow pre-fills it and runs the FULL pack on first login (instant wow).
+  - Add "Email me the full pack" capture for visitors not ready to sign up → lead magnet.
+4. **Upgrade nudges that actually fire**
+  - Verify `UpgradeNudgeModal` triggers on: 3rd repurpose used, hitting limit, scroll-50% on dashboard once/7d.
+  - Add blurred "4th preview" on the limit screen instead of hard wall.
+5. **Trust signals everywhere**
+  - Live counter from `repurpose_jobs` ("X posts repurposed this week") on hero + pricing.
+  - Wire real testimonials from `testimonials-admin` into landing (currently has section, confirm it pulls from DB).
+  - Add "Featured on" bar (ProductHunt badge, AppSumo, etc.) — placeholders until earned.
 
 ---
 
-## Track B — Marketing Playbook (You Execute, I Can't)
+## Phase 2 — SEO traffic engine (compounding, ship in turn 2)
 
-### Week 1–2: Foundation (free, do these first)
-1. **ProductHunt launch** — schedule for a Tuesday/Wednesday. I'll generate the assets (gallery images, GIFs, tagline variants, hunter outreach template).
-2. **Personal X/LinkedIn build-in-public thread**: post your $80k spend story honestly — "I built an AI content tool, spent $80k, made $0. Here's what I learned" — this kind of post regularly hits 100k+ views.
-3. **Reddit posts** (no link, just value): r/Entrepreneur, r/SideProject, r/SaaS, r/marketing, r/contentmarketing — share the build-in-public story, mention tool in comments only when asked.
-4. **Indie Hackers** milestone post + product listing.
-5. **BetaList / Uneed / Tinylaunch / Fazier / Peerlist** submissions — all free, take 2 hours total.
+Goal: 500+ organic visitors/day within 60 days.
 
-### Week 2–4: Outbound to ICP (small B2B agencies + solo creators)
-6. **LinkedIn cold outreach to 20 agencies/day**: target "Content Marketing Agency" 2–10 employees. Script: free Agency-tier trial for 60 days in exchange for a testimonial. **Goal: 5 design partners, not sales.**
-7. **Cold email to podcasters/newsletter operators** using Apollo or Hunter (50/day) — pitch: "I'll repurpose your last episode into 10 posts for free, no signup."
-8. **Partner with 3 micro-influencers** in creator-economy niche (5k–30k followers) — give them lifetime Agency in exchange for one honest review video.
-
-### Week 4–8: Content engine
-9. **YouTube: 1 video/week** — "I repurposed Lex Fridman's podcast into 30 posts in 5 minutes" style — these rank fast on long-tail.
-10. **X: 3 posts/day** — output examples from PostSpark itself (eat your own dog food publicly).
-11. **SEO blog**: 2 posts/week targeting comparison + use-case keywords — your `seoBlog` feature can write them.
-
-### Paid (only after organic shows signal)
-12. **Reddit Ads** ($10/day) to r/podcasting, r/NewTubers — cheapest B2C creator targeting.
-13. **X Ads** to followers of competitors (@castmagic, @opusclip).
-14. **Skip Google Ads** until you have ≥1% conversion rate — too expensive for current funnel.
-
-### Pricing experiments to consider
-- **Lifetime deal on AppSumo** ($59 LTD) — controversial but reliably brings 500–2000 users + reviews + cash. Cap at 1000 codes.
-- **Annual plan**: $190/yr (vs $228) — better cashflow.
-- **Free Agency trial for verified agencies** (14 days, no card) — converts much better than free tier.
+6. **Programmatic tool pages** (already started — expand the pattern)
+  - Existing: `tools.youtube-to-twitter-thread`, `tools.blog-to-linkedin-carousel`, `tools.podcast-to-newsletter`, `tools.newsletter-to-social`.
+  - Add 8 more: `youtube-to-linkedin`, `blog-to-twitter-thread`, `podcast-to-tweets`, `video-to-carousel`, `transcript-to-blog`, `linkedin-to-tweets`, `webinar-to-shorts`, `interview-to-newsletter`. Each = real free tool (1 use/day no signup) → signup wall.
+7. **Comparison pages** (high commercial intent)
+  - `/vs/repurpose-io`, `/vs/castmagic`, `/vs/opus-clip`, `/vs/taplio`, `/vs/buffer`.
+  - Honest comparison table + "why creators switch" — these rank fast and convert.
+8. **Use-case pages** (expand existing for/* pattern)
+  - Existing: `for.creators`, `for.agencies`, `for.podcasters`, `for.youtubers`.
+  - Add: `for/coaches`, `for/saas-founders`, `for/newsletter-writers`, `for/course-creators`.
+9. **Blog auto-publishing**
+  - Use existing `seoBlog` feature to publish 2 posts/week targeting these keywords. Add scheduler so it auto-publishes from queue.
+  - Add internal linking between tool/comparison/use-case pages.
+10. **Technical SEO polish**
+  - Verify sitemap includes all new routes, og:image per page (derived from content), proper canonicals on dynamic routes.
 
 ---
 
-## What I Recommend We Ship First (Turn 1)
+## Phase 3 — Built-in virality (ship in turn 3)
 
-If you approve this plan, I'll do **Track A items 1, 2, and 4** in the first turn (funnel fixes + viral loops + lifecycle emails). That's the highest-ROI in-app work. Track A item 3 (programmatic SEO) is Turn 2 because it's 20+ new routes. Track A item 5 (trust/proof) is Turn 3.
+Goal: every free user becomes a (small) acquisition channel.
 
-Track B is yours to execute — but I can generate every asset you need (PH copy, X threads, cold email scripts, LinkedIn DM templates, video scripts, AppSumo listing copy) whenever you ask.
+11. **Watermark on free exports** — "Made with PostSpark →" with referral link on images, carousels, PDFs. Remove on Pro.
+12. **Public gallery as Open Graph engine** — per-item OG image generator, "Remix this" CTA prefills signup with source.
+13. **Share-to-unlock** — "Tweet your result to unlock 2 bonus repurposes this month".
+14. **Referrals polish** — `ReferralBanner` made prominent in dashboard, auto-generated share image with user's name + offer.
 
-**Reply "go" and I'll start Turn 1.** Or tell me which items to swap, skip, or prioritize.
+---
+
+## Phase 4 — Lifecycle emails (ship in turn 4)
+
+You already have Lovable Emails infra + templates. Wire the sequences:
+
+- **Day 0**: Welcome + 60s demo video
+- **Day 1**: "Did you try Brand Voice?" (highest-converting feature)
+- **Day 3**: Case study from gallery
+- **Day 6**: "Credits reset in X days" + upgrade
+- **Day 14**: Last-chance 15% off first month
+- **Behavior-triggered**: hit limit → instant upgrade email; 7d inactive → re-engage; trial ending → win-back
+
+---
+
+## Phase 5 — Outbound assets you execute (I generate, you send)
+
+These I can't send — but I'll generate every asset:
+
+15. **ProductHunt launch kit** — gallery images, GIFs, tagline A/B variants, hunter outreach DM, launch-day comment script. Aim for a Tuesday.
+16. **Build-in-public thread** — "$80k spent, $0 earned, here's what I learned" X + LinkedIn thread (these hit 100k+ views consistently).
+17. **Cold outreach kit**:
+  - LinkedIn DM script for 2–10 person content agencies (offer: 60-day free Agency in exchange for testimonial → goal is 5 design partners, not sales).
+    - Cold email script for podcasters/newsletter ops ("I'll repurpose your last episode into 10 posts for free, no signup").
+18. **Reddit/IH/BetaList copy** — value-first posts for r/Entrepreneur, r/SideProject, r/SaaS, r/podcasting + Indie Hackers milestone + BetaList/Uneed/Tinylaunch/Fazier/Peerlist submissions.
+19. **AppSumo LTD listing** (optional, controversial but reliable) — $59 LTD copy, gallery, FAQ. Capped at 1000 codes = ~$45k cash + reviews + ~1500 users.
+
+---
+
+## Recommended execution order
+
+```text
+Turn 1  → Phase 1 (homepage + pricing + demo→signup + nudges + trust)
+Turn 2  → Phase 2 (8 tool pages + 5 comparison pages + 4 use-case pages)
+Turn 3  → Phase 3 (watermarks + gallery OG + referral polish)
+Turn 4  → Phase 4 (lifecycle email sequences wired to triggers)
+Turn 5  → Phase 5 assets (PH kit + threads + cold outreach + Reddit/IH copy)
+```
+
+Turn 1 is where 80% of the conversion lift comes from. Phases 2–4 compound. Phase 5 is what actually brings traffic — those are yours to send, but I'll write every word.
+
+---
+
+## What I need from you to start
+
+- Reply **"go turn 1"** to ship Phase 1 (homepage + pricing + demo handoff + nudges + trust signals), or
+- Reply **"go turn N"** to start at a specific phase, or
+- Tell me which items to drop/swap/reorder.
+
+If you're unsure: **start with turn 1**. There's no point driving traffic to a funnel that doesn't convert.

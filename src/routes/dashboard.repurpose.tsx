@@ -127,6 +127,14 @@ function RepurposePage() {
         setInputText(imported);
         setTab("text");
         sessionStorage.removeItem("postspark.import.text");
+      } else {
+        const demoPrefill = localStorage.getItem("postspark.demo.prefill");
+        if (demoPrefill && demoPrefill.length >= 20) {
+          setInputText(demoPrefill);
+          setTab("text");
+          setPendingAutoRun(true);
+          localStorage.removeItem("postspark.demo.prefill");
+        }
       }
       const autoRun = sessionStorage.getItem("postspark.autorun");
       if (autoRun === "1") {

@@ -16,6 +16,7 @@ const FAQSection = lazy(() => import("@/components/landing/FAQSection").then(m =
 const CTABanner = lazy(() => import("@/components/landing/CTABanner").then(m => ({ default: m.CTABanner })));
 const IntegrationsLogoBar = lazy(() => import("@/components/landing/IntegrationsLogoBar").then(m => ({ default: m.IntegrationsLogoBar })));
 const LandingDemoSection = lazy(() => import("@/components/landing/LandingDemoSection").then(m => ({ default: m.LandingDemoSection })));
+const FeaturedOnBar = lazy(() => import("@/components/landing/FeaturedOnBar").then(m => ({ default: m.FeaturedOnBar })));
 const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 
 export const Route = createFileRoute("/")({
@@ -81,14 +82,16 @@ function LandingPage() {
         <HeroAICM />
 
         <Suspense fallback={<div className="h-[400px] w-full animate-pulse bg-gradient-to-b from-background to-muted/30" aria-hidden />}>
-          <TrustedBySection />
-          <IntegrationsLogoBar />
+          {/* Demo first — let visitors feel the product before reading anything */}
           <LandingDemoSection />
+          <TrustedBySection />
+          <FeaturedOnBar />
           <BeforeAfterSection />
           <PremiumFeaturesSection />
           <HowItWorksSection />
-          <PricingSection />
           <TestimonialsSection />
+          <IntegrationsLogoBar />
+          <PricingSection />
           <FAQSection />
           <CTABanner />
           <Footer />
