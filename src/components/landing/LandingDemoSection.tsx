@@ -58,6 +58,7 @@ export function LandingDemoSection() {
         setPack(data.pack);
         setRemaining(data.remaining ?? null);
         track("landing_demo_generate_success");
+        try { localStorage.setItem("postspark.demo.prefill", input.trim()); } catch {}
       }
     } catch {
       setError("Network error. Try again.");
