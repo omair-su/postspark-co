@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Sparkles, Loader2, ArrowRight, Lock, Check, Copy } from "lucide-react";
 import { track } from "@/lib/analytics";
+import { LiveCounter } from "./LiveCounter";
 
 type Pack = { tweet: string; linkedin: string; hook: string };
 
@@ -83,6 +84,7 @@ export function LandingDemoSection() {
           <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
             Paste anything below. In 10 seconds you'll get a tweet, a LinkedIn post, and an opening hook you could publish today.
           </p>
+          <div className="mt-5 flex justify-center"><LiveCounter /></div>
         </div>
 
         <form onSubmit={submit} className="mt-8 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
