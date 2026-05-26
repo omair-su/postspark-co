@@ -239,9 +239,8 @@ export default function SparkConstellation() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const lowPower =
-      window.matchMedia?.("(max-width: 640px)").matches ||
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
-      (navigator as any).hardwareConcurrency < 4;
+      ((navigator as any).hardwareConcurrency ?? 4) < 2;
     // Quick WebGL feature check
     let webgl = false;
     try {
