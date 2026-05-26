@@ -47,15 +47,17 @@ function Ribbon() {
   const ref = useRef<THREE.Mesh>(null);
 
   const geometry = useMemo(() => {
-    const curve = new THREE.Curve<THREE.Vector3>();
-    (curve as any).getPoint = (t: number, target = new THREE.Vector3()) => {
-      const u = t * Math.PI * 2;
-      const R = 1.05;
-      const x = R * Math.sin(u);
-      const y = R * Math.sin(u) * Math.cos(u) * 0.9;
-      const z = R * Math.cos(u) * 0.85;
-      return target.set(x, y, z);
-    };
+    class MobiusCurve extends THREE.Curve<THREE.Vector3> {
+      getPoint(t: number, target = new THREE.Vector3()) {
+        const u = t * Math.PI * 2;
+        const R = 1.05;
+        const x = R * Math.sin(u);
+        const y = R * Math.sin(u) * Math.cos(u) * 0.9;
+        const z = R * Math.cos(u) * 0.85;
+        return target.set(x, y, z);
+      }
+    }
+    const curve = new MobiusCurve();
     return new THREE.TubeGeometry(curve, 400, 0.045, 16, true);
   }, []);
 
