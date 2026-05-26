@@ -48,6 +48,9 @@ function Ribbon() {
 
   const geometry = useMemo(() => {
     class MobiusCurve extends THREE.Curve<THREE.Vector3> {
+      constructor() {
+        super();
+      }
       getPoint(t: number, target = new THREE.Vector3()) {
         const u = t * Math.PI * 2;
         const R = 1.05;
