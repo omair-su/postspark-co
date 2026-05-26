@@ -124,26 +124,8 @@ export function HeroAICM() {
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center lux-float">
-          <div
-            className="h-[90%] w-[90%]"
-            style={{
-              transform: "rotate(var(--cursor-tilt)) rotate(var(--scroll-tilt))",
-              transition: "transform 0.4s ease-out",
-            }}
-          >
-            <img
-              src={heroSculpture}
-              alt=""
-              width={1280}
-              height={1280}
-              fetchPriority="high"
-              decoding="async"
-              className="h-full w-full object-contain animate-[heroSpin_42s_linear_infinite]"
-              style={{
-                filter:
-                  "drop-shadow(0 40px 80px rgba(124,58,237,0.30)) drop-shadow(0 20px 40px rgba(232,93,58,0.18)) saturate(1.08) contrast(1.03)",
-              }}
-            />
+          <div className="h-[95%] w-[95%]">
+            <SparkConstellation />
           </div>
         </div>
       </div>
