@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Search } from "lucide-react";
 import { useEffect, useRef } from "react";
 import heroSculpture from "@/assets/hero-ceramic-ring.png";
+import SparkConstellation from "@/components/landing/SparkConstellation";
 
 /**
  * AICM-style hero: light cream BG, huge bold navy headline,
