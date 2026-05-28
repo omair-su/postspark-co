@@ -2,7 +2,7 @@ import { Suspense, useMemo, useRef, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
-import heroSculpture from "@/assets/hero-ceramic-ring.png";
+import premiumCoreImage from "@/assets/postspark-luxury-ai-core.png";
 
 /**
  * Spark Constellation — luxury cinematic AI core.
@@ -24,24 +24,45 @@ import heroSculpture from "@/assets/hero-ceramic-ring.png";
 const PURPLE = new THREE.Color("#7c3aed");
 const VIOLET = new THREE.Color("#a78bfa");
 const SOFT_WHITE = new THREE.Color("#e9e4ff");
+const NAVY = new THREE.Color("#1a1a2e");
 
-type Variant = "tweet" | "linkedin" | "email" | "video" | "carousel" | "image";
+type Variant = "tweet" | "linkedin" | "email" | "youtube" | "thumbnail" | "agent" | "image";
 
 /* ---------- Central AI Core ---------- */
 function AICore({ mobile }: { mobile: boolean }) {
-  const inner = useRef<THREE.Mesh>(null);
+  const group = useRef<THREE.Group>(null);
+  const videoDisc = useRef<THREE.Mesh>(null);
   const shell = useRef<THREE.Mesh>(null);
   const halo = useRef<THREE.Mesh>(null);
+  const [coreTexture, setCoreTexture] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load(premiumCoreImage, (loaded) => {
+      loaded.colorSpace = THREE.SRGBColorSpace;
+      loaded.minFilter = THREE.LinearFilter;
+      loaded.magFilter = THREE.LinearFilter;
+      loaded.generateMipmaps = !mobile;
+      if (mounted) setCoreTexture(loaded);
+    });
+    return () => {
+      mounted = false;
+      texture.dispose();
+    };
+  }, [mobile]);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    if (inner.current) {
-      inner.current.rotation.y += 0.003;
-      const s = 1 + Math.sin((t / 4) * Math.PI * 2) * 0.03;
-      inner.current.scale.setScalar(s);
+    if (group.current) {
+      group.current.rotation.y += 0.003;
+      group.current.scale.setScalar(1 + Math.sin((t / 4) * Math.PI * 2) * 0.03);
+    }
+    if (videoDisc.current) {
+      videoDisc.current.rotation.z = Math.sin(t * 0.22) * 0.035;
     }
     if (shell.current) {
-      shell.current.rotation.y -= 0.0015;
+      shell.current.rotation.y -= 0.0012;
       shell.current.rotation.x += 0.0008;
     }
     if (halo.current) {
@@ -53,22 +74,40 @@ function AICore({ mobile }: { mobile: boolean }) {
   const seg = mobile ? 32 : 64;
 
   return (
-    <group>
-      <mesh ref={inner}>
-        <sphereGeometry args={[0.55, seg, seg]} />
+    <group ref={group}>
+      <mesh>
+        <sphereGeometry args={[0.62, seg, seg]} />
         <meshStandardMaterial
-          color={PURPLE}
+          color={NAVY}
           emissive={PURPLE}
-          emissiveIntensity={1.4}
-          roughness={0.2}
-          metalness={0.6}
+          emissiveIntensity={1.05}
+          roughness={0.32}
+          metalness={0.45}
+          transparent
+          opacity={0.32}
         />
+      </mesh>
+
+      <mesh ref={videoDisc} position={[0, 0, 0.18]}>
+        <circleGeometry args={[0.64, mobile ? 48 : 96]} />
+        <meshBasicMaterial
+          map={coreTexture ?? undefined}
+          color={coreTexture ? "#ffffff" : "#7c3aed"}
+          transparent
+          opacity={coreTexture ? 0.96 : 0.42}
+          toneMapped={false}
+        />
+      </mesh>
+
+      <mesh position={[0, 0, 0.205]}>
+        <circleGeometry args={[0.68, mobile ? 48 : 96]} />
+        <meshBasicMaterial color={VIOLET} transparent opacity={0.12} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
 
       {/* Glass shell — physical material is heavy; on mobile use a cheaper
           standard material with low opacity so we keep the look without the cost. */}
       <mesh ref={shell}>
-        <sphereGeometry args={[0.78, seg, seg]} />
+        <sphereGeometry args={[0.83, seg, seg]} />
         {mobile ? (
           <meshStandardMaterial
             color={VIOLET}
@@ -96,8 +135,8 @@ function AICore({ mobile }: { mobile: boolean }) {
       </mesh>
 
       <mesh ref={halo}>
-        <sphereGeometry args={[1.05, mobile ? 20 : 32, mobile ? 20 : 32]} />
-        <meshBasicMaterial color={VIOLET} transparent opacity={0.08} side={THREE.BackSide} />
+        <sphereGeometry args={[1.1, mobile ? 20 : 32, mobile ? 20 : 32]} />
+        <meshBasicMaterial color={VIOLET} transparent opacity={0.075} side={THREE.BackSide} />
       </mesh>
     </group>
   );
@@ -161,101 +200,19 @@ function ArtifactCards({ mobile }: { mobile: boolean }) {
     const bodyY = 110 * scale;
 
     if (variant === "tweet") {
-      // 3 short lines like a tweet
-      ctx.fillStyle = "rgba(233,228,255,0.85)";
-      [w - 100, w - 140, w - 220].forEach((lw, i) => {
-        roundRect(ctx, 40 * scale, bodyY + i * 28 * scale, lw - 40 * scale, 14 * scale, 7);
-        ctx.fill();
-      });
-      // engagement row
-      ctx.fillStyle = "rgba(167,139,250,0.6)";
-      ["♥ 1.2k", "↻ 340", "💬 88"].forEach((t, i) => {
-        ctx.font = `500 ${13 * scale}px Inter, sans-serif`;
-        ctx.fillText(t, (40 + i * 90) * scale, h - 28 * scale);
-      });
+      drawMiniTweet(ctx, scale, w, h, accent, bodyY);
     } else if (variant === "linkedin") {
-      // longer paragraph block
-      ctx.fillStyle = "rgba(233,228,255,0.82)";
-      for (let i = 0; i < 5; i++) {
-        const lw = w - 80 * scale - (i === 4 ? 140 * scale : 0);
-        roundRect(ctx, 40 * scale, bodyY + i * 26 * scale, lw, 12 * scale, 6);
-        ctx.fill();
-      }
-      ctx.fillStyle = accent;
-      ctx.font = `600 ${12 * scale}px Inter, sans-serif`;
-      ctx.fillText("#AI  #Content  #Growth", 40 * scale, h - 24 * scale);
+      drawLinkedInPost(ctx, scale, w, h, accent, bodyY);
     } else if (variant === "email") {
-      // Subject line + preview
-      ctx.fillStyle = "rgba(233,228,255,0.95)";
-      ctx.font = `700 ${18 * scale}px Inter, sans-serif`;
-      ctx.fillText("Weekly Spark ✦", 40 * scale, bodyY + 4 * scale);
-      ctx.fillStyle = "rgba(233,228,255,0.65)";
-      ctx.font = `500 ${13 * scale}px Inter, sans-serif`;
-      ctx.fillText("5 ideas that will change how you", 40 * scale, bodyY + 28 * scale);
-      ctx.fillText("repurpose content this week →", 40 * scale, bodyY + 48 * scale);
-      // CTA pill
-      const ctaY = h - 60 * scale;
-      ctx.fillStyle = accent;
-      roundRect(ctx, 40 * scale, ctaY, 130 * scale, 32 * scale, 16);
-      ctx.fill();
-      ctx.fillStyle = "#fff";
-      ctx.font = `600 ${12 * scale}px Inter, sans-serif`;
-      ctx.fillText("Read newsletter", 56 * scale, ctaY + 20 * scale);
-    } else if (variant === "video") {
-      // Thumbnail with play triangle + duration chip
-      const g = ctx.createLinearGradient(40 * scale, bodyY, w - 40 * scale, h - 50 * scale);
-      g.addColorStop(0, "#4c1d95");
-      g.addColorStop(1, "#7c3aed");
-      ctx.fillStyle = g;
-      roundRect(ctx, 40 * scale, bodyY, w - 80 * scale, h - 160 * scale, 14);
-      ctx.fill();
-      // play button
-      ctx.fillStyle = "rgba(255,255,255,0.95)";
-      const cx = w / 2;
-      const cy = bodyY + (h - 160 * scale) / 2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 22 * scale, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = PURPLE.getStyle();
-      ctx.beginPath();
-      ctx.moveTo(cx - 7 * scale, cy - 10 * scale);
-      ctx.lineTo(cx - 7 * scale, cy + 10 * scale);
-      ctx.lineTo(cx + 11 * scale, cy);
-      ctx.closePath();
-      ctx.fill();
-      // duration chip
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
-      roundRect(ctx, w - 90 * scale, h - 80 * scale, 50 * scale, 22 * scale, 6);
-      ctx.fill();
-      ctx.fillStyle = "#fff";
-      ctx.font = `600 ${12 * scale}px Inter, sans-serif`;
-      ctx.fillText("0:42", w - 78 * scale, h - 64 * scale);
-    } else if (variant === "carousel") {
-      for (let i = 0; i < 3; i++) {
-        const x = (40 + i * 150) * scale;
-        ctx.fillStyle = i === 0 ? accent : "rgba(167,139,250,0.28)";
-        roundRect(ctx, x, bodyY, 130 * scale, (h - 170 * scale), 14);
-        ctx.fill();
-      }
-      // page dots
-      const dotsY = h - 28 * scale;
-      for (let i = 0; i < 3; i++) {
-        ctx.fillStyle = i === 0 ? accent : "rgba(167,139,250,0.4)";
-        ctx.beginPath();
-        ctx.arc((w / 2 - 16 * scale) + i * 16 * scale, dotsY, 4 * scale, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      drawEmailCampaign(ctx, scale, w, h, accent, bodyY);
+    } else if (variant === "youtube") {
+      drawYouTubeCard(ctx, scale, w, h, bodyY);
+    } else if (variant === "thumbnail") {
+      drawThumbnailCard(ctx, scale, w, h, accent, bodyY);
+    } else if (variant === "agent") {
+      drawAgentCard(ctx, scale, w, h, accent, bodyY);
     } else if (variant === "image") {
-      const g = ctx.createLinearGradient(40 * scale, bodyY, w - 40 * scale, h - 50 * scale);
-      g.addColorStop(0, "#7c3aed");
-      g.addColorStop(1, "#1a1a2e");
-      ctx.fillStyle = g;
-      roundRect(ctx, 40 * scale, bodyY, w - 80 * scale, h - 160 * scale, 18);
-      ctx.fill();
-      ctx.fillStyle = "rgba(255,255,255,0.18)";
-      ctx.beginPath();
-      ctx.arc(w - 110 * scale, bodyY + 50 * scale, 28 * scale, 0, Math.PI * 2);
-      ctx.fill();
+      drawAIImageCard(ctx, scale, w, h, bodyY);
     }
 
     const tex = new THREE.CanvasTexture(c);
@@ -268,23 +225,24 @@ function ArtifactCards({ mobile }: { mobile: boolean }) {
 
   const cards = useMemo<(Card & { texture: THREE.Texture })[]>(() => {
     const defs: { variant: Variant; title: string; accent: string }[] = [
-      { variant: "tweet", title: "Tweet thread", accent: "#7c3aed" },
       { variant: "linkedin", title: "LinkedIn post", accent: "#a78bfa" },
-      { variant: "email", title: "Email newsletter", accent: "#7c3aed" },
-      { variant: "video", title: "Video script", accent: "#a78bfa" },
-      { variant: "carousel", title: "Carousel", accent: "#7c3aed" },
+      { variant: "tweet", title: "X thread", accent: "#7c3aed" },
+      { variant: "email", title: "Email sequence", accent: "#a78bfa" },
+      { variant: "youtube", title: "YouTube script", accent: "#7c3aed" },
+      { variant: "thumbnail", title: "Thumbnail", accent: "#a78bfa" },
+      { variant: "agent", title: "AI agent", accent: "#7c3aed" },
       { variant: "image", title: "AI image", accent: "#a78bfa" },
     ];
     return defs.map((d, i) => ({
       variant: d.variant,
       label: d.title,
       accent: new THREE.Color(d.accent),
-      radius: 1.85 + (i % 2) * 0.35,
+      radius: 1.34 + (i % 2) * 0.22,
       inclination: (i / defs.length) * Math.PI * 2,
       phase: (i / defs.length) * Math.PI * 2,
       speed: 0.06 + (i % 3) * 0.015,
-      width: 0.95,
-      height: 0.6,
+      width: mobile ? 0.78 : 0.86,
+      height: mobile ? 0.49 : 0.54,
       texture: makeCardTexture(d.title, d.accent, d.variant),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -420,7 +378,7 @@ function Scene({ mobile }: { mobile: boolean }) {
       {!mobile && <pointLight position={[-3, -2, 3]} intensity={0.9} color={PURPLE} />}
       <pointLight position={[0, 0, 0]} intensity={2} color={PURPLE} distance={4} />
 
-      <group ref={groupRef}>
+      <group ref={groupRef} position={[mobile ? 0 : 0.28, 0, 0]} scale={mobile ? 0.88 : 0.92}>
         <AICore mobile={mobile} />
         <ParticleStreams mobile={mobile} />
         <ArtifactCards mobile={mobile} />
@@ -453,6 +411,123 @@ function roundRect(
   ctx.closePath();
 }
 
+function drawTextLine(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size: number, color = "rgba(233,228,255,0.86)", weight = 600) {
+  ctx.fillStyle = color;
+  ctx.font = `${weight} ${size}px Inter, system-ui, sans-serif`;
+  ctx.fillText(text, x, y);
+}
+
+function drawPhotoPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius: number, tone: "kitchen" | "portrait" | "studio") {
+  const g = ctx.createLinearGradient(x, y, x + w, y + h);
+  if (tone === "kitchen") {
+    g.addColorStop(0, "#f5dcc1");
+    g.addColorStop(0.45, "#8f6a4f");
+    g.addColorStop(1, "#2b2440");
+  } else if (tone === "portrait") {
+    g.addColorStop(0, "#251a3d");
+    g.addColorStop(0.55, "#7c3aed");
+    g.addColorStop(1, "#e9e4ff");
+  } else {
+    g.addColorStop(0, "#1a1a2e");
+    g.addColorStop(0.5, "#7c3aed");
+    g.addColorStop(1, "#a78bfa");
+  }
+  ctx.fillStyle = g;
+  roundRect(ctx, x, y, w, h, radius);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  ctx.beginPath();
+  ctx.arc(x + w * 0.76, y + h * 0.28, h * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(26,26,46,0.34)";
+  roundRect(ctx, x + w * 0.08, y + h * 0.62, w * 0.84, h * 0.16, 8);
+  ctx.fill();
+}
+
+function drawMiniTweet(ctx: CanvasRenderingContext2D, scale: number, w: number, h: number, accent: string, bodyY: number) {
+  drawTextLine(ctx, "One blog became 11 high-signal", 40 * scale, bodyY + 6 * scale, 15 * scale);
+  drawTextLine(ctx, "tweets in our founder voice.", 40 * scale, bodyY + 30 * scale, 15 * scale);
+  drawPhotoPanel(ctx, 40 * scale, bodyY + 50 * scale, 155 * scale, 72 * scale, 14 * scale, "studio");
+  ctx.fillStyle = accent;
+  roundRect(ctx, 215 * scale, bodyY + 58 * scale, 118 * scale, 26 * scale, 13 * scale);
+  ctx.fill();
+  drawTextLine(ctx, "Hook score 94%", 229 * scale, bodyY + 76 * scale, 12 * scale, "#fff", 700);
+  drawTextLine(ctx, "♡ 2.4k   ↻ 618   💬 142", 40 * scale, h - 28 * scale, 13 * scale, "rgba(167,139,250,0.72)", 700);
+}
+
+function drawLinkedInPost(ctx: CanvasRenderingContext2D, scale: number, w: number, h: number, accent: string, bodyY: number) {
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.beginPath();
+  ctx.arc(48 * scale, bodyY + 2 * scale, 18 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  drawTextLine(ctx, "A single webinar can power", 76 * scale, bodyY - 2 * scale, 15 * scale);
+  drawTextLine(ctx, "your entire week of content.", 76 * scale, bodyY + 22 * scale, 15 * scale);
+  [0, 1, 2].forEach((i) => {
+    ctx.fillStyle = i === 0 ? accent : "rgba(233,228,255,0.18)";
+    roundRect(ctx, 40 * scale, bodyY + (54 + i * 28) * scale, (350 - i * 38) * scale, 14 * scale, 7 * scale);
+    ctx.fill();
+  });
+  drawTextLine(ctx, "#AIContent  #B2BMarketing", 40 * scale, h - 28 * scale, 13 * scale, accent, 800);
+}
+
+function drawEmailCampaign(ctx: CanvasRenderingContext2D, scale: number, _w: number, h: number, accent: string, bodyY: number) {
+  drawTextLine(ctx, "Subject: 5 kitchen design ideas", 40 * scale, bodyY + 2 * scale, 17 * scale, "#ffffff", 800);
+  drawTextLine(ctx, "A polished newsletter drafted", 40 * scale, bodyY + 32 * scale, 14 * scale);
+  drawTextLine(ctx, "from your video in seconds.", 40 * scale, bodyY + 54 * scale, 14 * scale);
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  roundRect(ctx, 40 * scale, bodyY + 78 * scale, 240 * scale, 34 * scale, 17 * scale);
+  ctx.fill();
+  drawTextLine(ctx, "Open rate prediction 41%", 58 * scale, bodyY + 100 * scale, 13 * scale, accent, 800);
+  ctx.fillStyle = accent;
+  roundRect(ctx, 318 * scale, h - 62 * scale, 120 * scale, 30 * scale, 15 * scale);
+  ctx.fill();
+  drawTextLine(ctx, "Send draft", 342 * scale, h - 42 * scale, 12 * scale, "#fff", 800);
+}
+
+function drawYouTubeCard(ctx: CanvasRenderingContext2D, scale: number, w: number, h: number, bodyY: number) {
+  drawPhotoPanel(ctx, 40 * scale, bodyY - 2 * scale, (w - 80 * scale), 120 * scale, 18 * scale, "kitchen");
+  ctx.fillStyle = "rgba(255,255,255,0.96)";
+  ctx.beginPath();
+  ctx.arc(w / 2, bodyY + 58 * scale, 22 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#7c3aed";
+  ctx.beginPath();
+  ctx.moveTo(w / 2 - 7 * scale, bodyY + 46 * scale);
+  ctx.lineTo(w / 2 - 7 * scale, bodyY + 70 * scale);
+  ctx.lineTo(w / 2 + 13 * scale, bodyY + 58 * scale);
+  ctx.closePath();
+  ctx.fill();
+  drawTextLine(ctx, "Hook • Outline • CTA", 40 * scale, h - 28 * scale, 13 * scale, "rgba(233,228,255,0.78)", 700);
+}
+
+function drawThumbnailCard(ctx: CanvasRenderingContext2D, scale: number, w: number, h: number, accent: string, bodyY: number) {
+  drawPhotoPanel(ctx, 34 * scale, bodyY - 8 * scale, (w - 68 * scale), 132 * scale, 18 * scale, "kitchen");
+  drawTextLine(ctx, "OPEN KITCHEN", 58 * scale, bodyY + 44 * scale, 25 * scale, "#ffffff", 900);
+  drawTextLine(ctx, "IDEAS", 58 * scale, bodyY + 74 * scale, 28 * scale, accent, 900);
+  ctx.fillStyle = "rgba(0,0,0,0.62)";
+  roundRect(ctx, w - 105 * scale, h - 76 * scale, 58 * scale, 24 * scale, 7 * scale);
+  ctx.fill();
+  drawTextLine(ctx, "8:03", w - 88 * scale, h - 59 * scale, 12 * scale, "#fff", 800);
+}
+
+function drawAgentCard(ctx: CanvasRenderingContext2D, scale: number, w: number, h: number, accent: string, bodyY: number) {
+  drawPhotoPanel(ctx, 40 * scale, bodyY - 4 * scale, 128 * scale, 128 * scale, 64 * scale, "portrait");
+  drawTextLine(ctx, "AI strategist", 192 * scale, bodyY + 18 * scale, 18 * scale, "#ffffff", 800);
+  drawTextLine(ctx, "Turn this video into", 192 * scale, bodyY + 50 * scale, 14 * scale);
+  drawTextLine(ctx, "a 7-day campaign.", 192 * scale, bodyY + 72 * scale, 14 * scale);
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  roundRect(ctx, 192 * scale, bodyY + 94 * scale, 190 * scale, 28 * scale, 14 * scale);
+  ctx.fill();
+  drawTextLine(ctx, "Generated 24 assets", 210 * scale, bodyY + 113 * scale, 12 * scale, accent, 800);
+  drawTextLine(ctx, "Agent workflow", 40 * scale, h - 28 * scale, 13 * scale, "rgba(233,228,255,0.68)", 700);
+}
+
+function drawAIImageCard(ctx: CanvasRenderingContext2D, scale: number, w: number, h: number, bodyY: number) {
+  drawPhotoPanel(ctx, 40 * scale, bodyY - 2 * scale, w - 80 * scale, 126 * scale, 18 * scale, "kitchen");
+  drawTextLine(ctx, "Generated image", 54 * scale, h - 54 * scale, 14 * scale, "#ffffff", 800);
+  drawTextLine(ctx, "Brand-safe visual variation", 54 * scale, h - 30 * scale, 12 * scale, "rgba(233,228,255,0.7)", 600);
+}
+
 function drawBrandGlyph(
   ctx: CanvasRenderingContext2D,
   variant: Variant,
@@ -473,8 +548,9 @@ function drawBrandGlyph(
     variant === "tweet" ? "𝕏" :
     variant === "linkedin" ? "in" :
     variant === "email" ? "✉" :
-    variant === "video" ? "▶" :
-    variant === "carousel" ? "▦" : "✦";
+    variant === "youtube" ? "▶" :
+    variant === "thumbnail" ? "▣" :
+    variant === "agent" ? "AI" : "✦";
   ctx.fillText(ch, x, y + 1);
   ctx.textAlign = "start";
   ctx.textBaseline = "alphabetic";
@@ -482,17 +558,34 @@ function drawBrandGlyph(
 
 function StaticFallback() {
   return (
-    <img
-      src={heroSculpture}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      className="h-full w-full object-contain animate-[heroSpin_42s_linear_infinite]"
-      style={{
-        filter:
-          "drop-shadow(0 40px 80px rgba(124,58,237,0.35)) drop-shadow(0 20px 40px rgba(76,29,149,0.25)) saturate(1.05)",
-      }}
-    />
+    <div className="relative flex h-full w-full items-center justify-center">
+      <div
+        aria-hidden
+        className="absolute h-[72%] w-[72%] rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(124,58,237,0.36), rgba(167,139,250,0.16) 45%, transparent 72%)",
+          filter: "blur(18px)",
+        }}
+      />
+      <img
+        src={premiumCoreImage}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="relative h-[56%] max-h-[430px] aspect-square rounded-full object-cover"
+        style={{
+          border: "1px solid rgba(167,139,250,0.45)",
+          boxShadow:
+            "0 44px 90px rgba(124,58,237,0.28), inset 0 0 38px rgba(255,255,255,0.22)",
+        }}
+      />
+      <div className="absolute right-[14%] top-[18%] rounded-2xl border border-[#a78bfa]/30 bg-[#1a1a2e]/90 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#e9e4ff] shadow-[0_20px_70px_rgba(124,58,237,0.2)]">
+        LinkedIn · X · Email
+      </div>
+      <div className="absolute bottom-[20%] left-[12%] rounded-2xl border border-[#a78bfa]/30 bg-[#1a1a2e]/90 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#e9e4ff] shadow-[0_20px_70px_rgba(124,58,237,0.2)]">
+        YouTube · Thumbnail · AI
+      </div>
+    </div>
   );
 }
 
@@ -508,8 +601,8 @@ export default function SparkConstellation() {
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const cores = (navigator as any).hardwareConcurrency ?? 4;
     const mem = (navigator as any).deviceMemory ?? 4;
-    const lowPower = cores < 4 || mem < 4;
     const mobile = window.matchMedia?.("(max-width: 768px)").matches;
+    const lowPower = mobile && (cores <= 2 || mem <= 2);
 
     let webgl = false;
     try {
@@ -520,6 +613,7 @@ export default function SparkConstellation() {
     }
     setIsMobile(mobile);
     setCanRender3D(webgl && !reduced && !lowPower);
+    setInView(webgl && !reduced && !lowPower);
   }, []);
 
   // Lazy-mount when hero scrolls near viewport
