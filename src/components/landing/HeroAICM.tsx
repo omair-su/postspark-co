@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Search } from "lucide-react";
 import { useEffect, useRef } from "react";
-import heroSculpture from "@/assets/hero-ceramic-ring.png";
 import SparkConstellation from "@/components/landing/SparkConstellation";
 
 /**
@@ -98,7 +97,7 @@ export function HeroAICM() {
       <div
         ref={sculptRef}
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-[-10%] z-0 w-[110%] sm:right-[-5%] sm:w-[80%] lg:right-[-8%] lg:w-[65%]"
+        className="pointer-events-none absolute inset-y-0 right-[-36%] z-0 w-[120%] sm:right-[-22%] sm:w-[82%] lg:right-[-18%] lg:w-[58%] xl:right-[-14%] xl:w-[54%]"
         style={
           {
             ["--mx" as string]: "0px",
@@ -119,7 +118,7 @@ export function HeroAICM() {
           className="absolute inset-0 transition-opacity duration-300"
           style={{
             background:
-              "radial-gradient(closest-side, rgba(167,139,250,0.55) 0%, rgba(232,93,58,0.25) 35%, transparent 70%)",
+              "radial-gradient(closest-side, rgba(167,139,250,0.55) 0%, rgba(124,58,237,0.28) 38%, transparent 72%)",
             filter: "blur(40px)",
             opacity: 0.55,
           }}
