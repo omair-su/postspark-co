@@ -223,53 +223,70 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 
+  const planLabel = (user?.user_metadata?.plan as string) || "";
+
   return (
-    <div className="flex h-screen bg-surface">
+    <div className="dashboard-shell flex h-screen" style={{ background: "var(--ds-bg)" }}>
       {/* Desktop sidebar */}
       <aside className="hidden w-56 flex-shrink-0 md:block">{sidebar}</aside>
 
       {/* Mobile sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-foreground/50" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           <div className="relative w-56 h-full">{sidebar}</div>
         </div>
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="cream-header flex h-14 items-center justify-between px-4">
-          <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
-            <Menu className="h-5 w-5 text-foreground" />
+        <header className="ds-header relative z-20 flex h-14 items-center justify-between gap-3 px-4">
+          <button
+            className="md:hidden text-white/80 hover:text-white"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
           </button>
-          <div className="ml-auto flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-              className="hidden items-center gap-2 rounded-lg border border-border bg-card/70 px-2.5 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent hover:text-foreground sm:flex"
-              aria-label="Open command palette"
-            >
-              Search…
-              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd>
-            </button>
+
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+            className="ds-search-pill hidden md:inline-flex min-w-[260px] justify-between"
+            aria-label="Open command palette"
+          >
+            <span className="flex items-center gap-2">
+              <span className="ds-status-dot" aria-hidden />
+              <span>Search workflows, posts, tools…</span>
+            </span>
+            <span className="ds-kbd">⌘K</span>
+          </button>
+
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <span className="ds-chip hidden sm:inline-flex">
+              <span className="ds-status-dot" aria-hidden /> AI online
+            </span>
+            {planLabel && (
+              <span className="ds-chip ds-chip-accent hidden sm:inline-flex capitalize">{planLabel}</span>
+            )}
             {ws.workspace && (
-              <div className="hidden items-center gap-2 rounded-lg border border-border bg-card/70 px-2.5 py-1 text-xs shadow-sm backdrop-blur sm:flex">
-                <Building2 className="h-3.5 w-3.5 text-primary" />
-                <span className="font-medium text-foreground">{ws.workspace.name}</span>
+              <div className="ds-chip hidden md:inline-flex">
+                <Building2 className="h-3 w-3 text-[#c4b5fd]" />
+                <span className="font-medium">{ws.workspace.name}</span>
                 {ws.brandKits.length > 0 && (
                   <>
-                    <span className="text-muted-foreground">·</span>
+                    <span className="text-white/30">·</span>
                     <select
                       value={ws.activeBrandKitId || ""}
                       onChange={(e) => handleSwitchKit(e.target.value || null)}
-                      className="bg-transparent text-foreground focus:outline-none"
+                      className="bg-transparent text-white focus:outline-none"
                       title="Active brand"
                     >
-                      <option value="">All brands</option>
+                      <option value="" className="text-foreground">All brands</option>
                       {ws.brandKits.map((k) => (
-                        <option key={k.id} value={k.id}>{k.brand_name || "Unnamed"}</option>
+                        <option key={k.id} value={k.id} className="text-foreground">{k.brand_name || "Unnamed"}</option>
                       ))}
                     </select>
-                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    <ChevronDown className="h-3 w-3 text-white/50" />
                   </>
                 )}
               </div>
@@ -278,7 +295,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
         <SubscriptionBanner />
-        <main className="cream-page flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="ds-canvas flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="relative z-10">{children}</div>
+        </main>
       </div>
       <PWAInstallPrompt />
       <AIProgressBar />

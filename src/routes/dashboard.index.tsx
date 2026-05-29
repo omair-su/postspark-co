@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { Repeat, Sparkles, Clock, TrendingUp, Zap, Wand2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Repeat, Sparkles, Clock, TrendingUp, Zap, Wand2, Flame, Image as ImageIcon, FileText, ArrowUpRight, Activity } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
 import { GuidedIntakeModal, type IntakeKind } from "@/components/GuidedIntakeModal";
@@ -18,16 +18,24 @@ const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description
   { id: "marketing-tip", title: "Marketing Tip", emoji: "📈", description: "Turn a marketing insight into platform-native posts." },
 ];
 
+const QUICK_ACTIONS = [
+  { to: "/dashboard/hook-lab", label: "Hook Lab", icon: Flame },
+  { to: "/dashboard/image-studio", label: "Image Studio", icon: ImageIcon },
+  { to: "/dashboard/seo-blog", label: "SEO Blog", icon: FileText },
+  { to: "/dashboard/carousel", label: "Carousel", icon: Sparkles },
+] as const;
+
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
 });
 
 function DashboardHome() {
   const { user, session } = useAuth();
-  const navigate = useNavigate();
+  
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
+  const [allJobDates, setAllJobDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [intakeKind, setIntakeKind] = useState<IntakeKind | null>(null);
 
@@ -47,28 +55,102 @@ function DashboardHome() {
         if (data) {
           setTotalJobs(data.length);
           setRecentJobs(data.slice(0, 5));
+          setAllJobDates(data.map((d: any) => d.created_at));
         }
         setLoading(false);
       });
   }, [user, session]);
+
+  // 14-day sparkline buckets
+  const sparkline = useMemo(() => {
+    const days = 14;
+    const buckets = Array(days).fill(0);
+    const now = Date.now();
+    for (const ts of allJobDates) {
+      const diff = Math.floor((now - new Date(ts).getTime()) / 86400000);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff]++;
+    }
+    const max = Math.max(1, ...buckets);
+    return buckets.map((v) => Math.max(8, (v / max) * 100));
+  }, [allJobDates]);
 
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const plan = usage?.plan || "free";
   const isUnlimited = usage?.limit === -1;
 
   return (
-    <div className="mx-auto max-w-3xl animate-fade-in space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Welcome back, {name.split(" ")[0]} 👋</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Press <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">⌘K</kbd> to jump anywhere — or pick today's spark below.</p>
+    <div className="mx-auto max-w-6xl ds-fade-up space-y-6">
+      {/* Hero header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight ds-gradient-text sm:text-4xl">
+            Welcome back, {name.split(" ")[0]}
+          </h1>
+          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm ds-muted-text">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="ds-status-dot" /> AI online
+            </span>
+            <span className="text-white/20">·</span>
+            <span className="capitalize">{plan} plan</span>
+            {usage && (
+              <>
+                <span className="text-white/20">·</span>
+                <span>
+                  {usage.used}
+                  {isUnlimited ? "" : ` / ${usage.limit}`} this month
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="ds-chip"><Activity className="h-3 w-3 text-[#a78bfa]" /> Live</span>
+          <span className="ds-chip">
+            <span className="font-mono text-[10px] text-white/60">⌘K</span>
+            <span>Command</span>
+          </span>
+        </div>
       </div>
 
-      <StreakBadge />
-      <ReferralBanner />
-      <DailySpark />
-      <ActivationChecklist />
+      {/* Hero CTA + quick actions */}
+      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+        <Link
+          to="/dashboard/repurpose"
+          className="ds-card-hero group flex items-center justify-between gap-4 p-6"
+        >
+          <div className="flex items-center gap-4">
+            <div className="ds-icon-disc h-12 w-12">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-white">New Repurpose</p>
+              <p className="mt-0.5 text-sm text-white/60">
+                Transform one piece into LinkedIn, X, email, video — in seconds.
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium text-white transition-all group-hover:bg-white/20">
+            Start <ArrowUpRight className="h-4 w-4" />
+          </div>
+        </Link>
 
-      {/* Stats cards */}
+        <div className="grid grid-cols-2 gap-3">
+          {QUICK_ACTIONS.map((a) => (
+            <Link
+              key={a.to}
+              to={a.to}
+              className="ds-card ds-card-hover flex items-center gap-3 p-4"
+            >
+              <div className="ds-icon-disc h-9 w-9">
+                <a.icon className="h-4 w-4" />
+              </div>
+              <span className="text-sm font-medium text-white">{a.label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         {loading ? (
           <>
@@ -78,104 +160,111 @@ function DashboardHome() {
           </>
         ) : (
           <>
-            <div className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
-                  <Repeat className="h-4 w-4 text-primary-foreground" />
-                </div>
+            <div className="ds-card p-5">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{usage?.used ?? 0}</p>
-                  <p className="text-xs text-muted-foreground">This month</p>
+                  <p className="text-xs uppercase tracking-wider ds-muted-text">This month</p>
+                  <p className="ds-stat-num mt-1 text-3xl">{usage?.used ?? 0}</p>
+                </div>
+                <div className="ds-icon-disc h-9 w-9">
+                  <Repeat className="h-4 w-4" />
                 </div>
               </div>
+              {usage && !isUnlimited && (
+                <div className="mt-4">
+                  <div className="ds-progress">
+                    <div style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }} />
+                  </div>
+                  <p className="mt-2 text-[11px] ds-muted-text">
+                    {usage.used} / {usage.limit} repurposes
+                    {usage.used >= usage.limit && (
+                      <>
+                        {" · "}
+                        <Link to="/dashboard/settings" className="font-medium text-[#c4b5fd] underline">
+                          Upgrade
+                        </Link>
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
+              {isUnlimited && (
+                <p className="mt-4 text-[11px] ds-muted-text">Unlimited on {plan}</p>
+              )}
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-                  <TrendingUp className="h-4 w-4 text-accent-foreground" />
-                </div>
+            <div className="ds-card p-5">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{totalJobs}</p>
-                  <p className="text-xs text-muted-foreground">Total all time</p>
+                  <p className="text-xs uppercase tracking-wider ds-muted-text">All-time</p>
+                  <p className="ds-stat-num mt-1 text-3xl">{totalJobs}</p>
+                </div>
+                <div className="ds-icon-disc h-9 w-9">
+                  <TrendingUp className="h-4 w-4" />
                 </div>
               </div>
+              <div className="ds-spark mt-4" aria-hidden>
+                {sparkline.map((h, i) => (
+                  <span key={i} style={{ height: `${h}%` }} />
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] ds-muted-text">Last 14 days</p>
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-                  <Zap className="h-4 w-4 text-accent-foreground" />
-                </div>
+            <div className="ds-card p-5">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-foreground capitalize">{plan}</p>
-                  <p className="text-xs text-muted-foreground">Current plan</p>
+                  <p className="text-xs uppercase tracking-wider ds-muted-text">Plan</p>
+                  <p className="ds-stat-num mt-1 text-3xl capitalize">{plan}</p>
+                </div>
+                <div className="ds-icon-disc h-9 w-9">
+                  <Zap className="h-4 w-4" />
                 </div>
               </div>
+              <Link
+                to="/dashboard/settings"
+                className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#c4b5fd] hover:underline"
+              >
+                Manage subscription <ArrowUpRight className="h-3 w-3" />
+              </Link>
             </div>
           </>
         )}
       </div>
 
-      {/* Usage progress */}
-      {usage && !isUnlimited && (
-        <div className="mt-4 rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground">Monthly Usage</span>
-            <span className="text-muted-foreground">{usage.used} / {usage.limit} repurposes</span>
-          </div>
-          <div className="mt-3 h-2 w-full rounded-full bg-accent">
-            <div
-              className="h-2 rounded-full gradient-electric transition-all duration-500"
-              style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }}
-            />
-          </div>
-          {usage.used >= usage.limit && (
-            <p className="mt-2 text-xs text-destructive">
-              You've hit your limit.{" "}
-              <Link to="/dashboard/settings" className="font-medium underline">Upgrade to Pro</Link> for unlimited.
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Quick action */}
-      <Link
-        to="/dashboard/repurpose"
-        className="mt-4 flex items-center gap-3 rounded-xl border border-primary/30 bg-card p-5 transition-all hover:border-primary hover:shadow-md"
-      >
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
-          <Sparkles className="h-4 w-4 text-primary-foreground" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-foreground">New Repurpose</p>
-          <p className="text-xs text-muted-foreground">Transform content into multiple formats</p>
-        </div>
-      </Link>
+      {/* Streak / Referral / DailySpark row — keep existing components, premium framing */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="ds-card p-4 lg:col-span-1"><StreakBadge /></div>
+        <div className="ds-card p-4 lg:col-span-2"><ReferralBanner /></div>
+      </div>
+      <div className="ds-card p-4"><DailySpark /></div>
+      <div className="ds-card p-4"><ActivationChecklist /></div>
 
       {/* Guided content tools */}
-      <div className="mt-8">
-        <div className="mb-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-            <Wand2 className="h-4 w-4 text-primary" /> Guided Content Tools
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Pick a content type — fill a quick form — get tailored posts. Each tool uses its own prompt and format mix.
-          </p>
+      <div>
+        <div className="mb-3 flex items-end justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+              <Wand2 className="h-4 w-4 text-[#a78bfa]" /> Guided Content Studios
+            </h2>
+            <p className="text-xs ds-muted-text">
+              Pick a flavor — answer a few prompts — get a tailored multi-format drop.
+            </p>
+          </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {WIDGETS.map((w) => (
             <button
               key={w.id}
               onClick={() => setIntakeKind(w.id)}
-              className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-primary/50 hover:shadow-md"
+              className="ds-card ds-card-hover group flex items-start gap-3 p-4 text-left"
             >
               <span className="text-2xl leading-none">{w.emoji}</span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground">{w.title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{w.description}</p>
-                <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                  Open guided form <Sparkles className="h-3 w-3" />
+                <p className="text-sm font-semibold text-white">{w.title}</p>
+                <p className="mt-0.5 text-xs ds-muted-text">{w.description}</p>
+                <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#c4b5fd] opacity-0 transition-opacity group-hover:opacity-100">
+                  Open studio <ArrowUpRight className="h-3 w-3" />
                 </p>
               </div>
             </button>
@@ -190,36 +279,37 @@ function DashboardHome() {
       />
 
       {/* Recent activity */}
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
+      <div>
+        <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
         {loading ? (
           <div className="mt-4">
             <ListSkeleton rows={3} />
           </div>
         ) : recentJobs.length === 0 ? (
-          <div className="mt-4 rounded-xl border border-border bg-card p-6 text-center">
-            <Clock className="mx-auto h-8 w-8 text-muted-foreground" />
-            <p className="mt-3 text-sm font-medium text-foreground">No repurposes yet</p>
-            <p className="mt-1 text-xs text-muted-foreground">Your recent generations will show up here.</p>
+          <div className="ds-card mt-4 p-8 text-center">
+            <Clock className="mx-auto h-8 w-8 text-white/40" />
+            <p className="mt-3 text-sm font-medium text-white">No repurposes yet</p>
+            <p className="mt-1 text-xs ds-muted-text">Your generations will surface here as you create.</p>
             <Link
               to="/dashboard/repurpose"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#a78bfa]/40 bg-[#7c3aed]/30 px-4 py-2 text-sm font-semibold text-white hover:bg-[#7c3aed]/45"
             >
               <Sparkles className="h-3.5 w-3.5" /> Run your first repurpose
             </Link>
           </div>
         ) : (
-          <div className="mt-4 space-y-2">
+          <div className="ds-card mt-4 divide-y divide-white/5">
             {recentJobs.map((job) => (
               <Link
                 key={job.id}
                 to="/dashboard/history"
-                className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:bg-accent"
+                className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-white/[0.04]"
               >
-                <p className="truncate text-sm text-foreground max-w-xs">
-                  {job.input_text.slice(0, 50)}...
+                <p className="truncate text-sm text-white/85 max-w-xl">
+                  {job.input_text.slice(0, 80)}
+                  {job.input_text.length > 80 ? "…" : ""}
                 </p>
-                <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                <span className="whitespace-nowrap font-mono text-[11px] text-white/40">
                   {new Date(job.created_at).toLocaleDateString()}
                 </span>
               </Link>
