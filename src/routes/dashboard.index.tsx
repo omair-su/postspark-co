@@ -31,7 +31,7 @@ export const Route = createFileRoute("/dashboard/")({
 
 function DashboardHome() {
   const { user, session } = useAuth();
-  const navigate = useNavigate();
+  
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
