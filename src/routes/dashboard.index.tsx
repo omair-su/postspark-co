@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { Repeat, Sparkles, Clock, TrendingUp, Zap, Wand2, Flame, Image as ImageIcon, FileText, ArrowUpRight, Activity } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
