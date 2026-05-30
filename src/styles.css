@@ -639,10 +639,10 @@
      shell makes headings invisible on cream backgrounds. Premium dark
      surfaces (ds-canvas, ds-card, ds-header) set their own color below. */
 }
-.ds-canvas,
 .ds-card,
 .ds-card-hero,
 .ds-header { color: var(--ds-text); }
+
 
 
 .ds-canvas {
