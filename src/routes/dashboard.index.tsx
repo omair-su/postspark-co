@@ -114,25 +114,29 @@ function DashboardHome() {
 
       {/* Hero CTA + quick actions */}
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <Link
-          to="/dashboard/repurpose"
-          className="ds-card-hero group flex items-center justify-between gap-4 p-6"
-        >
-          <div className="flex items-center gap-4">
-            <div className="ds-icon-disc h-12 w-12">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-white">New Repurpose</p>
-              <p className="mt-0.5 text-sm text-white/60">
-                Transform one piece into LinkedIn, X, email, video — in seconds.
-              </p>
-            </div>
+        <div className="ds-card-hero relative p-6 sm:p-8">
+          <span className="ds-eyebrow">
+            <Sparkles className="h-3 w-3" /> AI Content Operating System
+          </span>
+          <h2 className="mt-3 text-2xl font-semibold text-white sm:text-[26px]">
+            Turn one idea into an entire content drop.
+          </h2>
+          <p className="mt-2 max-w-xl text-sm text-white/65">
+            LinkedIn posts, X threads, newsletters, thumbnails, video scripts — generated on-brand in seconds.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Link to="/dashboard/repurpose" className="ds-cta-pill">
+              <Sparkles className="h-4 w-4" /> New Repurpose
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/dashboard/templates"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/85 hover:bg-white/[0.08]"
+            >
+              Browse templates
+            </Link>
           </div>
-          <div className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium text-white transition-all group-hover:bg-white/20">
-            Start <ArrowUpRight className="h-4 w-4" />
-          </div>
-        </Link>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           {QUICK_ACTIONS.map((a) => (

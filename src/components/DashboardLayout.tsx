@@ -296,6 +296,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
         <SubscriptionBanner />
         <main className="ds-canvas flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="ds-orb ds-orb-violet" aria-hidden />
+          <div className="ds-orb ds-orb-pink" aria-hidden />
+          <div className="ds-orb ds-orb-indigo" aria-hidden />
           <div className="relative z-10">{children}</div>
         </main>
       </div>
