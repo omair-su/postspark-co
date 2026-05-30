@@ -34,10 +34,11 @@ function DashboardHome() {
   
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
-  const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
+  const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string; outputs?: Record<string, any>; tool?: string }>>([]);
   const [allJobDates, setAllJobDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [intakeKind, setIntakeKind] = useState<IntakeKind | null>(null);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user || !session) return;
@@ -48,7 +49,7 @@ function DashboardHome() {
 
     (supabase as any)
       .from("repurpose_jobs")
-      .select("id, created_at, input_text")
+      .select("id, created_at, input_text, outputs, tool")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data }: { data: any }) => {
@@ -59,6 +60,14 @@ function DashboardHome() {
         }
         setLoading(false);
       });
+
+    try {
+      const raw = localStorage.getItem("ps:gen:latencies");
+      if (raw) {
+        const arr: number[] = JSON.parse(raw).slice(-20);
+        if (arr.length) setLatencyMs(Math.round(arr.reduce((a, b) => a + b, 0) / arr.length));
+      }
+    } catch {}
   }, [user, session]);
 
   // 14-day sparkline buckets
@@ -73,6 +82,26 @@ function DashboardHome() {
     const max = Math.max(1, ...buckets);
     return buckets.map((v) => Math.max(8, (v / max) * 100));
   }, [allJobDates]);
+
+  // 30-day sparkline for Command Center
+  const monthSpark = useMemo(() => {
+    const days = 30;
+    const buckets = Array(days).fill(0);
+    const now = Date.now();
+    for (const ts of allJobDates) {
+      const diff = Math.floor((now - new Date(ts).getTime()) / 86400000);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff]++;
+    }
+    const max = Math.max(1, ...buckets);
+    return { bars: buckets.map((v) => Math.max(6, (v / max) * 100)), total: buckets.reduce((a, b) => a + b, 0) };
+  }, [allJobDates]);
+
+  const avgFormats = useMemo(() => {
+    if (!recentJobs.length) return 0;
+    const counts = recentJobs.map((j) => Object.keys(j.outputs || {}).length);
+    return Math.round((counts.reduce((a, b) => a + b, 0) / counts.length) * 10) / 10;
+  }, [recentJobs]);
+
 
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const plan = usage?.plan || "free";
