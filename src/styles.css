@@ -634,8 +634,16 @@
   --ds-accent-soft: #a78bfa;
   --ds-accent-pink: #ec4899;
   --ds-glow: 0 0 60px -10px rgba(124,58,237,0.5);
-  color: var(--ds-text);
+  /* NOTE: do NOT set `color` here. The dashboard shell wraps tool pages
+     that use light cards with `text-foreground`; forcing white text on the
+     shell makes headings invisible on cream backgrounds. Premium dark
+     surfaces (ds-canvas, ds-card, ds-header) set their own color below. */
 }
+.ds-canvas,
+.ds-card,
+.ds-card-hero,
+.ds-header { color: var(--ds-text); }
+
 
 .ds-canvas {
   position: relative;
