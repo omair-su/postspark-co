@@ -34,10 +34,11 @@ function DashboardHome() {
   
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
-  const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string }>>([]);
+  const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string; outputs?: Record<string, any>; tool?: string }>>([]);
   const [allJobDates, setAllJobDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [intakeKind, setIntakeKind] = useState<IntakeKind | null>(null);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user || !session) return;
@@ -48,7 +49,7 @@ function DashboardHome() {
 
     (supabase as any)
       .from("repurpose_jobs")
-      .select("id, created_at, input_text")
+      .select("id, created_at, input_text, outputs, tool")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data }: { data: any }) => {
@@ -59,6 +60,14 @@ function DashboardHome() {
         }
         setLoading(false);
       });
+
+    try {
+      const raw = localStorage.getItem("ps:gen:latencies");
+      if (raw) {
+        const arr: number[] = JSON.parse(raw).slice(-20);
+        if (arr.length) setLatencyMs(Math.round(arr.reduce((a, b) => a + b, 0) / arr.length));
+      }
+    } catch {}
   }, [user, session]);
 
   // 14-day sparkline buckets
@@ -73,6 +82,26 @@ function DashboardHome() {
     const max = Math.max(1, ...buckets);
     return buckets.map((v) => Math.max(8, (v / max) * 100));
   }, [allJobDates]);
+
+  // 30-day sparkline for Command Center
+  const monthSpark = useMemo(() => {
+    const days = 30;
+    const buckets = Array(days).fill(0);
+    const now = Date.now();
+    for (const ts of allJobDates) {
+      const diff = Math.floor((now - new Date(ts).getTime()) / 86400000);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff]++;
+    }
+    const max = Math.max(1, ...buckets);
+    return { bars: buckets.map((v) => Math.max(6, (v / max) * 100)), total: buckets.reduce((a, b) => a + b, 0) };
+  }, [allJobDates]);
+
+  const avgFormats = useMemo(() => {
+    if (!recentJobs.length) return 0;
+    const counts = recentJobs.map((j) => Object.keys(j.outputs || {}).length);
+    return Math.round((counts.reduce((a, b) => a + b, 0) / counts.length) * 10) / 10;
+  }, [recentJobs]);
+
 
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const plan = usage?.plan || "free";
@@ -236,7 +265,87 @@ function DashboardHome() {
         )}
       </div>
 
+      {/* Command Center — premium ops snapshot */}
+      <div className="ds-card-hero p-5 sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c4b5fd]">
+              <Activity className="h-3 w-3" /> Command Center
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-white sm:text-2xl">Your AI operations this month</h2>
+          </div>
+          <Link to="/dashboard/history" className="text-xs font-medium text-[#c4b5fd] hover:underline">
+            View history →
+          </Link>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+          {/* 30-day sparkline */}
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="flex items-baseline justify-between">
+              <p className="text-xs uppercase tracking-wider ds-muted-text">Generations · last 30 days</p>
+              <p className="text-2xl font-bold ds-gradient-text">{monthSpark.total}</p>
+            </div>
+            <div className="ds-spark mt-3" aria-hidden style={{ height: 56 }}>
+              {monthSpark.bars.map((h, i) => (
+                <span key={i} style={{ height: `${h}%` }} />
+              ))}
+            </div>
+          </div>
+
+          {/* Latency + avg formats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-[11px] uppercase tracking-wider ds-muted-text">Avg latency</p>
+              <p className="mt-1 text-2xl font-bold text-white">
+                {latencyMs ? `${(latencyMs / 1000).toFixed(1)}s` : "—"}
+              </p>
+              <p className="mt-1 text-[10px] ds-muted-text">Rolling avg, last 20 runs</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-[11px] uppercase tracking-wider ds-muted-text">Avg formats / job</p>
+              <p className="mt-1 text-2xl font-bold text-white">{avgFormats || "—"}</p>
+              <p className="mt-1 text-[10px] ds-muted-text">From recent generations</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent outputs strip */}
+        {recentJobs.length > 0 && (
+          <div className="mt-5">
+            <p className="mb-2 text-[11px] uppercase tracking-wider ds-muted-text">Recent outputs</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {recentJobs.slice(0, 4).map((j) => {
+                const formats = Object.keys(j.outputs || {});
+                return (
+                  <Link
+                    key={j.id}
+                    to="/dashboard/history"
+                    className="group flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5 hover:border-[#a78bfa]/40 hover:bg-white/[0.05]"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium text-white/90">
+                        {j.input_text.slice(0, 60)}{j.input_text.length > 60 ? "…" : ""}
+                      </p>
+                      <p className="mt-0.5 flex flex-wrap gap-1">
+                        {formats.slice(0, 4).map((f) => (
+                          <span key={f} className="rounded-sm bg-[#7c3aed]/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#c4b5fd]">
+                            {f.replace(/_/g, " ").slice(0, 10)}
+                          </span>
+                        ))}
+                      </p>
+                    </div>
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/40 transition-colors group-hover:text-[#c4b5fd]" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Streak / Referral / DailySpark row — keep existing components, premium framing */}
+
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="ds-card p-4 lg:col-span-1"><StreakBadge /></div>
         <div className="ds-card p-4 lg:col-span-2"><ReferralBanner /></div>

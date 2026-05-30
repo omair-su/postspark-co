@@ -425,62 +425,112 @@ function HistoryPage() {
       )}
 
       {filteredJobs.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-border bg-card p-10 text-center">
+        <div className="ds-card mt-8 p-10 text-center">
           <Clock className="mx-auto h-10 w-10 text-muted-foreground" />
           <p className="mt-4 text-sm text-muted-foreground">
             {search || filterFav ? "No matching results found." : "No repurposes yet. Create your first one!"}
           </p>
         </div>
       ) : (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 grid gap-3">
           {filteredJobs.map((job) => {
             const formats = job.outputs ? Object.keys(job.outputs) : [];
+            const firstTextOutput = Object.entries(job.outputs || {}).find(
+              ([, v]) => typeof v === "string"
+            )?.[1] as string | undefined;
             return (
               <div
                 key={job.id}
-                className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:bg-accent"
+                className="ds-card ds-card-hover group relative overflow-hidden p-4"
               >
-                {bulkMode && (
-                  <button onClick={() => toggleBulk(job.id)} className="shrink-0">
-                    {bulkSelected.has(job.id) ? (
-                      <CheckSquare className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Square className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </button>
-                )}
-                <button
-                  onClick={() => setSelected(job)}
-                  className="flex flex-1 items-center justify-between text-left min-w-0"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FileText className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                    <span className="truncate text-sm text-foreground">
-                      {(job.title || job.input_text).slice(0, 50)}...
-                    </span>
-                    {job.tool && job.tool !== "repurpose" && (
-                      <span className="shrink-0 rounded-full bg-electric/10 text-electric px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-                        {TOOL_LABEL[job.tool] || job.tool}
+                <div className="flex items-start gap-3">
+                  {bulkMode && (
+                    <button onClick={() => toggleBulk(job.id)} className="mt-1 shrink-0">
+                      {bulkSelected.has(job.id) ? (
+                        <CheckSquare className="h-4 w-4 text-[#a78bfa]" />
+                      ) : (
+                        <Square className="h-4 w-4 text-white/40" />
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSelected(job)}
+                    className="flex flex-1 flex-col text-left min-w-0"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-4 w-4 shrink-0 text-[#a78bfa]" />
+                      <span className="truncate text-sm font-semibold text-white">
+                        {(job.title || job.input_text).slice(0, 70)}
                       </span>
+                      {job.tool && job.tool !== "repurpose" && (
+                        <span className="shrink-0 rounded-full bg-[#7c3aed]/25 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#c4b5fd]">
+                          {TOOL_LABEL[job.tool] || job.tool}
+                        </span>
+                      )}
+                    </div>
+                    {formats.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {formats.slice(0, 6).map((f) => (
+                          <span key={f} className="rounded-md bg-white/[0.04] border border-white/10 px-2 py-0.5 text-[10px] font-medium text-white/70">
+                            {f.replace(/_/g, " ")}
+                          </span>
+                        ))}
+                      </div>
                     )}
+                    <div className="mt-2 flex items-center gap-3 text-[11px] text-white/45">
+                      <span>{formats.length} format{formats.length !== 1 ? "s" : ""}</span>
+                      <span>·</span>
+                      <span>{new Date(job.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </button>
+
+                  <div className="flex shrink-0 items-center gap-1">
+                    {firstTextOutput && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(firstTextOutput);
+                          toast.success("Copied to clipboard");
+                        }}
+                        title="Copy first output"
+                        className="rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const sections = [
+                          { title: "Original Input", content: job.input_text },
+                          ...Object.entries(job.outputs || {}).map(([k, v]) => ({
+                            title: k.charAt(0).toUpperCase() + k.slice(1),
+                            content: typeof v === "string" ? v : JSON.stringify(v, null, 2),
+                          })),
+                        ];
+                        exportToPdf(sections, `repurpose-${job.id.slice(0, 8)}`, { watermark: tier === "free" });
+                        toast.success("PDF downloaded");
+                      }}
+                      title="Export PDF"
+                      className="rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => handleToggleFavorite(job, e)}
+                      title={job.is_favorite ? "Unfavorite" : "Favorite"}
+                      className="rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white"
+                    >
+                      <Star className={`h-3.5 w-3.5 ${job.is_favorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                    </button>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                    <span className="text-xs text-muted-foreground">
-                      {formats.length} format{formats.length !== 1 ? "s" : ""}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(job.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </button>
-                <button onClick={(e) => handleToggleFavorite(job, e)} className="shrink-0 ml-2">
-                  <Star className={`h-4 w-4 transition-colors ${job.is_favorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground hover:text-yellow-400"}`} />
-                </button>
+                </div>
               </div>
             );
           })}
         </div>
       )}
+
     </div>
   );
 }
