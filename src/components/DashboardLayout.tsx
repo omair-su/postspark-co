@@ -231,7 +231,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 
-  const planLabel = (user?.user_metadata?.plan as string) || "";
+
 
   return (
     <div className="dashboard-shell flex h-screen" style={{ background: "var(--ds-bg)" }}>
