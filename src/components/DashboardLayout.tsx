@@ -198,17 +198,24 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       <div className="relative shrink-0 border-t border-white/5 p-3">
         {/* User info */}
-        <div className="mb-3 flex items-center gap-3 rounded-lg bg-white/[0.03] px-3 py-2 backdrop-blur">
+        <div className="ds-user-card mb-3 flex items-center gap-3 px-3 py-2.5">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-white/10" />
+            <img src={avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover ring-2 ring-[#a78bfa]/55" />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4c1d95] ring-1 ring-white/10">
-              <User className="h-3.5 w-3.5 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#ec4899] via-[#a855f7] to-[#7c3aed] ring-2 ring-[#a78bfa]/55">
+              <User className="h-4 w-4 text-white" />
             </div>
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-medium text-sidebar-foreground">{displayName}</p>
-            <p className="truncate text-[10px] text-sidebar-foreground/50">{displayEmail}</p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {planLabel ? (
+                <span className="ds-plan-chip">{planLabel}</span>
+              ) : (
+                <span className="ds-plan-chip" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", borderColor: "rgba(255,255,255,0.1)" }}>Free</span>
+              )}
+              <p className="truncate text-[10px] text-sidebar-foreground/50">{displayEmail}</p>
+            </div>
           </div>
         </div>
 
