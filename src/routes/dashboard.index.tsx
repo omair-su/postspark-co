@@ -1,15 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { Repeat, Sparkles, Clock, TrendingUp, Zap, Wand2, Flame, Image as ImageIcon, FileText, ArrowUpRight, Activity } from "lucide-react";
+import {
+  Repeat, Sparkles, Clock, TrendingUp, Zap, Flame, Image as ImageIcon, FileText,
+  ArrowUpRight, Activity, Layers, Wand2, MessageSquare, Mic, Calendar, Bookmark, Cpu,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
 import { GuidedIntakeModal, type IntakeKind } from "@/components/GuidedIntakeModal";
 import { DailySpark } from "@/components/DailySpark";
 import { ActivationChecklist } from "@/components/ActivationChecklist";
-import { CardSkeleton, ListSkeleton } from "@/components/skeletons";
 import { StreakBadge } from "@/components/StreakBadge";
 import { ReferralBanner } from "@/components/ReferralBanner";
+import { AskBar } from "@/components/dashboard/AskBar";
+import { StatTile } from "@/components/dashboard/StatTile";
+import { EmptyState } from "@/components/dashboard/EmptyState";
+import { ToolTile, type ToolTileItem } from "@/components/dashboard/ToolTile";
 
 const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description: string }> = [
   { id: "founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into thread + LinkedIn + email." },
@@ -18,12 +24,16 @@ const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description
   { id: "marketing-tip", title: "Marketing Tip", emoji: "📈", description: "Turn a marketing insight into platform-native posts." },
 ];
 
-const QUICK_ACTIONS = [
-  { to: "/dashboard/hook-lab", label: "Hook Lab", icon: Flame },
-  { to: "/dashboard/image-studio", label: "Image Studio", icon: ImageIcon },
-  { to: "/dashboard/seo-blog", label: "SEO Blog", icon: FileText },
-  { to: "/dashboard/carousel", label: "Carousel", icon: Sparkles },
-] as const;
+const TOOLS: ToolTileItem[] = [
+  { to: "/dashboard/repurpose", label: "Repurpose Studio", icon: Repeat, description: "One source → every platform, on-brand." },
+  { to: "/dashboard/hook-lab", label: "Hook Lab", icon: Flame, description: "10 hooks per idea, scored & A/B ready." },
+  { to: "/dashboard/image-studio", label: "Image Studio", icon: ImageIcon, description: "Brand-aware visuals & post graphics." },
+  { to: "/dashboard/carousel", label: "Carousel Generator", icon: Layers, description: "Multi-slide LinkedIn / X carousels." },
+  { to: "/dashboard/seo-blog", label: "SEO Blog", icon: FileText, description: "Long-form articles tuned to rank." },
+  { to: "/dashboard/thumbnail", label: "Thumbnail / Cover", icon: ImageIcon, description: "YouTube & podcast covers in seconds." },
+  { to: "/dashboard/humanizer", label: "AI Humanizer", icon: Wand2, description: "Make AI text feel handwritten." },
+  { to: "/dashboard/reply-generator", label: "Reply Generator", icon: MessageSquare, description: "On-brand replies for any thread." },
+];
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
@@ -31,7 +41,7 @@ export const Route = createFileRoute("/dashboard/")({
 
 function DashboardHome() {
   const { user, session } = useAuth();
-  
+
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
   const [totalJobs, setTotalJobs] = useState(0);
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string; outputs?: Record<string, any>; tool?: string }>>([]);
@@ -102,176 +112,170 @@ function DashboardHome() {
     return Math.round((counts.reduce((a, b) => a + b, 0) / counts.length) * 10) / 10;
   }, [recentJobs]);
 
+  // "Today" metrics
+  const todayCount = useMemo(() => {
+    const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+    return allJobDates.filter((ts) => new Date(ts).getTime() >= startOfDay.getTime()).length;
+  }, [allJobDates]);
 
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const plan = usage?.plan || "free";
   const isUnlimited = usage?.limit === -1;
 
   return (
-    <div className="mx-auto max-w-6xl ds-fade-up space-y-6">
-      {/* Hero header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight ds-gradient-text sm:text-4xl">
-            Welcome back, {name.split(" ")[0]}
-          </h1>
-          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm ds-muted-text">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="ds-status-dot" /> AI online
-            </span>
-            <span className="text-white/20">·</span>
-            <span className="capitalize">{plan} plan</span>
-            {usage && (
-              <>
-                <span className="text-white/20">·</span>
-                <span>
-                  {usage.used}
-                  {isUnlimited ? "" : ` / ${usage.limit}`} this month
-                </span>
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="ds-chip"><Activity className="h-3 w-3 text-[#a78bfa]" /> Live</span>
-          <span className="ds-chip">
-            <span className="font-mono text-[10px] text-white/60">⌘K</span>
-            <span>Command</span>
-          </span>
-        </div>
-      </div>
-
-      {/* Hero CTA + quick actions */}
-      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <div className="ds-card-hero relative p-6 sm:p-8">
-          <span className="ds-eyebrow">
-            <Sparkles className="h-3 w-3" /> AI Content Operating System
-          </span>
-          <h2 className="mt-3 text-2xl font-semibold text-white sm:text-[26px]">
-            Turn one idea into an entire content drop.
-          </h2>
-          <p className="mt-2 max-w-xl text-sm text-white/65">
-            LinkedIn posts, X threads, newsletters, thumbnails, video scripts — generated on-brand in seconds.
-          </p>
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+    <div className="mx-auto max-w-6xl space-y-6">
+      {/* Hero — greeting + AskBar + live status */}
+      <section className="ds-card-hero p-6 sm:p-8 ds-fade-up">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="ds-eyebrow">
+              <Cpu className="h-3 w-3" /> AI Content Operating System
+            </p>
+            <h1 className="ds-display ds-gradient-text mt-3 text-3xl sm:text-4xl">
+              Welcome back, {name.split(" ")[0]}
+            </h1>
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="ds-status-dot" /> Claude Sonnet 4.5 online
+              </span>
+              {latencyMs && (
+                <>
+                  <span className="text-white/20">·</span>
+                  <span className="font-mono text-[12px] text-white/55">{(latencyMs / 1000).toFixed(1)}s avg</span>
+                </>
+              )}
+              <span className="text-white/20">·</span>
+              <span className="capitalize">{plan} plan</span>
+              {usage && (
+                <>
+                  <span className="text-white/20">·</span>
+                  <span>
+                    {usage.used}{isUnlimited ? "" : ` / ${usage.limit}`} this month
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+          <div className="hidden sm:flex items-center gap-2">
+            <Link to="/dashboard/templates" className="ds-cta-ghost">
+              <Bookmark className="h-4 w-4" /> Templates
+            </Link>
             <Link to="/dashboard/repurpose" className="ds-cta-pill">
               <Sparkles className="h-4 w-4" /> New Repurpose
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
-            <Link
-              to="/dashboard/templates"
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/85 hover:bg-white/[0.08]"
-            >
-              Browse templates
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {QUICK_ACTIONS.map((a) => (
-            <Link
-              key={a.to}
-              to={a.to}
-              className="ds-card ds-card-hover flex items-center gap-3 p-4"
-            >
-              <div className="ds-icon-disc h-9 w-9">
-                <a.icon className="h-4 w-4" />
-              </div>
-              <span className="text-sm font-medium text-white">{a.label}</span>
-            </Link>
-          ))}
+        <div className="mt-6">
+          <AskBar />
         </div>
-      </div>
+      </section>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* Today rail */}
+      <section className="grid gap-3 sm:grid-cols-3 ds-fade-up-2">
+        <div className="ds-card p-4 flex items-center gap-3">
+          <div className="ds-icon-disc h-10 w-10"><Activity className="h-4 w-4" /></div>
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] ds-muted-text">Today</p>
+            <p className="ds-stat-num text-xl">{todayCount} <span className="text-xs font-normal text-white/50">generations</span></p>
+          </div>
+        </div>
+        <div className="ds-card p-4 flex items-center gap-3">
+          <div className="ds-icon-disc h-10 w-10"><Flame className="h-4 w-4" /></div>
+          <div className="min-w-0 flex-1"><StreakBadge /></div>
+        </div>
+        <Link to="/dashboard/calendar" className="ds-card ds-card-hover p-4 flex items-center gap-3 group">
+          <div className="ds-icon-disc h-10 w-10"><Calendar className="h-4 w-4" /></div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] uppercase tracking-[0.18em] ds-muted-text">Calendar</p>
+            <p className="text-sm font-medium text-white">Plan your next drop</p>
+          </div>
+          <ArrowUpRight className="h-4 w-4 text-white/30 group-hover:text-[#c4b5fd]" />
+        </Link>
+      </section>
+
+      {/* Stats v2 */}
+      <section className="grid gap-4 sm:grid-cols-3 ds-fade-up-3">
         {loading ? (
           <>
-            <CardSkeleton />
-            <CardSkeleton />
-            <CardSkeleton />
+            <div className="ds-skeleton h-32" />
+            <div className="ds-skeleton h-32" />
+            <div className="ds-skeleton h-32" />
           </>
         ) : (
           <>
-            <div className="ds-card p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-wider ds-muted-text">This month</p>
-                  <p className="ds-stat-num mt-1 text-3xl">{usage?.used ?? 0}</p>
-                </div>
-                <div className="ds-icon-disc h-9 w-9">
-                  <Repeat className="h-4 w-4" />
-                </div>
-              </div>
-              {usage && !isUnlimited && (
-                <div className="mt-4">
-                  <div className="ds-progress">
-                    <div style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }} />
+            <StatTile
+              label="This month"
+              value={usage?.used ?? 0}
+              icon={<Repeat className="h-4 w-4" />}
+              footer={
+                usage && !isUnlimited ? (
+                  <>
+                    <div className="ds-progress">
+                      <div style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }} />
+                    </div>
+                    <p className="mt-2 text-[11px] ds-muted-text">
+                      {usage.used} / {usage.limit} repurposes
+                      {usage.used >= usage.limit && (
+                        <>
+                          {" · "}
+                          <Link to="/dashboard/settings" className="font-medium text-[#c4b5fd] underline">Upgrade</Link>
+                        </>
+                      )}
+                    </p>
+                  </>
+                ) : isUnlimited ? (
+                  <p className="text-[11px] ds-muted-text">Unlimited on {plan}</p>
+                ) : null
+              }
+            />
+
+            <StatTile
+              label="All-time"
+              value={totalJobs}
+              icon={<TrendingUp className="h-4 w-4" />}
+              footer={
+                <>
+                  <div className="ds-spark" aria-hidden>
+                    {sparkline.map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}
                   </div>
-                  <p className="mt-2 text-[11px] ds-muted-text">
-                    {usage.used} / {usage.limit} repurposes
-                    {usage.used >= usage.limit && (
-                      <>
-                        {" · "}
-                        <Link to="/dashboard/settings" className="font-medium text-[#c4b5fd] underline">
-                          Upgrade
-                        </Link>
-                      </>
-                    )}
-                  </p>
-                </div>
-              )}
-              {isUnlimited && (
-                <p className="mt-4 text-[11px] ds-muted-text">Unlimited on {plan}</p>
-              )}
-            </div>
+                  <p className="mt-2 text-[11px] ds-muted-text">Last 14 days</p>
+                </>
+              }
+            />
 
-            <div className="ds-card p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-wider ds-muted-text">All-time</p>
-                  <p className="ds-stat-num mt-1 text-3xl">{totalJobs}</p>
-                </div>
-                <div className="ds-icon-disc h-9 w-9">
-                  <TrendingUp className="h-4 w-4" />
-                </div>
-              </div>
-              <div className="ds-spark mt-4" aria-hidden>
-                {sparkline.map((h, i) => (
-                  <span key={i} style={{ height: `${h}%` }} />
-                ))}
-              </div>
-              <p className="mt-2 text-[11px] ds-muted-text">Last 14 days</p>
-            </div>
-
-            <div className="ds-card p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-wider ds-muted-text">Plan</p>
-                  <p className="ds-stat-num mt-1 text-3xl capitalize">{plan}</p>
-                </div>
-                <div className="ds-icon-disc h-9 w-9">
-                  <Zap className="h-4 w-4" />
-                </div>
-              </div>
-              <Link
-                to="/dashboard/settings"
-                className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-[#c4b5fd] hover:underline"
-              >
-                Manage subscription <ArrowUpRight className="h-3 w-3" />
-              </Link>
-            </div>
+            <StatTile
+              label="Plan"
+              value={<span className="capitalize">{plan}</span>}
+              icon={<Zap className="h-4 w-4" />}
+              footer={
+                <Link to="/dashboard/settings" className="inline-flex items-center gap-1 text-xs font-medium text-[#c4b5fd] hover:underline">
+                  Manage subscription <ArrowUpRight className="h-3 w-3" />
+                </Link>
+              }
+            />
           </>
         )}
-      </div>
+      </section>
+
+      {/* Premium tool grid */}
+      <section className="ds-fade-up-4">
+        <div className="mb-3 flex items-end justify-between">
+          <div>
+            <p className="ds-eyebrow"><Wand2 className="h-3 w-3" /> Studios</p>
+            <h2 className="mt-1 text-lg font-semibold text-white">Pick your superpower</h2>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {TOOLS.map((t) => <ToolTile key={t.to} item={t} />)}
+        </div>
+      </section>
 
       {/* Command Center — premium ops snapshot */}
-      <div className="ds-card-hero p-5 sm:p-6">
+      <section className="ds-card-hero p-5 sm:p-6 ds-fade-up-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c4b5fd]">
-              <Activity className="h-3 w-3" /> Command Center
-            </p>
+            <p className="ds-eyebrow"><Activity className="h-3 w-3" /> Command Center</p>
             <h2 className="mt-2 text-xl font-semibold text-white sm:text-2xl">Your AI operations this month</h2>
           </div>
           <Link to="/dashboard/history" className="text-xs font-medium text-[#c4b5fd] hover:underline">
@@ -287,9 +291,7 @@ function DashboardHome() {
               <p className="text-2xl font-bold ds-gradient-text">{monthSpark.total}</p>
             </div>
             <div className="ds-spark mt-3" aria-hidden style={{ height: 56 }}>
-              {monthSpark.bars.map((h, i) => (
-                <span key={i} style={{ height: `${h}%` }} />
-              ))}
+              {monthSpark.bars.map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}
             </div>
           </div>
 
@@ -297,9 +299,7 @@ function DashboardHome() {
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
               <p className="text-[11px] uppercase tracking-wider ds-muted-text">Avg latency</p>
-              <p className="mt-1 text-2xl font-bold text-white">
-                {latencyMs ? `${(latencyMs / 1000).toFixed(1)}s` : "—"}
-              </p>
+              <p className="mt-1 text-2xl font-bold text-white">{latencyMs ? `${(latencyMs / 1000).toFixed(1)}s` : "—"}</p>
               <p className="mt-1 text-[10px] ds-muted-text">Rolling avg, last 20 runs</p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
@@ -342,27 +342,22 @@ function DashboardHome() {
             </div>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Streak / Referral / DailySpark row — keep existing components, premium framing */}
+      {/* Momentum row — Referral + Daily Spark */}
+      <section className="grid gap-4 lg:grid-cols-2 ds-fade-up-6">
+        <div className="ds-card p-4"><ReferralBanner /></div>
+        <div className="ds-card p-4"><DailySpark /></div>
+      </section>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="ds-card p-4 lg:col-span-1"><StreakBadge /></div>
-        <div className="ds-card p-4 lg:col-span-2"><ReferralBanner /></div>
-      </div>
-      <div className="ds-card p-4"><DailySpark /></div>
-      <div className="ds-card p-4"><ActivationChecklist /></div>
+      <div className="ds-card p-4 ds-fade-up-6"><ActivationChecklist /></div>
 
-      {/* Guided content tools */}
-      <div>
+      {/* Guided studios */}
+      <section className="ds-fade-up-6">
         <div className="mb-3 flex items-end justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-              <Wand2 className="h-4 w-4 text-[#a78bfa]" /> Guided Content Studios
-            </h2>
-            <p className="text-xs ds-muted-text">
-              Pick a flavor — answer a few prompts — get a tailored multi-format drop.
-            </p>
+            <p className="ds-eyebrow"><Mic className="h-3 w-3" /> Guided Studios</p>
+            <h2 className="mt-1 text-lg font-semibold text-white">Answer a few prompts — get a full drop</h2>
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -370,20 +365,19 @@ function DashboardHome() {
             <button
               key={w.id}
               onClick={() => setIntakeKind(w.id)}
-              className="ds-card ds-card-hover group flex items-start gap-3 p-4 text-left"
+              className="ds-tool-tile text-left"
             >
-              <span className="text-2xl leading-none">{w.emoji}</span>
-              <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between">
+                <span className="text-2xl leading-none">{w.emoji}</span>
+              </div>
+              <div>
                 <p className="text-sm font-semibold text-white">{w.title}</p>
-                <p className="mt-0.5 text-xs ds-muted-text">{w.description}</p>
-                <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#c4b5fd] opacity-0 transition-opacity group-hover:opacity-100">
-                  Open studio <ArrowUpRight className="h-3 w-3" />
-                </p>
+                <p className="mt-1 text-[11px] ds-muted-text leading-relaxed">{w.description}</p>
               </div>
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
       <GuidedIntakeModal
         kind={intakeKind}
@@ -392,26 +386,19 @@ function DashboardHome() {
       />
 
       {/* Recent activity */}
-      <div>
-        <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-3">Recent Activity</h2>
         {loading ? (
-          <div className="mt-4">
-            <ListSkeleton rows={3} />
-          </div>
+          <div className="ds-skeleton h-40" />
         ) : recentJobs.length === 0 ? (
-          <div className="ds-card mt-4 p-8 text-center">
-            <Clock className="mx-auto h-8 w-8 text-white/40" />
-            <p className="mt-3 text-sm font-medium text-white">No repurposes yet</p>
-            <p className="mt-1 text-xs ds-muted-text">Your generations will surface here as you create.</p>
-            <Link
-              to="/dashboard/repurpose"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#a78bfa]/40 bg-[#7c3aed]/30 px-4 py-2 text-sm font-semibold text-white hover:bg-[#7c3aed]/45"
-            >
-              <Sparkles className="h-3.5 w-3.5" /> Run your first repurpose
-            </Link>
-          </div>
+          <EmptyState
+            icon={<Clock className="h-5 w-5" />}
+            title="No repurposes yet"
+            description="Your generations will surface here as you create. Start with a single idea and watch it become a full content drop."
+            cta={{ to: "/dashboard/repurpose", label: "Run your first repurpose" }}
+          />
         ) : (
-          <div className="ds-card mt-4 divide-y divide-white/5">
+          <div className="ds-card divide-y divide-white/5">
             {recentJobs.map((job) => (
               <Link
                 key={job.id}
@@ -419,8 +406,7 @@ function DashboardHome() {
                 className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-white/[0.04]"
               >
                 <p className="truncate text-sm text-white/85 max-w-xl">
-                  {job.input_text.slice(0, 80)}
-                  {job.input_text.length > 80 ? "…" : ""}
+                  {job.input_text.slice(0, 80)}{job.input_text.length > 80 ? "…" : ""}
                 </p>
                 <span className="whitespace-nowrap font-mono text-[11px] text-white/40">
                   {new Date(job.created_at).toLocaleDateString()}
@@ -429,7 +415,7 @@ function DashboardHome() {
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
