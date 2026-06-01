@@ -118,6 +118,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const avatarUrl = user?.user_metadata?.avatar_url;
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || "User";
   const displayEmail = user?.email || "";
+  const planLabel = (user?.user_metadata?.plan as string) || "";
 
   const sidebar = (
     <div className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground">
