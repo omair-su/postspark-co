@@ -299,6 +299,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 )}
               </div>
             )}
+            <Link to="/dashboard/repurpose" className="ds-cta-pill !py-1.5 !px-3 !text-[12px] hidden sm:inline-flex">
+              <Sparkles className="h-3.5 w-3.5" /> New
+            </Link>
             <ThemeToggle />
           </div>
         </header>
