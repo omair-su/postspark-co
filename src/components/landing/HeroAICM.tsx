@@ -124,8 +124,8 @@ export function HeroAICM() {
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center lux-float">
-          <div className="h-[95%] w-[95%]">
-            <SparkConstellation />
+          <div className="h-full w-full">
+            <SplineHeroScene />
           </div>
         </div>
       </div>
