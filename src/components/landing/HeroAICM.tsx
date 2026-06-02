@@ -97,7 +97,7 @@ export function HeroAICM() {
       <div
         ref={sculptRef}
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-0 w-full sm:w-[70%] lg:w-[60%] xl:w-[55%]"
+        className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-full opacity-35 sm:w-[70%] sm:opacity-100 lg:w-[60%] xl:w-[55%]"
         style={
           {
             ["--mx" as string]: "0px",
@@ -132,7 +132,7 @@ export function HeroAICM() {
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
           background:
-            "linear-gradient(90deg, rgba(245,237,226,0.95) 0%, rgba(245,237,226,0.7) 35%, rgba(245,237,226,0.15) 60%, rgba(245,237,226,0) 75%)",
+            "linear-gradient(90deg, rgba(245,237,226,0.95) 0%, rgba(245,237,226,0.72) 34%, rgba(245,237,226,0.08) 58%, rgba(245,237,226,0) 72%)",
         }}
       />
 
