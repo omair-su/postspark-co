@@ -93,25 +93,23 @@ export function HeroAICM() {
         }}
       />
 
-      {/* 3D sculpture — floats on right, drifts with cursor + scroll, slowly spins */}
+      {/* 3D Spline scene — anchored on the right, visible on screen */}
       <div
         ref={sculptRef}
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-[-36%] z-0 w-[120%] sm:right-[-22%] sm:w-[82%] lg:right-[-18%] lg:w-[58%] xl:right-[-14%] xl:w-[54%]"
+        className="pointer-events-none absolute inset-y-0 right-0 z-0 w-full sm:w-[70%] lg:w-[60%] xl:w-[55%]"
         style={
           {
             ["--mx" as string]: "0px",
             ["--my" as string]: "0px",
             ["--scroll-y" as string]: "0px",
-            ["--scroll-tilt" as string]: "0deg",
-            ["--cursor-tilt" as string]: "0deg",
             transform:
               "translate3d(var(--mx), calc(var(--my) + var(--scroll-y)), 0)",
             willChange: "transform",
           } as React.CSSProperties
         }
       >
-        {/* Reactive glow halo behind ring */}
+        {/* Reactive glow halo behind scene */}
         <div
           ref={glowRef}
           aria-hidden
@@ -123,22 +121,21 @@ export function HeroAICM() {
             opacity: 0.55,
           }}
         />
-        <div className="absolute inset-0 flex items-center justify-center lux-float">
-          <div className="h-full w-full">
-            <SplineHeroScene />
-          </div>
+        <div className="pointer-events-auto absolute inset-0">
+          <SplineHeroScene />
         </div>
       </div>
 
-      {/* Soft fade so text stays legible */}
+      {/* Soft left-to-right fade so headline stays legible over the scene */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
           background:
-            "linear-gradient(90deg, rgba(245,237,226,0.92) 0%, rgba(245,237,226,0.55) 45%, rgba(245,237,226,0) 70%)",
+            "linear-gradient(90deg, rgba(245,237,226,0.95) 0%, rgba(245,237,226,0.7) 35%, rgba(245,237,226,0.15) 60%, rgba(245,237,226,0) 75%)",
         }}
       />
+
 
       {/* Content */}
       <div className="relative z-10 mx-auto flex min-h-[88svh] max-w-7xl flex-col justify-center px-5 pb-20 pt-28 sm:px-8 sm:pt-36">

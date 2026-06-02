@@ -1,72 +1,83 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const Spline = lazy(() => import("@splinetool/react-spline"));
-
-const SCENE_URL = "https://prod.spline.design/Pis4Bei0FGUH9TSIvAVWxpLe/scene.splinecode";
 const IFRAME_URL = "https://my.spline.design/boxeshover-Pis4Bei0FGUH9TSIvAVWxpLe/";
 
 /**
- * Spline 3D scene for the hero centerpiece.
- * - Desktop/tablet: live Spline runtime with Suspense + fade-in
- * - Mobile (<768px): static iframe-free CSS placeholder fallback
- * - Transparent background so the cream hero shows through
- * - Falls back to <iframe> if the runtime fails to load the .splinecode
+ * Spline 3D hero visual.
+ * - Uses the official Spline <iframe> embed (works under default CSP, no runtime
+ *   bundle, no react-spline dependency at runtime).
+ * - Lazy-loaded with IntersectionObserver — only mounts when the hero is in view.
+ * - Themed skeleton shimmer while loading, then fades in over 700ms.
+ * - Mobile (<768px) and `prefers-reduced-motion: reduce` users get a static
+ *   radial-gradient placeholder instead of the live scene (saves bandwidth + CPU).
  */
 export function SplineHeroScene() {
-  const [isMobile, setIsMobile] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [useStatic, setUseStatic] = useState(true);
+  const [inView, setInView] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [runtimeFailed, setRuntimeFailed] = useState(false);
 
+  // Decide once whether to render the live scene at all.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setUseStatic(isMobile || reduced);
   }, []);
 
-  if (isMobile) {
-    return (
-      <div
-        aria-hidden
-        className="h-full w-full"
-        style={{
-          background:
-            "radial-gradient(circle at 60% 45%, rgba(167,139,250,0.45) 0%, rgba(124,58,237,0.18) 40%, transparent 70%)",
-        }}
-      />
+  // Lazy mount the iframe when the hero scrolls into view.
+  useEffect(() => {
+    if (useStatic) return;
+    const el = wrapRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
     );
-  }
+    io.observe(el);
+    return () => io.disconnect();
+  }, [useStatic]);
 
-  if (runtimeFailed) {
-    return (
-      <iframe
-        src={IFRAME_URL}
-        title="PostSpark 3D scene"
-        loading="lazy"
-        className="h-full w-full"
-        style={{ border: 0, background: "transparent" }}
-        allow="autoplay; fullscreen"
-      />
-    );
-  }
+  const StaticPlaceholder = (
+    <div
+      aria-hidden
+      className="absolute inset-0"
+      style={{
+        background:
+          "radial-gradient(circle at 60% 45%, rgba(167,139,250,0.55) 0%, rgba(124,58,237,0.22) 40%, transparent 72%)",
+      }}
+    />
+  );
 
   return (
-    <div className="relative h-full w-full">
-      <Suspense fallback={null}>
-        <div
-          className="h-full w-full transition-opacity duration-700 ease-out"
-          style={{ opacity: loaded ? 1 : 0 }}
-        >
-          <Spline
-            scene={SCENE_URL}
-            onLoad={() => setLoaded(true)}
-            onError={() => setRuntimeFailed(true)}
-            style={{ width: "100%", height: "100%", background: "transparent" }}
-          />
-        </div>
-      </Suspense>
+    <div ref={wrapRef} className="relative h-full w-full">
+      {/* Skeleton / static fallback layer */}
+      {(!loaded || useStatic) && StaticPlaceholder}
+
+      {!useStatic && inView && (
+        <iframe
+          src={IFRAME_URL}
+          title="PostSpark 3D hero scene"
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          className="absolute inset-0 h-full w-full transition-opacity duration-700 ease-out"
+          style={{
+            border: 0,
+            background: "transparent",
+            opacity: loaded ? 1 : 0,
+          }}
+          allow="autoplay; fullscreen; xr-spatial-tracking"
+          sandbox="allow-scripts allow-same-origin allow-popups"
+        />
+      )}
     </div>
   );
 }
