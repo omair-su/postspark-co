@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Search } from "lucide-react";
 import { useEffect, useRef } from "react";
-import SparkConstellation from "@/components/landing/SparkConstellation";
+import { SplineHeroScene } from "@/components/landing/SplineHeroScene";
 
 /**
  * AICM-style hero: light cream BG, huge bold navy headline,
@@ -124,8 +124,8 @@ export function HeroAICM() {
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center lux-float">
-          <div className="h-[95%] w-[95%]">
-            <SparkConstellation />
+          <div className="h-full w-full">
+            <SplineHeroScene />
           </div>
         </div>
       </div>
