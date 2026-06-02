@@ -8,8 +8,8 @@ const IFRAME_URL = "https://my.spline.design/boxeshover-Pis4Bei0FGUH9TSIvAVWxpLe
  *   bundle, no react-spline dependency at runtime).
  * - Lazy-loaded with IntersectionObserver — only mounts when the hero is in view.
  * - Themed skeleton shimmer while loading, then fades in over 700ms.
- * - Mobile (<768px) and `prefers-reduced-motion: reduce` users get a static
- *   radial-gradient placeholder instead of the live scene (saves bandwidth + CPU).
+ * - `prefers-reduced-motion: reduce` users get a static radial-gradient
+ *   placeholder instead of the live animated scene.
  */
 export function SplineHeroScene() {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -20,9 +20,8 @@ export function SplineHeroScene() {
   // Decide once whether to render the live scene at all.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setUseStatic(isMobile || reduced);
+    setUseStatic(reduced);
   }, []);
 
   // Lazy mount the iframe when the hero scrolls into view.
@@ -68,7 +67,7 @@ export function SplineHeroScene() {
           title="PostSpark 3D hero scene"
           loading="lazy"
           onLoad={() => setLoaded(true)}
-          className="absolute inset-0 h-full w-full transition-opacity duration-700 ease-out"
+          className="absolute inset-0 z-10 h-full w-full transition-opacity duration-700 ease-out"
           style={{
             border: 0,
             background: "transparent",
