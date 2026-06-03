@@ -97,7 +97,7 @@ export function HeroAICM() {
       <div
         ref={sculptRef}
         aria-hidden
-        className="pointer-events-none absolute bottom-0 right-0 top-[33%] z-[2] w-full opacity-45 sm:inset-y-0 sm:w-[70%] sm:opacity-100 lg:w-[60%] xl:w-[55%]"
+        className="pointer-events-none absolute inset-y-0 right-0 z-[2] hidden w-[70%] opacity-100 sm:block lg:w-[60%] xl:w-[55%]"
         style={
           {
             ["--mx" as string]: "0px",
@@ -150,7 +150,7 @@ export function HeroAICM() {
           </div>
 
           <h1
-            className="font-extrabold tracking-[-0.035em] text-[#1a1a2e]"
+            className="postspark-hero-title font-extrabold tracking-[-0.035em] text-[#1a1a2e]"
             style={{
               fontSize: "clamp(2.6rem, 8.5vw, 6.5rem)",
               lineHeight: 0.95,
@@ -204,6 +204,10 @@ export function HeroAICM() {
             </Link>
           </div>
 
+          <div className="relative z-10 mt-8 h-[330px] overflow-hidden sm:hidden animate-[heroRise_0.9s_0.62s_ease-out_both]">
+            <PremiumHeroScene />
+          </div>
+
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] uppercase tracking-[0.18em] text-[#1a1a2e]/80 animate-[heroRise_0.9s_0.7s_ease-out_both]">
             <span>★ 4.9 / 5 · 127 reviews</span>
             <span>No credit card</span>
@@ -224,6 +228,18 @@ export function HeroAICM() {
         @keyframes heroRise {
           from { opacity: 0; transform: translate3d(0, 24px, 0); }
           to   { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+        @media (max-width: 640px) {
+          .postspark-hero-title {
+            font-size: 3rem !important;
+            line-height: 0.96 !important;
+            letter-spacing: -0.025em !important;
+          }
+        }
+        @media (max-width: 380px) {
+          .postspark-hero-title {
+            font-size: 2.72rem !important;
+          }
         }
         @media (prefers-reduced-motion: reduce) {
           [class*="animate-\\[heroSpin"],
