@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Search } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { SplineHeroScene } from "@/components/landing/SplineHeroScene";
 
 /**
@@ -106,7 +106,7 @@ export function HeroAICM() {
             transform:
               "translate3d(var(--mx), calc(var(--my) + var(--scroll-y)), 0)",
             willChange: "transform",
-          } as React.CSSProperties
+          } as CSSProperties
         }
       >
         {/* Reactive glow halo behind scene */}
