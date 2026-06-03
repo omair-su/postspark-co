@@ -19,7 +19,7 @@ const outputCards = [
  * No iframe, no external runtime, no screenshot fallback — just React + CSS 3D,
  * so it renders instantly in the preview and published app.
  */
-export function SplineHeroScene() {
+export function PremiumHeroScene() {
   const sceneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -423,4 +423,4 @@ export function SplineHeroScene() {
   );
 }
 
-export default SplineHeroScene;
+export default PremiumHeroScene;
