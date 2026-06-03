@@ -391,9 +391,9 @@ export function PremiumHeroScene() {
         @keyframes ps3d-cursor { 0%, 100% { margin: 0; } 42% { margin: -20px 0 0 -18px; } 68% { margin: -2px 0 0 10px; } }
 
         @media (max-width: 640px) {
-          .ps3d-shell { min-height: 330px; }
+          .ps3d-shell { min-height: 245px; }
           .ps3d-perspective { place-items: center; padding-bottom: 0; }
-          .ps3d-scene { width: min(430px, 115%); transform: rotateX(63deg) rotateZ(-20deg) rotateY(var(--scene-ry)); }
+          .ps3d-scene { width: min(360px, 108%); transform: rotateX(63deg) rotateZ(-20deg) rotateY(var(--scene-ry)); }
           .ps3d-source { padding: 10px 12px; font-size: 10px; }
           .ps3d-output { width: 46px; height: 46px; border-radius: 17px; }
           .ps3d-core { border-radius: 23px; }
