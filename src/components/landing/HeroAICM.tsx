@@ -97,7 +97,7 @@ export function HeroAICM() {
       <div
         ref={sculptRef}
         aria-hidden
-        className="pointer-events-none absolute bottom-0 right-[-42%] top-[40%] z-[2] block w-[150%] opacity-45 sm:inset-y-0 sm:right-0 sm:w-[70%] sm:opacity-100 lg:w-[60%] xl:w-[55%]"
+        className="pointer-events-none absolute inset-y-0 right-0 z-[2] hidden w-[70%] opacity-100 sm:block lg:w-[60%] xl:w-[55%]"
         style={
           {
             ["--mx" as string]: "0px",
@@ -187,7 +187,11 @@ export function HeroAICM() {
             in your voice, in seconds.
           </p>
 
-          <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center animate-[heroRise_0.9s_0.55s_ease-out_both]">
+          <div className="relative mt-6 h-[245px] overflow-hidden sm:hidden animate-[heroRise_0.9s_0.48s_ease-out_both]">
+            <PremiumHeroScene />
+          </div>
+
+          <div className="mt-8 flex flex-col items-start gap-3 sm:mt-10 sm:flex-row sm:items-center animate-[heroRise_0.9s_0.55s_ease-out_both]">
             <Link
               to="/signup"
               className="group inline-flex items-center gap-3 rounded-full bg-[#1a1a2e] px-7 py-4 text-sm font-semibold text-white shadow-[0_20px_50px_-15px_rgba(26,26,46,0.5)] transition-all hover:scale-[1.02] hover:bg-[#2a2a4a]"
@@ -227,14 +231,14 @@ export function HeroAICM() {
         }
         @media (max-width: 640px) {
           .postspark-hero-title {
-            font-size: 3rem !important;
+            font-size: 2.72rem !important;
             line-height: 0.96 !important;
             letter-spacing: -0.025em !important;
           }
         }
         @media (max-width: 380px) {
           .postspark-hero-title {
-            font-size: 2.72rem !important;
+            font-size: 2.46rem !important;
           }
         }
         @media (prefers-reduced-motion: reduce) {
