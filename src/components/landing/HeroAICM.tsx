@@ -187,7 +187,7 @@ export function HeroAICM() {
             in your voice, in seconds.
           </p>
 
-          <div className="relative mt-6 h-[245px] overflow-hidden sm:hidden animate-[heroRise_0.9s_0.48s_ease-out_both]">
+          <div className="relative mt-6 h-[245px] max-w-xl overflow-hidden animate-[heroRise_0.9s_0.48s_ease-out_both]">
             <PremiumHeroScene />
           </div>
 
