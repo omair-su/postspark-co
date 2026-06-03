@@ -5,8 +5,8 @@ import { SplineHeroScene } from "@/components/landing/SplineHeroScene";
 
 /**
  * AICM-style hero: light cream BG, huge bold navy headline,
- * 3D ceramic sculpture floating on the right with parallax + slow rotation.
- * No WebGL — pure CSS so it renders everywhere (incl. sandboxed previews).
+ * Native premium 3D PostSpark engine floating on the right with parallax.
+ * No iframe/WebGL — pure React + CSS so it renders everywhere.
  */
 export function HeroAICM() {
   const sculptRef = useRef<HTMLDivElement>(null);
@@ -93,7 +93,7 @@ export function HeroAICM() {
         }}
       />
 
-      {/* 3D Spline scene — anchored on the right, visible on screen */}
+      {/* Native 3D scene — anchored on the right, visible on screen */}
       <div
         ref={sculptRef}
         aria-hidden
