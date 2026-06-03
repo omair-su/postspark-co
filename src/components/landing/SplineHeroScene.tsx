@@ -73,8 +73,8 @@ export function SplineHeroScene() {
             background: "transparent",
             opacity: loaded ? 1 : 0,
           }}
-          allow="autoplay; fullscreen; xr-spatial-tracking"
-          sandbox="allow-scripts allow-same-origin allow-popups"
+          allow="autoplay; fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+          referrerPolicy="no-referrer-when-downgrade"
         />
       )}
     </div>
