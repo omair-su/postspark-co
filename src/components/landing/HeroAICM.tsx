@@ -97,7 +97,7 @@ export function HeroAICM() {
       <div
         ref={sculptRef}
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-full opacity-35 sm:w-[70%] sm:opacity-100 lg:w-[60%] xl:w-[55%]"
+        className="pointer-events-none absolute bottom-0 right-0 top-[33%] z-[2] w-full opacity-45 sm:inset-y-0 sm:w-[70%] sm:opacity-100 lg:w-[60%] xl:w-[55%]"
         style={
           {
             ["--mx" as string]: "0px",
@@ -226,9 +226,9 @@ export function HeroAICM() {
           to   { opacity: 1; transform: translate3d(0, 0, 0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          [class*="animate-[heroSpin"],
-          [class*="animate-[heroFloat"],
-          [class*="animate-[heroRise"] {
+          [class*="animate-\\[heroSpin"],
+          [class*="animate-\\[heroFloat"],
+          [class*="animate-\\[heroRise"] {
             animation: none !important;
           }
         }
