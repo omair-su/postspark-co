@@ -97,7 +97,7 @@ export function HeroAICM() {
       <div
         ref={sculptRef}
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-[2] hidden w-[70%] opacity-100 sm:block lg:w-[60%] xl:w-[55%]"
+        className="pointer-events-none absolute bottom-0 right-[-42%] top-[40%] z-[2] block w-[150%] opacity-45 sm:inset-y-0 sm:right-0 sm:w-[70%] sm:opacity-100 lg:w-[60%] xl:w-[55%]"
         style={
           {
             ["--mx" as string]: "0px",
@@ -202,10 +202,6 @@ export function HeroAICM() {
             >
               See pricing
             </Link>
-          </div>
-
-          <div className="relative z-10 mt-8 h-[330px] overflow-hidden sm:hidden animate-[heroRise_0.9s_0.62s_ease-out_both]">
-            <PremiumHeroScene />
           </div>
 
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] uppercase tracking-[0.18em] text-[#1a1a2e]/80 animate-[heroRise_0.9s_0.7s_ease-out_both]">
