@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Search } from "lucide-react";
 import { useEffect, useRef, type CSSProperties } from "react";
-import { SplineHeroScene } from "@/components/landing/SplineHeroScene";
+import { PremiumHeroScene } from "@/components/landing/PremiumHeroScene";
 
 /**
  * AICM-style hero: light cream BG, huge bold navy headline,
@@ -122,7 +122,7 @@ export function HeroAICM() {
           }}
         />
         <div className="pointer-events-auto absolute inset-0">
-          <SplineHeroScene />
+          <PremiumHeroScene />
         </div>
       </div>
 
