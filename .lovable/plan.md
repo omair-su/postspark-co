@@ -1,93 +1,77 @@
-# Dashboard Premium Polish — Pass 3
+# PostSpark Conversion Rebuild — Execution Plan
 
-Goal: take the dashboard from "dark + glassy" to a true high‑ticket AI console — Linear × Vercel × Arc × Anthropic feel — and propagate that quality through every inner page so nothing breaks the illusion.
+This is a large multi-page rebuild. I'll execute it in 3 shippable phases so you can review progress and we don't ship a half-finished site. Confirm the phasing (or tell me to do it all in one shot) before I start.
 
-## What's working now
-- Dark canvas, floating orbs, glass cards on Home + History
-- Premium pill CTA, sparkline + latency stat, recent outputs strip
-- Sidebar with luxe nav, glass header with ⌘K pill + AI online chip
+## Design System (applied globally)
 
-## What still feels short of "$100k"
-1. **Inner tool pages are inconsistent** — Repurpose, Hook Lab, Image Studio, Carousel, Thumbnail, SEO Blog, Brand Kit, Brand Voice, Calendar, Analytics, Settings still use the old cream/shadcn cards on the new dark canvas. The shell is premium, the rooms inside aren't.
-2. **Sidebar is functional but not iconic** — no active-route halo, group labels are quiet, the brand switcher / user card don't feel collectible.
-3. **Header is static** — no live workspace context (current plan usage, today's generations, sync status, notifications), no global "New" action.
-4. **Home hero lacks signal** — welcome line is generic; missing a real "command bar" (ask-anything input that routes to the right tool) and a live AI status strip (model, region, latency).
-5. **Stat tiles are flat** — numbers without context (vs last week, % of plan, ETA to limit), no micro deltas, no hover detail.
-6. **No "Today" rail** — premium consoles always show today's queue/agenda/streak in one glance.
-7. **Motion is too quiet** — no entrance choreography, no skeleton shimmer matching the dark theme, no subtle parallax on orbs, no number count-ups.
-8. **Empty states are plain** — first-time users see blank lists instead of cinematic onboarding tiles.
-9. **Typography rhythm** — single weight/scale across cards; no editorial display moments, no tabular-nums on metrics consistently.
-10. **Iconography** — generic lucide strokes; premium apps pair icons with subtle gradient discs / duotone treatment.
-11. **Light mode of the dashboard** is unstyled — if a user toggles, it falls back to bare shadcn.
-12. **Loading & error states** are default skeletons / red text — should be themed.
+Add tokens to `src/styles.css`:
+- Colors: white bg, `#0F172A` ink, `#7C3AED` primary, `#A78BFA` light, `#F5F3FF` ultra-light, `#C9A87C` gold, `#64748B` muted, `#E2E8F0` border, `#F8FAFC` section, `#10B981` success.
+- Fonts: Syne (800/600) for headings, Inter (400/700) for body. Loaded via Google Fonts `<link>` in `__root.tsx`.
+- Component classes: `.ps-btn-primary`, `.ps-btn-secondary`, `.ps-card`, `.ps-label`, `.ps-dot-grid`, `.ps-fade-in` (IntersectionObserver-based, single tiny hook `useReveal`).
+- Strip Three.js / framer-motion-heavy hero remnants. No animations except CSS hover + fade-in-on-scroll.
 
-## Plan (UI/presentation only, no business logic)
+## Phase 1 — Homepage rebuild + working hero demo (ship first)
 
-### A. Propagate the luxe shell into every tool page
-For each route under `src/routes/dashboard.*`:
-- Wrap top-level containers in `.ds-card` / `.ds-card-hero` instead of plain `Card`.
-- Replace page H1 blocks with a standardized **PageHeader** component: eyebrow chip + gradient display title + subtitle + right-aligned action slot.
-- Convert primary action buttons to `.ds-cta-pill`; secondary to a new `.ds-cta-ghost` (hairline border, subtle hover glow).
-- Tabs/segmented controls re-skinned with glass background + violet active indicator.
-- Form inputs get a `.ds-input` treatment (dark glass, violet focus ring) — only inside `.dashboard-shell` so light tool surfaces still work where intentional.
+Replace `src/components/landing/HeroAICM.tsx` and rebuild the section composition in `src/routes/index.tsx`.
 
-Routes to touch (presentation only): repurpose, hook-lab, image-studio, carousel, thumbnail, seo-blog, podcast, humanizer, reply-generator, templates, calendar, brand-kit, brand-voice, analytics, agency-analytics, team, referrals, settings.
+New components under `src/components/landing/v2/`:
+1. `Hero.tsx` — two-column (55/45), pain-validated headline, trust row, dot-grid bg.
+2. `HeroDemoWidget.tsx` — **the live demo**. Textarea + 3 toggle chips (Tweet/LinkedIn/Newsletter) + Generate button. Calls the existing `/api/public/demo` endpoint (already wired to Claude). Renders tabs with copy buttons + "Create free account" upsell. Reuses existing rate-limit/IP-hash logic — no backend changes needed.
+3. `SocialProofBar.tsx` — honest version (no fake numbers).
+4. `PainSection.tsx` — red vs green cards.
+5. `WhoFor.tsx` — 2x2 buyer cards linking to segment pages.
+6. `HowItWorks.tsx` — 3 steps + 12-feature grid.
+7. `PricingV2.tsx` — monthly/annual toggle, 3 tiers, "PostSpark replaces" stack.
+8. `FoundingMember.tsx` — replaces all fake testimonials.
+9. `FAQv2.tsx` — 5 accordion Qs.
+10. `FinalCTA.tsx` — deep purple band.
+11. `FooterV2.tsx` — 4-column footer.
 
-### B. Sidebar upgrades (`DashboardLayout.tsx`)
-- Active item gets a left violet bar + soft outer glow + slight icon gradient.
-- Group labels: smaller, brighter, with a thin gradient underline.
-- Brand switcher promoted to a top "workspace pill" with avatar disc + chevron, opening a styled popover.
-- User card at bottom: avatar with violet ring, plan chip (Free/Pro/Agency) inline, "Manage" → settings.
-- Collapsed/mini state for desktop (icon-only) toggled by a header button — saves screen space and signals power-user energy.
+Delete from homepage render: `TestimonialsSection`, `TrustedBySection` fake-number version, `BeforeAfterSection`, `PremiumFeaturesSection`, `LandingDemoSection` (folded into hero), `FeaturedOnBar`, `IntegrationsLogoBar`. Keep old files on disk for now to avoid breaking other routes; only swap what `index.tsx` imports.
 
-### C. Header → Command bar
-- Replace the ⌘K pill with a real centered search/command input (still opens the existing palette).
-- Right side adds: today's usage progress chip (e.g. "12 / 100 this month"), notifications bell with dot, "New" gradient button with dropdown of top 4 actions.
-- "AI online" chip becomes a live status with model name (Claude Sonnet 4.5) and a tiny latency number.
+Update homepage `head()` JSON-LD (Organization + SoftwareApplication + FAQPage with the 5 new Qs).
 
-### D. Home redesign — "Command Center v2" (`dashboard.index.tsx`)
-- **Hero**: greeting + a real **AskBar** ("What do you want to repurpose today?") with smart suggestions chips below that route to the matching tool (Repurpose, Hook Lab, Image, SEO, Carousel).
-- **Today rail** (new): 3 compact tiles — Today's generations, Streak day, Next scheduled post (from calendar) — left-aligned with monospace times.
-- **Stat tiles v2**: each tile shows big number (tabular-nums, count-up on mount) + delta vs last 7 days + a tiny CSS sparkline. Usage tile shows ring progress around the number.
-- **Tool grid**: 6–8 premium tiles (icon disc + gradient hover + shortcut hint) for all major tools instead of just 4.
-- **Recent Outputs**: keep, but add per-row hover actions (copy, open, favorite) and platform badges with brand-tinted glow.
-- **Activity + Streak + Referral**: collapse into a single 3-column "Momentum" row with consistent card chrome.
-- **Empty states**: cinematic illustration tile + 1 primary CTA when a section has no data yet.
+## Phase 2 — Segment pages (8 routes)
 
-### E. Motion & micro-interactions
-- CSS-only entrance: stagger fade/translate on hero → today rail → stats → tools → recent.
-- Number count-ups via small CSS-counter trick or a tiny pure-React hook (no framer-motion, per project rule).
-- Orb parallax: very subtle mouse-follow via CSS variables updated in a passive listener.
-- Skeleton shimmer themed to dark canvas (`linear-gradient` over `.ds-card`).
-- Respect `prefers-reduced-motion` everywhere.
+Shared template: `src/components/segment/SegmentPage.tsx` that takes `{ hero, pains[3], solutions[3], workflow[], faqs[] }` and renders Hero (with `HeroDemoWidget`) → Pains → Solutions → Workflow → PricingV2 → FinalCTA → FooterV2.
 
-### F. Typography & icon system
-- Add `.ds-display` (tight tracking, gradient text) for hero numbers/titles.
-- All metric numbers: `tabular-nums`, weight 600, tracking -0.02em.
-- Wrap lucide icons in `.ds-icon-disc` (10px radius, 1px hairline, inner highlight, optional gradient fill for primary actions).
+New route files (each ~80 lines of config calling `<SegmentPage>`):
+- `src/routes/for.agencies.tsx` (replace existing)
+- `src/routes/for.creators.tsx` (replace existing)
+- `src/routes/use-cases.linkedin-ghostwriters.tsx`
+- `src/routes/use-cases.podcast-to-social.tsx`
+- `src/routes/use-cases.youtube-to-linkedin.tsx`
+- `src/routes/use-cases.content-repurposing-agencies.tsx`
+- `src/routes/alternatives.chatgpt-for-content-repurposing.tsx`
+- `src/routes/alternatives.jasper-vs-postspark.tsx`
 
-### G. Theming hygiene
-- Audit any leftover `text-white`, `bg-black/…` literals in dashboard routes → replace with `.ds-*` utilities or semantic tokens.
-- Add a light-mode variant of `.dashboard-shell` tokens so the theme toggle still produces a polished surface (cream-cream-glass instead of bare shadcn).
-- Themed toast + dialog skins inside the dashboard scope only.
+Each: unique `<title>` ≤60, meta description ≤160, single H1, canonical, OG tags, SoftwareApplication+FAQPage JSON-LD.
 
-### H. Quality bars
-- Visual QA at desktop 1440, tablet 820, mobile 390 for: Home, Repurpose, Image Studio, History, Analytics, Settings.
-- Lighthouse a11y ≥ 95 on the dashboard home (focus rings, contrast on glass surfaces).
+Update `src/routes/sitemap[.]xml.tsx` to include all 8 new URLs + remove dead ones.
 
-## Out of scope (ask if you want them next)
-- New onboarding tour for the redesigned shell
-- Real-time websocket "live activity" feed
-- Dashboard widgets the user can rearrange (drag-to-reorder)
-- New illustrations / custom 3D assets for empty states beyond CSS-only treatments
+## Phase 3 — Navbar, polish, cleanup
 
-## Files this plan will touch (presentation only)
-- `src/styles.css` — new tokens (`.ds-input`, `.ds-cta-ghost`, `.ds-icon-disc`, `.ds-display`, dashboard light tokens, skeleton shimmer, entrance keyframes)
-- `src/components/DashboardLayout.tsx` — sidebar + header upgrades, mini-collapse
-- `src/components/dashboard/PageHeader.tsx` (new) — standardized page header
-- `src/components/dashboard/AskBar.tsx` (new) — hero command input on Home
-- `src/components/dashboard/StatTile.tsx` (new) — reusable premium metric tile
-- `src/components/dashboard/EmptyState.tsx` (new)
-- `src/routes/dashboard.index.tsx` — Command Center v2
-- All `src/routes/dashboard.*.tsx` tool pages — swap to PageHeader + `.ds-card` chrome
-- No server functions, no schema, no business logic changes
+- Rewrite `src/components/Navbar.tsx`: white sticky, Features/How It Works/Pricing/Blog center, "Log In" + "Start Free →" right, mobile hamburger.
+- Verify mobile (360px) — CTAs above fold, no overflow.
+- Run SEO scan, fix any new findings.
+- Delete unused: `PremiumHeroScene`, `LuxuryHero`, `SparkConstellation`, `MagneticCursor`, `HeroSection`, `HeroCompareSlider`, old `TestimonialsSection`, `BeforeAfterSection`.
+
+## Out of scope (confirm if you want these too)
+
+- Building the `/blog` content — only linking to existing blog routes.
+- New imagery / OG image generation (none of the spec required images; safe to leave OG without image per project SEO rules).
+- Backend changes — the existing `/api/public/demo` endpoint already does exactly what the hero widget needs (Claude-powered, 3/day per IP). I'll reuse it.
+- Paddle/pricing logic — only the visual pricing cards change; checkout buttons keep the existing `usePaddleCheckout` flow.
+
+## Technical Details
+
+- All new components are presentation-only; no DB migrations, no new server fns.
+- IntersectionObserver hook in `src/hooks/useReveal.ts` (12 lines, no library).
+- Syne font loaded once in `__root.tsx` head links alongside existing Instrument Serif preconnect.
+- Dot grid via inline CSS gradient, not image.
+- Annual toggle is pure client state; Paddle priceId switch uses existing env vars.
+- Mobile breakpoints: stack at <768px; demo widget moves below hero text on mobile.
+
+## What I need from you
+
+**Approve the 3-phase shipping order**, or say "do it all at once" and I'll ship everything in one large batch (slower to first preview but one review cycle).
