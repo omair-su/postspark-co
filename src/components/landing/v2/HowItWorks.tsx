@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { ArrowRight } from "lucide-react";
 
 const STEPS = [
@@ -37,9 +38,8 @@ export function HowItWorks() {
 
         <div className="mt-12 grid items-stretch gap-6 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
           {STEPS.map((s, i) => (
-            <>
+            <Fragment key={s.n}>
               <div
-                key={s.n}
                 className="rounded-2xl p-6"
                 style={{
                   background: "#FFFFFF",
@@ -64,11 +64,11 @@ export function HowItWorks() {
                 </p>
               </div>
               {i < STEPS.length - 1 && (
-                <div key={`a-${i}`} className="hidden items-center justify-center md:flex">
+                <div className="hidden items-center justify-center md:flex">
                   <ArrowRight className="h-6 w-6" style={{ color: "#A78BFA" }} />
                 </div>
               )}
-            </>
+            </Fragment>
           ))}
         </div>
 
