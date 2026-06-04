@@ -91,7 +91,7 @@ export function PricingV2() {
       return;
     }
     if (!session || !user) {
-      navigate({ to: "/signup", search: { plan: tier.name.toLowerCase(), cycle: annual ? "annual" : "monthly" } as never });
+      navigate({ to: "/signup" });
       return;
     }
     try {
