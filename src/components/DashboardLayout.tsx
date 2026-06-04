@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare, Layers } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare, Layers, PanelLeftClose, PanelLeftOpen, Check } from "lucide-react";
 import { SparkCopilot } from "@/components/SparkCopilot";
 import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import { useEffect, useState, type ReactNode } from "react";
@@ -12,6 +13,7 @@ import { AIProgressBar } from "@/components/AIProgressBar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { CommandPaletteRoot } from "@/components/CommandPalette";
 import { UpgradeNudgeModal } from "@/components/UpgradeNudgeModal";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getMyWorkspace, setActiveBrandKit } from "@/lib/workspace.functions";
 
 const navGroups = [
@@ -71,15 +73,26 @@ const navGroups = [
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { signOut, user, session } = useAuth();
+  const { tier } = useSubscription();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("ps_sidebar_collapsed") === "1";
+  });
+  const [wsOpen, setWsOpen] = useState(false);
   const [ws, setWs] = useState<{
     workspace: { id: string; name: string } | null;
     brandKits: Array<{ id: string; brand_name: string | null }>;
     activeBrandKitId: string | null;
   }>({ workspace: null, brandKits: [], activeBrandKitId: null });
   const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("ps_sidebar_collapsed", collapsed ? "1" : "0");
+  }, [collapsed]);
 
   useEffect(() => {
     if (!session) return;
@@ -106,6 +119,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
     setWs((prev) => ({ ...prev, activeBrandKitId: id }));
+    setWsOpen(false);
     toast.success("Brand switched");
   };
 
@@ -118,14 +132,28 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const avatarUrl = user?.user_metadata?.avatar_url;
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || "User";
   const displayEmail = user?.email || "";
-  const planLabel = (user?.user_metadata?.plan as string) || "";
+  const planLabel = tier === "free" ? "Free" : tier === "pro" ? "Pro" : "Agency";
+  const wsInitial = (ws.workspace?.name || "W").trim().charAt(0).toUpperCase();
+  const activeKit = ws.brandKits.find((k) => k.id === ws.activeBrandKitId);
 
   const sidebar = (
-    <div className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground">
-      <div className="relative flex h-16 shrink-0 items-center justify-between px-4 border-b border-white/5">
-        <div className="ps-sidebar-logo">
-          <PostSparkLogo variant="wordmark" size={32} tone="light" />
+    <div
+      className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground"
+      data-collapsed={collapsed ? "true" : "false"}
+    >
+      <div className="relative flex h-16 shrink-0 items-center justify-between px-3 border-b border-white/5">
+        <div className={collapsed ? "mx-auto" : "ps-sidebar-logo"}>
+          <PostSparkLogo variant={collapsed ? "icon" : "wordmark"} size={collapsed ? 26 : 32} tone="light" />
         </div>
+        <button
+          type="button"
+          className="lux-collapse-btn lux-collapse-hide hidden md:inline-flex"
+          onClick={() => setCollapsed((v) => !v)}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
+        >
+          {collapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+        </button>
         <button
           className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground"
           onClick={() => setSidebarOpen(false)}
@@ -135,26 +163,73 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </button>
       </div>
 
-      {/* Mobile-only brand switcher */}
+      {/* Workspace pill */}
       {ws.workspace && (
-        <div className="md:hidden relative shrink-0 border-b border-white/5 px-3 py-2">
-          <div className="flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs backdrop-blur">
-            <Building2 className="h-3.5 w-3.5 text-[#c4b5fd]" />
-            <span className="truncate font-medium text-sidebar-foreground">{ws.workspace.name}</span>
-            {ws.brandKits.length > 0 && (
-              <select
-                value={ws.activeBrandKitId || ""}
-                onChange={(e) => handleSwitchKit(e.target.value || null)}
-                className="ml-auto bg-transparent text-sidebar-foreground focus:outline-none"
-                title="Active brand"
-              >
-                <option value="" className="text-foreground">All brands</option>
+        <div className="relative shrink-0 px-3 pt-3">
+          {collapsed ? (
+            <button
+              type="button"
+              className="lux-workspace-disc mx-auto"
+              title={ws.workspace.name}
+              onClick={() => setCollapsed(false)}
+              aria-label={`Workspace: ${ws.workspace.name}`}
+            >
+              {wsInitial}
+            </button>
+          ) : (
+            <Popover open={wsOpen} onOpenChange={setWsOpen}>
+              <PopoverTrigger asChild>
+                <button type="button" className="lux-workspace-pill" aria-label="Switch brand">
+                  <span className="lux-workspace-disc">{wsInitial}</span>
+                  <span className="min-w-0 flex-1 text-left">
+                    <span className="block truncate text-[11px] uppercase tracking-[0.14em] text-white/55">Workspace</span>
+                    <span className="block truncate text-[13px] font-semibold text-white">
+                      {activeKit?.brand_name || ws.workspace.name}
+                    </span>
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-white/60" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="lux-popover w-64 p-2" align="start" sideOffset={8}>
+                <p className="px-2 pt-1 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
+                  {ws.workspace.name} · Brands
+                </p>
+                <button
+                  type="button"
+                  className="lux-popover-item w-full"
+                  data-active={!ws.activeBrandKitId}
+                  onClick={() => handleSwitchKit(null)}
+                >
+                  <Building2 className="h-3.5 w-3.5 text-[#c4b5fd]" />
+                  <span className="flex-1 text-left">All brands</span>
+                  {!ws.activeBrandKitId && <Check className="h-3.5 w-3.5 text-[#c4b5fd]" />}
+                </button>
                 {ws.brandKits.map((k) => (
-                  <option key={k.id} value={k.id} className="text-foreground">{k.brand_name || "Unnamed"}</option>
+                  <button
+                    key={k.id}
+                    type="button"
+                    className="lux-popover-item w-full"
+                    data-active={ws.activeBrandKitId === k.id}
+                    onClick={() => handleSwitchKit(k.id)}
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-[#fbcfe8]" />
+                    <span className="flex-1 text-left truncate">{k.brand_name || "Unnamed"}</span>
+                    {ws.activeBrandKitId === k.id && <Check className="h-3.5 w-3.5 text-[#c4b5fd]" />}
+                  </button>
                 ))}
-              </select>
-            )}
-          </div>
+                <div className="mt-1 border-t border-white/5 pt-1">
+                  <Link
+                    to="/dashboard/brand-kit"
+                    onClick={() => setWsOpen(false)}
+                    className="lux-popover-item"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-[#fbcfe8]" />
+                    <span>Manage brand kits</span>
+                  </Link>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       )}
 
@@ -168,9 +243,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               } as const]
             : []),
         ].map((group, gi) => (
-          <div key={group.label} className={gi === 0 ? "" : "mt-5"}>
+          <div key={group.label} className={gi === 0 ? "" : collapsed ? "lux-group-spacer mt-3" : "mt-5"}>
             {gi !== 0 && (
-              <p className="lux-group-label px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em]">
+              <p className="lux-group-label px-3 pb-2 text-[10px] uppercase tracking-[0.2em]">
                 {group.label}
               </p>
             )}
@@ -183,12 +258,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     to={item.to}
                     search={item.search}
                     onClick={() => setSidebarOpen(false)}
+                    title={collapsed ? item.label : undefined}
                     className={`lux-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
                       active ? "lux-nav-active" : "text-sidebar-foreground/65"
                     }`}
                   >
-                    <item.icon className="lux-nav-icon h-4 w-4" />
-                    {item.label}
+                    <item.icon className="lux-nav-icon h-4 w-4 shrink-0" />
+                    <span className="lux-collapse-hide truncate">{item.label}</span>
                   </Link>
                 );
               })}
@@ -198,51 +274,53 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </nav>
 
       <div className="relative shrink-0 border-t border-white/5 p-3">
-        {/* User info */}
         <div className="ds-user-card mb-3 flex items-center gap-3 px-3 py-2.5">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover ring-2 ring-[#a78bfa]/55" />
+            <img src={avatarUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-[#a78bfa]/60 shadow-[0_0_14px_-4px_rgba(167,139,250,0.7)]" />
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#ec4899] via-[#a855f7] to-[#7c3aed] ring-2 ring-[#a78bfa]/55">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ec4899] via-[#a855f7] to-[#7c3aed] ring-2 ring-[#a78bfa]/60 shadow-[0_0_14px_-4px_rgba(167,139,250,0.7)]">
               <User className="h-4 w-4 text-white" />
             </div>
           )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-medium text-sidebar-foreground">{displayName}</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              {planLabel ? (
-                <span className="ds-plan-chip">{planLabel}</span>
-              ) : (
-                <span className="ds-plan-chip" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", borderColor: "rgba(255,255,255,0.1)" }}>Free</span>
-              )}
-              <p className="truncate text-[10px] text-sidebar-foreground/50">{displayEmail}</p>
+          <div className="lux-collapse-hide min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-xs font-semibold text-sidebar-foreground">{displayName}</p>
+              <span className="ds-plan-chip">{planLabel}</span>
             </div>
+            <p className="truncate text-[10px] text-sidebar-foreground/55 mt-0.5">{displayEmail}</p>
           </div>
+          <Link
+            to="/dashboard/settings"
+            onClick={() => setSidebarOpen(false)}
+            className="lux-collapse-hide ml-auto rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium text-white/75 hover:text-white hover:bg-white/10 transition"
+            title="Manage account"
+          >
+            Manage
+          </Link>
         </div>
 
         <button
           onClick={handleSignOut}
+          title={collapsed ? "Sign out" : undefined}
           className="lux-nav-item flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/65"
         >
-          <LogOut className="lux-nav-icon h-4 w-4" />
-          Sign Out
+          <LogOut className="lux-nav-icon h-4 w-4 shrink-0" />
+          <span className="lux-collapse-hide">Sign Out</span>
         </button>
       </div>
     </div>
   );
 
-
+  const desktopWidthClass = collapsed ? "w-16" : "w-56";
 
   return (
     <div className="dashboard-shell flex h-screen" style={{ background: "var(--ds-bg)" }}>
-      {/* Desktop sidebar */}
-      <aside className="hidden w-56 flex-shrink-0 md:block">{sidebar}</aside>
+      <aside className={`hidden flex-shrink-0 md:block transition-[width] duration-300 ease-out ${desktopWidthClass}`}>{sidebar}</aside>
 
-      {/* Mobile sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-56 h-full">{sidebar}</div>
+          <div className="relative w-64 h-full">{sidebar}</div>
         </div>
       )}
 
@@ -273,32 +351,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <span className="ds-chip hidden sm:inline-flex">
               <span className="ds-status-dot" aria-hidden /> AI online
             </span>
-            {planLabel && (
-              <span className="ds-chip ds-chip-accent hidden sm:inline-flex capitalize">{planLabel}</span>
-            )}
-            {ws.workspace && (
-              <div className="ds-chip hidden md:inline-flex">
-                <Building2 className="h-3 w-3 text-[#c4b5fd]" />
-                <span className="font-medium">{ws.workspace.name}</span>
-                {ws.brandKits.length > 0 && (
-                  <>
-                    <span className="text-white/30">·</span>
-                    <select
-                      value={ws.activeBrandKitId || ""}
-                      onChange={(e) => handleSwitchKit(e.target.value || null)}
-                      className="bg-transparent text-white focus:outline-none"
-                      title="Active brand"
-                    >
-                      <option value="" className="text-foreground">All brands</option>
-                      {ws.brandKits.map((k) => (
-                        <option key={k.id} value={k.id} className="text-foreground">{k.brand_name || "Unnamed"}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="h-3 w-3 text-white/50" />
-                  </>
-                )}
-              </div>
-            )}
+            <span className="ds-chip ds-chip-accent hidden sm:inline-flex capitalize">{planLabel}</span>
             <Link to="/dashboard/repurpose" className="ds-cta-pill !py-1.5 !px-3 !text-[12px] hidden sm:inline-flex">
               <Sparkles className="h-3.5 w-3.5" /> New
             </Link>
