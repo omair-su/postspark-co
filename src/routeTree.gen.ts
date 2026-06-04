@@ -29,6 +29,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as UseCasesYoutubeToLinkedinRouteImport } from './routes/use-cases.youtube-to-linkedin'
+import { Route as UseCasesPodcastToSocialRouteImport } from './routes/use-cases.podcast-to-social'
+import { Route as UseCasesLinkedinGhostwritersRouteImport } from './routes/use-cases.linkedin-ghostwriters'
+import { Route as UseCasesContentRepurposingAgenciesRouteImport } from './routes/use-cases.content-repurposing-agencies'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as ToolsYoutubeToTwitterThreadRouteImport } from './routes/tools.youtube-to-twitter-thread'
 import { Route as ToolsPodcastToNewsletterRouteImport } from './routes/tools.podcast-to-newsletter'
@@ -73,6 +77,8 @@ import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AlternativesJasperVsPostsparkRouteImport } from './routes/alternatives.jasper-vs-postspark'
+import { Route as AlternativesChatgptForContentRepurposingRouteImport } from './routes/alternatives.chatgpt-for-content-repurposing'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
@@ -188,6 +194,29 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UseCasesYoutubeToLinkedinRoute =
+  UseCasesYoutubeToLinkedinRouteImport.update({
+    id: '/use-cases/youtube-to-linkedin',
+    path: '/use-cases/youtube-to-linkedin',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const UseCasesPodcastToSocialRoute = UseCasesPodcastToSocialRouteImport.update({
+  id: '/use-cases/podcast-to-social',
+  path: '/use-cases/podcast-to-social',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UseCasesLinkedinGhostwritersRoute =
+  UseCasesLinkedinGhostwritersRouteImport.update({
+    id: '/use-cases/linkedin-ghostwriters',
+    path: '/use-cases/linkedin-ghostwriters',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const UseCasesContentRepurposingAgenciesRoute =
+  UseCasesContentRepurposingAgenciesRouteImport.update({
+    id: '/use-cases/content-repurposing-agencies',
+    path: '/use-cases/content-repurposing-agencies',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const UHandleRoute = UHandleRouteImport.update({
   id: '/u/$handle',
   path: '/u/$handle',
@@ -415,6 +444,18 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlternativesJasperVsPostsparkRoute =
+  AlternativesJasperVsPostsparkRouteImport.update({
+    id: '/alternatives/jasper-vs-postspark',
+    path: '/alternatives/jasper-vs-postspark',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AlternativesChatgptForContentRepurposingRoute =
+  AlternativesChatgptForContentRepurposingRouteImport.update({
+    id: '/alternatives/chatgpt-for-content-repurposing',
+    path: '/alternatives/chatgpt-for-content-repurposing',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -509,6 +550,8 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
+  '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -553,6 +596,10 @@ export interface FileRoutesByFullPath {
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
+  '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
+  '/use-cases/linkedin-ghostwriters': typeof UseCasesLinkedinGhostwritersRoute
+  '/use-cases/podcast-to-social': typeof UseCasesPodcastToSocialRoute
+  '/use-cases/youtube-to-linkedin': typeof UseCasesYoutubeToLinkedinRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
@@ -588,6 +635,8 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
+  '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -632,6 +681,10 @@ export interface FileRoutesByTo {
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
+  '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
+  '/use-cases/linkedin-ghostwriters': typeof UseCasesLinkedinGhostwritersRoute
+  '/use-cases/podcast-to-social': typeof UseCasesPodcastToSocialRoute
+  '/use-cases/youtube-to-linkedin': typeof UseCasesYoutubeToLinkedinRoute
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
@@ -669,6 +722,8 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
+  '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -713,6 +768,10 @@ export interface FileRoutesById {
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
+  '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
+  '/use-cases/linkedin-ghostwriters': typeof UseCasesLinkedinGhostwritersRoute
+  '/use-cases/podcast-to-social': typeof UseCasesPodcastToSocialRoute
+  '/use-cases/youtube-to-linkedin': typeof UseCasesYoutubeToLinkedinRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
@@ -751,6 +810,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/alternatives/chatgpt-for-content-repurposing'
+    | '/alternatives/jasper-vs-postspark'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -795,6 +856,10 @@ export interface FileRouteTypes {
     | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
+    | '/use-cases/content-repurposing-agencies'
+    | '/use-cases/linkedin-ghostwriters'
+    | '/use-cases/podcast-to-social'
+    | '/use-cases/youtube-to-linkedin'
     | '/blog/'
     | '/dashboard/'
     | '/gallery/'
@@ -830,6 +895,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/alternatives/chatgpt-for-content-repurposing'
+    | '/alternatives/jasper-vs-postspark'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -874,6 +941,10 @@ export interface FileRouteTypes {
     | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
+    | '/use-cases/content-repurposing-agencies'
+    | '/use-cases/linkedin-ghostwriters'
+    | '/use-cases/podcast-to-social'
+    | '/use-cases/youtube-to-linkedin'
     | '/blog'
     | '/dashboard'
     | '/gallery'
@@ -910,6 +981,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/alternatives/chatgpt-for-content-repurposing'
+    | '/alternatives/jasper-vs-postspark'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -954,6 +1027,10 @@ export interface FileRouteTypes {
     | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
+    | '/use-cases/content-repurposing-agencies'
+    | '/use-cases/linkedin-ghostwriters'
+    | '/use-cases/podcast-to-social'
+    | '/use-cases/youtube-to-linkedin'
     | '/blog/'
     | '/dashboard/'
     | '/gallery/'
@@ -991,6 +1068,8 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  AlternativesChatgptForContentRepurposingRoute: typeof AlternativesChatgptForContentRepurposingRoute
+  AlternativesJasperVsPostsparkRoute: typeof AlternativesJasperVsPostsparkRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
@@ -1012,6 +1091,10 @@ export interface RootRouteChildren {
   ToolsPodcastToNewsletterRoute: typeof ToolsPodcastToNewsletterRoute
   ToolsYoutubeToTwitterThreadRoute: typeof ToolsYoutubeToTwitterThreadRoute
   UHandleRoute: typeof UHandleRoute
+  UseCasesContentRepurposingAgenciesRoute: typeof UseCasesContentRepurposingAgenciesRoute
+  UseCasesLinkedinGhostwritersRoute: typeof UseCasesLinkedinGhostwritersRoute
+  UseCasesPodcastToSocialRoute: typeof UseCasesPodcastToSocialRoute
+  UseCasesYoutubeToLinkedinRoute: typeof UseCasesYoutubeToLinkedinRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
   ApiPublicDemoRoute: typeof ApiPublicDemoRoute
@@ -1170,6 +1253,34 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog/'
       preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/youtube-to-linkedin': {
+      id: '/use-cases/youtube-to-linkedin'
+      path: '/use-cases/youtube-to-linkedin'
+      fullPath: '/use-cases/youtube-to-linkedin'
+      preLoaderRoute: typeof UseCasesYoutubeToLinkedinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/podcast-to-social': {
+      id: '/use-cases/podcast-to-social'
+      path: '/use-cases/podcast-to-social'
+      fullPath: '/use-cases/podcast-to-social'
+      preLoaderRoute: typeof UseCasesPodcastToSocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/linkedin-ghostwriters': {
+      id: '/use-cases/linkedin-ghostwriters'
+      path: '/use-cases/linkedin-ghostwriters'
+      fullPath: '/use-cases/linkedin-ghostwriters'
+      preLoaderRoute: typeof UseCasesLinkedinGhostwritersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/content-repurposing-agencies': {
+      id: '/use-cases/content-repurposing-agencies'
+      path: '/use-cases/content-repurposing-agencies'
+      fullPath: '/use-cases/content-repurposing-agencies'
+      preLoaderRoute: typeof UseCasesContentRepurposingAgenciesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/u/$handle': {
@@ -1480,6 +1591,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alternatives/jasper-vs-postspark': {
+      id: '/alternatives/jasper-vs-postspark'
+      path: '/alternatives/jasper-vs-postspark'
+      fullPath: '/alternatives/jasper-vs-postspark'
+      preLoaderRoute: typeof AlternativesJasperVsPostsparkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alternatives/chatgpt-for-content-repurposing': {
+      id: '/alternatives/chatgpt-for-content-repurposing'
+      path: '/alternatives/chatgpt-for-content-repurposing'
+      fullPath: '/alternatives/chatgpt-for-content-repurposing'
+      preLoaderRoute: typeof AlternativesChatgptForContentRepurposingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
       path: '/lovable/email/suppression'
@@ -1657,6 +1782,9 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  AlternativesChatgptForContentRepurposingRoute:
+    AlternativesChatgptForContentRepurposingRoute,
+  AlternativesJasperVsPostsparkRoute: AlternativesJasperVsPostsparkRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
@@ -1678,6 +1806,11 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsPodcastToNewsletterRoute: ToolsPodcastToNewsletterRoute,
   ToolsYoutubeToTwitterThreadRoute: ToolsYoutubeToTwitterThreadRoute,
   UHandleRoute: UHandleRoute,
+  UseCasesContentRepurposingAgenciesRoute:
+    UseCasesContentRepurposingAgenciesRoute,
+  UseCasesLinkedinGhostwritersRoute: UseCasesLinkedinGhostwritersRoute,
+  UseCasesPodcastToSocialRoute: UseCasesPodcastToSocialRoute,
+  UseCasesYoutubeToLinkedinRoute: UseCasesYoutubeToLinkedinRoute,
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
   ApiPublicDemoRoute: ApiPublicDemoRoute,
