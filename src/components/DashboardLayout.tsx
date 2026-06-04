@@ -143,7 +143,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     >
       <div className="relative flex h-16 shrink-0 items-center justify-between px-3 border-b border-white/5">
         <div className={collapsed ? "mx-auto" : "ps-sidebar-logo"}>
-          <PostSparkLogo variant={collapsed ? "mark" : "wordmark"} size={collapsed ? 26 : 32} tone="light" />
+          <PostSparkLogo variant={collapsed ? "icon" : "wordmark"} size={collapsed ? 26 : 32} tone="light" />
         </div>
         <button
           type="button"
