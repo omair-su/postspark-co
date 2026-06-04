@@ -45,6 +45,7 @@ function PricingPage() {
       <Navbar />
       <Suspense fallback={null}>
         <div className="pt-20">
+          <h1 className="sr-only">PostSpark Pricing Plans — Free, Pro, and Agency</h1>
           <PricingSection />
           <FAQSection />
           <Footer />
