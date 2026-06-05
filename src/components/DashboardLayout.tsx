@@ -137,23 +137,25 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const wsInitial = (ws.workspace?.name || "W").trim().charAt(0).toUpperCase();
   const activeKit = ws.brandKits.find((k) => k.id === ws.activeBrandKitId);
 
-  const sidebar = (
+  const renderSidebar = (forceExpanded: boolean = false) => {
+    const isCollapsed = collapsed && !forceExpanded;
+    return (
     <div
       className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground"
-      data-collapsed={collapsed ? "true" : "false"}
+      data-collapsed={isCollapsed ? "true" : "false"}
     >
       <div className="relative flex h-16 shrink-0 items-center justify-between px-3 border-b border-white/5">
-        <div className={collapsed ? "mx-auto" : "ps-sidebar-logo"}>
-          <PostSparkLogo variant={collapsed ? "icon" : "wordmark"} size={collapsed ? 26 : 32} tone="light" />
+        <div className={isCollapsed ? "mx-auto ps-sidebar-logo" : "ps-sidebar-logo"}>
+          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 28 : 32} tone="light" />
         </div>
         <button
           type="button"
           className="lux-collapse-btn lux-collapse-hide hidden md:inline-flex"
           onClick={() => setCollapsed((v) => !v)}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={isCollapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
         >
-          {collapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+          {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
         </button>
         <button
           className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground"
@@ -167,7 +169,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Workspace pill */}
       {ws.workspace && (
         <div className="relative shrink-0 px-3 pt-3">
-          {collapsed ? (
+          {isCollapsed ? (
             <button
               type="button"
               className="lux-workspace-disc mx-auto"
@@ -244,7 +246,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               } as const]
             : []),
         ].map((group, gi) => (
-          <div key={group.label} className={gi === 0 ? "" : collapsed ? "lux-group-spacer mt-3" : "mt-5"}>
+          <div key={group.label} className={gi === 0 ? "" : isCollapsed ? "lux-group-spacer mt-3" : "mt-5"}>
             {gi !== 0 && (
               <p className="lux-group-label px-3 pb-2 text-[10px] uppercase tracking-[0.2em]">
                 {group.label}
@@ -259,7 +261,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     to={item.to}
                     search={item.search}
                     onClick={() => setSidebarOpen(false)}
-                    title={collapsed ? item.label : undefined}
+                    title={isCollapsed ? item.label : undefined}
                     className={`lux-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
                       active ? "lux-nav-active" : "text-sidebar-foreground/65"
                     }`}
@@ -302,7 +304,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         <button
           onClick={handleSignOut}
-          title={collapsed ? "Sign out" : undefined}
+          title={isCollapsed ? "Sign out" : undefined}
           className="lux-nav-item flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/65"
         >
           <LogOut className="lux-nav-icon h-4 w-4 shrink-0" />
@@ -310,20 +312,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </button>
       </div>
     </div>
-  );
+    );
+  };
 
   const desktopWidthClass = collapsed ? "w-16" : "w-56";
 
   return (
     <div className="dashboard-shell flex h-screen" style={{ background: "var(--ds-bg)" }}>
-      <aside className={`hidden flex-shrink-0 md:block transition-[width] duration-300 ease-out ${desktopWidthClass}`}>{sidebar}</aside>
+      <aside className={`hidden flex-shrink-0 md:block transition-[width] duration-300 ease-out ${desktopWidthClass}`}>{renderSidebar(false)}</aside>
 
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-64 h-full">{sidebar}</div>
+          <div className="relative w-64 h-full">{renderSidebar(true)}</div>
         </div>
       )}
+
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="ds-header relative z-20 flex h-14 items-center justify-between gap-3 px-4">
