@@ -137,21 +137,23 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const wsInitial = (ws.workspace?.name || "W").trim().charAt(0).toUpperCase();
   const activeKit = ws.brandKits.find((k) => k.id === ws.activeBrandKitId);
 
-  const sidebar = (
+  const renderSidebar = (forceExpanded: boolean = false) => {
+    const isCollapsed = collapsed && !forceExpanded;
+    return (
     <div
       className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground"
-      data-collapsed={collapsed ? "true" : "false"}
+      data-collapsed={isCollapsed ? "true" : "false"}
     >
       <div className="relative flex h-16 shrink-0 items-center justify-between px-3 border-b border-white/5">
-        <div className={collapsed ? "mx-auto" : "ps-sidebar-logo"}>
-          <PostSparkLogo variant={collapsed ? "icon" : "wordmark"} size={collapsed ? 26 : 32} tone="light" />
+        <div className={isCollapsed ? "mx-auto ps-sidebar-logo" : "ps-sidebar-logo"}>
+          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 28 : 32} tone="light" />
         </div>
         <button
           type="button"
           className="lux-collapse-btn lux-collapse-hide hidden md:inline-flex"
           onClick={() => setCollapsed((v) => !v)}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={isCollapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
         >
           {collapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
         </button>
