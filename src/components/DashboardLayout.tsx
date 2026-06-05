@@ -328,7 +328,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="ds-header relative z-20 flex h-14 items-center justify-between gap-3 px-4">
           <button
-            className="md:hidden text-white/80 hover:text-white"
+            className="md:hidden text-slate-700 hover:text-slate-900"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
           >
