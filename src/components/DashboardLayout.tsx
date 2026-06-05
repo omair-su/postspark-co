@@ -282,14 +282,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             )}
             <div className="space-y-0.5">
               {group.items.map((item: any) => {
-                const active = location.pathname === item.to && !item.search;
-                return (
+                const isDashboardHome = item.to === "/dashboard" && !item.search;
+                const pathMatch = isDashboardHome
+                  ? location.pathname === "/dashboard"
+                  : location.pathname === item.to || location.pathname.startsWith(item.to + "/");
+                const active = pathMatch && !item.search;
+                const link = (
                   <Link
                     key={item.to + (item.label || "")}
                     to={item.to}
                     search={item.search}
                     onClick={() => setSidebarOpen(false)}
-                    title={isCollapsed ? item.label : undefined}
+                    aria-current={active ? "page" : undefined}
                     className={`lux-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
                       active ? "lux-nav-active" : "text-sidebar-foreground/65"
                     }`}
@@ -298,8 +302,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     <span className="lux-collapse-hide truncate">{item.label}</span>
                   </Link>
                 );
+                if (isCollapsed) {
+                  return (
+                    <Tooltip key={item.to + (item.label || "")} delayDuration={120}>
+                      <TooltipTrigger asChild>{link}</TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={10} className="lux-tooltip">
+                        {item.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+                return link;
               })}
             </div>
+
           </div>
         ))}
       </nav>
