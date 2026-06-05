@@ -16,7 +16,7 @@ export function PainSection() {
         </p>
         <h2
           className="mt-3 max-w-3xl text-3xl sm:text-4xl md:text-[44px]"
-          style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif", fontWeight: 800, lineHeight: 1.1 }}
+          style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
         >
           You Create Great Content.
           <br />
@@ -33,7 +33,7 @@ export function PainSection() {
               borderLeftWidth: 4,
             }}
           >
-            <h3 className="text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+            <h3 className="text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
               😩 The Manual Way
             </h3>
             <ul className="mt-4 space-y-2">
@@ -58,7 +58,7 @@ export function PainSection() {
               borderLeftWidth: 4,
             }}
           >
-            <h3 className="text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+            <h3 className="text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
               ⚡ The PostSpark Way
             </h3>
             <ul className="mt-4 space-y-2">

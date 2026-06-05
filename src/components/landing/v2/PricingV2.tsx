@@ -115,7 +115,7 @@ export function PricingV2() {
           </p>
           <h2
             className="mt-3 text-3xl sm:text-4xl md:text-[44px]"
-            style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif", fontWeight: 800, lineHeight: 1.1 }}
+            style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
           >
             Simple Pricing. Real Value.
           </h2>
@@ -172,14 +172,14 @@ export function PricingV2() {
                     Most Popular
                   </span>
                 )}
-                <h3 className="text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+                <h3 className="text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                   {t.name}
                 </h3>
                 <p className="mt-1 text-sm" style={{ color: "#64748B" }}>
                   {t.desc}
                 </p>
                 <div className="mt-5 flex items-baseline gap-1">
-                  <span className="text-5xl font-extrabold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+                  <span className="text-5xl font-extrabold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                     ${price}
                   </span>
                   <span className="text-sm" style={{ color: "#64748B" }}>
