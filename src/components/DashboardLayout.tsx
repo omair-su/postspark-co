@@ -96,6 +96,25 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     window.localStorage.setItem("ps_sidebar_collapsed", collapsed ? "1" : "0");
   }, [collapsed]);
 
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+    setWsOpen(false);
+  }, [location.pathname]);
+
+  // Keyboard shortcut ⌘\ to toggle collapse
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
+        e.preventDefault();
+        setCollapsed((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   useEffect(() => {
     if (!session) return;
     isCurrentUserAdmin({ headers: { Authorization: `Bearer ${session.access_token}` } })
