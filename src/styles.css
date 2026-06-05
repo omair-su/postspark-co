@@ -444,28 +444,31 @@
   border-bottom: 1px solid color-mix(in oklab, var(--border) 85%, var(--electric) 6%);
 }
 
-/* ── Luxe sidebar — deep navy with purple/amber ambient glow ─────── */
+/* ── Luxe sidebar — premium deep violet to match landing footer ─── */
 .lux-sidebar {
   position: relative;
   background:
-    radial-gradient(600px 320px at 0% -10%, rgba(124,58,237,0.32), transparent 60%),
-    radial-gradient(500px 380px at 100% 110%, rgba(232,154,90,0.14), transparent 65%),
-    linear-gradient(180deg, oklch(0.16 0.04 270) 0%, oklch(0.13 0.04 272) 55%, oklch(0.11 0.04 274) 100%);
+    radial-gradient(520px 320px at 0% -10%, rgba(167,139,250,0.22), transparent 65%),
+    radial-gradient(420px 360px at 100% 110%, rgba(236,72,153,0.10), transparent 65%),
+    linear-gradient(180deg, #1B1530 0%, #16122A 55%, #0F0B22 100%);
+  color: #E8E6F2;
   box-shadow:
-    inset -1px 0 0 rgba(255,255,255,0.04),
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    8px 0 40px -20px rgba(0,0,0,0.55);
+    inset -1px 0 0 rgba(255,255,255,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    8px 0 40px -22px rgba(15,11,34,0.7);
 }
 .lux-sidebar::before {
   content: "";
   position: absolute; inset: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.04; mix-blend-mode: overlay;
+  background-image: radial-gradient(circle, rgba(167,139,250,0.10) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.5;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%);
 }
 .lux-sidebar::after {
   content: "";
   position: absolute; top: 0; right: 0; bottom: 0; width: 1px; pointer-events: none;
-  background: linear-gradient(180deg, transparent, rgba(167,139,250,0.35) 30%, rgba(232,154,90,0.18) 70%, transparent);
+  background: linear-gradient(180deg, transparent, rgba(167,139,250,0.45) 30%, rgba(236,72,153,0.20) 70%, transparent);
 }
 .lux-nav-item {
   position: relative;
