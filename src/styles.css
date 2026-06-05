@@ -1096,3 +1096,41 @@
   .ds-fade-up,
   .ds-fade-up-1, .ds-fade-up-2, .ds-fade-up-3, .ds-fade-up-4, .ds-fade-up-5, .ds-fade-up-6 { animation: none !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   Dashboard canvas: remap legacy white-on-dark Tailwind utilities to
+   dark-on-white palette. Sidebar uses .lux-sidebar (not scoped here).
+   ════════════════════════════════════════════════════════════════════ */
+.ds-canvas .text-white,
+.ds-canvas .text-white\/95,
+.ds-canvas .text-white\/90 { color: var(--ds-text) !important; }
+
+.ds-canvas .text-white\/80,
+.ds-canvas .text-white\/75,
+.ds-canvas .text-white\/70,
+.ds-canvas .text-white\/65,
+.ds-canvas .text-white\/60,
+.ds-canvas .text-white\/55,
+.ds-canvas .text-white\/50 { color: var(--ds-muted) !important; }
+
+.ds-canvas .text-white\/45,
+.ds-canvas .text-white\/40,
+.ds-canvas .text-white\/30,
+.ds-canvas .text-white\/25,
+.ds-canvas .text-white\/20,
+.ds-canvas .text-white\/15,
+.ds-canvas .text-white\/10 { color: #94A3B8 !important; }
+
+.ds-canvas .border-white\/20,
+.ds-canvas .border-white\/15,
+.ds-canvas .border-white\/10,
+.ds-canvas .border-white\/5 { border-color: var(--ds-border) !important; }
+
+.ds-canvas [class*="bg-white\/\["] { background-color: #FAFAFB !important; }
+.ds-canvas .bg-white\/5,
+.ds-canvas .bg-white\/10 { background-color: #F8FAFC !important; }
+
+/* Hover variants */
+.ds-canvas .hover\:bg-white\/5:hover,
+.ds-canvas .hover\:bg-white\/10:hover { background-color: #F5F3FF !important; }
+.ds-canvas .hover\:border-\[\#a78bfa\]\/40:hover { border-color: var(--ds-border-strong) !important; }
