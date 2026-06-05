@@ -23,6 +23,7 @@ const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string 
   { path: "/tools/blog-to-linkedin-carousel", priority: "0.8", changefreq: "monthly" },
   { path: "/tools/podcast-to-newsletter", priority: "0.8", changefreq: "monthly" },
   { path: "/tools/newsletter-to-social", priority: "0.8", changefreq: "monthly" },
+  { path: "/tools/linkedin-video-downloader", priority: "0.85", changefreq: "monthly" },
   { path: "/use-cases/linkedin-ghostwriters", priority: "0.85", changefreq: "monthly" },
   { path: "/use-cases/podcast-to-social", priority: "0.85", changefreq: "monthly" },
   { path: "/use-cases/youtube-to-linkedin", priority: "0.85", changefreq: "monthly" },

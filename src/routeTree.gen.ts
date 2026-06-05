@@ -37,6 +37,7 @@ import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as ToolsYoutubeToTwitterThreadRouteImport } from './routes/tools.youtube-to-twitter-thread'
 import { Route as ToolsPodcastToNewsletterRouteImport } from './routes/tools.podcast-to-newsletter'
 import { Route as ToolsNewsletterToSocialRouteImport } from './routes/tools.newsletter-to-social'
+import { Route as ToolsLinkedinVideoDownloaderRouteImport } from './routes/tools.linkedin-video-downloader'
 import { Route as ToolsBlogToLinkedinCarouselRouteImport } from './routes/tools.blog-to-linkedin-carousel'
 import { Route as TemplatesGalleryRouteImport } from './routes/templates.gallery'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
@@ -239,6 +240,12 @@ const ToolsNewsletterToSocialRoute = ToolsNewsletterToSocialRouteImport.update({
   path: '/tools/newsletter-to-social',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsLinkedinVideoDownloaderRoute =
+  ToolsLinkedinVideoDownloaderRouteImport.update({
+    id: '/tools/linkedin-video-downloader',
+    path: '/tools/linkedin-video-downloader',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ToolsBlogToLinkedinCarouselRoute =
   ToolsBlogToLinkedinCarouselRouteImport.update({
     id: '/tools/blog-to-linkedin-carousel',
@@ -592,6 +599,7 @@ export interface FileRoutesByFullPath {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/linkedin-video-downloader': typeof ToolsLinkedinVideoDownloaderRoute
   '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
@@ -677,6 +685,7 @@ export interface FileRoutesByTo {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/linkedin-video-downloader': typeof ToolsLinkedinVideoDownloaderRoute
   '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
@@ -764,6 +773,7 @@ export interface FileRoutesById {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/linkedin-video-downloader': typeof ToolsLinkedinVideoDownloaderRoute
   '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
@@ -852,6 +862,7 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/templates/gallery'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/linkedin-video-downloader'
     | '/tools/newsletter-to-social'
     | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
@@ -937,6 +948,7 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/templates/gallery'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/linkedin-video-downloader'
     | '/tools/newsletter-to-social'
     | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
@@ -1023,6 +1035,7 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/templates/gallery'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/linkedin-video-downloader'
     | '/tools/newsletter-to-social'
     | '/tools/podcast-to-newsletter'
     | '/tools/youtube-to-twitter-thread'
@@ -1087,6 +1100,7 @@ export interface RootRouteChildren {
   TemplatesSlugRoute: typeof TemplatesSlugRoute
   TemplatesGalleryRoute: typeof TemplatesGalleryRoute
   ToolsBlogToLinkedinCarouselRoute: typeof ToolsBlogToLinkedinCarouselRoute
+  ToolsLinkedinVideoDownloaderRoute: typeof ToolsLinkedinVideoDownloaderRoute
   ToolsNewsletterToSocialRoute: typeof ToolsNewsletterToSocialRoute
   ToolsPodcastToNewsletterRoute: typeof ToolsPodcastToNewsletterRoute
   ToolsYoutubeToTwitterThreadRoute: typeof ToolsYoutubeToTwitterThreadRoute
@@ -1309,6 +1323,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/newsletter-to-social'
       fullPath: '/tools/newsletter-to-social'
       preLoaderRoute: typeof ToolsNewsletterToSocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/linkedin-video-downloader': {
+      id: '/tools/linkedin-video-downloader'
+      path: '/tools/linkedin-video-downloader'
+      fullPath: '/tools/linkedin-video-downloader'
+      preLoaderRoute: typeof ToolsLinkedinVideoDownloaderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/blog-to-linkedin-carousel': {
@@ -1802,6 +1823,7 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesSlugRoute: TemplatesSlugRoute,
   TemplatesGalleryRoute: TemplatesGalleryRoute,
   ToolsBlogToLinkedinCarouselRoute: ToolsBlogToLinkedinCarouselRoute,
+  ToolsLinkedinVideoDownloaderRoute: ToolsLinkedinVideoDownloaderRoute,
   ToolsNewsletterToSocialRoute: ToolsNewsletterToSocialRoute,
   ToolsPodcastToNewsletterRoute: ToolsPodcastToNewsletterRoute,
   ToolsYoutubeToTwitterThreadRoute: ToolsYoutubeToTwitterThreadRoute,
