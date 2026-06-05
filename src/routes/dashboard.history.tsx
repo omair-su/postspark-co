@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck, Trash2 } from "lucide-react";
+import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck, Trash2, RefreshCw } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toggleFavorite, bulkDeleteJobs } from "@/lib/repurpose.functions";
