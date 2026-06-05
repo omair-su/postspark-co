@@ -13,6 +13,7 @@ import { AIProgressBar } from "@/components/AIProgressBar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { CommandPaletteRoot } from "@/components/CommandPalette";
 import { UpgradeNudgeModal } from "@/components/UpgradeNudgeModal";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getMyWorkspace, setActiveBrandKit } from "@/lib/workspace.functions";
 
@@ -95,6 +96,25 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     window.localStorage.setItem("ps_sidebar_collapsed", collapsed ? "1" : "0");
   }, [collapsed]);
 
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+    setWsOpen(false);
+  }, [location.pathname]);
+
+  // Keyboard shortcut ⌘\ to toggle collapse
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
+        e.preventDefault();
+        setCollapsed((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   useEffect(() => {
     if (!session) return;
     isCurrentUserAdmin({ headers: { Authorization: `Bearer ${session.access_token}` } })
@@ -144,13 +164,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground"
       data-collapsed={isCollapsed ? "true" : "false"}
     >
-      <div className="relative flex h-16 shrink-0 items-center justify-between px-3 border-b border-white/5">
-        <div className={isCollapsed ? "mx-auto ps-sidebar-logo" : "ps-sidebar-logo"}>
-          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 28 : 32} tone="light" />
-        </div>
+      <div className="relative flex h-16 shrink-0 items-center justify-between gap-1 px-2 border-b border-white/5">
+        <Link
+          to="/dashboard"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="PostSpark — Dashboard home"
+          className={`ps-sidebar-logo group flex h-12 items-center rounded-xl px-2 transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a78bfa]/60 ${
+            isCollapsed ? "mx-auto justify-center w-12" : "flex-1"
+          }`}
+        >
+          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 30 : 34} tone="light" />
+        </Link>
         <button
           type="button"
-          className="lux-collapse-btn lux-collapse-hide hidden md:inline-flex"
+          className="lux-collapse-btn hidden md:inline-flex shrink-0"
           onClick={() => setCollapsed((v) => !v)}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={isCollapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
@@ -158,13 +185,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
         </button>
         <button
-          className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground"
+          className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground shrink-0 p-1"
           onClick={() => setSidebarOpen(false)}
           aria-label="Close menu"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
+
 
       {/* Workspace pill */}
       {ws.workspace && (
@@ -254,14 +282,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             )}
             <div className="space-y-0.5">
               {group.items.map((item: any) => {
-                const active = location.pathname === item.to && !item.search;
-                return (
+                const isDashboardHome = item.to === "/dashboard" && !item.search;
+                const pathMatch = isDashboardHome
+                  ? location.pathname === "/dashboard"
+                  : location.pathname === item.to || location.pathname.startsWith(item.to + "/");
+                const active = pathMatch && !item.search;
+                const link = (
                   <Link
                     key={item.to + (item.label || "")}
                     to={item.to}
                     search={item.search}
                     onClick={() => setSidebarOpen(false)}
-                    title={isCollapsed ? item.label : undefined}
+                    aria-current={active ? "page" : undefined}
                     className={`lux-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
                       active ? "lux-nav-active" : "text-sidebar-foreground/65"
                     }`}
@@ -270,8 +302,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     <span className="lux-collapse-hide truncate">{item.label}</span>
                   </Link>
                 );
+                if (isCollapsed) {
+                  return (
+                    <Tooltip key={item.to + (item.label || "")} delayDuration={120}>
+                      <TooltipTrigger asChild>{link}</TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={10} className="lux-tooltip">
+                        {item.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+                return link;
               })}
             </div>
+
           </div>
         ))}
       </nav>
@@ -318,15 +362,27 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const desktopWidthClass = collapsed ? "w-16" : "w-56";
 
   return (
+    <TooltipProvider delayDuration={120} skipDelayDuration={200}>
     <div className="dashboard-shell flex h-screen" style={{ background: "var(--ds-bg)" }}>
       <aside className={`hidden flex-shrink-0 md:block transition-[width] duration-300 ease-out ${desktopWidthClass}`}>{renderSidebar(false)}</aside>
 
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-64 h-full">{renderSidebar(true)}</div>
+      {/* Mobile drawer */}
+      <div
+        className={`fixed inset-0 z-50 md:hidden ${sidebarOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+        aria-hidden={!sidebarOpen}
+      >
+        <div
+          className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${sidebarOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={() => setSidebarOpen(false)}
+        />
+        <div
+          className={`lux-mobile-drawer relative w-64 h-full transform-gpu transition-transform duration-300 ease-[cubic-bezier(.22,.8,.2,1)] ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          {renderSidebar(true)}
         </div>
-      )}
+      </div>
+
+
 
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -377,5 +433,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <SparkCopilot />
       <UpgradeNudgeModal />
     </div>
+    </TooltipProvider>
   );
 }
+
