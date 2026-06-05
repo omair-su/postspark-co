@@ -86,7 +86,9 @@ export function Navbar() {
         <button
           className="md:hidden"
           onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
+          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={open}
+          aria-controls="primary-mobile-nav"
           style={{ color: "#0F172A" }}
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
