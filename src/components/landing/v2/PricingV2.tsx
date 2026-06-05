@@ -121,7 +121,7 @@ export function PricingV2() {
           </h2>
 
           <div
-            className="mx-auto mt-6 inline-flex rounded-full p-1"
+            className="mx-auto mt-6 inline-flex items-center rounded-full p-1"
             style={{ background: "#FFFFFF", border: "1px solid #E2E8F0" }}
           >
             <button
@@ -136,15 +136,27 @@ export function PricingV2() {
             </button>
             <button
               onClick={() => setAnnual(true)}
-              className="rounded-full px-4 py-1.5 text-sm font-bold transition"
+              className="relative inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold transition"
               style={{
                 background: annual ? "#7C3AED" : "transparent",
                 color: annual ? "#FFFFFF" : "#64748B",
               }}
             >
-              Annual <span style={{ color: annual ? "#FFFFFF" : "#10B981" }}>−20%</span>
+              Annual
+              <span
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider"
+                style={{
+                  background: annual ? "#FFFFFF" : "#10B981",
+                  color: annual ? "#7C3AED" : "#FFFFFF",
+                }}
+              >
+                Save 20%
+              </span>
             </button>
           </div>
+          <p className="mt-2 text-xs" style={{ color: annual ? "#10B981" : "#64748B" }}>
+            {annual ? "✓ You're saving ~20% with annual billing — 2 months free" : "Switch to annual to save ~20% (2 months free)"}
+          </p>
         </div>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
