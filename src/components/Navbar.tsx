@@ -86,7 +86,9 @@ export function Navbar() {
         <button
           className="md:hidden"
           onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
+          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={open}
+          aria-controls="primary-mobile-nav"
           style={{ color: "#0F172A" }}
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -94,7 +96,7 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="md:hidden" style={{ background: "#FFFFFF", borderTop: "1px solid #E2E8F0" }}>
+        <div id="primary-mobile-nav" className="md:hidden" style={{ background: "#FFFFFF", borderTop: "1px solid #E2E8F0" }}>
           <div className="flex flex-col gap-3 px-4 py-4">
             {NAV.map((n) =>
               n.href.startsWith("/#") ? (

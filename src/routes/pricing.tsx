@@ -45,7 +45,14 @@ function PricingPage() {
       <Navbar />
       <Suspense fallback={null}>
         <div className="pt-20">
-          <h1 className="sr-only">PostSpark Pricing Plans — Free, Pro, and Agency</h1>
+          <header className="mx-auto max-w-4xl px-4 pt-10 pb-4 text-center sm:px-6">
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl" style={{ fontFamily: "Syne, Inter, sans-serif" }}>
+              Pricing built for creators and agencies
+            </h1>
+            <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+              Start free with 10 repurposes a month. Upgrade to Pro for unlimited, or Agency for team seats and white-label.
+            </p>
+          </header>
           <PricingSection />
           <FAQSection />
           <Footer />
