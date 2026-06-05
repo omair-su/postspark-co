@@ -32,6 +32,7 @@ const TOOL_LABEL: Record<string, string> = {
   image: "Image",
   "image-edit": "Image Edit",
   podcast: "Podcast",
+  linkedin_downloader: "LinkedIn DL",
 };
 
 export const Route = createFileRoute("/dashboard/history")({

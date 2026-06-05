@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
+
 
 export type SeoLandingFAQ = { q: string; a: string };
 export type SeoLandingBenefit = { title: string; description: string };
@@ -12,11 +14,14 @@ export interface SeoLandingPageProps {
   h1: string;
   subhead: string;
   primaryCtaLabel?: string;
+  hideHeroCtas?: boolean;
   benefits: SeoLandingBenefit[];
   steps: SeoLandingStep[];
   outputs?: string[];
+  supportedInputs?: string[];
   faqs: SeoLandingFAQ[];
   internalLinks: { to: string; label: string }[];
+  interactiveSlot?: ReactNode;
 }
 
 export function SeoLandingPage(props: SeoLandingPageProps) {
@@ -25,11 +30,14 @@ export function SeoLandingPage(props: SeoLandingPageProps) {
     h1,
     subhead,
     primaryCtaLabel = "Start free — 10 repurposes/month",
+    hideHeroCtas = false,
     benefits,
     steps,
     outputs,
+    supportedInputs,
     faqs,
     internalLinks,
+    interactiveSlot,
   } = props;
 
   return (
@@ -47,23 +55,47 @@ export function SeoLandingPage(props: SeoLandingPageProps) {
               {h1}
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">{subhead}</p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                to="/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-lg gradient-electric px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 glow-electric"
-              >
-                {primaryCtaLabel} <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                to="/pricing"
-                className="inline-flex items-center justify-center rounded-lg border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted"
-              >
-                See pricing
-              </Link>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">No credit card required. Cancel anytime.</p>
+            {!hideHeroCtas && (
+              <>
+                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <Link
+                    to="/signup"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg gradient-electric px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 glow-electric"
+                  >
+                    {primaryCtaLabel} <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    to="/pricing"
+                    className="inline-flex items-center justify-center rounded-lg border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted"
+                  >
+                    See pricing
+                  </Link>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">No credit card required. Cancel anytime.</p>
+              </>
+            )}
           </div>
         </section>
+
+        {interactiveSlot}
+
+        {supportedInputs && supportedInputs.length > 0 && (
+          <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+            <h2 className="text-center text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Supported inputs
+            </h2>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {supportedInputs.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Benefits */}
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
