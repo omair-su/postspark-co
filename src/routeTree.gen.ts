@@ -73,6 +73,7 @@ import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calend
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
 import { Route as DashboardBrandKitRouteImport } from './routes/dashboard.brand-kit'
 import { Route as DashboardBlogAdminRouteImport } from './routes/dashboard.blog-admin'
+import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard.agency-analytics'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
@@ -425,6 +426,11 @@ const DashboardBlogAdminRoute = DashboardBlogAdminRouteImport.update({
   path: '/blog-admin',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBillingRoute = DashboardBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -564,6 +570,7 @@ export interface FileRoutesByFullPath {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
@@ -650,6 +657,7 @@ export interface FileRoutesByTo {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
@@ -738,6 +746,7 @@ export interface FileRoutesById {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
@@ -827,6 +836,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
+    | '/dashboard/billing'
     | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
@@ -913,6 +923,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
+    | '/dashboard/billing'
     | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
@@ -1000,6 +1011,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
+    | '/dashboard/billing'
     | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
@@ -1577,6 +1589,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBlogAdminRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/billing': {
+      id: '/dashboard/billing'
+      path: '/billing'
+      fullPath: '/dashboard/billing'
+      preLoaderRoute: typeof DashboardBillingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/analytics': {
       id: '/dashboard/analytics'
       path: '/analytics'
@@ -1730,6 +1749,7 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardAgencyAnalyticsRoute: typeof DashboardAgencyAnalyticsRoute
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardBlogAdminRoute: typeof DashboardBlogAdminRoute
   DashboardBrandKitRoute: typeof DashboardBrandKitRoute
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
@@ -1757,6 +1777,7 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAgencyAnalyticsRoute: DashboardAgencyAnalyticsRoute,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardBillingRoute: DashboardBillingRoute,
   DashboardBlogAdminRoute: DashboardBlogAdminRoute,
   DashboardBrandKitRoute: DashboardBrandKitRoute,
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
@@ -1853,12 +1874,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
