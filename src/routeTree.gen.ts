@@ -87,6 +87,7 @@ import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicFunnelRouteImport } from './routes/api/public/funnel'
 import { Route as ApiPublicDemoStatusRouteImport } from './routes/api/public/demo-status'
+import { Route as ApiPublicDemoStatsRouteImport } from './routes/api/public/demo-stats'
 import { Route as ApiPublicDemoRouteImport } from './routes/api/public/demo'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -499,6 +500,11 @@ const ApiPublicDemoStatusRoute = ApiPublicDemoStatusRouteImport.update({
   path: '/api/public/demo-status',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDemoStatsRoute = ApiPublicDemoStatsRouteImport.update({
+  id: '/api/public/demo-stats',
+  path: '/api/public/demo-stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicDemoRoute = ApiPublicDemoRouteImport.update({
   id: '/api/public/demo',
   path: '/api/public/demo',
@@ -619,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -706,6 +713,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -795,6 +803,7 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
+  '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/track': typeof ApiPublicTrackRoute
@@ -885,6 +894,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/gallery/'
     | '/api/public/demo'
+    | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
     | '/api/public/track'
@@ -972,6 +982,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/gallery'
     | '/api/public/demo'
+    | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
     | '/api/public/track'
@@ -1060,6 +1071,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/gallery/'
     | '/api/public/demo'
+    | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
     | '/api/public/track'
@@ -1124,6 +1136,7 @@ export interface RootRouteChildren {
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
   ApiPublicDemoRoute: typeof ApiPublicDemoRoute
+  ApiPublicDemoStatsRoute: typeof ApiPublicDemoStatsRoute
   ApiPublicDemoStatusRoute: typeof ApiPublicDemoStatusRoute
   ApiPublicFunnelRoute: typeof ApiPublicFunnelRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
@@ -1687,6 +1700,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDemoStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/demo-stats': {
+      id: '/api/public/demo-stats'
+      path: '/api/public/demo-stats'
+      fullPath: '/api/public/demo-stats'
+      preLoaderRoute: typeof ApiPublicDemoStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/demo': {
       id: '/api/public/demo'
       path: '/api/public/demo'
@@ -1857,6 +1877,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
   ApiPublicDemoRoute: ApiPublicDemoRoute,
+  ApiPublicDemoStatsRoute: ApiPublicDemoStatsRoute,
   ApiPublicDemoStatusRoute: ApiPublicDemoStatusRoute,
   ApiPublicFunnelRoute: ApiPublicFunnelRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
