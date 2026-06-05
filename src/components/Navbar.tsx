@@ -96,7 +96,7 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="md:hidden" style={{ background: "#FFFFFF", borderTop: "1px solid #E2E8F0" }}>
+        <div id="primary-mobile-nav" className="md:hidden" style={{ background: "#FFFFFF", borderTop: "1px solid #E2E8F0" }}>
           <div className="flex flex-col gap-3 px-4 py-4">
             {NAV.map((n) =>
               n.href.startsWith("/#") ? (
