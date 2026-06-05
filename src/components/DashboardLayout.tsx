@@ -433,5 +433,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <SparkCopilot />
       <UpgradeNudgeModal />
     </div>
+    </TooltipProvider>
   );
 }
+
