@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare, Layers, PanelLeftClose, PanelLeftOpen, Check } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare, Layers, PanelLeftClose, PanelLeftOpen, Check, CreditCard } from "lucide-react";
 import { SparkCopilot } from "@/components/SparkCopilot";
 import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import { useEffect, useState, type ReactNode } from "react";
@@ -66,6 +66,7 @@ const navGroups = [
     items: [
       { to: "/gallery", icon: Globe, label: "Gallery" },
       { to: "/dashboard/referrals", icon: Gift, label: "Refer & Earn" },
+      { to: "/dashboard/billing", icon: CreditCard, label: "Billing" },
       { to: "/dashboard/settings", icon: Settings, label: "Settings" },
     ],
   },
