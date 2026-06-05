@@ -164,13 +164,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground"
       data-collapsed={isCollapsed ? "true" : "false"}
     >
-      <div className="relative flex h-16 shrink-0 items-center justify-between px-3 border-b border-white/5">
-        <div className={isCollapsed ? "mx-auto ps-sidebar-logo" : "ps-sidebar-logo"}>
-          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 28 : 32} tone="light" />
-        </div>
+      <div className="relative flex h-16 shrink-0 items-center justify-between gap-1 px-2 border-b border-white/5">
+        <Link
+          to="/dashboard"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="PostSpark — Dashboard home"
+          className={`ps-sidebar-logo group flex h-12 items-center rounded-xl px-2 transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a78bfa]/60 ${
+            isCollapsed ? "mx-auto justify-center w-12" : "flex-1"
+          }`}
+        >
+          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 30 : 34} tone="light" />
+        </Link>
         <button
           type="button"
-          className="lux-collapse-btn lux-collapse-hide hidden md:inline-flex"
+          className="lux-collapse-btn hidden md:inline-flex shrink-0"
           onClick={() => setCollapsed((v) => !v)}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={isCollapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
@@ -178,13 +185,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
         </button>
         <button
-          className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground"
+          className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground shrink-0 p-1"
           onClick={() => setSidebarOpen(false)}
           aria-label="Close menu"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
+
 
       {/* Workspace pill */}
       {ws.workspace && (
