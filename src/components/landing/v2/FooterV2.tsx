@@ -43,10 +43,10 @@ export function FooterV2() {
             <p className="mt-4 text-sm" style={{ color: "#C9C5DB", lineHeight: 1.7 }}>
               AI content repurposing for creators and agencies.
             </p>
-            <p className="mt-3 text-xs font-bold uppercase tracking-widest" style={{ color: "#A78BFA", letterSpacing: "0.1em" }}>
+            <p className="mt-3 text-xs font-bold uppercase tracking-widest" style={{ color: "#C9A87C", letterSpacing: "0.1em" }}>
               ⚡ Powered by Claude AI
             </p>
-            <a href="mailto:hello@postspark.co" className="mt-3 inline-block text-sm" style={{ color: "#E2E8F0" }}>
+            <a href="mailto:hello@postspark.co" className="mt-3 inline-block text-sm" style={{ color: "#E8E6F2" }}>
               hello@postspark.co
             </a>
           </div>
@@ -63,7 +63,7 @@ export function FooterV2() {
               <ul className="mt-4 space-y-2">
                 {col.items.map((it) => (
                   <li key={it.to}>
-                    <Link to={it.to} className="text-sm transition hover:text-white" style={{ color: "#94A3B8" }}>
+                    <Link to={it.to} className="text-sm transition hover:text-white" style={{ color: "#C9C5DB" }}>
                       {it.label}
                     </Link>
                   </li>
@@ -75,14 +75,14 @@ export function FooterV2() {
 
         <div
           className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-6 text-xs sm:flex-row"
-          style={{ borderColor: "#1E293B", color: "#94A3B8" }}
+          style={{ borderColor: "rgba(201,168,124,0.18)", color: "#A8A4BD" }}
         >
           <p>© {new Date().getFullYear()} PostSpark. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-4">
             <Link to="/privacy" className="hover:text-white">Privacy</Link>
             <Link to="/terms" className="hover:text-white">Terms</Link>
             <Link to="/refunds" className="hover:text-white">Refunds</Link>
-            <span style={{ color: "#475569" }}>·</span>
+            <span style={{ color: "#6B6685" }}>·</span>
             <span>Payments by Paddle</span>
           </div>
         </div>
