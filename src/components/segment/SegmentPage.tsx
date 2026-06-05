@@ -43,7 +43,7 @@ export function SegmentPage(p: SegmentPageProps) {
               </span>
               <h1
                 className="mt-6 text-[36px] leading-[1.05] tracking-tight sm:text-5xl md:text-[54px]"
-                style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif", fontWeight: 800 }}
+                style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700 }}
               >
                 {p.h1}
               </h1>
@@ -93,7 +93,7 @@ export function SegmentPage(p: SegmentPageProps) {
             </p>
             <h2
               className="mt-3 max-w-3xl text-3xl sm:text-4xl"
-              style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif", fontWeight: 800, lineHeight: 1.1 }}
+              style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
             >
               What's costing you hours — and how PostSpark removes it.
             </h2>
@@ -102,7 +102,7 @@ export function SegmentPage(p: SegmentPageProps) {
                 className="rounded-2xl p-7"
                 style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderLeft: "4px solid #EF4444" }}
               >
-                <h3 className="text-lg font-bold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+                <h3 className="text-lg font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                   😩 What's draining your week
                 </h3>
                 <ul className="mt-4 space-y-3">
@@ -117,7 +117,7 @@ export function SegmentPage(p: SegmentPageProps) {
                 className="rounded-2xl p-7"
                 style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderLeft: "4px solid #10B981" }}
               >
-                <h3 className="text-lg font-bold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+                <h3 className="text-lg font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                   ⚡ What PostSpark gives you
                 </h3>
                 <ul className="mt-4 space-y-3">
@@ -141,7 +141,7 @@ export function SegmentPage(p: SegmentPageProps) {
               </p>
               <h2
                 className="mt-3 text-3xl sm:text-4xl"
-                style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif", fontWeight: 800, lineHeight: 1.1 }}
+                style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
               >
                 How it works for you
               </h2>
@@ -158,7 +158,7 @@ export function SegmentPage(p: SegmentPageProps) {
                     >
                       Step {String(i + 1).padStart(2, "0")}
                     </div>
-                    <h3 className="mt-3 text-lg font-bold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+                    <h3 className="mt-3 text-lg font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                       {w.title}
                     </h3>
                     <p className="mt-2 text-sm" style={{ color: "#64748B", lineHeight: 1.7 }}>

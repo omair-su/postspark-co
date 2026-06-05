@@ -31,7 +31,7 @@ export function FAQv2() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <h2
           className="text-center text-3xl sm:text-4xl md:text-[40px]"
-          style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif", fontWeight: 800, lineHeight: 1.1 }}
+          style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
         >
           Questions Before You Start
         </h2>
@@ -48,7 +48,7 @@ export function FAQv2() {
                   onClick={() => setOpen(isOpen ? null : i)}
                   className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
                 >
-                  <span className="text-base font-bold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+                  <span className="text-base font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                     {f.q}
                   </span>
                   {isOpen ? (

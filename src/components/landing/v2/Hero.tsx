@@ -27,7 +27,7 @@ export function Hero() {
               background: "#F5F3FF",
               border: "1px solid #DDD6FE",
               color: "#7C3AED",
-              fontFamily: "Syne, Inter, sans-serif",
+              fontFamily: "Inter, system-ui, -apple-system, sans-serif",
             }}
           >
             ⚡ Powered by Claude AI · Free to try
@@ -37,8 +37,8 @@ export function Hero() {
             className="mt-6 text-[40px] leading-[1.05] tracking-tight sm:text-5xl md:text-[58px]"
             style={{
               color: "#0F172A",
-              fontFamily: "Syne, Inter, sans-serif",
-              fontWeight: 800,
+              fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+              fontWeight: 700,
             }}
           >
             Stop Rewriting the

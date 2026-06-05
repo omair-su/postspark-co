@@ -46,7 +46,7 @@ function PricingPage() {
       <Suspense fallback={null}>
         <div className="pt-20">
           <header className="mx-auto max-w-4xl px-4 pt-10 pb-4 text-center sm:px-6">
-            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl" style={{ fontFamily: "Syne, Inter, sans-serif" }}>
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl" style={{ fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
               Pricing built for creators and agencies
             </h1>
             <p className="mt-3 text-base text-muted-foreground sm:text-lg">

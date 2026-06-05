@@ -78,7 +78,7 @@ export function HeroDemoWidget() {
         <div>
           <h3
             className="text-lg font-bold"
-            style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}
+            style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}
           >
             Try PostSpark Free
           </h3>

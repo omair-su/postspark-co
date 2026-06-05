@@ -41,7 +41,7 @@ export function WhoFor() {
         </p>
         <h2
           className="mt-3 text-3xl sm:text-4xl md:text-[40px]"
-          style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif", fontWeight: 800, lineHeight: 1.1 }}
+          style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
         >
           One Tool. Every Creator.
         </h2>
@@ -59,7 +59,7 @@ export function WhoFor() {
               }}
             >
               <div className="text-3xl">{c.icon}</div>
-              <h3 className="mt-4 text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Syne, Inter, sans-serif" }}>
+              <h3 className="mt-4 text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                 {c.title}
               </h3>
               <p className="mt-2 text-sm" style={{ color: "#64748B", lineHeight: 1.7 }}>
