@@ -190,14 +190,24 @@ export function PricingV2() {
                 <p className="mt-1 text-sm" style={{ color: "#64748B" }}>
                   {t.desc}
                 </p>
-                <div className="mt-5 flex items-baseline gap-1">
+                <div className="mt-5 flex items-baseline gap-2 flex-wrap">
                   <span className="text-5xl font-extrabold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                     ${price}
                   </span>
                   <span className="text-sm" style={{ color: "#64748B" }}>
                     /month{annual && price > 0 ? ", billed annually" : ""}
                   </span>
+                  {annual && t.monthly > 0 && (
+                    <span className="text-sm font-semibold" style={{ color: "#94A3B8", textDecoration: "line-through" }}>
+                      ${t.monthly}
+                    </span>
+                  )}
                 </div>
+                {annual && t.monthly > 0 && (
+                  <p className="mt-1 text-xs font-bold" style={{ color: "#10B981" }}>
+                    Save ${(t.monthly - t.annual) * 12}/year vs monthly
+                  </p>
+                )}
                 <ul className="mt-6 flex-1 space-y-2.5">
                   {t.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm" style={{ color: "#334155" }}>
