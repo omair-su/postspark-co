@@ -15,6 +15,7 @@ const COL_SOLUTIONS = [
   { label: "LinkedIn Ghostwriters", to: "/use-cases/linkedin-ghostwriters" },
   { label: "Podcast to Social", to: "/use-cases/podcast-to-social" },
   { label: "YouTube to LinkedIn", to: "/use-cases/youtube-to-linkedin" },
+  { label: "LinkedIn Video Downloader", to: "/tools/linkedin-video-downloader" },
 ];
 
 const COL_COMPARE = [
