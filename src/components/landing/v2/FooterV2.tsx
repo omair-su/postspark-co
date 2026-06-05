@@ -26,14 +26,21 @@ const COL_COMPARE = [
 
 export function FooterV2() {
   return (
-    <footer style={{ background: "#0F172A", color: "#E2E8F0" }} className="pt-16 pb-8">
+    <footer
+      style={{
+        background:
+          "linear-gradient(180deg, #1B1530 0%, #16122A 55%, #0F0B22 100%)",
+        color: "#E8E6F2",
+      }}
+      className="pt-16 pb-8"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid gap-10 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-2">
-              <PostSparkLogo variant="wordmark" size={28} />
+              <PostSparkLogo variant="wordmark" size={28} tone="light" />
             </div>
-            <p className="mt-4 text-sm" style={{ color: "#94A3B8", lineHeight: 1.7 }}>
+            <p className="mt-4 text-sm" style={{ color: "#C9C5DB", lineHeight: 1.7 }}>
               AI content repurposing for creators and agencies.
             </p>
             <p className="mt-3 text-xs font-bold uppercase tracking-widest" style={{ color: "#A78BFA", letterSpacing: "0.1em" }}>
