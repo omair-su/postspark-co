@@ -1,19 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { SeoLandingPage, buildSoftwareJsonLd, buildFaqJsonLd } from "@/components/landing/SeoLandingPage";
+import { LinkedInDownloaderTool } from "@/components/tools/LinkedInDownloaderTool";
 
 const TITLE = "LinkedIn Video Downloader — Free Tool | PostSpark";
-const DESC = "Paste any public LinkedIn video URL and download the MP4 in seconds. Free, no signup. Built for creators who repurpose video into tweets, Shorts, and Reels.";
+const DESC = "Paste any public LinkedIn video URL and download the MP4 in seconds. Free, 3 downloads/month, no watermark. Built for creators who repurpose video into tweets, Shorts, and Reels.";
 const URL = "https://postspark.co/tools/linkedin-video-downloader";
 
 const FAQS = [
-  { q: "Is the LinkedIn video downloader free?", a: "Yes — downloading public LinkedIn videos is free with no signup. PostSpark's repurposing features kick in once you want to turn that video into tweets, Reels, or a newsletter." },
+  { q: "Is the LinkedIn video downloader free?", a: "Yes — free accounts get 3 LinkedIn downloads every month with no watermark. Upgrade to Pro for unlimited downloads plus the full repurposing suite (tweets, carousels, newsletters, Reels)." },
   { q: "Which LinkedIn videos can I download?", a: "Any publicly visible LinkedIn post video. We do not support videos behind login walls, in private groups, or shared only with connections — that would violate LinkedIn's terms." },
   { q: "What format do I get?", a: "Videos are returned as MP4 in their original resolution, ready for upload to YouTube Shorts, TikTok, Instagram Reels, or your editor." },
-  { q: "Can PostSpark turn the video into other content?", a: "Yes. After download, paste the same URL into PostSpark to generate a Twitter thread, LinkedIn carousel, newsletter, or short-form scripts in your voice." },
-  { q: "Do you store the downloaded videos?", a: "No. Files stream straight to your device. We do not host or cache LinkedIn content." },
+  { q: "Can PostSpark turn the video into other content?", a: "Yes. After download, click 'Repurpose this video' to generate a Twitter thread, LinkedIn carousel, newsletter, or short-form scripts in your voice." },
+  { q: "Do you store the downloaded videos?", a: "No. Files stream straight to your device. We log only the source URL and timestamp in your history so you can retry or repurpose later." },
+  { q: "Why did the download fail?", a: "The most common reasons: the post is private or members-only, the post no longer exists, or LinkedIn served a login wall. Confirm the URL opens in an incognito tab without signing in." },
 ];
 
+const searchSchema = z.object({
+  url: z.string().url().optional(),
+});
+
 export const Route = createFileRoute("/tools/linkedin-video-downloader")({
+  validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
       { title: TITLE },
@@ -36,11 +44,14 @@ export const Route = createFileRoute("/tools/linkedin-video-downloader")({
 });
 
 function Page() {
+  const { url } = Route.useSearch();
   return (
     <SeoLandingPage
       eyebrow="Free Tool · LinkedIn Video Downloader"
       h1="Download any public LinkedIn video in seconds"
-      subhead="Paste the LinkedIn post URL, get a clean MP4. No watermark, no signup, no LinkedIn login. Then repurpose it into tweets, Reels, and newsletters with PostSpark."
+      subhead="Paste the LinkedIn post URL, get a clean MP4. No watermark, no LinkedIn login. Then repurpose it into tweets, Reels, and newsletters with PostSpark."
+      hideHeroCtas
+      interactiveSlot={<LinkedInDownloaderTool initialUrl={url || ""} />}
       benefits={[
         { title: "Clean MP4, original quality", description: "No watermarks, no re-encoding. Exactly what was uploaded — ready for editing." },
         { title: "Works with public posts", description: "Drop in any LinkedIn URL where the video plays without logging in. We respect LinkedIn's terms and skip private content." },
@@ -48,10 +59,16 @@ function Page() {
       ]}
       steps={[
         { title: "Copy the LinkedIn post URL", description: "Click the three dots on any public LinkedIn video post → Copy link to post." },
-        { title: "Paste it into the tool", description: "We fetch the highest-quality public stream and prepare your MP4." },
-        { title: "Download & repurpose", description: "Save the file, then optionally paste the same URL into PostSpark for tweets, carousels, and Reels scripts." },
+        { title: "Paste it into the tool", description: "We fetch the highest-quality public stream and prepare your MP4 in seconds." },
+        { title: "Download & repurpose", description: "Save the file, then hit 'Repurpose this video' to generate tweets, carousels, and short-form scripts." },
       ]}
-      outputs={["MP4 video file", "Auto-generated transcript (optional)", "Tweet thread from the video", "Short-form scripts for Reels & Shorts"]}
+      supportedInputs={[
+        "linkedin.com/posts/...",
+        "linkedin.com/feed/update/...",
+        "Public LinkedIn video posts",
+        "LinkedIn newsletter videos",
+      ]}
+      outputs={["MP4 video file", "Shareable URL", "Tweet thread", "LinkedIn carousel", "Short-form scripts"]}
       faqs={FAQS}
       internalLinks={[
         { to: "/tools/youtube-to-twitter-thread", label: "YouTube → Twitter Thread" },

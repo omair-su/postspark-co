@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck, Trash2 } from "lucide-react";
+import { Clock, FileText, Download, Star, Search, CheckSquare, Square, Globe, Copy, UserCheck, Trash2, RefreshCw } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toggleFavorite, bulkDeleteJobs } from "@/lib/repurpose.functions";
@@ -32,6 +32,7 @@ const TOOL_LABEL: Record<string, string> = {
   image: "Image",
   "image-edit": "Image Edit",
   podcast: "Podcast",
+  linkedin_downloader: "LinkedIn DL",
 };
 
 export const Route = createFileRoute("/dashboard/history")({
@@ -485,6 +486,16 @@ function HistoryPage() {
                   </button>
 
                   <div className="flex shrink-0 items-center gap-1">
+                    {job.tool === "linkedin_downloader" && (
+                      <a
+                        href={`/tools/linkedin-video-downloader?url=${encodeURIComponent(job.input_text)}`}
+                        onClick={(e) => e.stopPropagation()}
+                        title="Retry download"
+                        className="rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </a>
+                    )}
                     {firstTextOutput && (
                       <button
                         onClick={(e) => {
