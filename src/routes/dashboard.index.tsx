@@ -346,11 +346,11 @@ function DashboardHome() {
 
       {/* Momentum row — Referral + Daily Spark */}
       <section className="grid gap-4 lg:grid-cols-2 ds-fade-up-6">
-        <div className="ds-card p-4"><ReferralBanner /></div>
-        <div className="ds-card p-4"><DailySpark /></div>
+        <ReferralBanner />
+        <DailySpark />
       </section>
 
-      <div className="ds-card p-4 ds-fade-up-6"><ActivationChecklist /></div>
+      <div className="ds-fade-up-6"><ActivationChecklist /></div>
 
       {/* Guided studios */}
       <section className="ds-fade-up-6">

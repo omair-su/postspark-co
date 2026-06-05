@@ -23,9 +23,9 @@ export function ToolTile({ item }: { item: ToolTileItem }) {
         )}
       </div>
       <div>
-        <p className="text-sm font-semibold text-white flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-slate-900 flex items-center justify-between gap-2">
           {item.label}
-          <ArrowUpRight className="h-3.5 w-3.5 text-white/30 transition-colors group-hover:text-[#c4b5fd]" />
+          <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 transition-colors group-hover:text-[#7C3AED]" />
         </p>
         {item.description && (
           <p className="mt-1 text-[11px] ds-muted-text leading-relaxed">{item.description}</p>
