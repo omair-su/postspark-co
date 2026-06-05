@@ -74,7 +74,7 @@ export function Hero() {
               onMouseEnter={(e) => (e.currentTarget.style.background = "#6D28D9")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "#7C3AED")}
             >
-              Start Free — No Card Needed <ArrowRight className="h-4 w-4" />
+              Start Repurposing Content for Free <ArrowRight className="h-4 w-4" />
             </Link>
             <a
               href="#try-demo"
