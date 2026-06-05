@@ -362,15 +362,27 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const desktopWidthClass = collapsed ? "w-16" : "w-56";
 
   return (
+    <TooltipProvider delayDuration={120} skipDelayDuration={200}>
     <div className="dashboard-shell flex h-screen" style={{ background: "var(--ds-bg)" }}>
       <aside className={`hidden flex-shrink-0 md:block transition-[width] duration-300 ease-out ${desktopWidthClass}`}>{renderSidebar(false)}</aside>
 
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-64 h-full">{renderSidebar(true)}</div>
+      {/* Mobile drawer */}
+      <div
+        className={`fixed inset-0 z-50 md:hidden ${sidebarOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+        aria-hidden={!sidebarOpen}
+      >
+        <div
+          className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${sidebarOpen ? "opacity-100" : "opacity-0"}`}
+          onClick={() => setSidebarOpen(false)}
+        />
+        <div
+          className={`lux-mobile-drawer relative w-64 h-full transform-gpu transition-transform duration-300 ease-[cubic-bezier(.22,.8,.2,1)] ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          {renderSidebar(true)}
         </div>
-      )}
+      </div>
+
+
 
 
       <div className="flex flex-1 flex-col overflow-hidden">
