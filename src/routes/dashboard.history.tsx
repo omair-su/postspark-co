@@ -486,6 +486,16 @@ function HistoryPage() {
                   </button>
 
                   <div className="flex shrink-0 items-center gap-1">
+                    {job.tool === "linkedin_downloader" && (
+                      <a
+                        href={`/tools/linkedin-video-downloader?url=${encodeURIComponent(job.input_text)}`}
+                        onClick={(e) => e.stopPropagation()}
+                        title="Retry download"
+                        className="rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/[0.06] hover:text-white"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </a>
+                    )}
                     {firstTextOutput && (
                       <button
                         onClick={(e) => {
