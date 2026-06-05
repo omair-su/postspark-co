@@ -13,6 +13,7 @@ import { AIProgressBar } from "@/components/AIProgressBar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { CommandPaletteRoot } from "@/components/CommandPalette";
 import { UpgradeNudgeModal } from "@/components/UpgradeNudgeModal";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getMyWorkspace, setActiveBrandKit } from "@/lib/workspace.functions";
 
