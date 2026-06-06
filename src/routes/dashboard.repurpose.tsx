@@ -345,6 +345,47 @@ function RepurposePage() {
       <h1 className="text-2xl font-bold text-foreground">Repurpose Content</h1>
       <p className="mt-1 text-sm text-muted-foreground">Transform your content into multiple formats with AI.</p>
 
+      {/* First-run hero — Generate my first content pack */}
+      {isFirstRun && !results && !loading && (
+        <div className="mt-4 rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card p-5 shadow-lg animate-fade-in">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl gradient-electric glow-electric">
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-bold text-foreground">
+                Your first content pack is ready
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                We pre-loaded a sample tailored to you and picked the best formats. One click — and you'll see PostSpark in action.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    if (!inputText.trim()) {
+                      toast.error("Sample missing — paste some text first");
+                      return;
+                    }
+                    handleRepurpose();
+                  }}
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-xs font-bold text-primary-foreground glow-electric hover:opacity-90 disabled:opacity-60"
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> Generate my first content pack
+                </button>
+                <button
+                  onClick={() => { setIsFirstRun(false); setInputText(""); }}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  I'll paste my own content
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* Brand Kit indicator */}
       {brandKit && (brandKit.brand_name || brandKit.preferred_tone || brandKit.tagline) && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs">
