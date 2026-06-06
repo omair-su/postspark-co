@@ -141,17 +141,30 @@ function RepurposePage() {
         sessionStorage.removeItem("postspark.autorun");
         setPendingAutoRun(true);
       }
-      // Suggest-content widget: prefill formats only, no autorun.
+      // Suggest-content widget / role onboarding preset.
       const presetRaw = sessionStorage.getItem("postspark.preset");
       if (presetRaw) {
         sessionStorage.removeItem("postspark.preset");
         try {
-          const preset = JSON.parse(presetRaw) as { types?: string[]; guidance?: string; title?: string };
+          const preset = JSON.parse(presetRaw) as {
+            types?: string[];
+            guidance?: string;
+            title?: string;
+            text?: string;
+            tone?: string;
+            firstRun?: boolean;
+          };
           if (Array.isArray(preset.types) && preset.types.length) setSelected(new Set(preset.types));
           if (preset.guidance) setCustomInstructions(preset.guidance);
+          if (preset.tone) setTone(preset.tone);
+          // Pre-load sample text so the empty state is never blank, but
+          // DO NOT autorun — the user clicks "Generate my first content pack".
+          if (preset.text && !inputText) setInputText(preset.text);
           setTab("text");
+          if (preset.firstRun) {
+            try { sessionStorage.setItem("postspark.firstRun", "1"); } catch {}
+          }
           if (preset.title) {
-            // Soft toast nudge
             try { (window as any).__psPresetTitle = preset.title; } catch {}
           }
         } catch {}
