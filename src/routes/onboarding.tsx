@@ -78,15 +78,24 @@ function OnboardingPage() {
         data: { role, platforms },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      // Land on Repurpose with a friendly nudge — but DO NOT autorun on the user's behalf.
+      // Pre-load a role-tailored sample on the Repurpose page so the empty state
+      // is never blank. We do NOT autorun without user consent — the user clicks
+      // "Generate my first content pack" to start.
       try {
-        const sample = SAMPLE_SUGGESTIONS[0];
+        const preset = getRolePreset(role);
         sessionStorage.setItem(
           "postspark.preset",
-          JSON.stringify({ types: sample.selectedTypes, guidance: sample.guidance, title: sample.title }),
+          JSON.stringify({
+            types: preset.selectedTypes,
+            guidance: preset.guidance,
+            title: preset.title,
+            text: preset.sampleText,
+            tone: preset.tone,
+            firstRun: true,
+          }),
         );
       } catch {}
-      toast.success("You're all set! Try a sample on the Repurpose page ✨");
+      toast.success("You're all set! Your first content pack is ready to generate ✨");
       navigate({ to: "/dashboard/repurpose", replace: true });
     } catch {
       toast.error("Could not save preferences. Try again.");
