@@ -65,6 +65,8 @@ function RepurposePage() {
   const [pendingAutoRun, setPendingAutoRun] = useState(false);
   const [oneClickUrl, setOneClickUrl] = useState("");
   const [oneClickBusy, setOneClickBusy] = useState(false);
+  const [isFirstRun, setIsFirstRun] = useState(false);
+  const [showNextSteps, setShowNextSteps] = useState(false);
 
   const handleOneClick = async () => {
     if (!session) return toast.error("Please sign in");
