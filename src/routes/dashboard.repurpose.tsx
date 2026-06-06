@@ -164,6 +164,7 @@ function RepurposePage() {
           if (preset.text && !inputText) setInputText(preset.text);
           setTab("text");
           if (preset.firstRun) {
+            setIsFirstRun(true);
             try { sessionStorage.setItem("postspark.firstRun", "1"); } catch {}
           }
           if (preset.title) {
