@@ -13,13 +13,24 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const ROLES = [
-  "Solo Creator",
-  "Founder / Indie Hacker",
-  "Marketer",
   "Agency",
+  "Creator",
+  "Founder / Indie Hacker",
+  "Freelancer",
   "Coach / Consultant",
+  "Marketer",
   "Other",
 ];
+
+const ROLE_EMOJI: Record<string, string> = {
+  "Agency": "🏢",
+  "Creator": "✍️",
+  "Founder / Indie Hacker": "🚀",
+  "Freelancer": "💼",
+  "Coach / Consultant": "🎯",
+  "Marketer": "📈",
+  "Other": "✨",
+};
 
 const PLATFORMS = [
   { id: "twitter", label: "Twitter / X" },
