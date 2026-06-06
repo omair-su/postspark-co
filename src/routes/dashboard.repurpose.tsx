@@ -40,6 +40,7 @@ export const Route = createFileRoute("/dashboard/repurpose")({
 
 function RepurposePage() {
   const { user, session } = useAuth();
+  const { tier } = useSubscription();
   const [tab, setTab] = useState<"text" | "import">("text");
   const [importSubTab, setImportSubTab] = useState<"url" | "pdf" | "docx" | "audio">("url");
   const [inputText, setInputText] = useState("");
@@ -65,6 +66,8 @@ function RepurposePage() {
   const [pendingAutoRun, setPendingAutoRun] = useState(false);
   const [oneClickUrl, setOneClickUrl] = useState("");
   const [oneClickBusy, setOneClickBusy] = useState(false);
+  const [isFirstRun, setIsFirstRun] = useState(false);
+  const [showNextSteps, setShowNextSteps] = useState(false);
 
   const handleOneClick = async () => {
     if (!session) return toast.error("Please sign in");
@@ -103,6 +106,7 @@ function RepurposePage() {
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
     try {
+      if (sessionStorage.getItem("postspark.firstRun") === "1") setIsFirstRun(true);
       const url = new URL(window.location.href);
       const tabParam = url.searchParams.get("tab");
       const openTab = sessionStorage.getItem("postspark.openTab");
@@ -141,17 +145,31 @@ function RepurposePage() {
         sessionStorage.removeItem("postspark.autorun");
         setPendingAutoRun(true);
       }
-      // Suggest-content widget: prefill formats only, no autorun.
+      // Suggest-content widget / role onboarding preset.
       const presetRaw = sessionStorage.getItem("postspark.preset");
       if (presetRaw) {
         sessionStorage.removeItem("postspark.preset");
         try {
-          const preset = JSON.parse(presetRaw) as { types?: string[]; guidance?: string; title?: string };
+          const preset = JSON.parse(presetRaw) as {
+            types?: string[];
+            guidance?: string;
+            title?: string;
+            text?: string;
+            tone?: string;
+            firstRun?: boolean;
+          };
           if (Array.isArray(preset.types) && preset.types.length) setSelected(new Set(preset.types));
           if (preset.guidance) setCustomInstructions(preset.guidance);
+          if (preset.tone) setTone(preset.tone);
+          // Pre-load sample text so the empty state is never blank, but
+          // DO NOT autorun — the user clicks "Generate my first content pack".
+          if (preset.text && !inputText) setInputText(preset.text);
           setTab("text");
+          if (preset.firstRun) {
+            setIsFirstRun(true);
+            try { sessionStorage.setItem("postspark.firstRun", "1"); } catch {}
+          }
           if (preset.title) {
-            // Soft toast nudge
             try { (window as any).__psPresetTitle = preset.title; } catch {}
           }
         } catch {}
@@ -296,6 +314,8 @@ function RepurposePage() {
         }
       } catch {}
 
+      setShowNextSteps(true);
+      try { sessionStorage.removeItem("postspark.firstRun"); } catch {}
       toast.success("Content generated successfully!");
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
@@ -325,6 +345,47 @@ function RepurposePage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-bold text-foreground">Repurpose Content</h1>
       <p className="mt-1 text-sm text-muted-foreground">Transform your content into multiple formats with AI.</p>
+
+      {/* First-run hero — Generate my first content pack */}
+      {isFirstRun && !results && !loading && (
+        <div className="mt-4 rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card p-5 shadow-lg animate-fade-in">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl gradient-electric glow-electric">
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-bold text-foreground">
+                Your first content pack is ready
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                We pre-loaded a sample tailored to you and picked the best formats. One click — and you'll see PostSpark in action.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    if (!inputText.trim()) {
+                      toast.error("Sample missing — paste some text first");
+                      return;
+                    }
+                    handleRepurpose();
+                  }}
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-xs font-bold text-primary-foreground glow-electric hover:opacity-90 disabled:opacity-60"
+                >
+                  <Sparkles className="h-3.5 w-3.5" /> Generate my first content pack
+                </button>
+                <button
+                  onClick={() => { setIsFirstRun(false); setInputText(""); }}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  I'll paste my own content
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Brand Kit indicator */}
       {brandKit && (brandKit.brand_name || brandKit.preferred_tone || brandKit.tagline) && (
@@ -588,8 +649,58 @@ function RepurposePage() {
               />
             );
           })}
+
+          {/* Next steps strip — schedule, export, save */}
+          {showNextSteps && (
+            <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-5 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold text-foreground">You're in. Here's what to do next 🎯</h3>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Three one-click actions to ship this content and lock in the habit.
+              </p>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <Link
+                  to="/dashboard/calendar"
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 transition-all hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">📅</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-foreground">Schedule it</div>
+                    <div className="text-[11px] text-muted-foreground">Plan posts on the calendar so this becomes a weekly habit.</div>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => {
+                    const all = Object.entries(results).map(([k, v]) => ({ title: typeLabels[k] || k, content: v }));
+                    exportToPdf(all, `content-pack`, { watermark: tier === "free" });
+                    toast.success("PDF exported!");
+                  }}
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 text-left transition-all hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">📄</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-foreground">Export the pack</div>
+                    <div className="text-[11px] text-muted-foreground">Download the full content pack as a polished PDF.</div>
+                  </div>
+                </button>
+                <Link
+                  to="/dashboard/templates"
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 transition-all hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">💾</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-foreground">Save as template</div>
+                    <div className="text-[11px] text-muted-foreground">Reuse this tone &amp; format mix in one click next time.</div>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
 
       {/* Upgrade Modal */}
       {showUpgradeModal && (

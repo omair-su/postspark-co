@@ -5,7 +5,7 @@ import { completeOnboarding, getOnboardingStatus } from "@/lib/onboarding.functi
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { toast } from "sonner";
-import { SAMPLE_SUGGESTIONS } from "@/lib/sampleSuggestions";
+import { getRolePreset } from "@/lib/sampleSuggestions";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Welcome — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -13,13 +13,24 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const ROLES = [
-  "Solo Creator",
-  "Founder / Indie Hacker",
-  "Marketer",
   "Agency",
+  "Creator",
+  "Founder / Indie Hacker",
+  "Freelancer",
   "Coach / Consultant",
+  "Marketer",
   "Other",
 ];
+
+const ROLE_EMOJI: Record<string, string> = {
+  "Agency": "🏢",
+  "Creator": "✍️",
+  "Founder / Indie Hacker": "🚀",
+  "Freelancer": "💼",
+  "Coach / Consultant": "🎯",
+  "Marketer": "📈",
+  "Other": "✨",
+};
 
 const PLATFORMS = [
   { id: "twitter", label: "Twitter / X" },
@@ -67,15 +78,24 @@ function OnboardingPage() {
         data: { role, platforms },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      // Land on Repurpose with a friendly nudge — but DO NOT autorun on the user's behalf.
+      // Pre-load a role-tailored sample on the Repurpose page so the empty state
+      // is never blank. We do NOT autorun without user consent — the user clicks
+      // "Generate my first content pack" to start.
       try {
-        const sample = SAMPLE_SUGGESTIONS[0];
+        const preset = getRolePreset(role);
         sessionStorage.setItem(
           "postspark.preset",
-          JSON.stringify({ types: sample.selectedTypes, guidance: sample.guidance, title: sample.title }),
+          JSON.stringify({
+            types: preset.selectedTypes,
+            guidance: preset.guidance,
+            title: preset.title,
+            text: preset.sampleText,
+            tone: preset.tone,
+            firstRun: true,
+          }),
         );
       } catch {}
-      toast.success("You're all set! Try a sample on the Repurpose page ✨");
+      toast.success("You're all set! Your first content pack is ready to generate ✨");
       navigate({ to: "/dashboard/repurpose", replace: true });
     } catch {
       toast.error("Could not save preferences. Try again.");
@@ -131,8 +151,8 @@ function OnboardingPage() {
 
           {step === 2 && (
             <>
-              <h1 className="text-xl font-bold text-foreground">What best describes you?</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Pick one — we'll tune suggestions for you.</p>
+              <h1 className="text-xl font-bold text-foreground">What do you create?</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Pick one — we'll load a ready-to-use template tailored to you.</p>
               <div className="mt-5 grid grid-cols-2 gap-2">
                 {ROLES.map((r) => {
                   const active = role === r;
@@ -140,13 +160,14 @@ function OnboardingPage() {
                     <button
                       key={r}
                       onClick={() => setRole(r)}
-                      className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors ${
                         active
                           ? "border-primary bg-primary/10 text-foreground"
                           : "border-border text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      {r}
+                      <span className="text-base">{ROLE_EMOJI[r] || "✨"}</span>
+                      <span>{r}</span>
                     </button>
                   );
                 })}
