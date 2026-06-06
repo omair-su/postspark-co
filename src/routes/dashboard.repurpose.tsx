@@ -648,8 +648,58 @@ function RepurposePage() {
               />
             );
           })}
+
+          {/* Next steps strip — schedule, export, save */}
+          {showNextSteps && (
+            <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-5 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold text-foreground">You're in. Here's what to do next 🎯</h3>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Three one-click actions to ship this content and lock in the habit.
+              </p>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <Link
+                  to="/dashboard/calendar"
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 transition-all hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">📅</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-foreground">Schedule it</div>
+                    <div className="text-[11px] text-muted-foreground">Plan posts on the calendar so this becomes a weekly habit.</div>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => {
+                    const all = Object.entries(results).map(([k, v]) => ({ title: typeLabels[k] || k, content: v }));
+                    exportToPdf(all, `content-pack`, { watermark: tier === "free" });
+                    toast.success("PDF exported!");
+                  }}
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 text-left transition-all hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">📄</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-foreground">Export the pack</div>
+                    <div className="text-[11px] text-muted-foreground">Download the full content pack as a polished PDF.</div>
+                  </div>
+                </button>
+                <Link
+                  to="/dashboard/templates"
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 transition-all hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">💾</div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-foreground">Save as template</div>
+                    <div className="text-[11px] text-muted-foreground">Reuse this tone &amp; format mix in one click next time.</div>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
 
       {/* Upgrade Modal */}
       {showUpgradeModal && (
