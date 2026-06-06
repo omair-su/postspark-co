@@ -164,16 +164,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       className="lux-sidebar relative flex h-full min-h-0 flex-col text-sidebar-foreground"
       data-collapsed={isCollapsed ? "true" : "false"}
     >
-      <div className="relative flex h-16 shrink-0 items-center justify-between gap-1 px-2 border-b border-white/5">
+      <div
+        className={`relative shrink-0 border-b border-white/5 ${
+          isCollapsed
+            ? "flex flex-col items-center gap-2 py-3 px-1"
+            : "flex h-16 items-center justify-between gap-1 px-2"
+        }`}
+      >
         <Link
           to="/dashboard"
           onClick={() => setSidebarOpen(false)}
           aria-label="PostSpark — Dashboard home"
-          className={`ps-sidebar-logo group flex h-12 items-center rounded-xl px-2 transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a78bfa]/60 ${
-            isCollapsed ? "mx-auto justify-center w-12" : "flex-1"
+          className={`ps-sidebar-logo group flex items-center rounded-xl transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A87C]/60 ${
+            isCollapsed ? "h-10 w-10 justify-center" : "h-12 flex-1 px-2"
           }`}
         >
-          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 30 : 34} tone="light" />
+          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 26 : 34} tone="light" />
         </Link>
         <button
           type="button"
@@ -185,7 +191,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
         </button>
         <button
-          className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground shrink-0 p-1"
+          className="md:hidden text-sidebar-foreground/70 hover:text-sidebar-foreground shrink-0 p-1 absolute right-2 top-3"
           onClick={() => setSidebarOpen(false)}
           aria-label="Close menu"
         >
