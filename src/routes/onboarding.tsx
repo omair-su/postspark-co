@@ -5,7 +5,7 @@ import { completeOnboarding, getOnboardingStatus } from "@/lib/onboarding.functi
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { toast } from "sonner";
-import { SAMPLE_SUGGESTIONS } from "@/lib/sampleSuggestions";
+import { getRolePreset } from "@/lib/sampleSuggestions";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Welcome — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
