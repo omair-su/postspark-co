@@ -105,6 +105,7 @@ function RepurposePage() {
   // Apply template from URL search params + imported text from sessionStorage
   useEffect(() => {
     try {
+      if (sessionStorage.getItem("postspark.firstRun") === "1") setIsFirstRun(true);
       const url = new URL(window.location.href);
       const tabParam = url.searchParams.get("tab");
       const openTab = sessionStorage.getItem("postspark.openTab");
