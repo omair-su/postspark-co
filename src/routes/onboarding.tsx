@@ -151,8 +151,8 @@ function OnboardingPage() {
 
           {step === 2 && (
             <>
-              <h1 className="text-xl font-bold text-foreground">What best describes you?</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Pick one — we'll tune suggestions for you.</p>
+              <h1 className="text-xl font-bold text-foreground">What do you create?</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Pick one — we'll load a ready-to-use template tailored to you.</p>
               <div className="mt-5 grid grid-cols-2 gap-2">
                 {ROLES.map((r) => {
                   const active = role === r;
@@ -160,13 +160,14 @@ function OnboardingPage() {
                     <button
                       key={r}
                       onClick={() => setRole(r)}
-                      className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors ${
                         active
                           ? "border-primary bg-primary/10 text-foreground"
                           : "border-border text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      {r}
+                      <span className="text-base">{ROLE_EMOJI[r] || "✨"}</span>
+                      <span>{r}</span>
                     </button>
                   );
                 })}
