@@ -40,6 +40,7 @@ export const Route = createFileRoute("/dashboard/repurpose")({
 
 function RepurposePage() {
   const { user, session } = useAuth();
+  const { tier } = useSubscription();
   const [tab, setTab] = useState<"text" | "import">("text");
   const [importSubTab, setImportSubTab] = useState<"url" | "pdf" | "docx" | "audio">("url");
   const [inputText, setInputText] = useState("");
