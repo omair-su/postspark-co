@@ -313,6 +313,8 @@ function RepurposePage() {
         }
       } catch {}
 
+      setShowNextSteps(true);
+      try { sessionStorage.removeItem("postspark.firstRun"); } catch {}
       toast.success("Content generated successfully!");
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
