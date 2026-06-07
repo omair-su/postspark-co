@@ -3,10 +3,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { withAIProgress } from "@/lib/aiProgress";
-import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type, Eye, FileText, Youtube, Link as LinkIcon } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Type, Eye, FileText, Youtube, Link as LinkIcon, Calendar as CalendarIcon, Save, X } from "lucide-react";
 import { repurposeContent, getMonthlyUsage } from "@/lib/repurpose.functions";
 import { importFromUrl } from "@/lib/import.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
+import { createScheduledPost } from "@/lib/calendar.functions";
+import { createTemplate } from "@/lib/templates.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
 import { ToneSelector } from "@/components/ToneSelector";
@@ -15,6 +17,20 @@ import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
 import { HookABTester } from "@/components/HookABTester";
 import { Link } from "@tanstack/react-router";
+
+// Map result section keys to scheduled_posts platforms (enum on the server).
+const PLATFORM_MAP: Record<string, "twitter" | "linkedin" | "instagram" | "facebook" | "tiktok" | "youtube" | "blog" | "email"> = {
+  tweets: "twitter",
+  thread: "twitter",
+  linkedin: "linkedin",
+  instagram: "instagram",
+  facebook: "facebook",
+  tiktok: "tiktok",
+  video: "youtube",
+  email: "email",
+  podcast: "blog",
+  seo: "blog",
+};
 
 const contentTypes = [
   { id: "tweets", label: "10 Tweets", emoji: "🐦" },
