@@ -784,9 +784,235 @@ function RepurposePage() {
           </div>
         </div>
       )}
+
+      {/* Schedule pack modal */}
+      {showScheduleModal && results && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => !scheduleBusy && setShowScheduleModal(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric glow-electric">
+                  <CalendarIcon className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-foreground">Schedule this pack</h2>
+                  <p className="text-xs text-muted-foreground">Saves every post to your calendar.</p>
+                </div>
+              </div>
+              <button onClick={() => !scheduleBusy && setShowScheduleModal(false)} className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              <label className="block">
+                <span className="text-xs font-medium text-foreground">Start date</span>
+                <input
+                  type="date"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
+                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-foreground">Time of day</span>
+                <input
+                  type="time"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </label>
+              <div>
+                <span className="text-xs font-medium text-foreground">Spread</span>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setScheduleSpread("daily")}
+                    className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all ${scheduleSpread === "daily" ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}
+                  >
+                    One per day
+                  </button>
+                  <button
+                    onClick={() => setScheduleSpread("same")}
+                    className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all ${scheduleSpread === "same" ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}
+                  >
+                    All on same day
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              disabled={scheduleBusy || !session}
+              onClick={async () => {
+                if (!session || !results) return;
+                setScheduleBusy(true);
+                const entries = Object.entries(results).filter(([k, v]) => PLATFORM_MAP[k] && v && v.trim().length > 0);
+                if (entries.length === 0) {
+                  toast.error("Nothing to schedule");
+                  setScheduleBusy(false);
+                  return;
+                }
+                const [h, m] = scheduleTime.split(":").map((n) => parseInt(n, 10) || 0);
+                let ok = 0, fail = 0;
+                for (let i = 0; i < entries.length; i++) {
+                  const [key, content] = entries[i];
+                  const d = new Date(`${scheduleDate}T00:00:00`);
+                  if (scheduleSpread === "daily") d.setDate(d.getDate() + i);
+                  d.setHours(h, m, 0, 0);
+                  const platform = PLATFORM_MAP[key];
+                  const title = (typeLabels[key] || key).replace(/^\W+\s*/, "").slice(0, 200);
+                  try {
+                    const res = await createScheduledPost({
+                      data: {
+                        title,
+                        content: content.slice(0, 10000),
+                        platform,
+                        scheduled_for: d.toISOString(),
+                      },
+                      headers: { Authorization: `Bearer ${session.access_token}` },
+                    });
+                    if (res.success) ok++; else fail++;
+                  } catch {
+                    fail++;
+                  }
+                }
+                setScheduleBusy(false);
+                setShowScheduleModal(false);
+                if (ok > 0) {
+                  setShipDone(true);
+                  toast.success(`Scheduled ${ok} post${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`);
+                } else {
+                  toast.error("Failed to schedule posts");
+                }
+              }}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl gradient-electric px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-60 glow-electric"
+            >
+              {scheduleBusy ? <><Loader2 className="h-4 w-4 animate-spin" /> Scheduling…</> : <><CalendarIcon className="h-4 w-4" /> Save to calendar</>}
+            </button>
+            <Link to="/dashboard/calendar" className="mt-2 block text-center text-xs text-muted-foreground hover:text-foreground hover:underline">
+              Open full calendar →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Save as template modal */}
+      {showSaveTemplateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => !templateBusy && setShowSaveTemplateModal(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric glow-electric">
+                  <Save className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-foreground">Save as template</h2>
+                  <p className="text-xs text-muted-foreground">Reuse this tone &amp; format mix later.</p>
+                </div>
+              </div>
+              <button onClick={() => !templateBusy && setShowSaveTemplateModal(false)} className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <label className="mt-5 block">
+              <span className="text-xs font-medium text-foreground">Template name</span>
+              <input
+                type="text"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="e.g. Weekly LinkedIn pack"
+                maxLength={100}
+                className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </label>
+
+            <div className="mt-3 rounded-lg border border-border bg-background/50 p-3 text-xs text-muted-foreground space-y-1">
+              <div><span className="font-semibold text-foreground">Tone:</span> {tone}</div>
+              <div><span className="font-semibold text-foreground">Formats:</span> {Array.from(selected).map((k) => typeLabels[k] || k).join(", ") || "—"}</div>
+              {customInstructions && (
+                <div className="line-clamp-2"><span className="font-semibold text-foreground">Instructions:</span> {customInstructions}</div>
+              )}
+            </div>
+
+            <button
+              disabled={templateBusy || !session || !templateName.trim()}
+              onClick={async () => {
+                if (!session) return;
+                setTemplateBusy(true);
+                try {
+                  const res = await createTemplate({
+                    data: {
+                      name: templateName.trim().slice(0, 100),
+                      tone,
+                      customInstructions: customInstructions.slice(0, 500),
+                      selectedTypes: Array.from(selected),
+                    },
+                    headers: { Authorization: `Bearer ${session.access_token}` },
+                  });
+                  if (res.success) {
+                    setShipDone(true);
+                    setShowSaveTemplateModal(false);
+                    toast.success("Template saved!");
+                  } else {
+                    toast.error(res.error || "Failed to save template");
+                  }
+                } catch {
+                  toast.error("Failed to save template");
+                } finally {
+                  setTemplateBusy(false);
+                }
+              }}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl gradient-electric px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-60 glow-electric"
+            >
+              {templateBusy ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : <><Save className="h-4 w-4" /> Save template</>}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+function ProgressStepper({ steps }: { steps: { label: string; done: boolean; active?: boolean }[] }) {
+  const doneCount = steps.filter((s) => s.done).length;
+  const pct = (doneCount / steps.length) * 100;
+  return (
+    <div className="mt-4 rounded-xl border border-border bg-card p-4">
+      <div className="flex items-center justify-between text-xs">
+        <span className="font-semibold text-foreground">Your first content pack</span>
+        <span className="text-muted-foreground">{doneCount} / {steps.length} done</span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-accent">
+        <div className="h-full rounded-full gradient-electric transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+      <ol className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-2">
+        {steps.map((s, i) => (
+          <li key={s.label} className="flex items-center gap-1">
+            <span
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold transition-all ${
+                s.done
+                  ? "gradient-electric text-primary-foreground glow-electric"
+                  : s.active
+                    ? "border border-primary/60 bg-primary/10 text-primary animate-pulse"
+                    : "border border-border bg-background text-muted-foreground"
+              }`}
+            >
+              {s.done ? <Check className="h-3 w-3" /> : i + 1}
+            </span>
+            <span className={`text-[11px] font-medium ${s.done ? "text-foreground" : s.active ? "text-primary" : "text-muted-foreground"}`}>
+              {s.label}
+            </span>
+            {i < steps.length - 1 && <span className="mx-1 text-muted-foreground/40">›</span>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 
 function ResultCard({
   title,
