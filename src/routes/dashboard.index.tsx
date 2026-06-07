@@ -267,7 +267,7 @@ function DashboardHome() {
             <h2 className="mt-1 text-lg font-semibold text-white">Pick your superpower</h2>
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           {TOOLS.map((t) => <ToolTile key={t.to} item={t} />)}
         </div>
       </section>

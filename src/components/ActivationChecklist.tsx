@@ -87,23 +87,28 @@ export function ActivationChecklist() {
         />
       </div>
 
-      <ul className="mt-4 space-y-1.5">
+      <ul className="mt-4 space-y-1">
         {steps.map((s) => (
           <li key={s.id}>
             <Link
               to={s.to as any}
-              className={`group flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-accent ${
+              className={`group flex items-center gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-accent ${
                 s.done ? "text-muted-foreground" : "text-foreground"
               }`}
             >
               {s.done ? (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20">
                   <Check className="h-3 w-3 text-primary" />
                 </span>
               ) : (
-                <Circle className="h-5 w-5 text-muted-foreground/40 group-hover:text-primary" />
+                <Circle className="h-5 w-5 shrink-0 text-muted-foreground/40 group-hover:text-primary" />
               )}
-              <span className={s.done ? "line-through" : ""}>{s.label}</span>
+              <span className={`flex-1 ${s.done ? "line-through" : ""}`}>{s.label}</span>
+              {!s.done && (
+                <span className="text-[11px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                  Do it now →
+                </span>
+              )}
             </Link>
           </li>
         ))}
