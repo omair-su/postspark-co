@@ -124,9 +124,10 @@ function DashboardHome() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      {/* Hero — greeting + AskBar + live status */}
-      <section className="ds-card-hero p-6 sm:p-8 ds-fade-up">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      {/* Hero — premium dark gradient with drifting orbs */}
+      <section className="ds-card-hero ds-card-hero-dark p-6 sm:p-8 ds-fade-up">
+        <div className="ds-hero-orbs" aria-hidden><span /></div>
+        <div className="relative flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="ds-eyebrow">
               <Cpu className="h-3 w-3" /> AI Content Operating System
@@ -134,21 +135,21 @@ function DashboardHome() {
             <h1 className="ds-display ds-gradient-text mt-3 text-3xl sm:text-4xl">
               Welcome back, {name.split(" ")[0]}
             </h1>
-            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70">
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
               <span className="inline-flex items-center gap-1.5">
                 <span className="ds-status-dot" /> Claude Sonnet 4.5 online
               </span>
               {latencyMs && (
                 <>
-                  <span className="text-white/20">·</span>
-                  <span className="font-mono text-[12px] text-white/55">{(latencyMs / 1000).toFixed(1)}s avg</span>
+                  <span className="text-white/30">·</span>
+                  <span className="font-mono text-[12px] text-white/65">{(latencyMs / 1000).toFixed(1)}s avg</span>
                 </>
               )}
-              <span className="text-white/20">·</span>
+              <span className="text-white/30">·</span>
               <span className="capitalize">{plan} plan</span>
               {usage && (
                 <>
-                  <span className="text-white/20">·</span>
+                  <span className="text-white/30">·</span>
                   <span>
                     {usage.used}{isUnlimited ? "" : ` / ${usage.limit}`} this month
                   </span>
@@ -166,7 +167,7 @@ function DashboardHome() {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="relative mt-6">
           <AskBar />
         </div>
       </section>
@@ -392,9 +393,9 @@ function DashboardHome() {
           <div className="ds-skeleton h-40" />
         ) : recentJobs.length === 0 ? (
           <EmptyState
-            icon={<Clock className="h-5 w-5" />}
-            title="No repurposes yet"
-            description="Your generations will surface here as you create. Start with a single idea and watch it become a full content drop."
+            variant="shimmer"
+            title="Your first spark is waiting"
+            description="Turn one idea into 10 platform-ready posts. Your recent generations will surface here."
             cta={{ to: "/dashboard/repurpose", label: "Run your first repurpose" }}
           />
         ) : (
