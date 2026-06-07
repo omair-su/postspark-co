@@ -124,7 +124,7 @@ export function SparkCopilot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="group fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-card/95 backdrop-blur border border-border pl-1.5 pr-4 py-1.5 shadow-2xl shadow-[#7c3aed]/30 hover:shadow-[#7c3aed]/50 hover:-translate-y-0.5 transition-all"
+          className="group fixed bottom-6 right-6 z-40 hidden md:flex items-center gap-2 rounded-full bg-card/95 backdrop-blur border border-border pl-1.5 pr-4 py-1.5 shadow-2xl shadow-[#7c3aed]/30 hover:shadow-[#7c3aed]/50 hover:-translate-y-0.5 transition-all"
           aria-label="Open Spark Copilot"
         >
           <AssistantOrb size={36} />
