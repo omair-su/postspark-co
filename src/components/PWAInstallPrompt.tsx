@@ -7,26 +7,14 @@ interface BIPEvent extends Event {
 }
 
 const STORAGE_KEY = "ps_pwa_prompt_state_v1";
-const READY_KEY = "ps_pwa_ready_v1";
 
 export function PWAInstallPrompt() {
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [visible, setVisible] = useState(false);
   const [iosHint, setIosHint] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  // Track readiness flag (set after first successful repurpose)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setReady(localStorage.getItem(READY_KEY) === "1");
-    const onReady = () => setReady(true);
-    window.addEventListener("postspark:pwa-ready", onReady);
-    return () => window.removeEventListener("postspark:pwa-ready", onReady);
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!ready) return;
 
     // Capability checks
     const isStandalone =
