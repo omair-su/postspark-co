@@ -1155,3 +1155,225 @@
 .ds-canvas .hover\:bg-white\/5:hover,
 .ds-canvas .hover\:bg-white\/10:hover { background-color: #F5F3FF !important; }
 .ds-canvas .hover\:border-\[\#a78bfa\]\/40:hover { border-color: var(--ds-border-strong) !important; }
+
+/* ════════════════════════════════════════════════════════════════════
+   PREMIUM DASHBOARD UPGRADES — hero dark, studio categories,
+   mobile bottom nav, empty-state shimmer, gradient referral.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* — Dark hero card (replaces light hero variant on home) — */
+.ds-card-hero-dark {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  color: #FFFFFF;
+  background:
+    radial-gradient(900px 380px at 100% 0%, rgba(167,139,250,0.22), transparent 65%),
+    radial-gradient(700px 360px at 0% 100%, rgba(236,72,153,0.16), transparent 65%),
+    linear-gradient(135deg, #1A1A2E 0%, #16122A 45%, #0F0B28 100%);
+  border: 1px solid rgba(167,139,250,0.28);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 30px 80px -32px rgba(124,58,237,0.55),
+    0 8px 30px -14px rgba(0,0,0,0.4);
+}
+.ds-card-hero-dark .ds-eyebrow { color: #C4B5FD; }
+.ds-card-hero-dark .ds-gradient-text {
+  background: linear-gradient(120deg, #FFFFFF 0%, #E9D5FF 60%, #C4B5FD 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.ds-card-hero-dark .ds-muted-text,
+.ds-card-hero-dark p { color: rgba(255,255,255,0.72); }
+.ds-card-hero-dark .ds-status-dot { background: #34D399; }
+
+/* drifting orbs inside hero */
+.ds-hero-orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ds-hero-orbs::before,
+.ds-hero-orbs::after,
+.ds-hero-orbs > span {
+  content: ""; position: absolute; width: 240px; height: 240px; border-radius: 999px;
+  filter: blur(60px); opacity: 0.55;
+  animation: ds-hero-drift 22s ease-in-out infinite;
+}
+.ds-hero-orbs::before {
+  background: radial-gradient(circle, rgba(167,139,250,0.55), transparent 70%);
+  top: -60px; left: 10%;
+}
+.ds-hero-orbs::after {
+  background: radial-gradient(circle, rgba(236,72,153,0.40), transparent 70%);
+  bottom: -80px; right: 12%; animation-delay: -8s;
+}
+.ds-hero-orbs > span {
+  background: radial-gradient(circle, rgba(124,58,237,0.45), transparent 70%);
+  top: 30%; right: 30%; animation-delay: -14s; width: 200px; height: 200px;
+}
+@keyframes ds-hero-drift {
+  0%, 100% { transform: translate3d(0,0,0); }
+  33%      { transform: translate3d(30px,-20px,0); }
+  66%      { transform: translate3d(-25px,20px,0); }
+}
+
+/* Askbar variant inside dark hero */
+.ds-card-hero-dark .ds-askbar {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 40px -28px rgba(0,0,0,0.5);
+}
+.ds-card-hero-dark .ds-askbar:focus-within {
+  border-color: rgba(196,181,253,0.6);
+  box-shadow: 0 0 0 4px rgba(167,139,250,0.18);
+}
+.ds-card-hero-dark .ds-askbar input { color: #FFFFFF; }
+.ds-card-hero-dark .ds-askbar input::placeholder { color: rgba(255,255,255,0.55); }
+
+/* Chips inside dark hero */
+.ds-card-hero-dark .ds-chip {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.85);
+}
+.ds-card-hero-dark .ds-chip:hover {
+  background: rgba(167,139,250,0.20);
+  border-color: rgba(167,139,250,0.45);
+}
+.ds-card-hero-dark .ds-cta-ghost {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+  color: #FFFFFF;
+}
+.ds-card-hero-dark .ds-cta-ghost:hover {
+  background: rgba(255,255,255,0.14);
+}
+
+/* — Color-coded Studio tile (category accent) — */
+.ds-tool-tile {
+  --cat: #7C3AED;
+  border-left-width: 4px;
+  border-left-color: var(--cat);
+}
+.ds-tool-tile::before {
+  content: ""; position: absolute; inset: 0;
+  background: var(--cat); opacity: 0.025;
+  pointer-events: none; border-radius: inherit;
+}
+.ds-tool-tile:hover {
+  border-left-color: var(--cat);
+}
+.ds-tool-tile .ds-icon-disc {
+  background: color-mix(in oklab, var(--cat) 10%, #FFFFFF);
+  border-color: color-mix(in oklab, var(--cat) 22%, #FFFFFF);
+  color: var(--cat);
+}
+
+.ds-pill-popular {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  background: linear-gradient(90deg, #FCD34D, #F59E0B);
+  color: #78350F;
+  box-shadow: 0 4px 12px -4px rgba(245,158,11,0.45);
+}
+.ds-pill-new {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  background: linear-gradient(90deg, #6EE7B7, #10B981);
+  color: #064E3B;
+}
+
+/* — Premium empty state with shimmer ghost rows — */
+.ds-empty-shimmer {
+  position: relative;
+  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--ds-border);
+  padding: 24px;
+  overflow: hidden;
+}
+.ds-ghost-row {
+  position: relative;
+  height: 64px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #F1F5F9 0%, #F8FAFC 50%, #F1F5F9 100%);
+  background-size: 200% 100%;
+  animation: ds-shimmer 1.8s linear infinite;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.ds-ghost-row::before {
+  content: ""; position: absolute; left: 14px; top: 14px; width: 36px; height: 36px;
+  border-radius: 10px; background: rgba(124,58,237,0.10);
+}
+.ds-ghost-row::after {
+  content: ""; position: absolute; left: 64px; top: 18px; right: 18px; height: 10px;
+  border-radius: 6px; background: rgba(124,58,237,0.10);
+}
+
+/* — Animated gradient refer banner — */
+.ds-refer-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 20px 22px;
+  color: #FFFFFF;
+  background: linear-gradient(120deg, #6B4EFF 0%, #8B6FFF 35%, #EC4899 75%, #6B4EFF 100%);
+  background-size: 220% 100%;
+  animation: ds-gradient-slide 7s ease-in-out infinite;
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 20px 50px -22px rgba(124,58,237,0.55);
+}
+@keyframes ds-gradient-slide {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.ds-refer-banner::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(220px 120px at 90% 0%, rgba(255,255,255,0.35), transparent 70%),
+    radial-gradient(180px 100px at 5% 100%, rgba(255,255,255,0.20), transparent 70%);
+  pointer-events: none;
+}
+
+/* — Mobile bottom navigation — */
+.ds-mobile-bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-top: 1px solid var(--ds-border);
+  box-shadow: 0 -8px 30px -12px rgba(15,23,42,0.10);
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  z-index: 60;
+}
+.ds-mobile-nav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 6px 4px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.02em;
+  color: #64748B;
+  transition: color .2s ease, transform .2s ease;
+}
+.ds-mobile-nav-item svg { transition: transform .2s ease, color .2s ease; }
+.ds-mobile-nav-item[data-active="true"] { color: #7C3AED; }
+.ds-mobile-nav-item[data-active="true"] svg { transform: translateY(-1px); }
+.ds-mobile-nav-item:active { transform: scale(0.94); }
+
+/* Extra padding on mobile so bottom nav doesn't cover content */
+@media (max-width: 767px) {
+  .ds-canvas { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+}
+
+/* Subscription banner — quieter than full-bleed red */
+.dashboard-shell [data-subscription-banner],
+.dashboard-shell .subscription-banner-root { /* no-op hook for future */ }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-card-hero-dark .ds-hero-orbs::before,
+  .ds-card-hero-dark .ds-hero-orbs::after,
+  .ds-card-hero-dark .ds-hero-orbs > span,
+  .ds-refer-banner,
+  .ds-ghost-row { animation: none !important; }
+}
+
