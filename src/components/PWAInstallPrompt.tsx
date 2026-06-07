@@ -72,7 +72,7 @@ export function PWAInstallPrompt() {
       window.removeEventListener("appinstalled", onInstalled);
       if (iosTimer) clearTimeout(iosTimer);
     };
-  }, [ready]);
+  }, []);
 
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, "dismissed");
