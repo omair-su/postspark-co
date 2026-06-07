@@ -25,14 +25,14 @@ const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description
 ];
 
 const TOOLS: ToolTileItem[] = [
-  { to: "/dashboard/repurpose", label: "Repurpose Studio", icon: Repeat, description: "One source → every platform, on-brand." },
-  { to: "/dashboard/hook-lab", label: "Hook Lab", icon: Flame, description: "10 hooks per idea, scored & A/B ready." },
-  { to: "/dashboard/image-studio", label: "Image Studio", icon: ImageIcon, description: "Brand-aware visuals & post graphics." },
-  { to: "/dashboard/carousel", label: "Carousel Generator", icon: Layers, description: "Multi-slide LinkedIn / X carousels." },
-  { to: "/dashboard/seo-blog", label: "SEO Blog", icon: FileText, description: "Long-form articles tuned to rank." },
-  { to: "/dashboard/thumbnail", label: "Thumbnail / Cover", icon: ImageIcon, description: "YouTube & podcast covers in seconds." },
-  { to: "/dashboard/humanizer", label: "AI Humanizer", icon: Wand2, description: "Make AI text feel handwritten." },
-  { to: "/dashboard/reply-generator", label: "Reply Generator", icon: MessageSquare, description: "On-brand replies for any thread." },
+  { to: "/dashboard/repurpose", label: "Repurpose Studio", icon: Repeat, description: "One source → every platform, on-brand.", category: "#7C3AED", popular: true },
+  { to: "/dashboard/hook-lab", label: "Hook Lab", icon: Flame, description: "10 hooks per idea, scored & A/B ready.", category: "#F97316" },
+  { to: "/dashboard/image-studio", label: "Image Studio", icon: ImageIcon, description: "Brand-aware visuals & post graphics.", category: "#0891B2" },
+  { to: "/dashboard/carousel", label: "Carousel Generator", icon: Layers, description: "Multi-slide LinkedIn / X carousels.", category: "#3B82F6" },
+  { to: "/dashboard/seo-blog", label: "SEO Blog", icon: FileText, description: "Long-form articles tuned to rank.", category: "#059669" },
+  { to: "/dashboard/thumbnail", label: "Thumbnail / Cover", icon: ImageIcon, description: "YouTube & podcast covers in seconds.", category: "#0891B2" },
+  { to: "/dashboard/humanizer", label: "AI Humanizer", icon: Wand2, description: "Make AI text feel handwritten.", category: "#D97706" },
+  { to: "/dashboard/reply-generator", label: "Reply Generator", icon: MessageSquare, description: "On-brand replies for any thread.", category: "#EC4899" },
 ];
 
 export const Route = createFileRoute("/dashboard/")({
