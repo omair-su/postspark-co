@@ -5,11 +5,15 @@ const TABS = [
   { to: "/dashboard", icon: Home, label: "Home", match: (p: string) => p === "/dashboard" },
   { to: "/dashboard/repurpose", icon: Repeat, label: "Create", match: (p: string) => p.startsWith("/dashboard/repurpose") },
   { to: "/dashboard/calendar", icon: Calendar, label: "Calendar", match: (p: string) => p.startsWith("/dashboard/calendar") },
-  { to: "/dashboard/hook-lab", icon: Sparkles, label: "Spark", match: (p: string) => p.startsWith("/dashboard/hook-lab") },
 ] as const;
 
 export function MobileBottomNav() {
   const { pathname } = useLocation();
+  const openSpark = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("postspark:open-copilot"));
+    }
+  };
   return (
     <nav className="ds-mobile-bottom-nav md:hidden" aria-label="Primary mobile navigation">
       {TABS.map((tab) => {
@@ -28,6 +32,15 @@ export function MobileBottomNav() {
           </Link>
         );
       })}
+      <button
+        type="button"
+        onClick={openSpark}
+        className="ds-mobile-nav-item"
+        aria-label="Open Spark Copilot"
+      >
+        <Sparkles className="h-5 w-5" strokeWidth={2} />
+        <span>Spark</span>
+      </button>
     </nav>
   );
 }
