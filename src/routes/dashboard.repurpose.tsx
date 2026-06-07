@@ -706,40 +706,55 @@ function RepurposePage() {
                 Three one-click actions to ship this content and lock in the habit.
               </p>
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <Link
-                  to="/dashboard/calendar"
-                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 transition-all hover:border-primary/40 hover:bg-primary/5"
+                <button
+                  onClick={() => setShowScheduleModal(true)}
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 text-left transition-all hover:border-primary/40 hover:bg-primary/5"
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">📅</div>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                    <CalendarIcon className="h-4 w-4" />
+                  </div>
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-foreground">Schedule it</div>
-                    <div className="text-[11px] text-muted-foreground">Plan posts on the calendar so this becomes a weekly habit.</div>
+                    <div className="text-[11px] text-muted-foreground">Pick a date — we'll save every post to your calendar.</div>
                   </div>
-                </Link>
+                </button>
                 <button
                   onClick={() => {
-                    const all = Object.entries(results).map(([k, v]) => ({ title: typeLabels[k] || k, content: v }));
-                    exportToPdf(all, `content-pack`, { watermark: tier === "free" });
+                    const brand = brandKit?.brand_name?.trim();
+                    const stamp = new Date().toISOString().slice(0, 10);
+                    const filename = `${brand ? `${brand.replace(/[^a-z0-9-_]+/gi, "-")}-` : ""}content-pack-${stamp}`;
+                    const all = Object.entries(results)
+                      .filter(([k]) => k !== "carousel")
+                      .map(([k, v]) => ({ title: typeLabels[k] || k, content: v }));
+                    exportToPdf(all, filename, { watermark: tier === "free" });
+                    setShipDone(true);
                     toast.success("PDF exported!");
                   }}
                   className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 text-left transition-all hover:border-primary/40 hover:bg-primary/5"
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">📄</div>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                    <Download className="h-4 w-4" />
+                  </div>
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-foreground">Export the pack</div>
-                    <div className="text-[11px] text-muted-foreground">Download the full content pack as a polished PDF.</div>
+                    <div className="text-[11px] text-muted-foreground">Branded PDF with every tweet, post, email & script.</div>
                   </div>
                 </button>
-                <Link
-                  to="/dashboard/templates"
-                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 transition-all hover:border-primary/40 hover:bg-primary/5"
+                <button
+                  onClick={() => {
+                    setTemplateName((window as any).__psPresetTitle || `My pack · ${new Date().toLocaleDateString()}`);
+                    setShowSaveTemplateModal(true);
+                  }}
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-background/50 p-3 text-left transition-all hover:border-primary/40 hover:bg-primary/5"
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">💾</div>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                    <Save className="h-4 w-4" />
+                  </div>
                   <div className="min-w-0">
                     <div className="text-xs font-bold text-foreground">Save as template</div>
                     <div className="text-[11px] text-muted-foreground">Reuse this tone &amp; format mix in one click next time.</div>
                   </div>
-                </Link>
+                </button>
               </div>
             </div>
           )}
