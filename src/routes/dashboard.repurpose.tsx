@@ -84,6 +84,23 @@ function RepurposePage() {
   const [oneClickBusy, setOneClickBusy] = useState(false);
   const [isFirstRun, setIsFirstRun] = useState(false);
   const [showNextSteps, setShowNextSteps] = useState(false);
+  const [shipDone, setShipDone] = useState(false);
+
+  // Schedule modal state
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  });
+  const [scheduleTime, setScheduleTime] = useState<string>("09:00");
+  const [scheduleSpread, setScheduleSpread] = useState<"same" | "daily">("daily");
+  const [scheduleBusy, setScheduleBusy] = useState(false);
+
+  // Save-as-template modal state
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateBusy, setTemplateBusy] = useState(false);
 
   const handleOneClick = async () => {
     if (!session) return toast.error("Please sign in");
