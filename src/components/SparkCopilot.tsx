@@ -37,6 +37,13 @@ export function SparkCopilot() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, loading]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onOpen = () => setOpen(true);
+    window.addEventListener("postspark:open-copilot", onOpen);
+    return () => window.removeEventListener("postspark:open-copilot", onOpen);
+  }, []);
+
   async function refreshConversations() {
     if (!authHeaders) return;
     try {
