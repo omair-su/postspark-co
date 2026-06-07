@@ -434,7 +434,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="relative z-10">{children}</div>
         </main>
       </div>
-      <PWAInstallPrompt />
+      
       <AIProgressBar />
       <CommandPaletteRoot />
       <SparkCopilot />

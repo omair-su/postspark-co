@@ -3,6 +3,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { lazy, Suspense, useEffect } from "react";
 import { captureUTMs, track } from "@/lib/analytics";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 const Toaster = lazy(() => import("sonner").then(m => ({ default: m.Toaster })));
 
@@ -137,6 +138,7 @@ function RootComponent() {
     <AuthProvider>
       <PaymentTestModeBanner />
       <Outlet />
+      <PWAInstallPrompt />
       <Suspense fallback={null}><Toaster position="top-right" richColors /></Suspense>
     </AuthProvider>
   );

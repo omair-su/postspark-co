@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Repeat, Calendar, Sparkles } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 const TABS = [
   { to: "/dashboard", icon: Home, label: "Home", match: (p: string) => p === "/dashboard" },
@@ -11,6 +12,7 @@ export function MobileBottomNav() {
   const { pathname } = useLocation();
   const openSpark = () => {
     if (typeof window !== "undefined") {
+      track("spark_copilot_opened", { source: "mobile_bottom_nav" });
       window.dispatchEvent(new CustomEvent("postspark:open-copilot"));
     }
   };
