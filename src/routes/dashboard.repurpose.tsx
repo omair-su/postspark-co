@@ -379,6 +379,18 @@ function RepurposePage() {
       <h1 className="text-2xl font-bold text-foreground">Repurpose Content</h1>
       <p className="mt-1 text-sm text-muted-foreground">Transform your content into multiple formats with AI.</p>
 
+      {/* Onboarding progress stepper — shows distance to first content pack */}
+      <ProgressStepper
+        steps={[
+          { label: "Add content", done: inputText.trim().length > 20 },
+          { label: "Choose formats", done: selected.size > 0 },
+          { label: "Set tone", done: !!tone },
+          { label: "Generate pack", done: !!results, active: loading },
+          { label: "Ship it", done: shipDone },
+        ]}
+      />
+
+
       {/* First-run hero — Generate my first content pack */}
       {isFirstRun && !results && !loading && (
         <div className="mt-4 rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card p-5 shadow-lg animate-fade-in">
