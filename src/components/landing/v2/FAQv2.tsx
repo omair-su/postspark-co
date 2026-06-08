@@ -31,7 +31,7 @@ export function FAQv2() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <h2
           className="text-center text-3xl sm:text-4xl md:text-[40px]"
-          style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
+          style={{ color: "#0F172A", fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.1 }}
         >
           Questions Before You Start
         </h2>
