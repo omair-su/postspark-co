@@ -82,6 +82,10 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AlternativesJasperVsPostsparkRouteImport } from './routes/alternatives.jasper-vs-postspark'
 import { Route as AlternativesChatgptForContentRepurposingRouteImport } from './routes/alternatives.chatgpt-for-content-repurposing'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as DashboardGuidedProductLaunchRouteImport } from './routes/dashboard.guided.product-launch'
+import { Route as DashboardGuidedMarketingTipRouteImport } from './routes/dashboard.guided.marketing-tip'
+import { Route as DashboardGuidedFounderLessonRouteImport } from './routes/dashboard.guided.founder-lesson'
+import { Route as DashboardGuidedCreatorPlaybookRouteImport } from './routes/dashboard.guided.creator-playbook'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
@@ -475,6 +479,30 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardGuidedProductLaunchRoute =
+  DashboardGuidedProductLaunchRouteImport.update({
+    id: '/guided/product-launch',
+    path: '/guided/product-launch',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardGuidedMarketingTipRoute =
+  DashboardGuidedMarketingTipRouteImport.update({
+    id: '/guided/marketing-tip',
+    path: '/guided/marketing-tip',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardGuidedFounderLessonRoute =
+  DashboardGuidedFounderLessonRouteImport.update({
+    id: '/guided/founder-lesson',
+    path: '/guided/founder-lesson',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardGuidedCreatorPlaybookRoute =
+  DashboardGuidedCreatorPlaybookRouteImport.update({
+    id: '/guided/creator-playbook',
+    path: '/guided/creator-playbook',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const BlogCategorySlugRoute = BlogCategorySlugRouteImport.update({
   id: '/blog/category/$slug',
   path: '/blog/category/$slug',
@@ -631,6 +659,10 @@ export interface FileRoutesByFullPath {
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/dashboard/guided/creator-playbook': typeof DashboardGuidedCreatorPlaybookRoute
+  '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
+  '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
+  '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -719,6 +751,10 @@ export interface FileRoutesByTo {
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/dashboard/guided/creator-playbook': typeof DashboardGuidedCreatorPlaybookRoute
+  '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
+  '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
+  '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -809,6 +845,10 @@ export interface FileRoutesById {
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/dashboard/guided/creator-playbook': typeof DashboardGuidedCreatorPlaybookRoute
+  '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
+  '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
+  '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -900,6 +940,10 @@ export interface FileRouteTypes {
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
+    | '/dashboard/guided/creator-playbook'
+    | '/dashboard/guided/founder-lesson'
+    | '/dashboard/guided/marketing-tip'
+    | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
@@ -988,6 +1032,10 @@ export interface FileRouteTypes {
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
+    | '/dashboard/guided/creator-playbook'
+    | '/dashboard/guided/founder-lesson'
+    | '/dashboard/guided/marketing-tip'
+    | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
@@ -1077,6 +1125,10 @@ export interface FileRouteTypes {
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
+    | '/dashboard/guided/creator-playbook'
+    | '/dashboard/guided/founder-lesson'
+    | '/dashboard/guided/marketing-tip'
+    | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
@@ -1665,6 +1717,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/guided/product-launch': {
+      id: '/dashboard/guided/product-launch'
+      path: '/guided/product-launch'
+      fullPath: '/dashboard/guided/product-launch'
+      preLoaderRoute: typeof DashboardGuidedProductLaunchRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/guided/marketing-tip': {
+      id: '/dashboard/guided/marketing-tip'
+      path: '/guided/marketing-tip'
+      fullPath: '/dashboard/guided/marketing-tip'
+      preLoaderRoute: typeof DashboardGuidedMarketingTipRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/guided/founder-lesson': {
+      id: '/dashboard/guided/founder-lesson'
+      path: '/guided/founder-lesson'
+      fullPath: '/dashboard/guided/founder-lesson'
+      preLoaderRoute: typeof DashboardGuidedFounderLessonRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/guided/creator-playbook': {
+      id: '/dashboard/guided/creator-playbook'
+      path: '/guided/creator-playbook'
+      fullPath: '/dashboard/guided/creator-playbook'
+      preLoaderRoute: typeof DashboardGuidedCreatorPlaybookRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/blog/category/$slug': {
       id: '/blog/category/$slug'
       path: '/blog/category/$slug'
@@ -1792,6 +1872,10 @@ interface DashboardRouteChildren {
   DashboardTestimonialsAdminRoute: typeof DashboardTestimonialsAdminRoute
   DashboardThumbnailRoute: typeof DashboardThumbnailRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardGuidedCreatorPlaybookRoute: typeof DashboardGuidedCreatorPlaybookRoute
+  DashboardGuidedFounderLessonRoute: typeof DashboardGuidedFounderLessonRoute
+  DashboardGuidedMarketingTipRoute: typeof DashboardGuidedMarketingTipRoute
+  DashboardGuidedProductLaunchRoute: typeof DashboardGuidedProductLaunchRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -1820,6 +1904,10 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardTestimonialsAdminRoute: DashboardTestimonialsAdminRoute,
   DashboardThumbnailRoute: DashboardThumbnailRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardGuidedCreatorPlaybookRoute: DashboardGuidedCreatorPlaybookRoute,
+  DashboardGuidedFounderLessonRoute: DashboardGuidedFounderLessonRoute,
+  DashboardGuidedMarketingTipRoute: DashboardGuidedMarketingTipRoute,
+  DashboardGuidedProductLaunchRoute: DashboardGuidedProductLaunchRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
@@ -1895,12 +1983,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

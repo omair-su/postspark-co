@@ -7,7 +7,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
-import { GuidedIntakeModal, type IntakeKind } from "@/components/GuidedIntakeModal";
+
 import { DailySpark } from "@/components/DailySpark";
 import { ActivationChecklist } from "@/components/ActivationChecklist";
 import { StreakBadge } from "@/components/StreakBadge";
@@ -17,11 +17,11 @@ import { StatTile } from "@/components/dashboard/StatTile";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { ToolTile, type ToolTileItem } from "@/components/dashboard/ToolTile";
 
-const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description: string }> = [
-  { id: "founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into thread + LinkedIn + email." },
-  { id: "creator-playbook", title: "Creator Playbook", emoji: "✍️", description: "Repurpose a content tip into shareable posts." },
-  { id: "product-launch", title: "Product Launch", emoji: "🎉", description: "Launch-ready announcements for product or feature." },
-  { id: "marketing-tip", title: "Marketing Tip", emoji: "📈", description: "Turn a marketing insight into platform-native posts." },
+const WIDGETS: Array<{ to: string; title: string; emoji: string; description: string; outputs: string[]; accent: string; badge?: string; badgeKind?: "popular" | "new" }> = [
+  { to: "/dashboard/guided/founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into authority content with scored hooks.", outputs: ["LinkedIn", "Thread", "Email"], accent: "linear-gradient(90deg,#7c3aed,#8b6fff)", badge: "Most Popular", badgeKind: "popular" },
+  { to: "/dashboard/guided/creator-playbook", title: "Creator Playbook", emoji: "✍️", description: "Knowledge → 10-slide carousels, threads & captions.", outputs: ["Carousel", "Thread", "IG"], accent: "linear-gradient(90deg,#f59e0b,#fbbf24)" },
+  { to: "/dashboard/guided/product-launch", title: "Product Launch", emoji: "🚀", description: "Launch copy for Shopify, ads, email & every channel.", outputs: ["Shopify", "FB Ad", "Email"], accent: "linear-gradient(90deg,#ec4899,#f472b6)", badge: "New", badgeKind: "new" },
+  { to: "/dashboard/guided/marketing-tip", title: "Marketing Tip", emoji: "📊", description: "One insight → a week of authority content.", outputs: ["LinkedIn", "Newsletter", "Thread"], accent: "linear-gradient(90deg,#059669,#10b981)" },
 ];
 
 const TOOLS: ToolTileItem[] = [
@@ -47,7 +47,7 @@ function DashboardHome() {
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string; outputs?: Record<string, any>; tool?: string }>>([]);
   const [allJobDates, setAllJobDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [intakeKind, setIntakeKind] = useState<IntakeKind | null>(null);
+  
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
   useEffect(() => {
@@ -363,28 +363,37 @@ function DashboardHome() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {WIDGETS.map((w) => (
-            <button
-              key={w.id}
-              onClick={() => setIntakeKind(w.id)}
-              className="ds-tool-tile text-left"
+            <Link
+              key={w.to}
+              to={w.to}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
             >
-              <div className="flex items-start justify-between">
-                <span className="text-2xl leading-none">{w.emoji}</span>
+              <span aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ background: w.accent }} />
+              <div className="flex items-start justify-between gap-2">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.06] text-xl">{w.emoji}</span>
+                {w.badge && (
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    w.badgeKind === "popular" ? "bg-amber-500/15 text-amber-300" : "bg-emerald-500/15 text-emerald-300"
+                  }`}>{w.badge}</span>
+                )}
               </div>
-              <div>
+              <div className="mt-3">
                 <p className="text-sm font-semibold text-white">{w.title}</p>
                 <p className="mt-1 text-[11px] ds-muted-text leading-relaxed">{w.description}</p>
               </div>
-            </button>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-1">
+                  {w.outputs.map(o => (
+                    <span key={o} className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-white/60">{o}</span>
+                  ))}
+                </div>
+                <span className="text-[11px] font-medium text-[#c4b5fd] group-hover:underline">Start →</span>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
 
-      <GuidedIntakeModal
-        kind={intakeKind}
-        open={intakeKind !== null}
-        onClose={() => setIntakeKind(null)}
-      />
 
       {/* Recent activity */}
       <section>
