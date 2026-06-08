@@ -1,149 +1,72 @@
+# Guided Studios v2 — World-class rebuild
 
-# Landing Demo v3 — "Convert in 60 Seconds" Plan
+Convert the 4 modal-based guided tools (Founder Lesson, Creator Playbook, Product Launch, Marketing Tip) into full dedicated pages with multi-step wizards, platform selectors, advanced AI outputs, and shared output utilities.
 
-The current demo is a single textarea that returns 3 outputs (tweet, LinkedIn, hook). It works, but it doesn't *sell*. Visitors don't feel the pain solved — repurposing **one** thing into **many** across **platforms in their voice**. This plan turns the demo into the single strongest conversion asset on the page.
+## 1. Routing & shell
 
-## Goals (in priority order)
+Create 4 new route files (replacing the modal flow):
+- `src/routes/dashboard.guided.founder-lesson.tsx`
+- `src/routes/dashboard.guided.creator-playbook.tsx`
+- `src/routes/dashboard.guided.product-launch.tsx`
+- `src/routes/dashboard.guided.marketing-tip.tsx`
 
-1. **Show the magic in <10 seconds** — first paint must already have a pre-filled example so people see output before typing.
-2. **Demonstrate the core promise visibly** — "1 input → 30 pieces" must be visually obvious, not implied.
-3. **Trigger the upgrade moment naturally** — show locked premium outputs (carousel, thread, newsletter, video script) as blurred teasers with "Unlock with free account" CTAs.
-4. **Reduce friction to try** — accept URL paste (blog/YouTube) and not just raw text.
-5. **Prove quality** — let users pick a *tone* (Professional / Casual / Bold / Storyteller) and re-generate instantly.
+Shared layout pieces in `src/components/guided/`:
+- `GuidedStudioShell.tsx` — sticky header (icon badge, title, subtitle, back), step indicator, 2-col desktop / stacked mobile, sticky mobile generate button.
+- `StepIndicator.tsx`, `PlatformSelector.tsx`, `FormatChip.tsx`, `WillGenerateBox.tsx`, `GenerateButton.tsx`, `CharCounter.tsx`, `StudioField.tsx`.
+- `OutputPanel.tsx` — tabs per format, Copy / Save to Swipe / Download .txt / Download .pdf / Regenerate variations / Edit with AI buttons.
+- `HookCard.tsx` — hook + score, "Use this hook" selector (Founder Lesson).
+- `CarouselPreview.tsx` — slide-by-slide editable preview, "Send to Image Studio" (Creator Playbook).
 
----
+Update dashboard tile clicks: route to new pages instead of opening `GuidedIntakeModal`. Keep modal as deprecated/removed.
 
-## Part 1 — Input Upgrades (`HeroDemoWidget.tsx`)
+Card grid restyle in `dashboard.index.tsx` / `ToolTile.tsx`:
+- Colored top gradient stripe per card (purple / amber / pink / green).
+- Icon badge with tinted bg, output-format pills row at bottom, "Start →" CTA, usage badge ("Most Popular" / "New").
 
-### 1.1 Multi-source input with tabs
-Replace single textarea with 3 input modes:
-- **Paste Text** (current behavior)
-- **Blog URL** — paste any article URL; server fetches + extracts via existing `src/server/import.server.ts`
-- **YouTube URL** — paste video link; server pulls transcript via existing `src/lib/import.functions.ts` pattern
+## 2. Server-side AI engines
 
-Each tab pre-filled with a working example so users can click "Generate" with zero typing.
+New files in `src/server/`:
+- `founderLesson.server.ts` — generates 3 scored hooks + outputs per selected platform, accepts lesson type / tone / length / hook style.
+- `creatorPlaybook.server.ts` — accepts playbook format (step-by-step, myth-vs-reality, before-after, framework, checklist, secrets), generates carousel slides (10) + thread + LinkedIn + IG captions.
+- `productLaunch.server.ts` — product-type-aware (physical, SaaS, digital, service, subscription); generates Shopify desc, FB/IG ad (primary+headline+CTA), TikTok script, Google Search ad, Amazon listing, launch email / 3-email sequence, organic posts.
+- `marketingTip.server.ts` — channel-aware, content-angle aware; generates platform outputs + optional 7-day content plan.
 
-### 1.2 Pre-filled compelling sample
-Default text on load: a real-world blog paragraph about productivity/AI (~150 chars). Visitor sees output *immediately* after first click, no thinking required.
+All use existing `callClaude` / `callClaudeWithTool` from `anthropic.server.ts`. Structured tool-use for hook scoring and carousel slides.
 
-### 1.3 Tone selector chips
-Above the Generate button: 4 tone pills (Professional / Casual / Bold / Storyteller). Selected tone passes to API and changes voice — proves the "in your voice" promise.
+Matching client function files in `src/lib/`:
+- `founderLesson.functions.ts`, `creatorPlaybook.functions.ts`, `productLaunch.functions.ts`, `marketingTip.functions.ts`
 
-### 1.4 Character counter + live preview
-Show "243 / 4000 chars" subtle below textarea. Adds polish.
+Each uses `createServerFn` with `requireSupabaseAuth`, enforces usage limits via existing `assertCanRepurpose` pattern, increments usage on success, applies brand voice if Pro.
 
----
+## 3. Swipe file
 
-## Part 2 — Output Upgrades (the "wow" moment)
+New table `swipe_file` (user_id, type, title, content, platform, created_at). RLS: user owns rows. Used by "Save to Swipe File" on every output.
 
-### 2.1 Expand from 3 → 6 platform outputs
-Free (unlocked):
-- 🐦 Tweet
-- 💼 LinkedIn post
-- 📧 Email subject line
+## 4. Shared output features
 
-Locked (blurred + "Sign up free to unlock"):
-- 🧵 Twitter thread (5 tweets)
-- 📰 Newsletter intro
-- 🎬 YouTube Short script (30s hook)
+In `OutputPanel.tsx`:
+- Copy button with 2s "Copied! ✓" success state.
+- Download .txt (client `Blob`), Download .pdf (reuse `src/lib/exportPdf.ts`).
+- Save to Swipe File (server fn → `swipe_file` table).
+- Regenerate variations: different angle / tone / shorter / more data.
+- Edit with AI: small prompt → re-calls server fn with edit instruction.
+- Schedule → push to calendar (reuse existing calendar fn).
 
-Visually this **immediately** proves "1 → 30" because users *see* 6 deliverables from one input, with more clearly available behind signup.
+## 5. Styles
 
-### 2.2 Streaming output (Claude streaming)
-Stream the generation token-by-token (typewriter effect) instead of waiting for full JSON. Already have `callClaude` — add a `callClaudeStream` variant returning a `ReadableStream`. The visible typing animation is the single biggest "wow" trigger in AI demos.
+Add tokens / utility classes to `src/styles.css` under `@layer components`:
+- `.studio-input`, `.studio-textarea`, `.studio-form-label`, `.platform-chip[.selected]`, `.will-generate-box`, `.generate-btn`, `.copy-btn[.copied]`, `.char-counter`, guided-studio-card stripes.
 
-### 2.3 Result card actions
-Each output card gets:
-- **Copy** (existing)
-- **Regenerate** (new — re-runs just that platform)
-- **Tweak tone** (mini popover with same 4 tone chips)
-- **Character count** badge (e.g. "247 / 280" for tweets — proves platform-native sizing)
+Use design tokens (oklch from existing palette) — purple matches existing `--primary`.
 
-### 2.4 Visual platform mockups (optional polish)
-For Tweet and LinkedIn, render the output inside a **mini fake-UI card** that looks like a real Twitter/LinkedIn post (avatar placeholder, username, timestamp, like icons). Adds massive perceived quality with ~30 lines of CSS.
+## 6. Mobile
 
----
+Full-screen scrollable form, sticky generate button with safe-area inset, compact step indicator, 1-col platform chips wrapping, output tabs become horizontal scroll.
 
-## Part 3 — Conversion Mechanics
+## Out of scope this pass
+- Real virality scoring model (hook scores come from Claude rationale only).
+- Live preview pane that updates as user types (output appears after generate).
+- Product URL auto-extract (placeholder field; extraction lands later).
+- Per-output A/B test harness beyond regenerate variations.
 
-### 3.1 Live social proof above the demo
-Small ticker: "🔥 2,847 pieces generated today · 312 creators signed up this week" — fetched from `demo_uses` count (already tracked) + `profiles` count. Updates on page load.
-
-### 3.2 Locked-output reveal CTA
-The 3 locked cards each have an overlay:
-> "🔒 Unlock thread + newsletter + video script → **Sign up free** (no card)"
-
-Clicking any locked card → `/signup` with `?from=demo_lock_{platform}` analytics tag.
-
-### 3.3 "Generate again" gate
-After 1 free generation, second click shows: *"Loved it? Get 10 free repurposes/month →"* with signup CTA *and* still allows 2 more anonymous uses (current 3/day limit stays).
-
-### 3.4 Remaining-uses counter
-Replace silent rate limit with visible: "2 of 3 free demos left today · Unlimited with free account →"
-
-### 3.5 Post-generation upgrade panel (replace current static box)
-After result, show a 3-up grid:
-- ✅ "You just saved ~45 minutes"
-- ✅ "Pro users average 30 pieces per input"
-- ✅ "Join 1,200+ creators" → big signup button
-
----
-
-## Part 4 — Server Changes
-
-### 4.1 `src/routes/api/public/demo.ts`
-- Accept new `Schema`: `{ input?, url?, sourceType: 'text'|'blog'|'youtube', tone: 'professional'|'casual'|'bold'|'storyteller', platforms: string[] }`
-- If `url`: call existing blog/YouTube extractor, then feed extracted text to Claude
-- Update system prompt to return all 6 platform outputs in one call
-- Switch handler to **streaming response** (SSE) — yields each platform as it completes so the UI can render progressively
-- Keep IP-hash rate limit at 3/day (unchanged)
-
-### 4.2 New endpoint `src/routes/api/public/demo-stats.ts`
-GET-only. Returns:
-```json
-{ "generatedToday": 2847, "signupsThisWeek": 312 }
-```
-Used by the social-proof ticker. Cached server-side for 60s.
-
-### 4.3 `src/server/anthropic.server.ts`
-Add `callClaudeStream({ systemPrompt, userPrompt })` returning a `ReadableStream<string>` for token streaming.
-
----
-
-## Part 5 — Files Changed
-
-```text
-EDIT  src/components/landing/v2/HeroDemoWidget.tsx   (full rebuild)
-EDIT  src/routes/api/public/demo.ts                  (streaming + URL input + tone + 6 outputs)
-EDIT  src/server/anthropic.server.ts                 (add streaming variant)
-NEW   src/routes/api/public/demo-stats.ts            (social-proof counter)
-NEW   src/components/landing/v2/demo/SourceTabs.tsx
-NEW   src/components/landing/v2/demo/ToneChips.tsx
-NEW   src/components/landing/v2/demo/PlatformCard.tsx
-NEW   src/components/landing/v2/demo/LockedCard.tsx
-NEW   src/components/landing/v2/demo/SocialProofTicker.tsx
-NEW   src/components/landing/v2/demo/PostUpgradePanel.tsx
-EDIT  src/components/landing/v2/Hero.tsx             (no layout change; widget is self-contained)
-```
-
-No DB migrations needed — reuses existing `demo_uses` and `profiles` tables.
-
----
-
-## Visual / Brand
-
-- Keep current landing palette: white surface, `#7C3AED` primary, `#F5F3FF` accent, `#0F172A` ink, Inter font.
-- Locked cards: white background, 6px blur on text, gold (`#C9A87C`) lock icon, subtle violet gradient overlay.
-- Streaming cursor: thin violet `|` blinking — same as current hero typewriter.
-- Mini platform mockups: real brand colors (Twitter `#1DA1F2`, LinkedIn `#0A66C2`) but used **only** inside the mock card frame, never in PostSpark chrome.
-
----
-
-## Open Questions (please confirm before I build)
-
-1. **Streaming** — go for token-by-token streaming now, or keep it simple JSON for v1 and add streaming later? (Streaming is ~3x more impressive but adds ~1 hour of work.)
-2. **URL ingestion** — include Blog URL + YouTube URL tabs in v1, or text-only for v1 and add URLs in v2? (URL support is the biggest pain-relief signal but adds server work.)
-3. **Mini platform mockups** — render outputs inside fake Twitter/LinkedIn cards? (Massive perceived quality boost; pure CSS, ~45 min.)
-4. **Locked premium outputs** — comfortable showing 3 blurred outputs gated behind signup, or do you want all 6 fully visible? (Gating drives signups but some users dislike it.)
-
-If you say "yes to all", I'll build the full version in one pass.
+After approval I'll build it in this order: migration → shared components + styles → server engines + functions → 4 pages → wire dashboard tiles → test build.
