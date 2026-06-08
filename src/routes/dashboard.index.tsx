@@ -7,7 +7,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
-import { GuidedIntakeModal, type IntakeKind } from "@/components/GuidedIntakeModal";
+
 import { DailySpark } from "@/components/DailySpark";
 import { ActivationChecklist } from "@/components/ActivationChecklist";
 import { StreakBadge } from "@/components/StreakBadge";
