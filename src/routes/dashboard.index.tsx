@@ -17,11 +17,11 @@ import { StatTile } from "@/components/dashboard/StatTile";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { ToolTile, type ToolTileItem } from "@/components/dashboard/ToolTile";
 
-const WIDGETS: Array<{ id: IntakeKind; title: string; emoji: string; description: string }> = [
-  { id: "founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into thread + LinkedIn + email." },
-  { id: "creator-playbook", title: "Creator Playbook", emoji: "✍️", description: "Repurpose a content tip into shareable posts." },
-  { id: "product-launch", title: "Product Launch", emoji: "🎉", description: "Launch-ready announcements for product or feature." },
-  { id: "marketing-tip", title: "Marketing Tip", emoji: "📈", description: "Turn a marketing insight into platform-native posts." },
+const WIDGETS: Array<{ to: string; title: string; emoji: string; description: string; outputs: string[]; accent: string; badge?: string; badgeKind?: "popular" | "new" }> = [
+  { to: "/dashboard/guided/founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into authority content with scored hooks.", outputs: ["LinkedIn", "Thread", "Email"], accent: "linear-gradient(90deg,#7c3aed,#8b6fff)", badge: "Most Popular", badgeKind: "popular" },
+  { to: "/dashboard/guided/creator-playbook", title: "Creator Playbook", emoji: "✍️", description: "Knowledge → 10-slide carousels, threads & captions.", outputs: ["Carousel", "Thread", "IG"], accent: "linear-gradient(90deg,#f59e0b,#fbbf24)" },
+  { to: "/dashboard/guided/product-launch", title: "Product Launch", emoji: "🚀", description: "Launch copy for Shopify, ads, email & every channel.", outputs: ["Shopify", "FB Ad", "Email"], accent: "linear-gradient(90deg,#ec4899,#f472b6)", badge: "New", badgeKind: "new" },
+  { to: "/dashboard/guided/marketing-tip", title: "Marketing Tip", emoji: "📊", description: "One insight → a week of authority content.", outputs: ["LinkedIn", "Newsletter", "Thread"], accent: "linear-gradient(90deg,#059669,#10b981)" },
 ];
 
 const TOOLS: ToolTileItem[] = [
