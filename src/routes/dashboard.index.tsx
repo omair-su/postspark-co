@@ -47,7 +47,7 @@ function DashboardHome() {
   const [recentJobs, setRecentJobs] = useState<Array<{ id: string; created_at: string; input_text: string; outputs?: Record<string, any>; tool?: string }>>([]);
   const [allJobDates, setAllJobDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [intakeKind, setIntakeKind] = useState<IntakeKind | null>(null);
+  
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
   useEffect(() => {
