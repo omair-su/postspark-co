@@ -16,7 +16,7 @@ export function PainSection() {
         </p>
         <h2
           className="mt-3 max-w-3xl text-3xl sm:text-4xl md:text-[44px]"
-          style={{ color: "#0F172A", fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.1 }}
+          style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
         >
           You Create Great Content.
           <br />
