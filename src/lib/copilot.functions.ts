@@ -177,6 +177,7 @@ export const sparkChat = createServerFn({ method: "POST" })
         }),
       ).min(1).max(40),
       conversationId: z.string().uuid().nullable().optional(),
+      currentTool: z.string().max(80).nullable().optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
