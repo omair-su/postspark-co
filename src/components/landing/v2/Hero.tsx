@@ -44,7 +44,7 @@ export function Hero() {
           >
             Stop Rewriting the
             <br /> Same Content for
-            <br /> Every Platform.
+            <br /> <span className="ps-display-accent">Every Platform.</span>
           </h1>
 
           <p
