@@ -1399,3 +1399,16 @@
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
+
+/* Spark Copilot animations */
+@keyframes spark-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.92; }
+}
+.animate-spark-pulse { animation: spark-pulse 2s ease-in-out infinite; }
+
+@keyframes spark-in {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-spark-in { animation: spark-in 0.15s ease-out both; }
