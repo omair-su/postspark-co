@@ -236,3 +236,167 @@ export const bulkDeleteJobs = createServerFn({ method: "POST" })
     }
     return { success: true, deleted: count ?? 0 };
   });
+
+/* ---------------------------------------------------------------------------
+ * FOCUSED PER-FORMAT GENERATION (Million-dollar quality engine)
+ * Each call generates ONE format with full token budget for max quality.
+ * packId groups multiple format calls into one repurpose_jobs row
+ * so usage is counted per pack, not per format.
+ * ------------------------------------------------------------------------ */
+
+const FORMAT_ID = z.enum([
+  "tweets","linkedin","instagram","facebook","thread","email","video","tiktok","podcast","seo","carousel",
+]);
+
+export const repurposeOneFormat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      packId: z.string().uuid(),
+      isFirstInPack: z.boolean(),
+      inputText: z.string().min(1).max(50000),
+      format: FORMAT_ID,
+      count: z.number().int().min(1).max(30).optional(),
+      style: z.string().max(80).optional(),
+      length: z.string().max(40).optional(),
+      tone: z.string().max(50).optional(),
+      styleModifiers: z.array(z.string().max(60)).max(15).optional(),
+      customInstructions: z.string().max(500).optional(),
+      language: z.string().max(40).optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    if (rateLimited(userId)) {
+      return { output: "", error: "Rate limit: please wait a minute and try again.", jobId: null };
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles").select("plan").eq("user_id", userId).single();
+    const plan = profile?.plan || "free";
+    const isPro = plan === "pro" || plan === "agency";
+
+    // Enforce monthly limit ONLY on the first format of a pack.
+    if (data.isFirstInPack && !isPro) {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1); startOfMonth.setHours(0,0,0,0);
+      const { count } = await supabase
+        .from("repurpose_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", startOfMonth.toISOString());
+      if ((count ?? 0) >= FREE_MONTHLY_LIMIT) {
+        return { output: "", error: "LIMIT_REACHED", jobId: null };
+      }
+    }
+
+    // Brand Voice (Pro)
+    let brandVoiceSummary = "";
+    if (isPro) {
+      const { data: voice } = await supabase
+        .from("brand_voices").select("style_summary")
+        .eq("user_id", userId).eq("is_active", true).maybeSingle();
+      brandVoiceSummary = voice?.style_summary || "";
+    }
+
+    // Brand Kit (auto tone + context)
+    let effectiveTone = data.tone || "professional";
+    let brandContext = "";
+    let brandKitId: string | null = null;
+    const { data: kit } = await supabase
+      .from("brand_kits")
+      .select("id, brand_name, tagline, preferred_tone")
+      .eq("user_id", userId).maybeSingle();
+    if (kit) {
+      const k = kit as any;
+      brandKitId = k.id ?? null;
+      if (!data.tone && k.preferred_tone) effectiveTone = k.preferred_tone;
+      const parts: string[] = [];
+      if (k.brand_name) parts.push(`Brand: ${k.brand_name}`);
+      if (k.tagline) parts.push(`Tagline: ${k.tagline}`);
+      if (parts.length) brandContext = parts.join(" | ");
+    }
+
+    const mergedInstructions = brandContext
+      ? `${data.customInstructions || ""}${data.customInstructions ? " " : ""}Brand context — ${brandContext}.`.trim()
+      : (data.customInstructions || "");
+
+    const result = await generateOneFormat({
+      inputText: data.inputText,
+      format: data.format,
+      count: data.count,
+      style: data.style,
+      length: data.length,
+      tone: effectiveTone,
+      styleModifiers: data.styleModifiers || [],
+      customInstructions: mergedInstructions,
+      brandVoiceSummary,
+      language: data.language || "English",
+    });
+
+    if (result.error || !result.output) {
+      return { output: "", error: result.error || "Generation failed", jobId: null };
+    }
+
+    // Resolve workspace
+    let workspaceId: string | null = null;
+    const { data: membership } = await supabase
+      .from("workspace_members").select("workspace_id").eq("user_id", userId).limit(1).maybeSingle();
+    if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
+
+    // First format of pack → insert job row with packId
+    if (data.isFirstInPack) {
+      await supabase
+        .from("repurpose_jobs")
+        .insert({
+          id: data.packId,
+          user_id: userId,
+          input_text: data.inputText,
+          outputs: { [data.format]: result.output },
+          brand_kit_id: brandKitId,
+          workspace_id: workspaceId,
+          tool: "repurpose",
+        } as any);
+    } else {
+      // Merge into existing pack's outputs
+      const { data: existing } = await supabase
+        .from("repurpose_jobs").select("outputs").eq("id", data.packId).eq("user_id", userId).maybeSingle();
+      const prev = ((existing as any)?.outputs as Record<string, unknown>) || {};
+      await supabase
+        .from("repurpose_jobs")
+        .update({ outputs: { ...prev, [data.format]: result.output } })
+        .eq("id", data.packId).eq("user_id", userId);
+    }
+
+    return { output: result.output, error: undefined as string | undefined, jobId: data.packId };
+  });
+
+export const saveToSwipeFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      title: z.string().min(1).max(200),
+      content: z.string().min(1).max(20000),
+      platform: z.string().max(40).optional(),
+      type: z.string().max(40).default("repurpose"),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("swipe_file")
+      .insert({
+        user_id: userId,
+        title: data.title,
+        content: data.content,
+        platform: data.platform || null,
+        type: data.type,
+      } as any);
+    if (error) {
+      console.error("swipe insert error", error);
+      return { success: false };
+    }
+    return { success: true };
+  });
+
