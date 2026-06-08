@@ -363,28 +363,37 @@ function DashboardHome() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {WIDGETS.map((w) => (
-            <button
-              key={w.id}
-              onClick={() => setIntakeKind(w.id)}
-              className="ds-tool-tile text-left"
+            <Link
+              key={w.to}
+              to={w.to}
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
             >
-              <div className="flex items-start justify-between">
-                <span className="text-2xl leading-none">{w.emoji}</span>
+              <span aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ background: w.accent }} />
+              <div className="flex items-start justify-between gap-2">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.06] text-xl">{w.emoji}</span>
+                {w.badge && (
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    w.badgeKind === "popular" ? "bg-amber-500/15 text-amber-300" : "bg-emerald-500/15 text-emerald-300"
+                  }`}>{w.badge}</span>
+                )}
               </div>
-              <div>
+              <div className="mt-3">
                 <p className="text-sm font-semibold text-white">{w.title}</p>
                 <p className="mt-1 text-[11px] ds-muted-text leading-relaxed">{w.description}</p>
               </div>
-            </button>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-1">
+                  {w.outputs.map(o => (
+                    <span key={o} className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-white/60">{o}</span>
+                  ))}
+                </div>
+                <span className="text-[11px] font-medium text-[#c4b5fd] group-hover:underline">Start →</span>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
 
-      <GuidedIntakeModal
-        kind={intakeKind}
-        open={intakeKind !== null}
-        onClose={() => setIntakeKind(null)}
-      />
 
       {/* Recent activity */}
       <section>
