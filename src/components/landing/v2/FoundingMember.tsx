@@ -8,7 +8,7 @@ export function FoundingMember() {
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <h2
           className="text-3xl sm:text-4xl"
-          style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
+          style={{ color: "#0F172A", fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.1 }}
         >
           Be Among Our First Power Users
         </h2>
@@ -30,7 +30,7 @@ export function FoundingMember() {
           </div>
           <h3
             className="mx-auto mt-5 max-w-md text-2xl sm:text-[28px]"
-            style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.2 }}
+            style={{ color: "#0F172A", fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.2 }}
           >
             First 100 Pro subscribers get $19/month locked forever
           </h3>

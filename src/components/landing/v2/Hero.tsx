@@ -34,17 +34,17 @@ export function Hero() {
           </span>
 
           <h1
-            className="mt-8 text-[36px] leading-[1.1] tracking-tight md:text-[44px] lg:text-[52px]"
+            className="mt-8 text-[40px] leading-[1.05] tracking-tight md:text-[52px] lg:text-[64px]"
             style={{
               color: "#0F172A",
-              fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
+              fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
             }}
           >
             Stop Rewriting the
             <br /> Same Content for
-            <br /> Every Platform.
+            <br /> <span className="ps-display-accent">Every Platform.</span>
           </h1>
 
           <p

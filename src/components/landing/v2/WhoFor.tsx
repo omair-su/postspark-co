@@ -41,7 +41,7 @@ export function WhoFor() {
         </p>
         <h2
           className="mt-3 text-3xl sm:text-4xl md:text-[40px]"
-          style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
+          style={{ color: "#0F172A", fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.1 }}
         >
           One Tool. Every Creator.
         </h2>

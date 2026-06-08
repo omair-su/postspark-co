@@ -427,34 +427,76 @@ function RepurposePage() {
     <div className="mx-auto max-w-4xl pb-24 md:pb-8">
       {/* ============== HERO ============== */}
       <section
-        className="relative overflow-hidden rounded-2xl px-6 py-7 sm:px-8 sm:py-8 text-white shadow-xl"
-        style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 60%, #0F3460 100%)" }}
+        className="relative overflow-hidden rounded-2xl px-6 py-7 sm:px-8 sm:py-9 shadow-2xl"
+        style={{
+          background:
+            "radial-gradient(120% 140% at 0% 0%, #2a1b54 0%, transparent 55%), radial-gradient(120% 140% at 100% 100%, #0F3460 0%, transparent 55%), linear-gradient(135deg, #0B0B1F 0%, #16213E 60%, #0F1B3D 100%)",
+          color: "#FFFFFF",
+          border: "1px solid rgba(167,139,250,0.18)",
+        }}
       >
+        {/* subtle grid texture */}
         <div
-          className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full opacity-60"
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
-            background: "radial-gradient(circle, rgba(124,58,237,0.35) 0%, transparent 70%)",
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full opacity-70 blur-2xl"
+          style={{
+            background: "radial-gradient(circle, rgba(167,139,250,0.55) 0%, transparent 70%)",
             animation: "rs-drift 15s ease-in-out infinite",
           }}
         />
         <div
-          className="pointer-events-none absolute -left-20 bottom-[-100px] h-80 w-80 rounded-full opacity-40"
+          className="pointer-events-none absolute -left-24 bottom-[-120px] h-96 w-96 rounded-full opacity-50 blur-2xl"
           style={{
-            background: "radial-gradient(circle, rgba(56,189,248,0.25) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(56,189,248,0.38) 0%, transparent 70%)",
             animation: "rs-drift 22s ease-in-out infinite reverse",
           }}
+        />
+        {/* gold hairline shimmer */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-6 top-0 h-px"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,124,0.6), transparent)" }}
         />
         <style>{`@keyframes rs-drift { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-20px,15px)} 66%{transform:translate(10px,-10px)} }`}</style>
 
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-300/30 bg-purple-400/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-purple-200">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]"
+              style={{
+                background: "rgba(167,139,250,0.14)",
+                border: "1px solid rgba(167,139,250,0.35)",
+                color: "#DDD6FE",
+              }}
+            >
               <Repeat className="h-3 w-3" /> Repurpose Studio
             </span>
-            <h1 className="mt-2.5 text-2xl font-bold leading-tight tracking-tight sm:text-[28px]">
-              One source. Every platform.
+            <h1
+              className="ps-display mt-3 text-[26px] leading-[1.1] sm:text-[32px]"
+              style={{ color: "#FFFFFF" }}
+            >
+              One source.{" "}
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #C9A87C 0%, #F0D78C 50%, #A78BFA 100%)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  color: "transparent",
+                }}
+              >
+                Every platform.
+              </span>
             </h1>
-            <p className="mt-2 max-w-md text-sm text-white/60">
+            <p className="mt-2.5 max-w-md text-sm" style={{ color: "rgba(255,255,255,0.72)" }}>
               Paste a blog, YouTube video, podcast, or URL — PostSpark turns it into a full content drop in seconds.
             </p>
           </div>

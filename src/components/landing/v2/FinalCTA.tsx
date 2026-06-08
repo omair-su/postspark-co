@@ -8,7 +8,7 @@ export function FinalCTA() {
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <h2
           className="text-3xl sm:text-4xl md:text-[48px]"
-          style={{ color: "#FFFFFF", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
+          style={{ color: "#FFFFFF", fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.1 }}
         >
           Your best content deserves more than one platform.
         </h2>
