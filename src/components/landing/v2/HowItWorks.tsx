@@ -31,7 +31,7 @@ export function HowItWorks() {
         </p>
         <h2
           className="mt-3 text-3xl sm:text-4xl md:text-[44px]"
-          style={{ color: "#0F172A", fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.1 }}
+          style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.1 }}
         >
           Three Steps to 30 Pieces of Content
         </h2>
@@ -76,7 +76,7 @@ export function HowItWorks() {
           <h3
             id="features"
             className="text-2xl"
-            style={{ color: "#0F172A", fontFamily: "Syne, Inter, system-ui, -apple-system, sans-serif", fontWeight: 800, letterSpacing: "-0.025em" }}
+            style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, }}
           >
             Everything you need to ship content faster
           </h3>
