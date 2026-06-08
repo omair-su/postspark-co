@@ -365,7 +365,7 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
       const prev = ((existing as any)?.outputs as Record<string, unknown>) || {};
       await supabase
         .from("repurpose_jobs")
-        .update({ outputs: { ...prev, [data.format]: result.output } })
+        .update({ outputs: { ...prev, [data.format]: result.output } as any })
         .eq("id", data.packId).eq("user_id", userId);
     }
 
