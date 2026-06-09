@@ -39,11 +39,32 @@ export const generateHooks = createServerFn({ method: "POST" })
       .maybeSingle();
     brandVoiceSummary = voice?.style_summary || "";
 
-    return generateViralHooks(data.topic, data.platform, brandVoiceSummary, {
+    const result = await generateViralHooks(data.topic, data.platform, brandVoiceSummary, {
       niche: data.niche,
       audience: data.audience,
       format: data.format,
       frameworks: data.frameworks,
       tone: data.tone,
     });
+
+    if (!result.error && result.hooks?.length) {
+      const outputs: Record<string, string> = {};
+      result.hooks.slice(0, 20).forEach((h: any, i: number) => {
+        const txt = typeof h === "string" ? h : (h.text || h.hook || JSON.stringify(h));
+        outputs[`hook_${i + 1}`] = txt;
+      });
+      try {
+        await supabase.from("repurpose_jobs").insert({
+          user_id: userId,
+          tool: "hook_lab",
+          input_text: data.topic,
+          title: `Hooks for ${data.platform}: ${data.topic.slice(0, 80)}`,
+          outputs,
+        } as any);
+      } catch (e) {
+        console.error("hook_lab history insert error:", e);
+      }
+    }
+
+    return result;
   });

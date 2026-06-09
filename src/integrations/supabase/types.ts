@@ -1293,6 +1293,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      append_repurpose_outputs: {
+        Args: {
+          _job_id: string
+          _patch: Json
+          _title?: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

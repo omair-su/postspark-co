@@ -1164,53 +1164,97 @@
 /* — Dark hero card (replaces light hero variant on home) — */
 .ds-card-hero-dark {
   position: relative;
-  border-radius: 20px;
+  border-radius: 24px;
   overflow: hidden;
   color: #FFFFFF;
   background:
-    radial-gradient(900px 380px at 100% 0%, rgba(167,139,250,0.22), transparent 65%),
-    radial-gradient(700px 360px at 0% 100%, rgba(236,72,153,0.16), transparent 65%),
-    linear-gradient(135deg, #1A1A2E 0%, #16122A 45%, #0F0B28 100%);
-  border: 1px solid rgba(167,139,250,0.28);
+    radial-gradient(1100px 460px at 100% 0%, rgba(167,139,250,0.30), transparent 60%),
+    radial-gradient(820px 420px at 0% 100%, rgba(236,72,153,0.22), transparent 65%),
+    radial-gradient(600px 300px at 50% 50%, rgba(56,189,248,0.10), transparent 70%),
+    linear-gradient(135deg, #1B1240 0%, #150F32 40%, #0B0820 100%);
+  border: 1px solid rgba(167,139,250,0.32);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.06) inset,
-    0 30px 80px -32px rgba(124,58,237,0.55),
-    0 8px 30px -14px rgba(0,0,0,0.4);
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 40px 90px -36px rgba(124,58,237,0.65),
+    0 12px 40px -16px rgba(236,72,153,0.18),
+    0 8px 30px -14px rgba(0,0,0,0.45);
 }
-.ds-card-hero-dark .ds-eyebrow { color: #C4B5FD; }
+/* shimmering conic ring + subtle grid overlay */
+.ds-card-hero-dark::before {
+  content: "";
+  position: absolute; inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from 140deg at 50% 50%,
+    rgba(167,139,250,0.55), rgba(236,72,153,0.45), rgba(56,189,248,0.40),
+    rgba(167,139,250,0.55));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0.55;
+  animation: ds-hero-ring 18s linear infinite;
+  pointer-events: none;
+}
+.ds-card-hero-dark::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(600px 240px at 80% 0%, #000 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(600px 240px at 80% 0%, #000 0%, transparent 70%);
+  pointer-events: none;
+  display: block;
+}
+.ds-card-hero-dark .ds-eyebrow {
+  color: #D8C9FF;
+  background: rgba(167,139,250,0.14);
+  border: 1px solid rgba(167,139,250,0.32);
+  padding: 4px 10px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px;
+  backdrop-filter: blur(6px);
+}
 .ds-card-hero-dark .ds-gradient-text {
-  background: linear-gradient(120deg, #FFFFFF 0%, #E9D5FF 60%, #C4B5FD 100%);
+  background: linear-gradient(120deg, #FFFFFF 0%, #F5E9FF 40%, #C4B5FD 75%, #F0ABFC 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -0.01em;
+  filter: drop-shadow(0 2px 18px rgba(167,139,250,0.35));
 }
 .ds-card-hero-dark .ds-muted-text,
-.ds-card-hero-dark p { color: rgba(255,255,255,0.72); }
-.ds-card-hero-dark .ds-status-dot { background: #34D399; }
+.ds-card-hero-dark p { color: rgba(255,255,255,0.74); }
+.ds-card-hero-dark .ds-status-dot {
+  background: #34D399;
+  box-shadow: 0 0 0 4px rgba(52,211,153,0.18), 0 0 12px rgba(52,211,153,0.6);
+}
 
 /* drifting orbs inside hero */
 .ds-hero-orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .ds-hero-orbs::before,
 .ds-hero-orbs::after,
 .ds-hero-orbs > span {
-  content: ""; position: absolute; width: 240px; height: 240px; border-radius: 999px;
-  filter: blur(60px); opacity: 0.55;
+  content: ""; position: absolute; width: 280px; height: 280px; border-radius: 999px;
+  filter: blur(70px); opacity: 0.65;
   animation: ds-hero-drift 22s ease-in-out infinite;
 }
 .ds-hero-orbs::before {
-  background: radial-gradient(circle, rgba(167,139,250,0.55), transparent 70%);
-  top: -60px; left: 10%;
+  background: radial-gradient(circle, rgba(167,139,250,0.70), transparent 70%);
+  top: -80px; left: 8%;
 }
 .ds-hero-orbs::after {
-  background: radial-gradient(circle, rgba(236,72,153,0.40), transparent 70%);
-  bottom: -80px; right: 12%; animation-delay: -8s;
+  background: radial-gradient(circle, rgba(236,72,153,0.55), transparent 70%);
+  bottom: -100px; right: 10%; animation-delay: -8s;
 }
 .ds-hero-orbs > span {
-  background: radial-gradient(circle, rgba(124,58,237,0.45), transparent 70%);
-  top: 30%; right: 30%; animation-delay: -14s; width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(56,189,248,0.45), transparent 70%);
+  top: 25%; right: 28%; animation-delay: -14s; width: 220px; height: 220px;
 }
 @keyframes ds-hero-drift {
   0%, 100% { transform: translate3d(0,0,0); }
-  33%      { transform: translate3d(30px,-20px,0); }
-  66%      { transform: translate3d(-25px,20px,0); }
+  33%      { transform: translate3d(36px,-22px,0); }
+  66%      { transform: translate3d(-28px,24px,0); }
+}
+@keyframes ds-hero-ring {
+  to { transform: rotate(1turn); }
 }
 
 /* Askbar variant inside dark hero */
