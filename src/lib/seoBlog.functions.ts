@@ -44,7 +44,7 @@ export const generateBlog = createServerFn({ method: "POST" })
       .eq("is_active", true)
       .maybeSingle();
 
-    return generateSeoBlog(
+    const result = await generateSeoBlog(
       data.topic,
       data.keyword,
       data.wordTarget,
@@ -60,6 +60,26 @@ export const generateBlog = createServerFn({ method: "POST" })
         competitorAngle: data.competitorAngle,
       },
     );
+
+    if (!result.error && (result as any).markdown) {
+      try {
+        await supabase.from("repurpose_jobs").insert({
+          user_id: userId,
+          tool: "seo_blog",
+          input_text: `${data.topic} — ${data.keyword}`,
+          title: (result as any).title || data.topic.slice(0, 120),
+          outputs: {
+            article: (result as any).markdown,
+            meta_description: (result as any).metaDescription || "",
+            slug: (result as any).slug || "",
+          },
+        } as any);
+      } catch (e) {
+        console.error("seo_blog history insert error:", e);
+      }
+    }
+
+    return result;
   });
 
 export const generateOutline = createServerFn({ method: "POST" })
