@@ -393,6 +393,24 @@ export function SparkCopilot() {
                         </button>
                       ))}
                     </div>
+                    {/* Content context paste */}
+                    <div className="pt-1">
+                      <button
+                        onClick={() => setShowContext((v) => !v)}
+                        className="text-[10.5px] uppercase tracking-wider font-semibold text-slate-400 hover:text-[#7c3aed] transition"
+                      >
+                        {showContext ? "− Hide content context" : "+ Add content context (optional)"}
+                      </button>
+                      {showContext && (
+                        <textarea
+                          value={contextContent}
+                          onChange={(e) => setContextContent(e.target.value.slice(0, 4000))}
+                          placeholder="Paste any content here for Spark to work with…"
+                          rows={3}
+                          className="mt-1.5 w-full text-[12px] rounded-lg border border-slate-200 bg-white px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:border-[#7c3aed]/50 focus:ring-2 focus:ring-[#7c3aed]/10 resize-y"
+                        />
+                      )}
+                    </div>
                   </div>
                 )}
 
