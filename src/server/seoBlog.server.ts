@@ -1,4 +1,4 @@
-import { callClaudeWithTool } from "./anthropic.server";
+import { callClaude, callClaudeWithTool } from "./anthropic.server";
 import { isBlockedHost } from "./import.server";
 
 export interface OutlineSection {
@@ -20,7 +20,6 @@ interface ClaudeOutlineResponse {
   suggestedInternalLinks: { title: string; slug: string; anchor: string }[];
 }
 
-/** Lightweight HTML heading extractor — no DOM, regex only (Worker-safe). */
 function extractHeadings(html: string): string[] {
   const out: string[] = [];
   const re = /<h([1-3])\b[^>]*>([\s\S]*?)<\/h\1>/gi;
@@ -58,35 +57,34 @@ export async function generateSeoOutline(
   competitorUrls: string[],
   internalLinkCandidates: { title: string; slug: string }[],
 ): Promise<SeoOutlineResult> {
-  // Fetch competitors in parallel (max 3)
   const limited = competitorUrls.slice(0, 3).filter((u) => /^https?:\/\//i.test(u));
   const competitorHeadings = await Promise.all(limited.map(fetchCompetitor));
 
   const competitorBlock = competitorHeadings.length
-    ? "\n\nCompetitor headings (analyze structure, gaps, and topics they cover — then beat them):\n" +
+    ? "\n\nCompetitor headings (analyze structure, gaps, topics — then beat them):\n" +
       competitorHeadings
         .map((c) => `URL: ${c.url}\n${c.headings.map((h) => `  - ${h}`).join("\n") || "  (no headings extracted)"}`)
         .join("\n\n")
     : "";
 
   const internalBlock = internalLinkCandidates.length
-    ? "\n\nExisting internal posts (suggest relevant ones to link to with natural anchors):\n" +
+    ? "\n\nExisting internal posts (suggest relevant ones with natural anchors):\n" +
       internalLinkCandidates.slice(0, 30).map((p) => `- ${p.title} (/blog/${p.slug})`).join("\n")
     : "";
 
-  const systemPrompt = `You are an elite SEO strategist. Build an outline that beats the competition for the keyword "${keyword}".
+  const systemPrompt = `You are an elite SEO strategist who has built outlines for 500+ page-1 ranking articles. Build an outline that beats competitors for "${keyword}".
 
 Rules:
 - Write in ${language}.
-- Title under 60 chars, includes keyword.
-- 6-9 H2 sections covering search intent fully.
+- Title under 60 chars, includes keyword naturally.
+- 6-9 H2 sections covering full search intent.
 - Each H2 may include 2-4 H3 sub-points.
 - Cover gaps competitors miss; rearrange topics for better flow.
-- Suggest 3-6 internal links from the candidate list (only if genuinely relevant). Anchor text should be natural and keyword-rich.${competitorBlock}${internalBlock}`;
+- Suggest 3-6 internal links from the candidate list (only genuinely relevant). Natural keyword-rich anchors.${competitorBlock}${internalBlock}`;
 
   const result = await callClaudeWithTool<ClaudeOutlineResponse>({
     systemPrompt,
-    userPrompt: `Topic: ${topic}\nPrimary keyword: ${keyword}\n\nReturn the outline + internal link suggestions via the return_outline tool.`,
+    userPrompt: `Topic: ${topic}\nPrimary keyword: ${keyword}\n\nReturn the outline + internal link suggestions via return_outline.`,
     toolName: "return_outline",
     toolDescription: "Return the SEO outline and internal link suggestions.",
     toolSchema: {
@@ -148,6 +146,7 @@ export interface SeoBlogResult {
   outline: string[];
   markdown: string;
   faq: { q: string; a: string }[];
+  seoScore?: number;
   error?: string;
 }
 
@@ -160,34 +159,91 @@ interface ClaudeBlogResponse {
   faq: { q: string; a: string }[];
 }
 
+export interface SeoBlogOpts {
+  articleType?: string;
+  audience?: string;
+  niche?: string;
+  tone?: string;
+  sections?: string[];
+  secondaryKeywords?: string;
+  competitorAngle?: string;
+}
+
+function computeSeoScore(blog: ClaudeBlogResponse, keyword: string, wordTarget: number): number {
+  let score = 5.0;
+  const md = (blog.markdown || "").toLowerCase();
+  const kw = keyword.toLowerCase();
+  const words = (blog.markdown || "").split(/\s+/).length;
+
+  if (blog.title && blog.title.toLowerCase().includes(kw)) score += 1.0;
+  if (blog.title && blog.title.length <= 65) score += 0.5;
+  if (blog.metaDescription && blog.metaDescription.length >= 140 && blog.metaDescription.length <= 165) score += 0.8;
+  if (blog.metaDescription && blog.metaDescription.toLowerCase().includes(kw)) score += 0.4;
+  if (md.indexOf(kw) > -1 && md.indexOf(kw) < 500) score += 0.5;
+  if (Math.abs(words - wordTarget) / wordTarget < 0.15) score += 0.6;
+  if (blog.faq && blog.faq.length >= 4) score += 0.5;
+  if (blog.outline && blog.outline.length >= 5) score += 0.4;
+  if (blog.slug && /^[a-z0-9-]+$/.test(blog.slug)) score += 0.3;
+
+  return Math.min(10, Math.round(score * 10) / 10);
+}
+
 export async function generateSeoBlog(
   topic: string,
   keyword: string,
   wordTarget: number,
   language: string,
   brandVoiceSummary = "",
+  opts: SeoBlogOpts = {},
 ): Promise<SeoBlogResult> {
   const voiceBlock = brandVoiceSummary.trim()
     ? `\n\nMatch this brand voice exactly:\n${brandVoiceSummary.trim()}`
     : "";
 
-  const systemPrompt = `You are an expert SEO content writer with 10 years experience writing ranking blog posts. You understand search intent, keyword placement, and how to write content that both ranks on Google and genuinely helps readers. Write in ${language}.
+  const articleType = opts.articleType || "How-to Guide";
+  const audience = opts.audience || "general readers";
+  const niche = opts.niche || "General";
+  const tone = opts.tone || "Professional";
+  const sections = (opts.sections && opts.sections.length
+    ? opts.sections
+    : ["Meta title + description", "Table of contents", "Introduction hook", "FAQ section (5 Q&As)"]).join(", ");
+  const secondary = opts.secondaryKeywords?.trim() ? `\nSECONDARY KEYWORDS: ${opts.secondaryKeywords.trim()}` : "";
+  const angle = opts.competitorAngle?.trim() ? `\nCOMPETITOR ANGLE: ${opts.competitorAngle.trim()}` : "";
 
-Requirements:
-- Target keyword: "${keyword}" — use naturally in title, first 100 words, H2s, and conclusion (avoid stuffing).
-- Target length: ~${wordTarget} words.
-- Compelling SEO title under 60 characters with the target keyword.
-- Meta description under 155 characters that drives clicks.
-- URL-friendly slug (lowercase, hyphens, keyword-first).
-- Outline of 5-8 H2 sections.
-- Body markdown with H1, H2s, short paragraphs, bullet lists, bold key takeaways.
-- Include statistics, examples, and actionable takeaways.
-- 4-6 FAQ items optimized for People Also Ask.
-- Natural, expert tone. No fluff. No generic AI filler.${voiceBlock}`;
+  const systemPrompt = `You are an elite SEO content strategist and writer who has helped 500+ blogs rank on page 1 of Google. You write for humans first, search engines second.
+
+ASSIGNMENT: Write a complete, publication-ready ${articleType} blog post.
+
+TOPIC: ${topic}
+PRIMARY KEYWORD: "${keyword}" — use naturally 1 time per 300 words (no keyword stuffing).${secondary}
+AUDIENCE: ${audience}
+INDUSTRY/NICHE: ${niche}
+TARGET LENGTH: ${wordTarget} words (hit within 10%).
+TONE: ${tone}
+LANGUAGE: ${language}
+REQUIRED SECTIONS: ${sections}${angle}
+
+SEO QUALITY RULES (non-negotiable):
+1. H1 title: Include primary keyword naturally. Under 65 characters.
+2. First paragraph: State exactly what the reader will learn. Include keyword in first 100 words.
+3. H2 headings: Use secondary keywords naturally. Make them specific, not generic.
+4. Every section: Must deliver real value — no filler paragraphs.
+5. Include 2-3 specific data points or note where they should be sourced.
+6. Meta description: 150-160 characters. Include keyword. Create urgency or curiosity.
+7. FAQ: 5 questions matching "People also ask" search intent.
+8. Conclusion: End with a specific, actionable CTA — not "In conclusion, we learned...".
+
+WRITING QUALITY:
+- Every sentence earns its place — delete any sentence that doesn't add value
+- Vary sentence length: mix short punchy sentences with detailed explanations
+- Use second person ("you") to speak directly
+- Concrete examples over vague statements
+- No corporate jargon. No "In today's fast-paced world.". No "It is important to note."
+- Never use em-dashes (—). Use commas, parentheses, or two short sentences.${voiceBlock}`;
 
   const result = await callClaudeWithTool<ClaudeBlogResponse>({
     systemPrompt,
-    userPrompt: `Topic: ${topic}\nPrimary keyword: ${keyword}\n\nReturn the full article via the return_blog tool.`,
+    userPrompt: `Topic: ${topic}\nPrimary keyword: ${keyword}\n\nReturn the full ${articleType} via return_blog.`,
     toolName: "return_blog",
     toolDescription: "Return the full SEO blog article.",
     toolSchema: {
@@ -229,5 +285,29 @@ Requirements:
     outline: Array.isArray(d.outline) ? d.outline : [],
     markdown: d.markdown || "",
     faq: Array.isArray(d.faq) ? d.faq : [],
+    seoScore: computeSeoScore(d, keyword, wordTarget),
   };
+}
+
+export async function refreshSeoBlog(
+  oldContent: string,
+  keyword: string,
+  language: string,
+): Promise<{ markdown: string; error?: string }> {
+  const system = `You are an SEO content editor. Refresh and improve this existing blog post for the target keyword "${keyword}". Write in ${language}.
+
+Improvements to make:
+1. Update outdated stats and examples (mark with [Verify: YYYY] if you can't cite a source)
+2. Improve keyword density naturally (target keyword 1x per 300 words)
+3. Add a missing FAQ section (5 Q&As) at the end
+4. Strengthen the introduction hook — make first line scroll-stopping
+5. Add a markdown table of contents after the intro
+6. Tighten any filler. Remove "In today's...", "It's important to note...", "Furthermore", etc.
+7. Never use em-dashes — use commas, parentheses, or two short sentences
+
+Output ONLY the refreshed markdown. No preamble.`;
+
+  const r = await callClaude({ systemPrompt: system, userPrompt: oldContent, maxTokens: 4000 });
+  if (r.error) return { markdown: "", error: r.error };
+  return { markdown: r.text };
 }
