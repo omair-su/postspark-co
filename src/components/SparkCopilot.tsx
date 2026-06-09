@@ -156,7 +156,12 @@ export function SparkCopilot() {
     setLoading(true);
     try {
       const r = await sparkChat({
-        data: { messages: next.slice(-20), conversationId: convId, currentTool: toolLabel },
+        data: {
+          messages: next.slice(-20),
+          conversationId: convId,
+          currentTool: toolLabel,
+          contextContent: contextContent.trim() || null,
+        },
         headers: authHeaders,
       });
       if ((r as any).error) {
