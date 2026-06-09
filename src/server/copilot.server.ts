@@ -1,24 +1,77 @@
 import { callClaude } from "./anthropic.server";
 
-export async function humanizeText(input: string, intensity: "light" | "medium" | "strong" = "medium"): Promise<{ output: string; error?: string }> {
-  const intensityNotes = {
-    light: "Make minor edits — vary sentence length slightly, swap a few stiff phrases for natural ones.",
-    medium: "Rewrite for natural human cadence: vary sentence length aggressively (mix 3-word and 25-word sentences), use contractions, drop filler words, add one small personal-feeling aside.",
-    strong: "Aggressively rewrite as if a real person texted it. Big variation in rhythm. Include occasional sentence fragments. Cut all corporate words (leverage, utilize, robust, seamless, in order to). Use specific concrete nouns over abstractions.",
+export interface HumanizeOpts {
+  purpose?: string;
+  style?: string;
+  preserve?: string[];
+}
+
+export async function humanizeText(
+  input: string,
+  intensity: "light" | "medium" | "strong" = "medium",
+  opts: HumanizeOpts = {},
+): Promise<{ output: string; error?: string; stats?: { aiPatternsRemoved: number; fillerRemoved: number; humanScore: number } }> {
+  const purpose = opts.purpose || "General text";
+  const style = opts.style || "Conversational";
+  const preserve = (opts.preserve && opts.preserve.length ? opts.preserve : ["Original meaning", "Key facts/data"]).join(", ");
+
+  const strengthRules = {
+    light: "LIGHT MODE: Only fix the most obvious AI patterns. 20-30% rewrite. Keep most original phrasing.",
+    medium: "MEDIUM MODE: Full rewrite while preserving tone. 50-60% of sentences changed. Vary rhythm aggressively.",
+    strong: "STRONG MODE: Aggressive humanization. Rewrite up to 80% of sentences. Push naturalness to max — fragments, asides, conversational connectors.",
   }[intensity];
 
-  const system = `You are an expert editor who rewrites AI-generated text so it reads as if written by a real human. ${intensityNotes}
+  const system = `You are an expert editor who specializes in making AI-generated text sound genuinely human. You've studied thousands of examples of AI vs human writing patterns.
 
-Rules:
-- Keep the original meaning and key facts intact.
-- Output ONLY the rewritten text. No preamble, no explanation, no quotes.
-- Match the original's approximate length (±15%).
-- Never use em-dashes (—). Use commas, parentheses, or two short sentences instead.
-- Never start sentences with "Moreover", "Furthermore", "In conclusion", "Additionally".`;
+PURPOSE: ${purpose}
+TARGET STYLE: ${style}
+PRESERVE: ${preserve}
 
-  const r = await callClaude({ systemPrompt: system, userPrompt: input, maxTokens: 2500 });
+${strengthRules}
+
+REMOVE these AI fingerprints:
+- "In today's fast-paced world", "In the ever-evolving landscape", "It is important to note", "It's worth mentioning"
+- "Utilize" → "use" · "Leverage" → "use/apply" · "Cutting-edge" · "State-of-the-art" · "Robust solution" · "Seamless"
+- Passive voice where active is natural
+- Sentences that all start the same way
+- Mechanical parallel structure
+- "Furthermore" → "Also" · "Moreover" → "On top of that"
+- Topic-sentence announcements at every paragraph start
+
+ADD these human patterns:
+- Sentence-length variation: mix 5-word punchy lines with 20-word detailed ones
+- Occasional sentence fragments. Like this.
+- Conversational asides (parenthetical thoughts)
+- Direct address: "Here's the thing:", "Think about it this way:"
+- Specific, concrete details
+- Natural connectors: "That's why...", "The thing is..."
+- Contractions where appropriate (you're, it's, they're)
+
+NEVER change: meaning, facts, statistics, numbers, names, URLs.
+Never use em-dashes (—). Use commas, parentheses, or two short sentences.
+
+OUTPUT: Return ONLY the humanized text. No preamble. No explanation. No quotes.`;
+
+  const r = await callClaude({ systemPrompt: system, userPrompt: input, maxTokens: 3000 });
   if (r.error) return { output: "", error: r.error };
-  return { output: r.text };
+
+  // Simple stats based on diffing patterns
+  const aiPatterns = /\b(utilize|leverage|robust|seamless|cutting-edge|state-of-the-art|furthermore|moreover|in today's|in the ever-evolving|it is important to note|it's worth mentioning)\b/gi;
+  const fillerPatterns = /\b(very|really|just|basically|essentially|simply)\b/gi;
+  const inputAi = (input.match(aiPatterns) || []).length;
+  const outputAi = (r.text.match(aiPatterns) || []).length;
+  const inputFill = (input.match(fillerPatterns) || []).length;
+  const outputFill = (r.text.match(fillerPatterns) || []).length;
+  const score = Math.max(60, Math.min(98, 75 + (inputAi - outputAi) * 3 + (inputFill - outputFill)));
+
+  return {
+    output: r.text,
+    stats: {
+      aiPatternsRemoved: Math.max(0, inputAi - outputAi),
+      fillerRemoved: Math.max(0, inputFill - outputFill),
+      humanScore: score,
+    },
+  };
 }
 
 export async function generateReplies(
