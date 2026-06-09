@@ -345,28 +345,41 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
       .from("workspace_members").select("workspace_id").eq("user_id", userId).limit(1).maybeSingle();
     if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
 
+    const packTitle = data.inputText.replace(/\s+/g, " ").trim().slice(0, 120);
+
     // First format of pack → insert job row with packId
     if (data.isFirstInPack) {
-      await supabase
+      const { error: insErr } = await supabase
         .from("repurpose_jobs")
         .insert({
           id: data.packId,
           user_id: userId,
           input_text: data.inputText,
+          title: packTitle,
           outputs: { [data.format]: result.output },
           brand_kit_id: brandKitId,
           workspace_id: workspaceId,
           tool: "repurpose",
         } as any);
+      if (insErr) console.error("repurpose pack insert error:", insErr);
     } else {
-      // Merge into existing pack's outputs
-      const { data: existing } = await supabase
-        .from("repurpose_jobs").select("outputs").eq("id", data.packId).eq("user_id", userId).maybeSingle();
-      const prev = ((existing as any)?.outputs as Record<string, unknown>) || {};
-      await supabase
-        .from("repurpose_jobs")
-        .update({ outputs: { ...prev, [data.format]: result.output } as any })
-        .eq("id", data.packId).eq("user_id", userId);
+      // Atomic JSONB merge via RPC — avoids parallel-write race that drops formats
+      const { error: rpcErr } = await (supabase as any).rpc("append_repurpose_outputs", {
+        _job_id: data.packId,
+        _user_id: userId,
+        _patch: { [data.format]: result.output },
+        _title: packTitle,
+      });
+      if (rpcErr) {
+        console.error("append_repurpose_outputs RPC error, falling back:", rpcErr);
+        const { data: existing } = await supabase
+          .from("repurpose_jobs").select("outputs").eq("id", data.packId).eq("user_id", userId).maybeSingle();
+        const prev = ((existing as any)?.outputs as Record<string, unknown>) || {};
+        await supabase
+          .from("repurpose_jobs")
+          .update({ outputs: { ...prev, [data.format]: result.output } as any, title: packTitle })
+          .eq("id", data.packId).eq("user_id", userId);
+      }
     }
 
     return { output: result.output, error: undefined as string | undefined, jobId: data.packId };
