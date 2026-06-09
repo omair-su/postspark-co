@@ -103,6 +103,8 @@ export function SparkCopilot() {
   const [historyQuery, setHistoryQuery] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
+  const [contextContent, setContextContent] = useState("");
+  const [showContext, setShowContext] = useState(false);
   const [loading, setLoading] = useState(false);
   const [conversations, setConversations] = useState<Conv[]>([]);
   const [convId, setConvId] = useState<string | null>(null);
