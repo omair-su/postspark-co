@@ -1412,3 +1412,62 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 .animate-spark-in { animation: spark-in 0.15s ease-out both; }
+
+/* ============================================================
+   Global tool page utility classes (Hook Lab, SEO Blog, Humanizer)
+============================================================ */
+.ps-input {
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 14px;
+  color: #1A1A2E;
+  background: #FAFAF8;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.ps-input:focus {
+  outline: none;
+  border-color: #6B4EFF;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(107,78,255,0.10);
+}
+
+.ps-generate-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #6B4EFF 0%, #8B6FFF 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+.ps-generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(107,78,255,0.35);
+}
+.ps-generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.output-action-btn {
+  padding: 5px 12px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 7px;
+  font-size: 12px;
+  color: #6B7280;
+  cursor: pointer;
+  background: white;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+.output-action-btn:hover { border-color: #6B4EFF; color: #6B4EFF; }

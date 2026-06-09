@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { FileText, Loader2, Sparkles, Copy, Check, Download, Search, Plus, Trash2 } from "lucide-react";
-import { generateBlog, generateOutline } from "@/lib/seoBlog.functions";
+import {
+  FileText, Loader2, Sparkles, Copy, Check, Download, Search, Plus, Trash2,
+  RefreshCw, Wand2, Calendar as CalIcon,
+} from "lucide-react";
+import { generateBlog, generateOutline, refreshOldBlog } from "@/lib/seoBlog.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 
 export const Route = createFileRoute("/dashboard/seo-blog")({
@@ -17,13 +20,8 @@ interface Blog {
   outline: string[];
   markdown: string;
   faq: { q: string; a: string }[];
+  seoScore?: number;
 }
-
-const LANGS = [
-  "English","Spanish","French","German","Portuguese","Italian","Dutch",
-  "Polish","Swedish","Turkish","Arabic","Hindi","Japanese","Korean",
-  "Chinese (Simplified)","Russian","Ukrainian","Indonesian","Vietnamese",
-];
 
 interface Outline {
   title: string;
@@ -32,22 +30,60 @@ interface Outline {
   suggestedInternalLinks: { title: string; slug: string; anchor: string }[];
 }
 
+const LANGS = [
+  { code: "English", flag: "🇺🇸" }, { code: "Arabic", flag: "🇸🇦" }, { code: "Urdu", flag: "🇵🇰" },
+  { code: "Spanish", flag: "🇪🇸" }, { code: "German", flag: "🇩🇪" }, { code: "French", flag: "🇫🇷" },
+  { code: "Portuguese", flag: "🇵🇹" }, { code: "Italian", flag: "🇮🇹" }, { code: "Hindi", flag: "🇮🇳" },
+  { code: "Chinese (Simplified)", flag: "🇨🇳" }, { code: "Japanese", flag: "🇯🇵" }, { code: "Korean", flag: "🇰🇷" },
+];
+
+const ARTICLE_TYPES = ["How-to Guide", "Listicle", "Comparison / vs.", "Deep-dive", "Opinion/Thought Leadership", "Case Study", "FAQ page"];
+const NICHES = ["SaaS", "E-commerce", "Marketing", "Health", "Finance", "Education", "Real Estate", "Tech", "Other"];
+const WORD_TARGETS = [800, 1200, 1800, 2500, 3500];
+const TONES = ["Professional", "Casual/Conversational", "Authoritative", "Educational", "Storytelling", "Data-driven"];
+const SECTIONS = [
+  "Meta title + description", "FAQ section (5 Q&As)", "Table of contents",
+  "Key takeaways box", "Introduction hook", "Expert quotes/stats",
+  "Pro tips callout boxes", "Conclusion CTA",
+];
+
 function SeoBlogPage() {
   const { session } = useAuth();
-  const [tab, setTab] = useState<"blog" | "outline">("blog");
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<"blog" | "outline" | "refresh">("blog");
+
+  // shared
   const [topic, setTopic] = useState("");
   const [keyword, setKeyword] = useState("");
-  const [wordTarget, setWordTarget] = useState(1200);
+  const [secondaryKeywords, setSecondaryKeywords] = useState("");
   const [language, setLanguage] = useState("English");
+
+  // blog tab
+  const [articleType, setArticleType] = useState("How-to Guide");
+  const [audience, setAudience] = useState("");
+  const [niche, setNiche] = useState("SaaS");
+  const [wordTarget, setWordTarget] = useState(1200);
+  const [tone, setTone] = useState("Professional");
+  const [sections, setSections] = useState<string[]>([
+    "Meta title + description", "FAQ section (5 Q&As)", "Table of contents", "Introduction hook",
+  ]);
+  const [competitorAngle, setCompetitorAngle] = useState("");
   const [loading, setLoading] = useState(false);
   const [blog, setBlog] = useState<Blog | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Outline tab state
+  // outline tab
   const [competitors, setCompetitors] = useState<string[]>([""]);
   const [outline, setOutline] = useState<Outline | null>(null);
   const [outlineLoading, setOutlineLoading] = useState(false);
-  const [selectedLinks, setSelectedLinks] = useState<Set<number>>(new Set());
+
+  // refresh tab
+  const [oldPost, setOldPost] = useState("");
+  const [refreshLoading, setRefreshLoading] = useState(false);
+  const [refreshed, setRefreshed] = useState("");
+
+  const toggleSection = (s: string) =>
+    setSections((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s]));
 
   const generateOutlineFn = async () => {
     if (!session) return toast.error("Please sign in");
@@ -55,49 +91,54 @@ function SeoBlogPage() {
     if (keyword.trim().length < 2) return toast.error("Add a target keyword");
     setOutlineLoading(true);
     setOutline(null);
-    setSelectedLinks(new Set());
     try {
       const urls = competitors.map((u) => u.trim()).filter((u) => /^https?:\/\//i.test(u));
       const res: any = await withAIProgress(generateOutline({
         data: { topic: topic.trim(), keyword: keyword.trim(), language, competitorUrls: urls },
-        headers: { Authorization: `Bearer ${session.access_token}` },
       }));
       if (res.error) toast.error(res.error);
       else if (!res.outline?.length) toast.error("No outline returned");
       else { setOutline(res); toast.success("Outline ready"); }
-    } catch (e) {
-      console.error(e);
-      toast.error("Outline failed");
-    } finally {
-      setOutlineLoading(false);
-    }
+    } catch (e) { console.error(e); toast.error("Outline failed"); }
+    finally { setOutlineLoading(false); }
   };
 
   const generate = async () => {
     if (!session) return toast.error("Please sign in");
     if (topic.trim().length < 3) return toast.error("Add a topic");
     if (keyword.trim().length < 2) return toast.error("Add a target keyword");
+    if (audience.trim().length < 3) return toast.error("Add a target audience");
     setLoading(true);
     setBlog(null);
     try {
       const res = await withAIProgress(generateBlog({
-        data: { topic: topic.trim(), keyword: keyword.trim(), wordTarget, language },
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        data: {
+          topic: topic.trim(), keyword: keyword.trim(), wordTarget, language,
+          articleType, audience: audience.trim(), niche, tone, sections,
+          secondaryKeywords: secondaryKeywords.trim() || undefined,
+          competitorAngle: competitorAngle.trim() || undefined,
+        },
       }));
-      if (res.error) {
-        toast.error(res.error);
-      } else if (!res.markdown) {
-        toast.error("No blog returned");
-      } else {
-        setBlog(res);
-        toast.success("Blog ready");
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Generation failed");
-    } finally {
-      setLoading(false);
-    }
+      if (res.error) toast.error(res.error);
+      else if (!res.markdown) toast.error("No blog returned");
+      else { setBlog(res as Blog); toast.success("Blog ready"); }
+    } catch (e) { console.error(e); toast.error("Generation failed"); }
+    finally { setLoading(false); }
+  };
+
+  const runRefresh = async () => {
+    if (oldPost.trim().length < 100) return toast.error("Paste a post (100+ chars)");
+    if (keyword.trim().length < 2) return toast.error("Add target keyword");
+    setRefreshLoading(true);
+    setRefreshed("");
+    try {
+      const res = await withAIProgress(refreshOldBlog({
+        data: { content: oldPost.trim(), keyword: keyword.trim(), language },
+      }));
+      if (res.error) toast.error(res.error);
+      else { setRefreshed(res.markdown); toast.success("Post refreshed"); }
+    } catch (e) { console.error(e); toast.error("Refresh failed"); }
+    finally { setRefreshLoading(false); }
   };
 
   const copy = async (text: string, id: string) => {
@@ -106,322 +147,400 @@ function SeoBlogPage() {
     setTimeout(() => setCopied(null), 1500);
   };
 
-  const download = () => {
+  const download = (fmt: "md" | "txt") => {
     if (!blog) return;
-    const front = `---\ntitle: "${blog.title.replace(/"/g, '\\"')}"\ndescription: "${blog.metaDescription.replace(/"/g, '\\"')}"\nslug: ${blog.slug}\n---\n\n`;
-    const blob = new Blob([front + blog.markdown], { type: "text/markdown" });
+    const ext = fmt === "md" ? "md" : "txt";
+    const front = fmt === "md"
+      ? `---\ntitle: "${blog.title.replace(/"/g, '\\"')}"\ndescription: "${blog.metaDescription.replace(/"/g, '\\"')}"\nslug: ${blog.slug}\n---\n\n`
+      : `${blog.title}\n\n${blog.metaDescription}\n\n`;
+    const blob = new Blob([front + blog.markdown], { type: fmt === "md" ? "text/markdown" : "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `${blog.slug || "post"}.md`;
-    a.click();
+    a.href = url; a.download = `${blog.slug || "post"}.${ext}`; a.click();
     URL.revokeObjectURL(url);
   };
 
+  const sendToHumanizer = () => {
+    if (!blog) return;
+    try { sessionStorage.setItem("postspark.humanizer.text", blog.markdown); } catch {}
+    toast.success("Sent to AI Humanizer");
+    navigate({ to: "/dashboard/humanizer" });
+  };
+
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-electric">
-          <FileText className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">SEO Blog Generator</h1>
-          <p className="text-sm text-muted-foreground">
-            Long-form, search-optimized articles with title, meta, outline, body, and FAQ.
-          </p>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-border">
-        {(["blog", "outline"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${
-              tab === t ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+    <div className="mx-auto max-w-[900px] px-6 pb-20 pt-6 space-y-6">
+      {/* HERO */}
+      <div
+        className="rounded-2xl p-5"
+        style={{
+          background: "linear-gradient(135deg, #FAFAF8 0%, #F3F0FF 100%)",
+          border: "0.5px solid rgba(107,78,255,0.12)",
+        }}
+      >
+        <div className="flex items-start gap-4">
+          <div
+            className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]"
+            style={{ background: "linear-gradient(135deg, #10B981 0%, #059669 100%)", boxShadow: "0 2px 8px rgba(5,150,105,0.25)" }}
           >
-            {t === "blog" ? "Full blog" : "Outline + competitors"}
-          </button>
-        ))}
-      </div>
-
-      <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-        <div>
-          <label className="mb-2 block text-sm font-medium">Topic / angle</label>
-          <textarea
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            rows={2}
-            placeholder="e.g. How small SaaS teams can ship faster with async workflows"
-            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+            <FileText className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">SEO Blog Generator</h1>
+            <p className="m-0 mb-2.5 mt-1 text-[13px] text-[#6B7280]">Long-form, search-optimized articles that actually rank.</p>
+            <div className="flex flex-wrap gap-1.5">
+              {["Long-form", "SEO-optimized", "Meta included", "FAQ section"].map((t) => (
+                <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px] font-medium" style={{ background: "rgba(107,78,255,0.08)", color: "#6B4EFF", border: "0.5px solid rgba(107,78,255,0.15)" }}>{t}</span>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <label className="mb-2 block text-sm font-medium">Target keyword</label>
-            <input
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="e.g. async workflow"
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-medium">Word target</label>
-            <select
-              value={wordTarget}
-              onChange={(e) => setWordTarget(Number(e.target.value))}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+        {/* Tabs inside hero */}
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {([
+            { id: "blog" as const, label: "Full Blog" },
+            { id: "outline" as const, label: "Outline + Research" },
+            { id: "refresh" as const, label: "Refresh Old Post" },
+          ]).map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`rounded-lg px-3.5 py-1.5 text-[12.5px] font-medium transition ${
+                tab === t.id ? "bg-[#1A1A2E] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:text-[#1A1A2E]"
+              }`}
             >
-              <option value={800}>~800 words</option>
-              <option value={1200}>~1,200 words</option>
-              <option value={1800}>~1,800 words</option>
-              <option value={2500}>~2,500 words</option>
-            </select>
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-medium">Language</label>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {tab === "blog" && (
+        <>
+          {/* TOPIC */}
+          <Card>
+            <Label>Topic & keyword</Label>
+            <div className="space-y-3">
+              <div>
+                <SubLabel>Topic / angle *</SubLabel>
+                <textarea value={topic} onChange={(e) => setTopic(e.target.value)} rows={2} placeholder="e.g. How small SaaS teams can ship faster with async workflows" className="ps-input w-full" />
+                <div className="mt-1 text-[11px] text-[#9CA3AF]">Be specific. "10 ways to..." outranks "How to..." by 34%.</div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <SubLabel>Primary keyword *</SubLabel>
+                  <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="e.g. async workflows" className="ps-input w-full" />
+                </div>
+                <div>
+                  <SubLabel>Secondary keywords (optional)</SubLabel>
+                  <input value={secondaryKeywords} onChange={(e) => setSecondaryKeywords(e.target.value)} placeholder="e.g. remote team, SaaS productivity" className="ps-input w-full" />
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* CONTENT SETUP */}
+          <Card>
+            <Label>Content setup</Label>
+            <SubLabel>Article type *</SubLabel>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {ARTICLE_TYPES.map((t) => <Pill key={t} active={articleType === t} onClick={() => setArticleType(t)}>{t}</Pill>)}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <SubLabel>Target audience *</SubLabel>
+                <input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. SaaS founders, B2B marketers" className="ps-input w-full" />
+              </div>
+              <div>
+                <SubLabel>Your niche / industry</SubLabel>
+                <select value={niche} onChange={(e) => setNiche(e.target.value)} className="ps-input w-full">
+                  {NICHES.map((n) => <option key={n}>{n}</option>)}
+                </select>
+              </div>
+            </div>
+          </Card>
+
+          {/* STYLE & LENGTH */}
+          <Card>
+            <Label>Style & length</Label>
+            <SubLabel>Word target</SubLabel>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {WORD_TARGETS.map((w) => (
+                <Pill key={w} active={wordTarget === w} onClick={() => setWordTarget(w)}>~{w.toLocaleString()} words</Pill>
+              ))}
+            </div>
+            <SubLabel>Writing tone</SubLabel>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {TONES.map((t) => <Pill key={t} active={tone === t} onClick={() => setTone(t)}>{t}</Pill>)}
+            </div>
+            <SubLabel>Include these sections</SubLabel>
+            <div className="grid grid-cols-2 gap-1.5">
+              {SECTIONS.map((s) => (
+                <label key={s} className="flex cursor-pointer items-center gap-2 rounded-md p-1.5 text-[12.5px] text-[#1A1A2E] hover:bg-[#F3F0FF]">
+                  <input type="checkbox" checked={sections.includes(s)} onChange={() => toggleSection(s)} className="h-3.5 w-3.5 accent-[#6B4EFF]" />
+                  <span>{s}</span>
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          {/* SEO SETTINGS */}
+          <Card>
+            <Label>SEO settings</Label>
+            <SubLabel>Language</SubLabel>
+            <div className="mb-4 flex flex-wrap gap-1.5">
               {LANGS.map((l) => (
-                <option key={l} value={l}>{l}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {tab === "outline" && (
-          <div className="space-y-2 rounded-lg border border-dashed border-border p-3">
-            <label className="block text-sm font-medium">Competitor URLs (up to 3)</label>
-            {competitors.map((url, i) => (
-              <div key={i} className="flex gap-2">
-                <input
-                  value={url}
-                  onChange={(e) => {
-                    const next = [...competitors];
-                    next[i] = e.target.value;
-                    setCompetitors(next);
-                  }}
-                  placeholder="https://competitor.com/article"
-                  className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                />
                 <button
-                  type="button"
-                  onClick={() => setCompetitors(competitors.filter((_, idx) => idx !== i))}
-                  className="rounded-lg border border-input p-2 text-muted-foreground hover:bg-accent"
-                  aria-label="Remove URL"
+                  key={l.code}
+                  onClick={() => setLanguage(l.code)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] transition ${
+                    language === l.code ? "border-[#6B4EFF] bg-[#6B4EFF]/[0.08] text-[#6B4EFF]" : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#6B4EFF]/40"
+                  }`}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>{l.flag}</span><span>{l.code}</span>
                 </button>
-              </div>
-            ))}
-            {competitors.length < 3 && (
-              <button
-                type="button"
-                onClick={() => setCompetitors([...competitors, ""])}
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                <Plus className="h-3 w-3" /> Add competitor
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-2">
-          {tab === "blog" ? (
-            <button
-              onClick={generate}
-              disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90 disabled:opacity-60"
-            >
-              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Writing your article…</> : <><Sparkles className="h-4 w-4" /> Generate SEO blog</>}
-            </button>
-          ) : (
-            <button
-              onClick={generateOutlineFn}
-              disabled={outlineLoading}
-              className="inline-flex items-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-90 disabled:opacity-60"
-            >
-              {outlineLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing competitors…</> : <><Search className="h-4 w-4" /> Generate outline</>}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {tab === "outline" && outline && (
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Suggested title</h3>
-            <p className="text-base font-semibold text-foreground">{outline.title}</p>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="mb-3 text-sm font-semibold">Proposed outline</h3>
-            <ol className="list-decimal space-y-3 pl-5 text-sm text-foreground">
-              {outline.outline.map((s, i) => (
-                <li key={i}>
-                  <p className="font-semibold">{s.h2}</p>
-                  {s.h3 && s.h3.length > 0 && (
-                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-muted-foreground">
-                      {s.h3.map((h, j) => <li key={j}>{h}</li>)}
-                    </ul>
-                  )}
-                </li>
               ))}
-            </ol>
-          </div>
-
-          {outline.suggestedInternalLinks.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="mb-3 text-sm font-semibold">Internal links to include</h3>
-              <div className="space-y-2">
-                {outline.suggestedInternalLinks.map((l, i) => (
-                  <label key={i} className="flex cursor-pointer items-start gap-2 rounded-lg border border-border p-2 hover:bg-accent">
-                    <input
-                      type="checkbox"
-                      checked={selectedLinks.has(i)}
-                      onChange={(e) => {
-                        const next = new Set(selectedLinks);
-                        if (e.target.checked) next.add(i);
-                        else next.delete(i);
-                        setSelectedLinks(next);
-                      }}
-                      className="mt-1"
-                    />
-                    <div className="flex-1 text-sm">
-                      <p className="font-medium text-foreground">{l.title}</p>
-                      <p className="text-xs text-muted-foreground">/blog/{l.slug} → "<span className="italic">{l.anchor}</span>"</p>
-                    </div>
-                  </label>
-                ))}
-              </div>
-              {selectedLinks.size > 0 && (
-                <button
-                  onClick={() => {
-                    const md = Array.from(selectedLinks)
-                      .map((i) => outline.suggestedInternalLinks[i])
-                      .map((l) => `[${l.anchor}](/blog/${l.slug})`)
-                      .join("\n");
-                    navigator.clipboard.writeText(md);
-                    toast.success("Copied as markdown links");
-                  }}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-input px-3 py-1.5 text-xs hover:bg-accent"
-                >
-                  <Copy className="h-3 w-3" /> Copy {selectedLinks.size} as markdown
-                </button>
-              )}
             </div>
-          )}
+            <SubLabel>Competitor angle (optional)</SubLabel>
+            <input value={competitorAngle} onChange={(e) => setCompetitorAngle(e.target.value)} placeholder='e.g. "Most guides miss the async setup — we cover it first"' className="ps-input w-full" />
+          </Card>
 
-          {outline.competitorHeadings.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="mb-3 text-sm font-semibold">Competitor headings analyzed</h3>
-              <div className="space-y-3">
-                {outline.competitorHeadings.map((c, i) => (
-                  <div key={i}>
-                    <p className="truncate text-xs font-mono text-muted-foreground">{c.url}</p>
-                    {c.headings.length > 0 ? (
-                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs">
-                        {c.headings.slice(0, 12).map((h, j) => <li key={j}>{h}</li>)}
-                      </ul>
-                    ) : (
-                      <p className="text-xs italic text-muted-foreground">No headings extracted (page may block bots)</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+          <button onClick={generate} disabled={loading} className="ps-generate-btn">
+            {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Writing your article…</> : <><Sparkles className="h-4 w-4" /> Generate SEO Blog</>}
+          </button>
+        </>
       )}
 
-      {blog && (
-        <div className="space-y-4">
-          {/* Meta panel */}
-          <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-            <MetaRow label="Title" value={blog.title} id="title" copy={copy} copied={copied} />
-            <MetaRow label="Meta description" value={blog.metaDescription} id="meta" copy={copy} copied={copied} />
-            <MetaRow label="Slug" value={blog.slug} id="slug" copy={copy} copied={copied} mono />
-          </div>
-
-          {/* Outline */}
-          {blog.outline.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="mb-3 text-sm font-semibold">Outline</h3>
-              <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground">
-                {blog.outline.map((s, i) => <li key={i}>{s}</li>)}
-              </ol>
-            </div>
-          )}
-
-          {/* Markdown body */}
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Article (Markdown)</h3>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => copy(blog.markdown, "md")}
-                  className="inline-flex items-center gap-1 rounded-lg border border-input px-2.5 py-1.5 text-xs hover:bg-accent"
-                >
-                  {copied === "md" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} Copy
-                </button>
-                <button
-                  onClick={download}
-                  className="inline-flex items-center gap-1 rounded-lg border border-input px-2.5 py-1.5 text-xs hover:bg-accent"
-                >
-                  <Download className="h-3 w-3" /> .md
-                </button>
+      {tab === "outline" && (
+        <>
+          <Card>
+            <Label>Get an SEO outline first</Label>
+            <p className="mb-3 text-[12.5px] text-[#6B7280]">Review the proposed outline before committing to the full article. Add competitor URLs to beat their structure.</p>
+            <div className="space-y-3">
+              <div>
+                <SubLabel>Topic / angle *</SubLabel>
+                <textarea value={topic} onChange={(e) => setTopic(e.target.value)} rows={2} className="ps-input w-full" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <SubLabel>Primary keyword *</SubLabel>
+                  <input value={keyword} onChange={(e) => setKeyword(e.target.value)} className="ps-input w-full" />
+                </div>
+                <div>
+                  <SubLabel>Language</SubLabel>
+                  <select value={language} onChange={(e) => setLanguage(e.target.value)} className="ps-input w-full">
+                    {LANGS.map((l) => <option key={l.code}>{l.code}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <SubLabel>Competitor URLs (up to 3)</SubLabel>
+                <div className="space-y-2">
+                  {competitors.map((url, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input value={url} onChange={(e) => { const next = [...competitors]; next[i] = e.target.value; setCompetitors(next); }} placeholder="https://competitor.com/article" className="ps-input flex-1" />
+                      <button onClick={() => setCompetitors(competitors.filter((_, idx) => idx !== i))} className="rounded-lg border border-[#E5E7EB] p-2 text-[#9CA3AF] hover:bg-[#F3F4F6]"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  ))}
+                  {competitors.length < 3 && (
+                    <button onClick={() => setCompetitors([...competitors, ""])} className="inline-flex items-center gap-1 text-[12px] font-medium text-[#6B4EFF] hover:underline">
+                      <Plus className="h-3 w-3" /> Add competitor
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-            <pre className="max-h-[500px] overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-4 text-xs leading-relaxed text-foreground">
-              {blog.markdown}
-            </pre>
+          </Card>
+
+          <button onClick={generateOutlineFn} disabled={outlineLoading} className="ps-generate-btn">
+            {outlineLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing competitors…</> : <><Search className="h-4 w-4" /> Generate Outline</>}
+          </button>
+
+          {outline && (
+            <Card>
+              <Label>Proposed outline</Label>
+              <div className="mb-3 rounded-lg bg-[#FAFAF8] p-3">
+                <div className="text-[11px] font-semibold uppercase text-[#9CA3AF]">H1</div>
+                <div className="text-[15px] font-semibold text-[#1A1A2E]">{outline.title}</div>
+              </div>
+              <ol className="list-decimal space-y-2 pl-5 text-[13px]">
+                {outline.outline.map((s, i) => (
+                  <li key={i}>
+                    <p className="font-semibold text-[#1A1A2E]">H2: {s.h2}</p>
+                    {s.h3 && s.h3.length > 0 && (
+                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[12px] text-[#6B7280]">
+                        {s.h3.map((h, j) => <li key={j}>H3: {h}</li>)}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              <button
+                onClick={() => { setTab("blog"); toast.success("Outline copied to Full Blog tab — generate when ready"); }}
+                className="ps-generate-btn mt-4"
+              >
+                <Sparkles className="h-4 w-4" /> Generate Full Article from This Outline
+              </button>
+            </Card>
+          )}
+        </>
+      )}
+
+      {tab === "refresh" && (
+        <>
+          <Card>
+            <Label>Refresh an old post</Label>
+            <p className="mb-3 text-[12.5px] text-[#6B7280]">We'll update stats, improve keyword density, add a FAQ + TOC, and tighten the intro.</p>
+            <div className="space-y-3">
+              <textarea value={oldPost} onChange={(e) => setOldPost(e.target.value)} rows={10} placeholder="Paste your existing post here…" className="ps-input w-full" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <SubLabel>Target keyword to improve for *</SubLabel>
+                  <input value={keyword} onChange={(e) => setKeyword(e.target.value)} className="ps-input w-full" />
+                </div>
+                <div>
+                  <SubLabel>Language</SubLabel>
+                  <select value={language} onChange={(e) => setLanguage(e.target.value)} className="ps-input w-full">
+                    {LANGS.map((l) => <option key={l.code}>{l.code}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <button onClick={runRefresh} disabled={refreshLoading} className="ps-generate-btn">
+            {refreshLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Refreshing your post…</> : <><RefreshCw className="h-4 w-4" /> Refresh This Post</>}
+          </button>
+
+          {refreshed && (
+            <Card>
+              <div className="mb-3 flex items-center justify-between">
+                <Label>Refreshed post</Label>
+                <button onClick={() => copy(refreshed, "refreshed")} className="output-action-btn">
+                  {copied === "refreshed" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} Copy
+                </button>
+              </div>
+              <pre className="max-h-[500px] overflow-auto whitespace-pre-wrap rounded-lg bg-[#FAFAF8] p-4 text-[12.5px] leading-relaxed text-[#1A1A2E]">{refreshed}</pre>
+            </Card>
+          )}
+        </>
+      )}
+
+      {/* BLOG OUTPUT */}
+      {blog && tab === "blog" && (
+        <>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <p className="text-[12px] text-[#6B7280]">
+              ✓ Blog generated · {blog.markdown.split(/\s+/).length.toLocaleString()} words
+            </p>
+            {blog.seoScore !== undefined && <SeoScoreBadge score={blog.seoScore} />}
           </div>
 
-          {/* FAQ */}
+          <Card>
+            <Label>Meta section</Label>
+            <div className="space-y-3">
+              <MetaRow label="Title" value={blog.title} id="title" copy={copy} copied={copied} />
+              <MetaRow label="Meta description" value={blog.metaDescription} id="meta" copy={copy} copied={copied} />
+              <MetaRow label="Slug" value={`/${blog.slug}`} id="slug" copy={copy} copied={copied} mono />
+            </div>
+          </Card>
+
+          {blog.outline.length > 0 && (
+            <Card>
+              <Label>Table of contents</Label>
+              <ol className="list-decimal space-y-1 pl-5 text-[13px] text-[#1A1A2E]">
+                {blog.outline.map((s, i) => <li key={i}>{s}</li>)}
+              </ol>
+            </Card>
+          )}
+
+          <Card>
+            <div className="mb-3 flex items-center justify-between">
+              <Label>Full article (Markdown)</Label>
+              <div className="flex gap-2">
+                <button onClick={() => copy(blog.markdown, "md")} className="output-action-btn">
+                  {copied === "md" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} Copy
+                </button>
+                <button onClick={() => download("md")} className="output-action-btn"><Download className="h-3 w-3" /> .md</button>
+                <button onClick={() => download("txt")} className="output-action-btn"><Download className="h-3 w-3" /> .txt</button>
+              </div>
+            </div>
+            <pre className="max-h-[600px] overflow-auto whitespace-pre-wrap rounded-lg bg-[#FAFAF8] p-4 text-[12.5px] leading-relaxed text-[#1A1A2E]">{blog.markdown}</pre>
+          </Card>
+
           {blog.faq.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="mb-3 text-sm font-semibold">FAQ (People Also Ask)</h3>
+            <Card>
+              <Label>FAQ (People Also Ask)</Label>
               <div className="space-y-3">
                 {blog.faq.map((f, i) => (
-                  <div key={i} className="rounded-lg border border-border p-3">
-                    <p className="text-sm font-semibold text-foreground">{f.q}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{f.a}</p>
+                  <div key={i} className="rounded-lg border border-[#E5E7EB] bg-[#FAFAF8] p-3">
+                    <p className="text-[13px] font-semibold text-[#1A1A2E]">{f.q}</p>
+                    <p className="mt-1 text-[12.5px] text-[#6B7280]">{f.a}</p>
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           )}
-        </div>
+
+          <Card>
+            <Label>Actions</Label>
+            <div className="flex flex-wrap gap-2">
+              <ActionBtn onClick={sendToHumanizer} icon={<Wand2 className="h-3.5 w-3.5" />}>Send to AI Humanizer</ActionBtn>
+              <ActionBtn onClick={() => navigate({ to: "/dashboard/calendar" })} icon={<CalIcon className="h-3.5 w-3.5" />}>Schedule on Calendar</ActionBtn>
+              <ActionBtn onClick={generate} icon={<RefreshCw className="h-3.5 w-3.5" />}>Regenerate</ActionBtn>
+            </div>
+          </Card>
+        </>
       )}
     </div>
   );
 }
 
-function MetaRow({
-  label, value, id, copy, copied, mono,
-}: {
-  label: string; value: string; id: string;
-  copy: (t: string, id: string) => void; copied: string | null; mono?: boolean;
-}) {
+function SeoScoreBadge({ score }: { score: number }) {
+  const cls =
+    score >= 8.5 ? "bg-[#D1FAE5] text-[#065F46]" :
+    score >= 7 ? "bg-[#FEF3C7] text-[#92400E]" :
+    "bg-[#FEE2E2] text-[#991B1B]";
+  return <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold ${cls}`}>SEO Score: {score.toFixed(1)}/10</span>;
+}
+
+function MetaRow({ label, value, id, copy, copied, mono }: { label: string; value: string; id: string; copy: (t: string, id: string) => void; copied: string | null; mono?: boolean }) {
   return (
-    <div>
+    <div className="rounded-lg border border-[#E5E7EB] bg-[#FAFAF8] p-3">
       <div className="mb-1 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <button
-          onClick={() => copy(value, id)}
-          className="text-muted-foreground hover:text-foreground"
-        >
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-[#9CA3AF]">{label}</span>
+        <button onClick={() => copy(value, id)} className="text-[#9CA3AF] hover:text-[#6B4EFF]">
           {copied === id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
         </button>
       </div>
-      <p className={`text-sm ${mono ? "font-mono" : ""} text-foreground`}>{value}</p>
+      <p className={`text-[13px] text-[#1A1A2E] ${mono ? "font-mono" : ""}`}>{value}</p>
     </div>
+  );
+}
+
+function ActionBtn({ children, onClick, icon }: { children: React.ReactNode; onClick: () => void; icon: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-[12.5px] font-medium text-[#1A1A2E] transition hover:border-[#6B4EFF] hover:text-[#6B4EFF]">
+      {icon}{children}
+    </button>
+  );
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-[14px] border border-black/[0.08] bg-white p-5">{children}</div>;
+}
+function Label({ children }: { children: React.ReactNode }) {
+  return <div className="mb-3 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#9CA3AF]">{children}</div>;
+}
+function SubLabel({ children }: { children: React.ReactNode }) {
+  return <div className="mb-1.5 text-[12px] font-medium text-[#6B7280]">{children}</div>;
+}
+function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className={`rounded-lg border px-3 py-1.5 text-[12.5px] font-medium transition ${
+      active ? "border-[#6B4EFF] bg-[#6B4EFF] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#6B4EFF]/40 hover:text-[#1A1A2E]"
+    }`}>
+      {children}
+    </button>
   );
 }

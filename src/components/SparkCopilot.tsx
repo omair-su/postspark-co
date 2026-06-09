@@ -103,6 +103,8 @@ export function SparkCopilot() {
   const [historyQuery, setHistoryQuery] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
+  const [contextContent, setContextContent] = useState("");
+  const [showContext, setShowContext] = useState(false);
   const [loading, setLoading] = useState(false);
   const [conversations, setConversations] = useState<Conv[]>([]);
   const [convId, setConvId] = useState<string | null>(null);
@@ -154,7 +156,12 @@ export function SparkCopilot() {
     setLoading(true);
     try {
       const r = await sparkChat({
-        data: { messages: next.slice(-20), conversationId: convId, currentTool: toolLabel },
+        data: {
+          messages: next.slice(-20),
+          conversationId: convId,
+          currentTool: toolLabel,
+          contextContent: contextContent.trim() || null,
+        },
         headers: authHeaders,
       });
       if ((r as any).error) {
@@ -273,30 +280,38 @@ export function SparkCopilot() {
             border: "1px solid rgba(124,58,237,0.12)",
           }}
         >
-          {/* Header */}
-          <div className="px-4 pt-3.5 pb-3 bg-white">
+          {/* Header — dark gradient */}
+          <div
+            className="px-4 pt-3.5 pb-3"
+            style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)" }}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
                 <SparkOrb size={36} />
                 <div className="min-w-0">
-                  <div className="text-[16px] font-medium text-slate-900 leading-tight">Spark</div>
-                  <div className="text-[12px] text-slate-500 truncate">
-                    {toolLabel ? `Helping with ${toolLabel}` : "Your AI content director"}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold text-white leading-tight">Spark</span>
+                    <span className="text-[9.5px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(124,58,237,0.18)", color: "#c4b5fd", border: "0.5px solid rgba(124,58,237,0.3)" }}>
+                      Claude 4.5
+                    </span>
+                  </div>
+                  <div className="text-[11.5px] text-white/55 truncate">
+                    {toolLabel ? `Helping with ${toolLabel}` : "PostSpark's AI creative brain"}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-0.5">
-                <button onClick={newChat} title="New chat" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-600 hover:bg-[#f5f3ff] hover:text-[#7c3aed] transition-colors">
+                <button onClick={newChat} title="New chat" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors">
                   <Plus className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setShowHistory((v) => !v)}
                   title="History"
-                  className={`h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors ${showHistory ? "bg-[#f5f3ff] text-[#7c3aed]" : "text-slate-600 hover:bg-[#f5f3ff] hover:text-[#7c3aed]"}`}
+                  className={`h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors ${showHistory ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"}`}
                 >
                   <HistoryIcon className="h-4 w-4" />
                 </button>
-                <button onClick={() => setOpen(false)} title="Close" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+                <button onClick={() => setOpen(false)} title="Close" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -377,6 +392,24 @@ export function SparkCopilot() {
                           <span className="truncate">{a.label}</span>
                         </button>
                       ))}
+                    </div>
+                    {/* Content context paste */}
+                    <div className="pt-1">
+                      <button
+                        onClick={() => setShowContext((v) => !v)}
+                        className="text-[10.5px] uppercase tracking-wider font-semibold text-slate-400 hover:text-[#7c3aed] transition"
+                      >
+                        {showContext ? "− Hide content context" : "+ Add content context (optional)"}
+                      </button>
+                      {showContext && (
+                        <textarea
+                          value={contextContent}
+                          onChange={(e) => setContextContent(e.target.value.slice(0, 4000))}
+                          placeholder="Paste any content here for Spark to work with…"
+                          rows={3}
+                          className="mt-1.5 w-full text-[12px] rounded-lg border border-slate-200 bg-white px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:border-[#7c3aed]/50 focus:ring-2 focus:ring-[#7c3aed]/10 resize-y"
+                        />
+                      )}
                     </div>
                   </div>
                 )}

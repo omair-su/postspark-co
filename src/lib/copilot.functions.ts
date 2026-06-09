@@ -5,7 +5,6 @@ import { humanizeText, generateReplies } from "@/server/copilot.server";
 
 const FREE_MONTHLY_LIMIT = 10;
 
-// Simple per-instance rate limiter shared across copilot tools
 const RATE_BUCKET = new Map<string, number[]>();
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 15;
@@ -51,6 +50,9 @@ export const humanize = createServerFn({ method: "POST" })
     z.object({
       text: z.string().min(20).max(8000),
       intensity: z.enum(["light", "medium", "strong"]).default("medium"),
+      purpose: z.string().max(60).optional(),
+      style: z.string().max(40).optional(),
+      preserve: z.array(z.string().max(40)).max(8).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -60,10 +62,13 @@ export const humanize = createServerFn({ method: "POST" })
     const usage = await checkUsageAndPlan(supabase, userId);
     if (!usage.ok) return { output: "", error: "LIMIT_REACHED" };
 
-    const result = await humanizeText(data.text, data.intensity);
+    const result = await humanizeText(data.text, data.intensity, {
+      purpose: data.purpose,
+      style: data.style,
+      preserve: data.preserve,
+    });
     if (result.error || !result.output) return result;
 
-    // Save to history
     await supabase.from("repurpose_jobs").insert({
       user_id: userId,
       tool: "humanizer",
@@ -178,6 +183,7 @@ export const sparkChat = createServerFn({ method: "POST" })
       ).min(1).max(40),
       conversationId: z.string().uuid().nullable().optional(),
       currentTool: z.string().max(80).nullable().optional(),
+      contextContent: z.string().max(8000).nullable().optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -186,7 +192,6 @@ export const sparkChat = createServerFn({ method: "POST" })
 
     const usage = await checkUsageAndPlan(supabase, userId);
     if (!usage.ok) return { reply: "", error: "LIMIT_REACHED", conversationId: data.conversationId ?? null };
-
 
     let voice = "";
     const { data: v } = await supabase
@@ -197,46 +202,43 @@ export const sparkChat = createServerFn({ method: "POST" })
       .maybeSingle();
     voice = v?.style_summary || "";
 
-    const { data: jobs } = await supabase
-      .from("repurpose_jobs")
-      .select("input_text")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(3);
-    const recentTopics = (jobs || [])
-      .map((j: any, i: number) => `${i + 1}. ${(j.input_text || "").slice(0, 120)}`)
-      .join("\n");
+    const contextBlock = data.contextContent && data.contextContent.trim()
+      ? `\n\nUser's content context (use this for any follow-up requests):\n"""${data.contextContent.slice(0, 4000)}"""`
+      : "";
 
-    const system = `You are Spark, PostSpark's expert AI creative director and content strategist. You are built specifically for content creators, LinkedIn ghostwriters, agency teams, podcasters, and YouTubers who repurpose content across platforms.
+    const system = `You are Spark — PostSpark's AI creative assistant.
 
-Your core expertise:
-• Writing scroll-stopping hooks using PAS, AIDA, Curiosity Gap, and Pattern Interrupt frameworks
-• Generating LinkedIn posts, Twitter threads, email newsletters, and video scripts in any brand voice
-• SEO blog writing — titles, meta descriptions, H-tag structure, keyword placement
-• Content humanization — removing AI patterns, varying sentence rhythm, keeping meaning intact
-• Viral content strategy — what makes content shareable, saveable, and commentable
-• Repurposing — extracting maximum value from one piece of content across 6+ platforms
+YOUR IDENTITY:
+- Expert in content creation, copywriting, social media strategy, SEO, and email marketing
+- You know PostSpark deeply: Repurpose Studio, Hook Lab, SEO Blog, AI Humanizer, Carousel Generator, Image Studio, Brand Voice
+- Direct, helpful, creative — never robotic
+- You write copy, you don't talk ABOUT writing copy
+- When asked to write something, you write it immediately, fully, ready to use
 
-Your personality: You are direct, sharp, and energetic. You give concrete, actionable output — not vague advice. You write in crisp sentences. When asked to generate content, you produce it immediately without preamble. You are a creative partner, not a search engine.
+YOUR VOICE:
+- Direct and confident — no "I'd be happy to help!"
+- Practical — give the thing, don't preface giving it
+- Never say "Certainly!" "Absolutely!" "Great question!" "Of course!"
+- Use emojis only if the user does first
+- Never use em-dashes — use commas, parentheses, or two sentences
+
+POSTSPARK FEATURE GUIDANCE:
+- "Repurpose content" → Repurpose Studio (/dashboard/repurpose)
+- "Write hooks" → Hook Lab (/dashboard/hook-lab)
+- "SEO article" → SEO Blog Generator (/dashboard/seo-blog)
+- "Fix AI text" → AI Humanizer (/dashboard/humanizer)
+- "Make carousel" → Carousel Generator (/dashboard/carousel)
+- "Brand voice" → Brand Kit (/dashboard/brand-kit)
 
 Current tool context: ${data.currentTool || "Dashboard"}
 
-When the user is on SEO Blog — proactively offer to help with titles, meta descriptions, or outline expansion.
-When on Hook Lab — offer to write 5 hooks in different frameworks.
-When on AI Humanizer — offer to evaluate text for AI patterns and suggest rewrites.
-When on Repurpose — offer to write a specific format the user hasn't generated yet.
-
 User's brand voice (apply if relevant):
-${voice || "(not set — suggest training one in Settings → Brand Voice)"}
-
-Recent topics they've worked on:
-${recentTopics || "(none yet)"}
+${voice || "(not set — suggest training one in Settings → Brand Voice)"}${contextBlock}
 
 Rules:
-- Keep replies under 250 words unless asked for long-form.
-- Use markdown lists when offering multiple options.
-- Never use em-dashes — use commas, parentheses, or two sentences.
-- Produce content immediately. Skip "Sure!", "Here you go", or any preamble.`;
+- Keep replies under 250 words unless asked for long-form
+- Use markdown lists when offering multiple options
+- Produce content immediately. Skip "Sure!", "Here you go", any preamble.`;
 
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) return { reply: "AI service not configured (LOVABLE_API_KEY missing).", error: "no_key", conversationId: data.conversationId ?? null };
@@ -272,7 +274,6 @@ Rules:
 
     if (aiError) return { reply: "", error: aiError, conversationId: data.conversationId ?? null };
 
-    // Persist conversation
     let convId = data.conversationId ?? null;
     const lastUser = [...data.messages].reverse().find((m) => m.role === "user");
     if (!convId) {
@@ -284,7 +285,6 @@ Rules:
         .single();
       convId = (created as any)?.id ?? null;
     } else {
-      // bump updated_at
       await supabase.from("copilot_conversations").update({ updated_at: new Date().toISOString() } as any).eq("id", convId).eq("user_id", userId);
     }
 
