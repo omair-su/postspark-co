@@ -242,11 +242,17 @@ export function ImportInputPanel({
             onChange={(e) => setProvider(e.target.value as any)}
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs"
           >
-            <option value="auto">Auto (best available)</option>
-            <option value="gemini">Lovable AI (Gemini)</option>
+            <option value="auto">Auto — best diarization available</option>
+            <option value="assemblyai" disabled={!providers?.assemblyai}>
+              AssemblyAI — speaker diarization + auto chapters {providers && !providers.assemblyai ? "(not configured)" : ""}
+            </option>
+            <option value="whisper" disabled={!providers?.whisper}>
+              OpenAI Whisper — high-accuracy transcription {providers && !providers.whisper ? "(not configured)" : ""}
+            </option>
             <option value="elevenlabs" disabled={!providers?.elevenlabs}>
               ElevenLabs Scribe {providers && !providers.elevenlabs ? "(not configured)" : ""}
             </option>
+            <option value="gemini">Lovable AI (Gemini)</option>
           </select>
           {busy && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
