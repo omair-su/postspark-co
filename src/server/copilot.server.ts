@@ -74,34 +74,103 @@ OUTPUT: Return ONLY the humanized text. No preamble. No explanation. No quotes.`
   };
 }
 
+export interface ReplyOpts {
+  tone?: string;
+  length?: "short" | "medium" | "long";
+  count?: number;
+  addCta?: boolean;
+  ctaText?: string;
+}
+
+export interface ScoredReply {
+  text: string;
+  score: number;
+  goal: string;
+}
+
 export async function generateReplies(
   originalPost: string,
   goal: string,
   platform: string,
   brandVoice: string,
-): Promise<{ replies: string[]; error?: string }> {
-  const voiceBlock = brandVoice ? `\n\nMatch this brand voice:\n${brandVoice}` : "";
-  const system = `You are a social media strategist. Given a post on ${platform}, write 5 high-quality reply options the user could send.
+  opts: ReplyOpts = {},
+): Promise<{ replies: ScoredReply[]; error?: string }> {
+  const tone = opts.tone || "Conversational";
+  const length = opts.length || "short";
+  const count = Math.min(Math.max(opts.count || 5, 3), 10);
+  const voiceBlock = brandVoice ? `\nBRAND VOICE TO MATCH:\n${brandVoice}\n` : "";
+  const ctaBlock = opts.addCta
+    ? `\nADD A CTA: In exactly ONE of the replies, work in a subtle mention/link: "${opts.ctaText || "user's own related work"}". Keep it natural — never spammy.\n`
+    : "";
 
-Goal of the reply: ${goal}
+  const lengthRule = {
+    short: "1-2 lines, punchy",
+    medium: "3-4 lines, balanced",
+    long: "5+ lines, detailed",
+  }[length];
 
-Rules:
-- Each reply should sound human and conversational, not corporate.
-- Vary the angles (question, agree-and-add, contrarian, story, joke).
-- Platform-appropriate length: tweets ≤ 250 chars; LinkedIn ≤ 400 chars; instagram ≤ 200 chars.
-- Output as a numbered list 1-5. No preamble. No hashtags unless natural.${voiceBlock}`;
+  const platformRule = {
+    twitter: "Twitter/X: short and punchy. Start with substance not greeting. Hard limit 280 chars.",
+    linkedin: "LinkedIn: thoughtful, professional but personal. Can reference experience. Limit ~500 chars.",
+    instagram: "Instagram: warm and engaging. 1-2 relevant emojis ok. Limit ~150 chars.",
+    facebook: "Facebook: conversational, community-feel. Limit ~400 chars.",
+    tiktok: "TikTok: casual, relatable, match creator energy. Limit ~150 chars.",
+    threads: "Threads: casual, witty, like Twitter but warmer. Limit ~500 chars.",
+  }[platform.toLowerCase()] || "Match the platform culture.";
+
+  const system = `You are an expert social media strategist who writes replies that build genuine relationships, establish authority, and get noticed — without being spammy.
+
+PLATFORM: ${platform}
+GOAL: ${goal}
+TONE: ${tone}
+LENGTH: ${lengthRule}
+${voiceBlock}${ctaBlock}
+QUALITY RULES:
+1. Sound completely human — NEVER start with "Great post!", "Interesting point!", "Love this!", "Thanks for sharing!".
+2. Reference something SPECIFIC from the original post.
+3. Add new info, a question, or a fresh perspective — not just agreement.
+4. ${platformRule}
+5. Honor the goal: "ask question" → end with real curiosity; "add value" → bring data/insight; "disagree" → respectfully challenge with reasoning.
+
+OUTPUT FORMAT (strict, repeat for each of the ${count} replies):
+REPLY: <the reply text on a single line, no quotes>
+SCORE: <a number 1.0-10.0 estimating engagement potential>
+GOAL: <which goal/angle this serves in 2-4 words>
+---
+
+Generate exactly ${count} replies. No preamble. No closing notes.`;
 
   const r = await callClaude({
     systemPrompt: system,
-    userPrompt: `Original post:\n"""${originalPost}"""`,
-    maxTokens: 1500,
+    userPrompt: `Original post to reply to:\n"""${originalPost}"""`,
+    maxTokens: 2400,
   });
   if (r.error) return { replies: [], error: r.error };
 
-  const replies = r.text
-    .split(/\n+/)
-    .map((l) => l.replace(/^\s*\d+[.)]\s*/, "").trim())
-    .filter((l) => l.length > 5)
-    .slice(0, 5);
-  return { replies };
+  const blocks = r.text.split(/\n?-{3,}\n?/).map((b) => b.trim()).filter(Boolean);
+  const parsed: ScoredReply[] = [];
+  for (const b of blocks) {
+    const textM = b.match(/REPLY:\s*([\s\S]*?)(?:\n\s*SCORE:|$)/i);
+    const scoreM = b.match(/SCORE:\s*([\d.]+)/i);
+    const goalM = b.match(/GOAL:\s*(.+)/i);
+    if (textM && textM[1].trim().length > 4) {
+      parsed.push({
+        text: textM[1].trim().replace(/^"|"$/g, ""),
+        score: scoreM ? Math.min(10, Math.max(1, parseFloat(scoreM[1]))) : 8.0,
+        goal: goalM ? goalM[1].trim().slice(0, 40) : goal,
+      });
+    }
+  }
+
+  // Fallback: numbered-list parse
+  if (parsed.length === 0) {
+    r.text
+      .split(/\n+/)
+      .map((l) => l.replace(/^\s*\d+[.)]\s*/, "").trim())
+      .filter((l) => l.length > 5)
+      .slice(0, count)
+      .forEach((t, i) => parsed.push({ text: t, score: 8.5 - i * 0.2, goal }));
+  }
+
+  return { replies: parsed.slice(0, count) };
 }
