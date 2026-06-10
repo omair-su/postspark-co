@@ -124,39 +124,60 @@ function DashboardHome() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      {/* Hero — premium dark gradient with drifting orbs */}
-      <section className="ds-card-hero ds-card-hero-dark p-6 sm:p-8 ds-fade-up">
-        <div className="ds-hero-orbs" aria-hidden><span /></div>
-        <div className="relative flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="ds-eyebrow">
-              <Cpu className="h-3 w-3" /> AI Content Operating System
-            </p>
-            <h1 className="ds-display ds-gradient-text mt-3 text-3xl sm:text-4xl">
-              Welcome back, {name.split(" ")[0]}
-            </h1>
-            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="ds-status-dot" /> Claude Sonnet 4.5 online
+      {/* Hero — million-dollar premium card */}
+      <section className="ps-hero">
+        {/* Ambient layers */}
+        <span className="ps-hero-orb ps-hero-orb-1" aria-hidden />
+        <span className="ps-hero-orb ps-hero-orb-2" aria-hidden />
+        <span className="ps-hero-orb ps-hero-orb-3" aria-hidden />
+        <span className="ps-hero-orb ps-hero-orb-4" aria-hidden />
+        <span className="ps-hero-grid" aria-hidden />
+        <span className="ps-hero-top-glow" aria-hidden />
+
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <span className="ps-hero-badge">
+              <span className="ps-hero-badge-dot" />
+              <Cpu className="h-3.5 w-3.5" />
+              AI Content Operating System
+            </span>
+            <span className="ps-hero-greeting">Welcome back,</span>
+            <h1 className="ps-hero-username">{name.split(" ")[0]}</h1>
+
+            <div className="ps-status-row">
+              <span className="ps-status-pill ps-status-pill-ai">
+                <span className="ps-status-dot-green" />
+                Claude Sonnet 4.5 online
               </span>
               {latencyMs && (
                 <>
-                  <span className="text-white/30">·</span>
+                  <span className="ps-status-sep" />
                   <span className="font-mono text-[12px] text-white/65">{(latencyMs / 1000).toFixed(1)}s avg</span>
                 </>
               )}
-              <span className="text-white/30">·</span>
-              <span className="capitalize">{plan} plan</span>
+              <span className="ps-status-sep" />
+              <span className={`ps-status-pill ps-status-pill-plan ${plan === "free" ? "ps-plan-free" : "ps-plan-pro"}`}>
+                {plan} Plan
+              </span>
               {usage && (
                 <>
-                  <span className="text-white/30">·</span>
-                  <span>
-                    {usage.used}{isUnlimited ? "" : ` / ${usage.limit}`} this month
+                  <span className="ps-status-sep" />
+                  <span className="ps-status-usage">
+                    {usage.used}{isUnlimited ? "" : `/${usage.limit}`} this month
+                    {!isUnlimited && (
+                      <span className="ps-usage-bar">
+                        <span
+                          className="ps-usage-fill block"
+                          style={{ width: `${Math.min(100, (usage.used / Math.max(1, usage.limit)) * 100)}%` }}
+                        />
+                      </span>
+                    )}
                   </span>
                 </>
               )}
-            </p>
+            </div>
           </div>
+
           <div className="hidden sm:flex items-center gap-2">
             <Link to="/dashboard/templates" className="ds-cta-ghost">
               <Bookmark className="h-4 w-4" /> Templates
@@ -167,7 +188,7 @@ function DashboardHome() {
           </div>
         </div>
 
-        <div className="relative mt-6">
+        <div className="mt-2">
           <AskBar />
         </div>
       </section>
