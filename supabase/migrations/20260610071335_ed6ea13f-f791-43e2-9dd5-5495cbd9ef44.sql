@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.append_repurpose_outputs(uuid, uuid, jsonb, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.append_repurpose_outputs(uuid, uuid, jsonb, text) TO authenticated, service_role;
