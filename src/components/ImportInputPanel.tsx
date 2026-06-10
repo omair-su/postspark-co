@@ -20,8 +20,8 @@ export function ImportInputPanel({
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState("");
   const [recording, setRecording] = useState(false);
-  const [provider, setProvider] = useState<"auto" | "gemini" | "elevenlabs">("auto");
-  const [providers, setProviders] = useState<{ elevenlabs: boolean; gemini: boolean } | null>(null);
+  const [provider, setProvider] = useState<"auto" | "assemblyai" | "whisper" | "elevenlabs" | "gemini">("auto");
+  const [providers, setProviders] = useState<{ elevenlabs: boolean; gemini: boolean; assemblyai: boolean; whisper: boolean } | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
