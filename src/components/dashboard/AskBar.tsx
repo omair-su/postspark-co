@@ -73,6 +73,7 @@ export function AskBar() {
           <button
             key={s.id}
             type="button"
+            data-accent={s.accent}
             onClick={() => navigate({ to: s.to })}
             className="ds-chip hover:border-[#a78bfa]/55 hover:bg-white/10 transition-colors"
           >
