@@ -86,7 +86,13 @@ export const replies = createServerFn({ method: "POST" })
     z.object({
       originalPost: z.string().min(5).max(4000),
       goal: z.string().min(3).max(200),
-      platform: z.enum(["twitter", "linkedin", "instagram", "facebook", "tiktok"]).default("twitter"),
+      platform: z.enum(["twitter", "linkedin", "instagram", "facebook", "tiktok", "threads"]).default("twitter"),
+      tone: z.string().min(2).max(60).optional(),
+      length: z.enum(["short", "medium", "long"]).optional(),
+      count: z.number().int().min(3).max(10).optional(),
+      addCta: z.boolean().optional(),
+      ctaText: z.string().max(200).optional(),
+      useBrandVoice: z.boolean().optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -97,19 +103,27 @@ export const replies = createServerFn({ method: "POST" })
     if (!usage.ok) return { replies: [], error: "LIMIT_REACHED" };
 
     let voice = "";
-    const { data: v } = await supabase
-      .from("brand_voices")
-      .select("style_summary")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .maybeSingle();
-    voice = v?.style_summary || "";
+    if (data.useBrandVoice !== false) {
+      const { data: v } = await supabase
+        .from("brand_voices")
+        .select("style_summary")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .maybeSingle();
+      voice = v?.style_summary || "";
+    }
 
-    const result = await generateReplies(data.originalPost, data.goal, data.platform, voice);
+    const result = await generateReplies(data.originalPost, data.goal, data.platform, voice, {
+      tone: data.tone,
+      length: data.length,
+      count: data.count,
+      addCta: data.addCta,
+      ctaText: data.ctaText,
+    });
     if (result.error || !result.replies?.length) return result;
 
     const outputs: Record<string, string> = {};
-    result.replies.forEach((r, i) => { outputs[`reply_${i + 1}`] = r; });
+    result.replies.forEach((r, i) => { outputs[`reply_${i + 1}`] = r.text; });
 
     await supabase.from("repurpose_jobs").insert({
       user_id: userId,
