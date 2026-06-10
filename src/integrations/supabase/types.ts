@@ -1067,14 +1067,17 @@ export type Database = {
           custom_instructions: string | null
           description: string | null
           id: string
+          is_official: boolean
           is_public: boolean
           name: string
+          platform: string | null
+          preview_text: string | null
           selected_types: Json
           slug: string | null
           tone: string
           updated_at: string
           use_count: number
-          user_id: string
+          user_id: string | null
           workspace_id: string | null
         }
         Insert: {
@@ -1083,14 +1086,17 @@ export type Database = {
           custom_instructions?: string | null
           description?: string | null
           id?: string
+          is_official?: boolean
           is_public?: boolean
           name: string
+          platform?: string | null
+          preview_text?: string | null
           selected_types?: Json
           slug?: string | null
           tone?: string
           updated_at?: string
           use_count?: number
-          user_id: string
+          user_id?: string | null
           workspace_id?: string | null
         }
         Update: {
@@ -1099,14 +1105,17 @@ export type Database = {
           custom_instructions?: string | null
           description?: string | null
           id?: string
+          is_official?: boolean
           is_public?: boolean
           name?: string
+          platform?: string | null
+          preview_text?: string | null
           selected_types?: Json
           slug?: string | null
           tone?: string
           updated_at?: string
           use_count?: number
-          user_id?: string
+          user_id?: string | null
           workspace_id?: string | null
         }
         Relationships: [

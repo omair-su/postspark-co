@@ -12,24 +12,31 @@ function slugify(input: string): string {
     .slice(0, 80);
 }
 
+const PUBLIC_FIELDS =
+  "id, name, slug, description, category, platform, tone, selected_types, custom_instructions, preview_text, use_count, is_official, created_at";
+
 /** Public listing — no auth required (uses anon key client; RLS allows is_public=true). */
 export const listPublicTemplates = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       category: z.string().max(50).optional(),
       search: z.string().max(100).optional(),
+      officialOnly: z.boolean().optional(),
+      sort: z.enum(["popular", "newest"]).optional(),
     }).parse,
   )
   .handler(async ({ data }) => {
     let q = (anonClient as any)
       .from("templates")
-      .select("id, name, slug, description, category, tone, selected_types, custom_instructions, use_count, created_at")
-      .eq("is_public", true)
-      .order("use_count", { ascending: false })
-      .limit(60);
+      .select(PUBLIC_FIELDS)
+      .eq("is_public", true);
+    if (data.officialOnly) q = q.eq("is_official", true);
     if (data.category) q = q.eq("category", data.category);
     if (data.search) q = q.ilike("name", `%${data.search}%`);
-    const { data: rows, error } = await q;
+    q = data.sort === "newest"
+      ? q.order("created_at", { ascending: false })
+      : q.order("use_count", { ascending: false });
+    const { data: rows, error } = await q.limit(80);
     if (error) {
       console.error("listPublicTemplates error", error);
       return { templates: [] };
@@ -42,7 +49,7 @@ export const getPublicTemplateBySlug = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { data: row } = await (anonClient as any)
       .from("templates")
-      .select("id, name, slug, description, category, tone, selected_types, custom_instructions, use_count, created_at")
+      .select(PUBLIC_FIELDS)
       .eq("is_public", true)
       .eq("slug", data.slug)
       .maybeSingle();
@@ -93,17 +100,16 @@ export const togglePublishTemplate = createServerFn({ method: "POST" })
     return { success: true, slug };
   });
 
-/** Clone a public template into the caller's account. */
+/** Clone a public (or official) template into the caller's account. */
 export const cloneTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ sourceId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // Read public source via anon (RLS bypasses the user's "view own" policy via the public policy)
     const { data: source, error: srcErr } = await (anonClient as any)
       .from("templates")
-      .select("name, tone, custom_instructions, selected_types, category, description")
+      .select("name, tone, custom_instructions, selected_types, category, description, use_count")
       .eq("id", data.sourceId)
       .eq("is_public", true)
       .maybeSingle();
@@ -127,10 +133,7 @@ export const cloneTemplate = createServerFn({ method: "POST" })
       return { success: false, error: error.message };
     }
 
-    // bump use_count on source (ignore failure — might not have UPDATE permission for non-owners)
     try {
-      await (anonClient as any).rpc; // no-op safe access
-      // Best-effort increment via direct update; will silently no-op under RLS
       await (anonClient as any)
         .from("templates")
         .update({ use_count: ((source as any).use_count ?? 0) + 1 } as any)
