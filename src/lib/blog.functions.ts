@@ -62,7 +62,7 @@ export const listPosts = createServerFn({ method: "GET" })
 
 export const getPostBySlug = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ slug: z.string().min(1) }).parse(input))
-  .handler(async ({ data }): Promise<BlogPostFull | null> => {
+  .handler(async ({ data }): Promise<(BlogPostFull & { html: string }) | null> => {
     const { data: row, error } = await supabaseAdmin
       .from("blog_posts")
       .select(`id, slug, title, excerpt, content_md, cover_image_url, published_at, reading_time_minutes, meta_title, meta_description,
@@ -72,8 +72,12 @@ export const getPostBySlug = createServerFn({ method: "GET" })
       .eq("status", "published")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return (row ?? null) as unknown as BlogPostFull | null;
+    if (!row) return null;
+    const { renderMarkdown } = await import("./markdown.server");
+    const html = renderMarkdown((row as any).content_md || "");
+    return { ...(row as any), html } as BlogPostFull & { html: string };
   });
+
 
 export const listCategories = createServerFn({ method: "GET" }).handler(async (): Promise<BlogCategory[]> => {
   const { data, error } = await supabaseAdmin.from("blog_categories").select("id, slug, name, description").order("name");
