@@ -4,12 +4,12 @@ import { Sparkles, ArrowRight, Flame, Image as ImageIcon, FileText, Layers, Repe
 
 type SuggestionId = "repurpose" | "hook" | "image" | "seo" | "carousel";
 
-const SUGGESTIONS: Array<{ id: SuggestionId; label: string; icon: any; to: string }> = [
-  { id: "repurpose", label: "Repurpose a post", icon: Repeat, to: "/dashboard/repurpose" },
-  { id: "hook", label: "Write 10 hooks", icon: Flame, to: "/dashboard/hook-lab" },
-  { id: "image", label: "Generate an image", icon: ImageIcon, to: "/dashboard/image-studio" },
-  { id: "seo", label: "Write an SEO blog", icon: FileText, to: "/dashboard/seo-blog" },
-  { id: "carousel", label: "Build a carousel", icon: Layers, to: "/dashboard/carousel" },
+const SUGGESTIONS: Array<{ id: SuggestionId; label: string; icon: any; to: string; accent: string }> = [
+  { id: "repurpose", label: "Repurpose a post", icon: Repeat, to: "/dashboard/repurpose", accent: "repurpose" },
+  { id: "hook", label: "Write 10 hooks", icon: Flame, to: "/dashboard/hook-lab", accent: "hook" },
+  { id: "image", label: "Generate an image", icon: ImageIcon, to: "/dashboard/image-studio", accent: "image" },
+  { id: "seo", label: "Write an SEO blog", icon: FileText, to: "/dashboard/seo-blog", accent: "seo" },
+  { id: "carousel", label: "Build a carousel", icon: Layers, to: "/dashboard/carousel", accent: "carousel" },
 ];
 
 /**
@@ -73,6 +73,7 @@ export function AskBar() {
           <button
             key={s.id}
             type="button"
+            data-accent={s.accent}
             onClick={() => navigate({ to: s.to })}
             className="ds-chip hover:border-[#a78bfa]/55 hover:bg-white/10 transition-colors"
           >
