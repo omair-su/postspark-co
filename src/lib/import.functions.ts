@@ -5,6 +5,8 @@ import {
   scrapeUrl,
   transcribeWithElevenLabs,
   transcribeWithGemini,
+  transcribeWithAssemblyAI,
+  transcribeWithWhisper,
 } from "@/server/import.server";
 
 export const importFromUrl = createServerFn({ method: "POST" })
@@ -22,20 +24,39 @@ export const transcribeAudio = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      audioBase64: z.string().min(100).max(15_000_000), // ~10MB base64 cap
+      audioBase64: z.string().min(100).max(15_000_000),
       mimeType: z.string().min(3).max(100),
-      preferProvider: z.enum(["auto", "elevenlabs", "gemini"]).optional(),
+      preferProvider: z.enum(["auto", "elevenlabs", "gemini", "assemblyai", "whisper"]).optional(),
     }).parse,
   )
   .handler(async ({ data }) => {
-    const wantsEleven =
-      data.preferProvider === "elevenlabs" ||
-      (data.preferProvider !== "gemini" && !!process.env.ELEVENLABS_API_KEY);
+    const p = data.preferProvider || "auto";
 
-    if (wantsEleven && process.env.ELEVENLABS_API_KEY) {
+    if (p === "assemblyai" && process.env.ASSEMBLYAI_API_KEY) {
+      return transcribeWithAssemblyAI(data.audioBase64, data.mimeType);
+    }
+    if (p === "whisper" && (process.env.Openai_api || process.env.OPENAI_API_KEY)) {
+      return transcribeWithWhisper(data.audioBase64, data.mimeType);
+    }
+    if (p === "elevenlabs" && process.env.ELEVENLABS_API_KEY) {
+      return transcribeWithElevenLabs(data.audioBase64, data.mimeType);
+    }
+    if (p === "gemini") {
+      return transcribeWithGemini(data.audioBase64, data.mimeType);
+    }
+
+    // auto: prefer best diarization → AssemblyAI, then Whisper, then ElevenLabs, then Gemini
+    if (process.env.ASSEMBLYAI_API_KEY) {
+      const r = await transcribeWithAssemblyAI(data.audioBase64, data.mimeType);
+      if (r.text) return r;
+    }
+    if (process.env.Openai_api || process.env.OPENAI_API_KEY) {
+      const r = await transcribeWithWhisper(data.audioBase64, data.mimeType);
+      if (r.text) return r;
+    }
+    if (process.env.ELEVENLABS_API_KEY) {
       const r = await transcribeWithElevenLabs(data.audioBase64, data.mimeType);
       if (r.text) return r;
-      // fall through to Gemini if ElevenLabs failed
     }
     return transcribeWithGemini(data.audioBase64, data.mimeType);
   });
@@ -46,5 +67,7 @@ export const checkProviders = createServerFn({ method: "POST" })
     return {
       elevenlabs: !!process.env.ELEVENLABS_API_KEY,
       gemini: !!process.env.LOVABLE_API_KEY,
+      assemblyai: !!process.env.ASSEMBLYAI_API_KEY,
+      whisper: !!(process.env.Openai_api || process.env.OPENAI_API_KEY),
     };
   });

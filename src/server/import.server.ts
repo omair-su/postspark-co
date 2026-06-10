@@ -245,8 +245,171 @@ async function fetchYouTube(videoId: string, originalUrl: string): Promise<Impor
 
 export interface TranscriptionResult {
   text: string;
-  provider: "elevenlabs" | "gemini";
+  provider: "elevenlabs" | "gemini" | "assemblyai" | "whisper";
+  diarized?: boolean;
+  speakers?: number;
+  chapters?: { start: number; end: number; headline: string; summary?: string }[];
   error?: string;
+}
+
+function fmtTs(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  if (m >= 60) {
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    return `${h}:${String(mm).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  }
+  return `${m}:${String(sec).padStart(2, "0")}`;
+}
+
+/** AssemblyAI: upload audio + transcribe with speaker diarization & auto-chapters. */
+export async function transcribeWithAssemblyAI(
+  audioBase64: string,
+  mimeType: string,
+): Promise<TranscriptionResult> {
+  const apiKey = process.env.ASSEMBLYAI_API_KEY;
+  if (!apiKey) return { text: "", provider: "assemblyai", error: "AssemblyAI not configured" };
+
+  try {
+    const bin = Uint8Array.from(atob(audioBase64), (c) => c.charCodeAt(0));
+
+    // 1) Upload raw bytes
+    const up = await fetch("https://api.assemblyai.com/v2/upload", {
+      method: "POST",
+      headers: { authorization: apiKey, "content-type": "application/octet-stream" },
+      body: bin,
+    });
+    if (!up.ok) {
+      console.error("AssemblyAI upload error:", up.status, await up.text());
+      return { text: "", provider: "assemblyai", error: "AssemblyAI upload failed." };
+    }
+    const { upload_url } = await up.json();
+
+    // 2) Create transcript with diarization + chapters
+    const create = await fetch("https://api.assemblyai.com/v2/transcript", {
+      method: "POST",
+      headers: { authorization: apiKey, "content-type": "application/json" },
+      body: JSON.stringify({
+        audio_url: upload_url,
+        speaker_labels: true,
+        auto_chapters: true,
+        punctuate: true,
+        format_text: true,
+      }),
+    });
+    if (!create.ok) {
+      console.error("AssemblyAI create error:", create.status, await create.text());
+      return { text: "", provider: "assemblyai", error: "AssemblyAI transcript request failed." };
+    }
+    const { id } = await create.json();
+
+    // 3) Poll for completion (up to ~3 min)
+    let attempt = 0;
+    while (attempt < 60) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const poll = await fetch(`https://api.assemblyai.com/v2/transcript/${id}`, {
+        headers: { authorization: apiKey },
+      });
+      if (!poll.ok) {
+        attempt++;
+        continue;
+      }
+      const data = await poll.json();
+      if (data.status === "completed") {
+        const utterances: any[] = data.utterances || [];
+        const speakers = new Set(utterances.map((u) => u.speaker)).size;
+        const text = utterances.length
+          ? utterances
+              .map((u) => `[${fmtTs(u.start)}] Speaker ${u.speaker}: ${u.text}`)
+              .join("\n\n")
+          : (data.text || "");
+        const chapters = (data.chapters || []).map((c: any) => ({
+          start: c.start,
+          end: c.end,
+          headline: c.headline || c.gist || "Chapter",
+          summary: c.summary,
+        }));
+        return {
+          text,
+          provider: "assemblyai",
+          diarized: utterances.length > 0,
+          speakers: speakers || undefined,
+          chapters: chapters.length ? chapters : undefined,
+        };
+      }
+      if (data.status === "error") {
+        console.error("AssemblyAI transcription error:", data.error);
+        return { text: "", provider: "assemblyai", error: data.error || "AssemblyAI failed." };
+      }
+      attempt++;
+    }
+    return { text: "", provider: "assemblyai", error: "AssemblyAI timed out." };
+  } catch (err) {
+    console.error("AssemblyAI exception:", err);
+    return { text: "", provider: "assemblyai", error: "AssemblyAI transcription failed." };
+  }
+}
+
+/** OpenAI Whisper transcription (high accuracy). Pseudo-diarization via paragraph breaks. */
+export async function transcribeWithWhisper(
+  audioBase64: string,
+  mimeType: string,
+): Promise<TranscriptionResult> {
+  const apiKey = process.env.Openai_api || process.env.OPENAI_API_KEY;
+  if (!apiKey) return { text: "", provider: "whisper", error: "OpenAI not configured" };
+
+  try {
+    const bin = Uint8Array.from(atob(audioBase64), (c) => c.charCodeAt(0));
+    const ext = mimeType.includes("mp3") ? "mp3"
+      : mimeType.includes("wav") ? "wav"
+      : mimeType.includes("mp4") || mimeType.includes("m4a") ? "m4a"
+      : mimeType.includes("ogg") ? "ogg"
+      : "webm";
+    const blob = new Blob([bin], { type: mimeType });
+
+    const form = new FormData();
+    form.append("file", blob, `audio.${ext}`);
+    form.append("model", "whisper-1");
+    form.append("response_format", "verbose_json");
+    form.append("timestamp_granularities[]", "segment");
+
+    const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: form,
+    });
+    if (!res.ok) {
+      console.error("Whisper error:", res.status, await res.text());
+      return { text: "", provider: "whisper", error: "Whisper transcription failed." };
+    }
+    const data = await res.json();
+    const segments: any[] = data.segments || [];
+    // Heuristic speaker grouping: long pauses (>1.5s) suggest a new turn.
+    let text = "";
+    let lastEnd = 0;
+    let turn = 1;
+    for (const s of segments) {
+      if (s.start - lastEnd > 1.5 && lastEnd > 0) {
+        turn = turn === 1 ? 2 : 1;
+        text += `\n\n[${fmtTs(s.start * 1000)}] Speaker ${turn}: ${String(s.text).trim()}`;
+      } else if (!text) {
+        text = `[${fmtTs(s.start * 1000)}] Speaker ${turn}: ${String(s.text).trim()}`;
+      } else {
+        text += " " + String(s.text).trim();
+      }
+      lastEnd = s.end;
+    }
+    return {
+      text: text || data.text || "",
+      provider: "whisper",
+      diarized: segments.length > 0,
+    };
+  } catch (err) {
+    console.error("Whisper exception:", err);
+    return { text: "", provider: "whisper", error: "Whisper transcription failed." };
+  }
 }
 
 /** Transcribe audio via ElevenLabs Scribe (preferred when secret present). */

@@ -20,8 +20,8 @@ export function ImportInputPanel({
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState("");
   const [recording, setRecording] = useState(false);
-  const [provider, setProvider] = useState<"auto" | "gemini" | "elevenlabs">("auto");
-  const [providers, setProviders] = useState<{ elevenlabs: boolean; gemini: boolean } | null>(null);
+  const [provider, setProvider] = useState<"auto" | "assemblyai" | "whisper" | "elevenlabs" | "gemini">("auto");
+  const [providers, setProviders] = useState<{ elevenlabs: boolean; gemini: boolean; assemblyai: boolean; whisper: boolean } | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
@@ -130,7 +130,22 @@ export function ImportInputPanel({
       });
       if (res.error || !res.text) toast.error(res.error || "Transcription failed");
       else {
-        onExtracted(res.text, `Audio transcribed via ${res.provider === "elevenlabs" ? "ElevenLabs" : "Lovable AI"}`);
+        const providerLabel =
+          res.provider === "assemblyai" ? "AssemblyAI (diarized)"
+          : res.provider === "whisper" ? "OpenAI Whisper"
+          : res.provider === "elevenlabs" ? "ElevenLabs"
+          : "Lovable AI";
+        const extras: string[] = [];
+        if (res.speakers) extras.push(`${res.speakers} speakers`);
+        if (res.chapters?.length) extras.push(`${res.chapters.length} chapters`);
+        let text = res.text;
+        if (res.chapters?.length) {
+          const ch = res.chapters
+            .map((c, i) => `${i + 1}. [${Math.floor(c.start / 60000)}:${String(Math.floor((c.start % 60000) / 1000)).padStart(2, "0")}] ${c.headline}${c.summary ? ` — ${c.summary}` : ""}`)
+            .join("\n");
+          text = `## Chapters (auto-detected)\n${ch}\n\n## Transcript\n${res.text}`;
+        }
+        onExtracted(text, `Audio transcribed via ${providerLabel}${extras.length ? ` · ${extras.join(", ")}` : ""}`);
         toast.success("Transcribed");
       }
     } catch {
@@ -227,11 +242,17 @@ export function ImportInputPanel({
             onChange={(e) => setProvider(e.target.value as any)}
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs"
           >
-            <option value="auto">Auto (best available)</option>
-            <option value="gemini">Lovable AI (Gemini)</option>
+            <option value="auto">Auto — best diarization available</option>
+            <option value="assemblyai" disabled={!providers?.assemblyai}>
+              AssemblyAI — speaker diarization + auto chapters {providers && !providers.assemblyai ? "(not configured)" : ""}
+            </option>
+            <option value="whisper" disabled={!providers?.whisper}>
+              OpenAI Whisper — high-accuracy transcription {providers && !providers.whisper ? "(not configured)" : ""}
+            </option>
             <option value="elevenlabs" disabled={!providers?.elevenlabs}>
               ElevenLabs Scribe {providers && !providers.elevenlabs ? "(not configured)" : ""}
             </option>
+            <option value="gemini">Lovable AI (Gemini)</option>
           </select>
           {busy && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
