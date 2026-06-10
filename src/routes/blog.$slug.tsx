@@ -1,7 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { renderMarkdown } from "@/lib/markdown";
 import type { BlogPostFull } from "@/lib/blog-types";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -9,9 +8,9 @@ export const Route = createFileRoute("/blog/$slug")({
     const { getPostBySlug } = await import("@/lib/blog.functions");
     const post = await getPostBySlug({ data: { slug: params.slug } });
     if (!post) throw notFound();
-    const html = renderMarkdown(post.content_md);
-    return { post: post as BlogPostFull, html };
+    return { post: post as BlogPostFull, html: (post as any).html as string };
   },
+
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [{ title: "Article — PostSpark" }] };
     const { post } = loaderData;
