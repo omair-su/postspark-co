@@ -130,7 +130,22 @@ export function ImportInputPanel({
       });
       if (res.error || !res.text) toast.error(res.error || "Transcription failed");
       else {
-        onExtracted(res.text, `Audio transcribed via ${res.provider === "elevenlabs" ? "ElevenLabs" : "Lovable AI"}`);
+        const providerLabel =
+          res.provider === "assemblyai" ? "AssemblyAI (diarized)"
+          : res.provider === "whisper" ? "OpenAI Whisper"
+          : res.provider === "elevenlabs" ? "ElevenLabs"
+          : "Lovable AI";
+        const extras: string[] = [];
+        if (res.speakers) extras.push(`${res.speakers} speakers`);
+        if (res.chapters?.length) extras.push(`${res.chapters.length} chapters`);
+        let text = res.text;
+        if (res.chapters?.length) {
+          const ch = res.chapters
+            .map((c, i) => `${i + 1}. [${Math.floor(c.start / 60000)}:${String(Math.floor((c.start % 60000) / 1000)).padStart(2, "0")}] ${c.headline}${c.summary ? ` — ${c.summary}` : ""}`)
+            .join("\n");
+          text = `## Chapters (auto-detected)\n${ch}\n\n## Transcript\n${res.text}`;
+        }
+        onExtracted(text, `Audio transcribed via ${providerLabel}${extras.length ? ` · ${extras.join(", ")}` : ""}`);
         toast.success("Transcribed");
       }
     } catch {
