@@ -617,8 +617,8 @@ function WeeklyView({
         })}
 
         {hours.map((h) => (
-          <>
-            <div key={`t-${h}`} className="flex h-14 items-start justify-end border-b border-r border-border/60 bg-muted/10 px-2 py-1 text-[10px] text-muted-foreground">
+          <React.Fragment key={`row-${h}`}>
+            <div className="flex h-14 items-start justify-end border-b border-r border-border/60 bg-muted/10 px-2 py-1 text-[10px] text-muted-foreground">
               {((h % 12) || 12) + (h < 12 ? " AM" : " PM")}
             </div>
             {weekDays.map((d) => {
@@ -651,7 +651,7 @@ function WeeklyView({
                 </div>
               );
             })}
-          </>
+          </React.Fragment>
         ))}
       </div>
 
