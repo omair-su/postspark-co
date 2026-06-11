@@ -6,6 +6,9 @@ import { PricingV2 } from "@/components/landing/v2/PricingV2";
 import { FinalCTA } from "@/components/landing/v2/FinalCTA";
 import { FooterV2 } from "@/components/landing/v2/FooterV2";
 import { FAQv2 } from "@/components/landing/v2/FAQv2";
+import { Breadcrumbs, breadcrumbJsonLd, type Crumb } from "@/components/marketing/Breadcrumbs";
+import { QuickAnswer } from "@/components/marketing/QuickAnswer";
+import { RelatedTools } from "@/components/marketing/RelatedTools";
 import { track } from "@/lib/analytics";
 
 export type SegmentPageProps = {
@@ -15,13 +18,43 @@ export type SegmentPageProps = {
   pains: string[];
   solutions: string[];
   workflow?: { title: string; body: string }[];
+  /** Used to derive breadcrumbs and related-tool picks. */
+  path?: string;
+  /** Optional GEO "quick answer" — surfaced to LLM crawlers. */
+  quickAnswer?: { question: string; answer: string };
 };
 
+function crumbsFromPath(path?: string): Crumb[] {
+  if (!path) return [];
+  const segs = path.replace(/^\/+|\/+$/g, "").split("/");
+  if (segs.length === 0) return [];
+  const labels: Record<string, string> = {
+    tools: "Tools",
+    features: "Features",
+    alternatives: "Compare",
+    for: "Solutions",
+    "use-cases": "Use cases",
+  };
+  const out: Crumb[] = [];
+  if (labels[segs[0]]) {
+    out.push({ label: labels[segs[0]], href: segs[0] === "tools" ? "/#explore-tools" : `/#${segs[0]}` });
+  }
+  const last = segs[segs.length - 1]
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+  out.push({ label: last });
+  return out;
+}
+
 export function SegmentPage(p: SegmentPageProps) {
+  const crumbs = crumbsFromPath(p.path);
   return (
     <div className="min-h-screen scroll-smooth" style={{ background: "#FFFFFF" }}>
       <Navbar />
       <main>
+        {crumbs.length > 0 && <Breadcrumbs items={crumbs} />}
+        {p.quickAnswer && <QuickAnswer question={p.quickAnswer.question} answer={p.quickAnswer.answer} />}
         {/* HERO */}
         <section className="relative overflow-hidden" style={{ background: "#FFFFFF" }}>
           <div
