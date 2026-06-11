@@ -57,6 +57,25 @@ const SITE_JSONLD = {
   },
 };
 
+const SITENAV_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: [
+    { "@type": "SiteNavigationElement", position: 1, name: "Pricing", url: "https://postspark.co/pricing" },
+    { "@type": "SiteNavigationElement", position: 2, name: "Gallery", url: "https://postspark.co/gallery" },
+    { "@type": "SiteNavigationElement", position: 3, name: "Blog", url: "https://postspark.co/blog" },
+    { "@type": "SiteNavigationElement", position: 4, name: "For Creators", url: "https://postspark.co/for/creators" },
+    { "@type": "SiteNavigationElement", position: 5, name: "For Agencies", url: "https://postspark.co/for/agencies" },
+    { "@type": "SiteNavigationElement", position: 6, name: "LinkedIn Post Generator", url: "https://postspark.co/features/linkedin-post-generator" },
+    { "@type": "SiteNavigationElement", position: 7, name: "YouTube to Tweets", url: "https://postspark.co/features/youtube-to-tweets" },
+    { "@type": "SiteNavigationElement", position: 8, name: "Repurpose Blog to Social", url: "https://postspark.co/features/repurpose-blog-to-social" },
+    { "@type": "SiteNavigationElement", position: 9, name: "LinkedIn Video Downloader", url: "https://postspark.co/tools/linkedin-video-downloader" },
+    { "@type": "SiteNavigationElement", position: 10, name: "AI Image Generator", url: "https://postspark.co/tools/ai-image-generator" },
+    { "@type": "SiteNavigationElement", position: 11, name: "YouTube Thumbnail Maker", url: "https://postspark.co/tools/youtube-thumbnail-maker" },
+    { "@type": "SiteNavigationElement", position: 12, name: "Hook Generator", url: "https://postspark.co/tools/hook-generator" },
+  ],
+};
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -99,6 +118,7 @@ export const Route = createRootRoute({
     scripts: [
       { type: "application/ld+json", children: JSON.stringify(ORG_JSONLD) },
       { type: "application/ld+json", children: JSON.stringify(SITE_JSONLD) },
+      { type: "application/ld+json", children: JSON.stringify(SITENAV_JSONLD) },
     ],
   }),
   shellComponent: RootShell,
