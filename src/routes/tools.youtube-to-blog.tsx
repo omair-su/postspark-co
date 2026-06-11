@@ -6,9 +6,11 @@ export const Route = createFileRoute("/tools/youtube-to-blog")({
     title: "YouTube to Blog Post Converter — Free AI Tool | PostSpark",
     desc: "Turn any YouTube video into a publish-ready SEO blog post in 60 seconds. Auto title, meta description, H2 outline, FAQ, and pull quotes.",
     url: "https://postspark.co/tools/youtube-to-blog",
+    path: "/tools/youtube-to-blog"
   }),
   component: () => (
     <SegmentPage
+      path="/tools/youtube-to-blog"
       eyebrow="Free Tool · YouTube → Blog"
       h1="Turn your YouTube videos into SEO blog posts that rank."
       sub="Paste a YouTube URL. PostSpark transcribes, generates a keyword-optimized title, meta description, H2 outline, body, FAQ section, and pull quotes — all formatted in markdown."

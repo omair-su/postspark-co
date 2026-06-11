@@ -6,9 +6,11 @@ export const Route = createFileRoute("/tools/ai-image-generator")({
     title: "AI Image Generator for Social Media — Free | PostSpark",
     desc: "Generate scroll-stopping AI images for X, LinkedIn, Instagram, and YouTube — sized per platform, brand-color matched. Free plan, no card required.",
     url: "https://postspark.co/tools/ai-image-generator",
+    path: "/tools/ai-image-generator"
   }),
   component: () => (
     <SegmentPage
+      path="/tools/ai-image-generator"
       eyebrow="Free Tool · AI Image Generator"
       h1="AI image generator built for social media — not generic art."
       sub="Type a prompt or paste a post, get platform-sized images (X 16:9, LinkedIn 1.91:1, Instagram square, Story 9:16, YouTube thumbnail). Brand colors and logo auto-applied if you have a Brand Kit."

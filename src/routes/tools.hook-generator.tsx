@@ -6,9 +6,11 @@ export const Route = createFileRoute("/tools/hook-generator")({
     title: "Twitter & LinkedIn Hook Generator — Free A/B Test | PostSpark",
     desc: "Generate 10 scroll-stopping hooks per topic for X and LinkedIn — ranked by a model trained on viral posts. Free, no signup for first 3 uses.",
     url: "https://postspark.co/tools/hook-generator",
+    path: "/tools/hook-generator"
   }),
   component: () => (
     <SegmentPage
+      path="/tools/hook-generator"
       eyebrow="Free Tool · Hook Lab"
       h1="The hook decides if your post gets read. We generate 10."
       sub="Paste your topic or full post. PostSpark generates 10 hook variations — question hooks, contrarian hooks, story hooks, stat hooks — and scores each on predicted scroll-stop rate."

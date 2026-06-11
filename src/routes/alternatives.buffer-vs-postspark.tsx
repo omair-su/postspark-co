@@ -6,9 +6,11 @@ export const Route = createFileRoute("/alternatives/buffer-vs-postspark")({
     title: "PostSpark vs Buffer — AI Writer vs Scheduler Compared",
     desc: "Buffer schedules posts. PostSpark writes them in your voice, then schedules. See the side-by-side comparison: features, pricing, and best use case.",
     url: "https://postspark.co/alternatives/buffer-vs-postspark",
+    path: "/alternatives/buffer-vs-postspark"
   }),
   component: () => (
     <SegmentPage
+      path="/alternatives/buffer-vs-postspark"
       eyebrow="PostSpark vs Buffer"
       h1="PostSpark vs Buffer: One writes your posts. The other just schedules them."
       sub="Buffer is a great scheduler. But you still have to write every post yourself. PostSpark generates platform-native posts in your voice from one piece of source content — and schedules them."

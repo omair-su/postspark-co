@@ -6,9 +6,11 @@ export const Route = createFileRoute("/alternatives/chatgpt-for-content-repurpos
     title: "PostSpark vs ChatGPT for Content Repurposing — Full Comparison",
     desc: "ChatGPT is a general AI assistant. PostSpark is a dedicated content repurposing engine. Here is the honest difference.",
     url: "https://postspark.co/alternatives/chatgpt-for-content-repurposing",
+    path: "/alternatives/chatgpt-for-content-repurposing"
   }),
   component: () => (
     <SegmentPage
+      path="/alternatives/chatgpt-for-content-repurposing"
       eyebrow="PostSpark vs ChatGPT"
       h1="PostSpark vs ChatGPT for Content Repurposing"
       sub="ChatGPT is a general AI assistant. PostSpark is a dedicated content repurposing engine. Here is the honest difference."

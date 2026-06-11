@@ -6,9 +6,11 @@ export const Route = createFileRoute("/alternatives/jasper-vs-postspark")({
     title: "PostSpark vs Jasper — Which Is Right for Creators?",
     desc: "Jasper is built for enterprise marketing teams. PostSpark is built for creators and agencies who repurpose. Compare price, focus, and brand voice.",
     url: "https://postspark.co/alternatives/jasper-vs-postspark",
+    path: "/alternatives/jasper-vs-postspark"
   }),
   component: () => (
     <SegmentPage
+      path="/alternatives/jasper-vs-postspark"
       eyebrow="PostSpark vs Jasper"
       h1="PostSpark vs Jasper: Which Is Right for You?"
       sub="Jasper starts at $49/month and is built for enterprise marketing teams. PostSpark starts at $19/month and is built for creators and agencies who actually repurpose."

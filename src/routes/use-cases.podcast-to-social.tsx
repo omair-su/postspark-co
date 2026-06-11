@@ -6,9 +6,11 @@ export const Route = createFileRoute("/use-cases/podcast-to-social")({
     title: "Podcast to Social Media — Turn Episodes into Posts | PostSpark",
     desc: "Every episode. Everywhere. Automatically. Turn each podcast into tweets, LinkedIn posts, newsletters, and show notes in minutes.",
     url: "https://postspark.co/use-cases/podcast-to-social",
+    path: "/use-cases/podcast-to-social"
   }),
   component: () => (
     <SegmentPage
+      path="/use-cases/podcast-to-social"
       eyebrow="For Podcasters"
       h1="Every Episode. Everywhere. Automatically."
       sub="You spend hours creating your podcast. PostSpark turns each episode into tweets, LinkedIn posts, email newsletters, and show notes — in minutes, not hours."

@@ -6,9 +6,11 @@ export const Route = createFileRoute("/use-cases/linkedin-ghostwriters")({
     title: "PostSpark for LinkedIn Ghostwriters — Brand Voice AI per Client",
     desc: "Write for 10 clients and sound like all of them. Per-client brand voice, faster repurposing, more billable hours back.",
     url: "https://postspark.co/use-cases/linkedin-ghostwriters",
+    path: "/use-cases/linkedin-ghostwriters"
   }),
   component: () => (
     <SegmentPage
+      path="/use-cases/linkedin-ghostwriters"
       eyebrow="For LinkedIn Ghostwriters"
       h1="Write for 10 Clients. Sound Like All of Them."
       sub="LinkedIn ghostwriters lose 60% of production time to manual reformatting. PostSpark gives you Brand Voice AI for every client — so you deliver more, bill more, and burn out less."

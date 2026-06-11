@@ -6,9 +6,11 @@ export const Route = createFileRoute("/for/agencies")({
     title: "PostSpark for Content Agencies — Scale Client Production",
     desc: "Stop letting reformatting eat billable hours. PostSpark turns one client asset into a week of platform-ready content — with per-client brand voice.",
     url: "https://postspark.co/for/agencies",
+    path: "/for/agencies"
   }),
   component: () => (
     <SegmentPage
+      path="/for/agencies"
       eyebrow="For Content Agencies"
       h1="Your Agency Delivers Content. PostSpark Makes It Scalable."
       sub="Stop letting content reformatting eat your team's billable hours. PostSpark turns one client asset into a full week of platform-ready content — automatically."

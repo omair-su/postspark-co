@@ -6,9 +6,11 @@ export const Route = createFileRoute("/use-cases/youtube-to-linkedin")({
     title: "YouTube to LinkedIn — Turn Videos into LinkedIn Posts | PostSpark",
     desc: "Paste your YouTube URL. PostSpark extracts insights and turns them into LinkedIn posts that drive traffic back to your channel.",
     url: "https://postspark.co/use-cases/youtube-to-linkedin",
+    path: "/use-cases/youtube-to-linkedin"
   }),
   component: () => (
     <SegmentPage
+      path="/use-cases/youtube-to-linkedin"
       eyebrow="YouTube → LinkedIn"
       h1="Your YouTube Videos Deserve a LinkedIn Audience."
       sub="Paste your YouTube URL. PostSpark extracts the key insights, quotes, and lessons — and turns them into 5 LinkedIn posts that drive traffic back to your channel."

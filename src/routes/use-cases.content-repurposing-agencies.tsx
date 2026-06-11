@@ -6,9 +6,11 @@ export const Route = createFileRoute("/use-cases/content-repurposing-agencies")(
     title: "Content Repurposing System for Agencies | PostSpark",
     desc: "The content repurposing system agencies actually need. Per-client brand voice, approval workflows, white-label exports.",
     url: "https://postspark.co/use-cases/content-repurposing-agencies",
+    path: "/use-cases/content-repurposing-agencies"
   }),
   component: () => (
     <SegmentPage
+      path="/use-cases/content-repurposing-agencies"
       eyebrow="Agency Operations"
       h1="The Content Repurposing System Agencies Actually Need."
       sub="Per-client brand voice. Approval workflows. White-label exports. PostSpark is the operations layer that turns one source asset into a full content week for every client."
