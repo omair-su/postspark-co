@@ -6,9 +6,11 @@ export const Route = createFileRoute("/tools/youtube-thumbnail-maker")({
     title: "AI YouTube Thumbnail Maker — Free Generator | PostSpark",
     desc: "Generate high-CTR YouTube thumbnails in seconds. AI handles face emphasis, bold text overlay, and brand colors. Free plan, no Photoshop needed.",
     url: "https://postspark.co/tools/youtube-thumbnail-maker",
+    path: "/tools/youtube-thumbnail-maker"
   }),
   component: () => (
     <SegmentPage
+      path="/tools/youtube-thumbnail-maker"
       eyebrow="Free Tool · YouTube Thumbnail Maker"
       h1="YouTube thumbnails that actually get clicked."
       sub="Paste your video title, get 4 thumbnail options engineered for high CTR — bold text, face emphasis, brand colors. Replace Canva templates and $40 thumbnail designers."

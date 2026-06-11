@@ -9,6 +9,7 @@ import { FoundingMember } from "@/components/landing/v2/FoundingMember";
 import { FAQv2, FAQ_LIST } from "@/components/landing/v2/FAQv2";
 import { FinalCTA } from "@/components/landing/v2/FinalCTA";
 import { FooterV2 } from "@/components/landing/v2/FooterV2";
+import { ExploreTools } from "@/components/marketing/ExploreTools";
 import { Navigate, createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -72,6 +73,7 @@ function LandingPage() {
         <PainSection />
         <WhoFor />
         <HowItWorks />
+        <ExploreTools />
         <PricingV2 />
         <FoundingMember />
         <FAQv2 />

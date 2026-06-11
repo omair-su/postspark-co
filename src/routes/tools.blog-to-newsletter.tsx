@@ -6,9 +6,11 @@ export const Route = createFileRoute("/tools/blog-to-newsletter")({
     title: "Blog to Newsletter Converter — Free AI Tool | PostSpark",
     desc: "Paste any blog URL, get a ready-to-send email newsletter with subject line, preview text, and a curated rewrite. Free plan, no signup.",
     url: "https://postspark.co/tools/blog-to-newsletter",
+    path: "/tools/blog-to-newsletter"
   }),
   component: () => (
     <SegmentPage
+      path="/tools/blog-to-newsletter"
       eyebrow="Free Tool · Blog → Newsletter"
       h1="Turn any blog post into an email newsletter — in your voice."
       sub="Paste your blog URL. PostSpark writes a subject line (A/B tested), preheader, intro hook, scannable body, and a CTA. Ready to paste into Beehiiv, Substack, ConvertKit, or Mailchimp."

@@ -6,9 +6,11 @@ export const Route = createFileRoute("/alternatives/hootsuite-vs-postspark")({
     title: "PostSpark vs Hootsuite — Cheaper, AI-First Alternative",
     desc: "Hootsuite starts at $99/mo and still doesn't write your posts. PostSpark is $19/mo, writes in your voice, and includes a scheduler. Full comparison.",
     url: "https://postspark.co/alternatives/hootsuite-vs-postspark",
+    path: "/alternatives/hootsuite-vs-postspark"
   }),
   component: () => (
     <SegmentPage
+      path="/alternatives/hootsuite-vs-postspark"
       eyebrow="PostSpark vs Hootsuite"
       h1="PostSpark vs Hootsuite: 5× cheaper, and the AI actually writes the posts."
       sub="Hootsuite is built for enterprise social teams with $99-739/month budgets. PostSpark is built for creators and SMB agencies — $19/mo, AI-first, with all the generation Hootsuite makes you bolt on."

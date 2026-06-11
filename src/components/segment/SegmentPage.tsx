@@ -6,6 +6,9 @@ import { PricingV2 } from "@/components/landing/v2/PricingV2";
 import { FinalCTA } from "@/components/landing/v2/FinalCTA";
 import { FooterV2 } from "@/components/landing/v2/FooterV2";
 import { FAQv2 } from "@/components/landing/v2/FAQv2";
+import { Breadcrumbs, breadcrumbJsonLd, type Crumb } from "@/components/marketing/Breadcrumbs";
+import { QuickAnswer } from "@/components/marketing/QuickAnswer";
+import { RelatedTools } from "@/components/marketing/RelatedTools";
 import { track } from "@/lib/analytics";
 
 export type SegmentPageProps = {
@@ -15,13 +18,43 @@ export type SegmentPageProps = {
   pains: string[];
   solutions: string[];
   workflow?: { title: string; body: string }[];
+  /** Used to derive breadcrumbs and related-tool picks. */
+  path?: string;
+  /** Optional GEO "quick answer" — surfaced to LLM crawlers. */
+  quickAnswer?: { question: string; answer: string };
 };
 
+function crumbsFromPath(path?: string): Crumb[] {
+  if (!path) return [];
+  const segs = path.replace(/^\/+|\/+$/g, "").split("/");
+  if (segs.length === 0) return [];
+  const labels: Record<string, string> = {
+    tools: "Tools",
+    features: "Features",
+    alternatives: "Compare",
+    for: "Solutions",
+    "use-cases": "Use cases",
+  };
+  const out: Crumb[] = [];
+  if (labels[segs[0]]) {
+    out.push({ label: labels[segs[0]], href: segs[0] === "tools" ? "/#explore-tools" : `/#${segs[0]}` });
+  }
+  const last = segs[segs.length - 1]
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+  out.push({ label: last });
+  return out;
+}
+
 export function SegmentPage(p: SegmentPageProps) {
+  const crumbs = crumbsFromPath(p.path);
   return (
     <div className="min-h-screen scroll-smooth" style={{ background: "#FFFFFF" }}>
       <Navbar />
       <main>
+        {crumbs.length > 0 && <Breadcrumbs items={crumbs} />}
+        {p.quickAnswer && <QuickAnswer question={p.quickAnswer.question} answer={p.quickAnswer.answer} />}
         {/* HERO */}
         <section className="relative overflow-hidden" style={{ background: "#FFFFFF" }}>
           <div
@@ -173,6 +206,7 @@ export function SegmentPage(p: SegmentPageProps) {
 
         <PricingV2 />
         <FAQv2 />
+        {p.path && <RelatedTools currentPath={p.path} />}
         <FinalCTA />
         <FooterV2 />
       </main>
@@ -180,7 +214,68 @@ export function SegmentPage(p: SegmentPageProps) {
   );
 }
 
-export function segmentHead(opts: { title: string; desc: string; url: string }) {
+export function segmentHead(opts: {
+  title: string;
+  desc: string;
+  url: string;
+  /** Optional path used to emit a BreadcrumbList JSON-LD block. */
+  path?: string;
+  /** Optional Q/A pairs emitted as FAQPage JSON-LD for GEO. */
+  faq?: { q: string; a: string }[];
+}) {
+  const scripts: Array<{ type: string; children: string }> = [
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "PostSpark",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        description: opts.desc,
+        url: opts.url,
+      }),
+    },
+  ];
+
+  if (opts.path) {
+    const segs = opts.path.replace(/^\/+|\/+$/g, "").split("/");
+    const labels: Record<string, string> = {
+      tools: "Tools",
+      features: "Features",
+      alternatives: "Compare",
+      for: "Solutions",
+      "use-cases": "Use cases",
+    };
+    const items: { label: string; href?: string }[] = [];
+    if (labels[segs[0]]) items.push({ label: labels[segs[0]], href: `/${segs[0]}` });
+    const last = segs[segs.length - 1]
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    items.push({ label: last, href: opts.path });
+    scripts.push({
+      type: "application/ld+json",
+      children: JSON.stringify(breadcrumbJsonLd(items)),
+    });
+  }
+
+  if (opts.faq && opts.faq.length > 0) {
+    scripts.push({
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: opts.faq.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }),
+    });
+  }
+
   return {
     meta: [
       { title: opts.title },
@@ -196,20 +291,7 @@ export function segmentHead(opts: { title: string; desc: string; url: string }) 
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" as const },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&display=swap" },
     ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          name: "PostSpark",
-          applicationCategory: "BusinessApplication",
-          operatingSystem: "Web",
-          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-          description: opts.desc,
-          url: opts.url,
-        }),
-      },
-    ],
+    scripts,
   };
 }
+

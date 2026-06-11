@@ -6,9 +6,11 @@ export const Route = createFileRoute("/alternatives/typefully-vs-postspark")({
     title: "PostSpark vs Typefully — Multi-Platform Alternative",
     desc: "Typefully is Twitter-only. PostSpark covers X, LinkedIn, Instagram, TikTok, YouTube, and newsletters from one input. Same price, 6× the platforms.",
     url: "https://postspark.co/alternatives/typefully-vs-postspark",
+    path: "/alternatives/typefully-vs-postspark"
   }),
   component: () => (
     <SegmentPage
+      path="/alternatives/typefully-vs-postspark"
       eyebrow="PostSpark vs Typefully"
       h1="PostSpark vs Typefully: Same price. Six more platforms."
       sub="Typefully is a beautiful Twitter editor. But your audience is also on LinkedIn, Instagram, TikTok, YouTube, and your newsletter. PostSpark covers all of them — for the same monthly price."

@@ -6,9 +6,11 @@ export const Route = createFileRoute("/for/creators")({
     title: "PostSpark for Creators — Create Once, Publish Everywhere",
     desc: "You spend hours reformatting the same ideas. PostSpark generates a full week of content from your best work — in under 60 seconds.",
     url: "https://postspark.co/for/creators",
+    path: "/for/creators"
   }),
   component: () => (
     <SegmentPage
+      path="/for/creators"
       eyebrow="For Solo Creators"
       h1="Create Once. Publish Everywhere."
       sub="You spend hours every week reformatting the same ideas. PostSpark generates a full week of content from your best work — in under 60 seconds."

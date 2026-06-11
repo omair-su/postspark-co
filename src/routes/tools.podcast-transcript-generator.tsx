@@ -6,9 +6,11 @@ export const Route = createFileRoute("/tools/podcast-transcript-generator")({
     title: "Podcast Transcript Generator with Speakers — Free | PostSpark",
     desc: "Upload your podcast or paste a YouTube link. Get Whisper-quality transcript with speaker diarization, episode chapters, and pull-quote blocks — free tier included.",
     url: "https://postspark.co/tools/podcast-transcript-generator",
+    path: "/tools/podcast-transcript-generator"
   }),
   component: () => (
     <SegmentPage
+      path="/tools/podcast-transcript-generator"
       eyebrow="Free Tool · Podcast Transcript Generator"
       h1="Podcast transcripts with speakers, chapters, and pull-quotes — done."
       sub="OpenAI Whisper handles the transcription. AssemblyAI labels each speaker. PostSpark adds timestamped chapters and pull-quote blocks ready for your show notes."
