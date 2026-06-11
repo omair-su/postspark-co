@@ -99,6 +99,7 @@ export const Route = createRootRoute({
       { name: "twitter:description", content: "Turn 1 blog post into 30 pieces of content instantly." },
       { name: "twitter:image", content: "https://postspark.co/og-image.png" },
       { name: "theme-color", content: "#1a1a2e" },
+      { name: "google-site-verification", content: "9HThX3WCpXERfUk5CuePAeDTsykITTG90vg6j9ewhWw" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
