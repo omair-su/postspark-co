@@ -206,6 +206,7 @@ export function SegmentPage(p: SegmentPageProps) {
 
         <PricingV2 />
         <FAQv2 />
+        {p.path && <RelatedTools currentPath={p.path} />}
         <FinalCTA />
         <FooterV2 />
       </main>
@@ -213,7 +214,68 @@ export function SegmentPage(p: SegmentPageProps) {
   );
 }
 
-export function segmentHead(opts: { title: string; desc: string; url: string }) {
+export function segmentHead(opts: {
+  title: string;
+  desc: string;
+  url: string;
+  /** Optional path used to emit a BreadcrumbList JSON-LD block. */
+  path?: string;
+  /** Optional Q/A pairs emitted as FAQPage JSON-LD for GEO. */
+  faq?: { q: string; a: string }[];
+}) {
+  const scripts: Array<{ type: string; children: string }> = [
+    {
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "PostSpark",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        description: opts.desc,
+        url: opts.url,
+      }),
+    },
+  ];
+
+  if (opts.path) {
+    const segs = opts.path.replace(/^\/+|\/+$/g, "").split("/");
+    const labels: Record<string, string> = {
+      tools: "Tools",
+      features: "Features",
+      alternatives: "Compare",
+      for: "Solutions",
+      "use-cases": "Use cases",
+    };
+    const items: { label: string; href?: string }[] = [];
+    if (labels[segs[0]]) items.push({ label: labels[segs[0]], href: `/${segs[0]}` });
+    const last = segs[segs.length - 1]
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    items.push({ label: last, href: opts.path });
+    scripts.push({
+      type: "application/ld+json",
+      children: JSON.stringify(breadcrumbJsonLd(items)),
+    });
+  }
+
+  if (opts.faq && opts.faq.length > 0) {
+    scripts.push({
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: opts.faq.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }),
+    });
+  }
+
   return {
     meta: [
       { title: opts.title },
@@ -229,20 +291,7 @@ export function segmentHead(opts: { title: string; desc: string; url: string }) 
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" as const },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&display=swap" },
     ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          name: "PostSpark",
-          applicationCategory: "BusinessApplication",
-          operatingSystem: "Web",
-          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-          description: opts.desc,
-          url: opts.url,
-        }),
-      },
-    ],
+    scripts,
   };
 }
+
