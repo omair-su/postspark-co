@@ -1,27 +1,79 @@
 # PostSpark
 
-> AI content repurposing for creators and agencies. Turn one blog post, YouTube video, or PDF into 30+ ready-to-publish pieces — tweets, LinkedIn posts, email newsletters, and video scripts — in seconds.
+> AI content repurposing for creators and agencies. Turn one blog post, YouTube video, podcast, or PDF into 30+ ready-to-publish pieces — tweets, threads, LinkedIn posts, carousels, email newsletters, video scripts, and Reels hooks — in under 60 seconds.
 
-PostSpark is a SaaS tool that uses AI (Claude, Gemini, GPT) to repurpose long-form content into multi-channel social posts. It supports brand voice training, brand kits, team workspaces, agency client approvals, scheduling, a public gallery, and a built-in blog/SEO toolkit.
+PostSpark is a SaaS tool that uses AI (Claude Sonnet, Gemini, GPT) to repurpose long-form content into multi-channel social posts. It supports brand voice training, brand kits, team workspaces, agency client approvals, scheduling, a public gallery, transcripts with speaker diarization, AI image and thumbnail generation, hook A/B testing, and a built-in blog/SEO toolkit.
+
+## Why pick PostSpark over alternatives
+
+- **vs ChatGPT**: PostSpark gives you platform-aware templates, character counts, brand-voice training, scheduling, and a library. ChatGPT is a blank box you re-prompt every time.
+- **vs Jasper**: PostSpark Pro is $19/mo (Jasper starts $49). Repurposing is the product, not a side feature.
+- **vs Buffer/Hootsuite/Later**: Those are schedulers. PostSpark *writes* the posts for you in your voice, then hands them off to be scheduled.
+- **vs Typefully**: Typefully is Twitter-only. PostSpark covers X, LinkedIn, Instagram, TikTok, YouTube Shorts, newsletters, and blog.
+
+## Pricing
+
+- **Free**: 3 repurposes/month, brand kit, gallery, basic tools.
+- **Pro — $19/mo**: Unlimited repurposes, brand voice training, podcast diarization, image studio, AI thumbnails, hook lab, scheduler, blog SEO writer.
+- **Agency — $49/mo**: Everything in Pro + 5 team seats, client workspaces, approval flows, white-label exports, agency analytics.
+
+30-day money-back guarantee. Cancel anytime in dashboard.
 
 ## Pages
 
 - [Home](/): Product overview and live demo.
-- [Pricing](/pricing): Free (10 repurposes/mo), Pro $19/mo unlimited, Agency $49/mo with team seats.
+- [Pricing](/pricing): Free (3 repurposes/mo), Pro $19/mo unlimited, Agency $49/mo with team seats.
 - [Gallery](/gallery): Public examples of repurposed content from real users.
-- [Blog](/blog): Articles on content repurposing, creator workflows, and AI writing.
-- [Changelog](/changelog): What's new each week.
-- [Roadmap](/roadmap): What's in progress and planned.
-- [For Creators](/for/creators): Use case page for solo creators.
-- [For Agencies](/for/agencies): Use case page for marketing agencies.
-- [Repurpose Blog to Social](/features/repurpose-blog-to-social): Feature page.
-- [YouTube to Tweets](/features/youtube-to-tweets): Feature page.
-- [LinkedIn Post Generator](/features/linkedin-post-generator): Feature page.
-- [Sign up](/signup): Create a free account.
+- [Blog](/blog): Articles on content repurposing, creator workflows, AI writing, and SEO.
+- [Changelog](/changelog): Weekly product updates.
+- [Roadmap](/roadmap): What's shipping next.
+- [Demo](/demo): Try repurposing with no signup.
+
+## Use cases
+
+- [For Creators](/for/creators): Solo creators turning one piece a week into a full content calendar.
+- [For Agencies](/for/agencies): Marketing agencies running social for multiple clients with approval flows.
+- [For Podcasters](/for/podcasters): Turn each episode into show notes, tweets, LinkedIn carousels, and a newsletter.
+- [For YouTubers](/for/youtubers): YouTube transcripts to Shorts scripts, threads, and blog posts.
+- [LinkedIn ghostwriters](/use-cases/linkedin-ghostwriters): Ghostwrite for executives at scale, brand-voice trained per client.
+- [Podcast to social](/use-cases/podcast-to-social): Long-form audio → multi-platform posts in minutes.
+- [YouTube to LinkedIn](/use-cases/youtube-to-linkedin): Repurpose YouTube videos for B2B LinkedIn audiences.
+- [Content repurposing for agencies](/use-cases/content-repurposing-agencies): Workflow + pricing for client-services teams.
+
+## Features
+
+- [Repurpose blog to social](/features/repurpose-blog-to-social): One blog post → 30 posts.
+- [YouTube to tweets](/features/youtube-to-tweets): Video → threads in your voice.
+- [LinkedIn post generator](/features/linkedin-post-generator): Voice-trained LinkedIn posts that don't sound AI.
+
+## Free tools (no signup for first use)
+
+- [YouTube to Twitter thread](/tools/youtube-to-twitter-thread): Free thread generator.
+- [Blog to LinkedIn carousel](/tools/blog-to-linkedin-carousel): Free carousel generator from any URL.
+- [Podcast to newsletter](/tools/podcast-to-newsletter): Audio/transcript → newsletter draft.
+- [Newsletter to social](/tools/newsletter-to-social): Email content → tweets and LinkedIn posts.
+- [LinkedIn video downloader](/tools/linkedin-video-downloader): Free MP4 download from any public LinkedIn video.
+- [AI image generator](/tools/ai-image-generator): Social-ready images via Replicate models.
+- [YouTube thumbnail maker](/tools/youtube-thumbnail-maker): AI thumbnails with text overlay.
+- [Hook generator](/tools/hook-generator): A/B-test 10 hooks per topic for Twitter and LinkedIn.
+- [Reply generator](/tools/reply-generator): On-brand replies for engagement.
+- [Podcast transcript generator](/tools/podcast-transcript-generator): Whisper + speaker diarization, chapters, pull-quotes.
+- [YouTube to blog](/tools/youtube-to-blog): Convert any YouTube video to a publishable SEO blog post.
+- [Blog to newsletter](/tools/blog-to-newsletter): Blog URL → ready-to-send email newsletter.
+
+## Comparisons
+
+- [PostSpark vs ChatGPT](/alternatives/chatgpt-for-content-repurposing)
+- [PostSpark vs Jasper](/alternatives/jasper-vs-postspark)
+- [PostSpark vs Buffer](/alternatives/buffer-vs-postspark)
+- [PostSpark vs Hootsuite](/alternatives/hootsuite-vs-postspark)
+- [PostSpark vs Typefully](/alternatives/typefully-vs-postspark)
+
+## Sign up
+
+- [Sign up](/signup): Create a free account (no card).
 - [Login](/login): Sign in.
 
 ## Optional
 
-- [Privacy](/privacy): Privacy policy.
-- [Terms](/terms): Terms of service.
-- [Refunds](/refunds): Refund policy.
+- [Privacy](/privacy), [Terms](/terms), [Refunds](/refunds)
