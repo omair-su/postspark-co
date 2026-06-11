@@ -1,7 +1,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight, ChevronDown } from "lucide-react";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
+import { getCatalogByCategory } from "@/lib/tools-catalog";
 
 const NAV = [
   { label: "Features", href: "/#features" },
@@ -12,8 +13,11 @@ const NAV = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const toolItems = getCatalogByCategory("Tools").slice(0, 8);
+  const compareItems = getCatalogByCategory("Compare").slice(0, 4);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -24,6 +28,7 @@ export function Navbar() {
 
   useEffect(() => {
     setOpen(false);
+    setToolsOpen(false);
   }, [location.pathname]);
 
   return (
@@ -66,6 +71,103 @@ export function Navbar() {
               </Link>
             ),
           )}
+
+          {/* Tools dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => setToolsOpen(true)}
+            onMouseLeave={() => setToolsOpen(false)}
+          >
+            <button
+              className="inline-flex items-center gap-1 text-sm font-semibold transition"
+              style={{ color: toolsOpen ? "#0F172A" : "#64748B" }}
+              onClick={() => setToolsOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={toolsOpen}
+            >
+              Tools <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+            {toolsOpen && (
+              <div
+                role="menu"
+                className="absolute left-1/2 top-full z-50 mt-2 w-[640px] -translate-x-1/2 rounded-2xl p-5"
+                style={{
+                  background: "#FFFFFF",
+                  border: "1px solid #E2E8F0",
+                  boxShadow: "0 20px 50px rgba(15,23,42,0.15)",
+                }}
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p
+                      className="px-2 text-[10px] font-bold uppercase tracking-widest"
+                      style={{ color: "#7C3AED", letterSpacing: "0.12em" }}
+                    >
+                      AI Tools
+                    </p>
+                    <ul className="mt-2 space-y-0.5">
+                      {toolItems.map((t) => (
+                        <li key={t.path}>
+                          <Link
+                            to={t.path}
+                            className="flex items-start gap-2 rounded-lg px-2 py-2 transition"
+                            style={{ color: "#0F172A" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F3FF")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                          >
+                            <span className="text-base leading-none">{t.emoji}</span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold">{t.name}</p>
+                              <p className="truncate text-xs" style={{ color: "#64748B" }}>
+                                {t.short}
+                              </p>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p
+                      className="px-2 text-[10px] font-bold uppercase tracking-widest"
+                      style={{ color: "#7C3AED", letterSpacing: "0.12em" }}
+                    >
+                      Compare
+                    </p>
+                    <ul className="mt-2 space-y-0.5">
+                      {compareItems.map((t) => (
+                        <li key={t.path}>
+                          <Link
+                            to={t.path}
+                            className="flex items-start gap-2 rounded-lg px-2 py-2 transition"
+                            style={{ color: "#0F172A" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F3FF")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                          >
+                            <span className="text-base leading-none">{t.emoji}</span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold">{t.name}</p>
+                              <p className="truncate text-xs" style={{ color: "#64748B" }}>
+                                {t.short}
+                              </p>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link
+                      to="/"
+                      hash="explore-tools"
+                      className="mt-3 inline-flex items-center gap-1 px-2 text-xs font-bold"
+                      style={{ color: "#7C3AED" }}
+                    >
+                      See all 20+ tools <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="hidden items-center gap-4 md:flex">
@@ -109,6 +211,33 @@ export function Navbar() {
                 </Link>
               ),
             )}
+            <div className="mt-1">
+              <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "#7C3AED" }}>
+                Tools
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                {toolItems.slice(0, 6).map((t) => (
+                  <Link
+                    key={t.path}
+                    to={t.path}
+                    onClick={() => setOpen(false)}
+                    className="rounded-md px-2 py-1.5 text-xs font-semibold"
+                    style={{ background: "#F5F3FF", color: "#0F172A" }}
+                  >
+                    {t.emoji} {t.name}
+                  </Link>
+                ))}
+              </div>
+              <Link
+                to="/"
+                hash="explore-tools"
+                onClick={() => setOpen(false)}
+                className="mt-2 inline-block text-xs font-bold"
+                style={{ color: "#7C3AED" }}
+              >
+                See all tools →
+              </Link>
+            </div>
             <hr style={{ borderColor: "#E2E8F0" }} />
             <Link to="/login" onClick={() => setOpen(false)} className="text-sm font-semibold" style={{ color: "#64748B" }}>
               Log In
