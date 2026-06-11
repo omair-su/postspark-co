@@ -35,10 +35,17 @@ import { Route as UseCasesLinkedinGhostwritersRouteImport } from './routes/use-c
 import { Route as UseCasesContentRepurposingAgenciesRouteImport } from './routes/use-cases.content-repurposing-agencies'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as ToolsYoutubeToTwitterThreadRouteImport } from './routes/tools.youtube-to-twitter-thread'
+import { Route as ToolsYoutubeToBlogRouteImport } from './routes/tools.youtube-to-blog'
+import { Route as ToolsYoutubeThumbnailMakerRouteImport } from './routes/tools.youtube-thumbnail-maker'
+import { Route as ToolsReplyGeneratorRouteImport } from './routes/tools.reply-generator'
+import { Route as ToolsPodcastTranscriptGeneratorRouteImport } from './routes/tools.podcast-transcript-generator'
 import { Route as ToolsPodcastToNewsletterRouteImport } from './routes/tools.podcast-to-newsletter'
 import { Route as ToolsNewsletterToSocialRouteImport } from './routes/tools.newsletter-to-social'
 import { Route as ToolsLinkedinVideoDownloaderRouteImport } from './routes/tools.linkedin-video-downloader'
+import { Route as ToolsHookGeneratorRouteImport } from './routes/tools.hook-generator'
+import { Route as ToolsBlogToNewsletterRouteImport } from './routes/tools.blog-to-newsletter'
 import { Route as ToolsBlogToLinkedinCarouselRouteImport } from './routes/tools.blog-to-linkedin-carousel'
+import { Route as ToolsAiImageGeneratorRouteImport } from './routes/tools.ai-image-generator'
 import { Route as TemplatesGalleryRouteImport } from './routes/templates.gallery'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
@@ -79,8 +86,11 @@ import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AlternativesTypefullyVsPostsparkRouteImport } from './routes/alternatives.typefully-vs-postspark'
 import { Route as AlternativesJasperVsPostsparkRouteImport } from './routes/alternatives.jasper-vs-postspark'
+import { Route as AlternativesHootsuiteVsPostsparkRouteImport } from './routes/alternatives.hootsuite-vs-postspark'
 import { Route as AlternativesChatgptForContentRepurposingRouteImport } from './routes/alternatives.chatgpt-for-content-repurposing'
+import { Route as AlternativesBufferVsPostsparkRouteImport } from './routes/alternatives.buffer-vs-postspark'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DashboardGuidedProductLaunchRouteImport } from './routes/dashboard.guided.product-launch'
 import { Route as DashboardGuidedMarketingTipRouteImport } from './routes/dashboard.guided.marketing-tip'
@@ -235,6 +245,28 @@ const ToolsYoutubeToTwitterThreadRoute =
     path: '/tools/youtube-to-twitter-thread',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ToolsYoutubeToBlogRoute = ToolsYoutubeToBlogRouteImport.update({
+  id: '/tools/youtube-to-blog',
+  path: '/tools/youtube-to-blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsYoutubeThumbnailMakerRoute =
+  ToolsYoutubeThumbnailMakerRouteImport.update({
+    id: '/tools/youtube-thumbnail-maker',
+    path: '/tools/youtube-thumbnail-maker',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsReplyGeneratorRoute = ToolsReplyGeneratorRouteImport.update({
+  id: '/tools/reply-generator',
+  path: '/tools/reply-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPodcastTranscriptGeneratorRoute =
+  ToolsPodcastTranscriptGeneratorRouteImport.update({
+    id: '/tools/podcast-transcript-generator',
+    path: '/tools/podcast-transcript-generator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ToolsPodcastToNewsletterRoute =
   ToolsPodcastToNewsletterRouteImport.update({
     id: '/tools/podcast-to-newsletter',
@@ -252,12 +284,27 @@ const ToolsLinkedinVideoDownloaderRoute =
     path: '/tools/linkedin-video-downloader',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ToolsHookGeneratorRoute = ToolsHookGeneratorRouteImport.update({
+  id: '/tools/hook-generator',
+  path: '/tools/hook-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsBlogToNewsletterRoute = ToolsBlogToNewsletterRouteImport.update({
+  id: '/tools/blog-to-newsletter',
+  path: '/tools/blog-to-newsletter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolsBlogToLinkedinCarouselRoute =
   ToolsBlogToLinkedinCarouselRouteImport.update({
     id: '/tools/blog-to-linkedin-carousel',
     path: '/tools/blog-to-linkedin-carousel',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ToolsAiImageGeneratorRoute = ToolsAiImageGeneratorRouteImport.update({
+  id: '/tools/ai-image-generator',
+  path: '/tools/ai-image-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplatesGalleryRoute = TemplatesGalleryRouteImport.update({
   id: '/templates/gallery',
   path: '/templates/gallery',
@@ -462,16 +509,34 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlternativesTypefullyVsPostsparkRoute =
+  AlternativesTypefullyVsPostsparkRouteImport.update({
+    id: '/alternatives/typefully-vs-postspark',
+    path: '/alternatives/typefully-vs-postspark',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AlternativesJasperVsPostsparkRoute =
   AlternativesJasperVsPostsparkRouteImport.update({
     id: '/alternatives/jasper-vs-postspark',
     path: '/alternatives/jasper-vs-postspark',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AlternativesHootsuiteVsPostsparkRoute =
+  AlternativesHootsuiteVsPostsparkRouteImport.update({
+    id: '/alternatives/hootsuite-vs-postspark',
+    path: '/alternatives/hootsuite-vs-postspark',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AlternativesChatgptForContentRepurposingRoute =
   AlternativesChatgptForContentRepurposingRouteImport.update({
     id: '/alternatives/chatgpt-for-content-repurposing',
     path: '/alternatives/chatgpt-for-content-repurposing',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AlternativesBufferVsPostsparkRoute =
+  AlternativesBufferVsPostsparkRouteImport.update({
+    id: '/alternatives/buffer-vs-postspark',
+    path: '/alternatives/buffer-vs-postspark',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
@@ -597,8 +662,11 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/alternatives/buffer-vs-postspark': typeof AlternativesBufferVsPostsparkRoute
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
+  '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
+  '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -639,10 +707,17 @@ export interface FileRoutesByFullPath {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/ai-image-generator': typeof ToolsAiImageGeneratorRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/blog-to-newsletter': typeof ToolsBlogToNewsletterRoute
+  '/tools/hook-generator': typeof ToolsHookGeneratorRoute
   '/tools/linkedin-video-downloader': typeof ToolsLinkedinVideoDownloaderRoute
   '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
+  '/tools/podcast-transcript-generator': typeof ToolsPodcastTranscriptGeneratorRoute
+  '/tools/reply-generator': typeof ToolsReplyGeneratorRoute
+  '/tools/youtube-thumbnail-maker': typeof ToolsYoutubeThumbnailMakerRoute
+  '/tools/youtube-to-blog': typeof ToolsYoutubeToBlogRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
@@ -689,8 +764,11 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/alternatives/buffer-vs-postspark': typeof AlternativesBufferVsPostsparkRoute
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
+  '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
+  '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -731,10 +809,17 @@ export interface FileRoutesByTo {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/ai-image-generator': typeof ToolsAiImageGeneratorRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/blog-to-newsletter': typeof ToolsBlogToNewsletterRoute
+  '/tools/hook-generator': typeof ToolsHookGeneratorRoute
   '/tools/linkedin-video-downloader': typeof ToolsLinkedinVideoDownloaderRoute
   '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
+  '/tools/podcast-transcript-generator': typeof ToolsPodcastTranscriptGeneratorRoute
+  '/tools/reply-generator': typeof ToolsReplyGeneratorRoute
+  '/tools/youtube-thumbnail-maker': typeof ToolsYoutubeThumbnailMakerRoute
+  '/tools/youtube-to-blog': typeof ToolsYoutubeToBlogRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
@@ -783,8 +868,11 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/alternatives/buffer-vs-postspark': typeof AlternativesBufferVsPostsparkRoute
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
+  '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
+  '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -825,10 +913,17 @@ export interface FileRoutesById {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/ai-image-generator': typeof ToolsAiImageGeneratorRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
+  '/tools/blog-to-newsletter': typeof ToolsBlogToNewsletterRoute
+  '/tools/hook-generator': typeof ToolsHookGeneratorRoute
   '/tools/linkedin-video-downloader': typeof ToolsLinkedinVideoDownloaderRoute
   '/tools/newsletter-to-social': typeof ToolsNewsletterToSocialRoute
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
+  '/tools/podcast-transcript-generator': typeof ToolsPodcastTranscriptGeneratorRoute
+  '/tools/reply-generator': typeof ToolsReplyGeneratorRoute
+  '/tools/youtube-thumbnail-maker': typeof ToolsYoutubeThumbnailMakerRoute
+  '/tools/youtube-to-blog': typeof ToolsYoutubeToBlogRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
   '/u/$handle': typeof UHandleRoute
   '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
@@ -878,8 +973,11 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/alternatives/buffer-vs-postspark'
     | '/alternatives/chatgpt-for-content-repurposing'
+    | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
+    | '/alternatives/typefully-vs-postspark'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -920,10 +1018,17 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/ai-image-generator'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/blog-to-newsletter'
+    | '/tools/hook-generator'
     | '/tools/linkedin-video-downloader'
     | '/tools/newsletter-to-social'
     | '/tools/podcast-to-newsletter'
+    | '/tools/podcast-transcript-generator'
+    | '/tools/reply-generator'
+    | '/tools/youtube-thumbnail-maker'
+    | '/tools/youtube-to-blog'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/use-cases/content-repurposing-agencies'
@@ -970,8 +1075,11 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/alternatives/buffer-vs-postspark'
     | '/alternatives/chatgpt-for-content-repurposing'
+    | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
+    | '/alternatives/typefully-vs-postspark'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -1012,10 +1120,17 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/ai-image-generator'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/blog-to-newsletter'
+    | '/tools/hook-generator'
     | '/tools/linkedin-video-downloader'
     | '/tools/newsletter-to-social'
     | '/tools/podcast-to-newsletter'
+    | '/tools/podcast-transcript-generator'
+    | '/tools/reply-generator'
+    | '/tools/youtube-thumbnail-maker'
+    | '/tools/youtube-to-blog'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/use-cases/content-repurposing-agencies'
@@ -1063,8 +1178,11 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/alternatives/buffer-vs-postspark'
     | '/alternatives/chatgpt-for-content-repurposing'
+    | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
+    | '/alternatives/typefully-vs-postspark'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -1105,10 +1223,17 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/ai-image-generator'
     | '/tools/blog-to-linkedin-carousel'
+    | '/tools/blog-to-newsletter'
+    | '/tools/hook-generator'
     | '/tools/linkedin-video-downloader'
     | '/tools/newsletter-to-social'
     | '/tools/podcast-to-newsletter'
+    | '/tools/podcast-transcript-generator'
+    | '/tools/reply-generator'
+    | '/tools/youtube-thumbnail-maker'
+    | '/tools/youtube-to-blog'
     | '/tools/youtube-to-twitter-thread'
     | '/u/$handle'
     | '/use-cases/content-repurposing-agencies'
@@ -1157,8 +1282,11 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  AlternativesBufferVsPostsparkRoute: typeof AlternativesBufferVsPostsparkRoute
   AlternativesChatgptForContentRepurposingRoute: typeof AlternativesChatgptForContentRepurposingRoute
+  AlternativesHootsuiteVsPostsparkRoute: typeof AlternativesHootsuiteVsPostsparkRoute
   AlternativesJasperVsPostsparkRoute: typeof AlternativesJasperVsPostsparkRoute
+  AlternativesTypefullyVsPostsparkRoute: typeof AlternativesTypefullyVsPostsparkRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
@@ -1175,10 +1303,17 @@ export interface RootRouteChildren {
   ReviewTokenRoute: typeof ReviewTokenRoute
   TemplatesSlugRoute: typeof TemplatesSlugRoute
   TemplatesGalleryRoute: typeof TemplatesGalleryRoute
+  ToolsAiImageGeneratorRoute: typeof ToolsAiImageGeneratorRoute
   ToolsBlogToLinkedinCarouselRoute: typeof ToolsBlogToLinkedinCarouselRoute
+  ToolsBlogToNewsletterRoute: typeof ToolsBlogToNewsletterRoute
+  ToolsHookGeneratorRoute: typeof ToolsHookGeneratorRoute
   ToolsLinkedinVideoDownloaderRoute: typeof ToolsLinkedinVideoDownloaderRoute
   ToolsNewsletterToSocialRoute: typeof ToolsNewsletterToSocialRoute
   ToolsPodcastToNewsletterRoute: typeof ToolsPodcastToNewsletterRoute
+  ToolsPodcastTranscriptGeneratorRoute: typeof ToolsPodcastTranscriptGeneratorRoute
+  ToolsReplyGeneratorRoute: typeof ToolsReplyGeneratorRoute
+  ToolsYoutubeThumbnailMakerRoute: typeof ToolsYoutubeThumbnailMakerRoute
+  ToolsYoutubeToBlogRoute: typeof ToolsYoutubeToBlogRoute
   ToolsYoutubeToTwitterThreadRoute: typeof ToolsYoutubeToTwitterThreadRoute
   UHandleRoute: typeof UHandleRoute
   UseCasesContentRepurposingAgenciesRoute: typeof UseCasesContentRepurposingAgenciesRoute
@@ -1388,6 +1523,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsYoutubeToTwitterThreadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/youtube-to-blog': {
+      id: '/tools/youtube-to-blog'
+      path: '/tools/youtube-to-blog'
+      fullPath: '/tools/youtube-to-blog'
+      preLoaderRoute: typeof ToolsYoutubeToBlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/youtube-thumbnail-maker': {
+      id: '/tools/youtube-thumbnail-maker'
+      path: '/tools/youtube-thumbnail-maker'
+      fullPath: '/tools/youtube-thumbnail-maker'
+      preLoaderRoute: typeof ToolsYoutubeThumbnailMakerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/reply-generator': {
+      id: '/tools/reply-generator'
+      path: '/tools/reply-generator'
+      fullPath: '/tools/reply-generator'
+      preLoaderRoute: typeof ToolsReplyGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/podcast-transcript-generator': {
+      id: '/tools/podcast-transcript-generator'
+      path: '/tools/podcast-transcript-generator'
+      fullPath: '/tools/podcast-transcript-generator'
+      preLoaderRoute: typeof ToolsPodcastTranscriptGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/podcast-to-newsletter': {
       id: '/tools/podcast-to-newsletter'
       path: '/tools/podcast-to-newsletter'
@@ -1409,11 +1572,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsLinkedinVideoDownloaderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/hook-generator': {
+      id: '/tools/hook-generator'
+      path: '/tools/hook-generator'
+      fullPath: '/tools/hook-generator'
+      preLoaderRoute: typeof ToolsHookGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/blog-to-newsletter': {
+      id: '/tools/blog-to-newsletter'
+      path: '/tools/blog-to-newsletter'
+      fullPath: '/tools/blog-to-newsletter'
+      preLoaderRoute: typeof ToolsBlogToNewsletterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/blog-to-linkedin-carousel': {
       id: '/tools/blog-to-linkedin-carousel'
       path: '/tools/blog-to-linkedin-carousel'
       fullPath: '/tools/blog-to-linkedin-carousel'
       preLoaderRoute: typeof ToolsBlogToLinkedinCarouselRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/ai-image-generator': {
+      id: '/tools/ai-image-generator'
+      path: '/tools/ai-image-generator'
+      fullPath: '/tools/ai-image-generator'
+      preLoaderRoute: typeof ToolsAiImageGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/templates/gallery': {
@@ -1696,6 +1880,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alternatives/typefully-vs-postspark': {
+      id: '/alternatives/typefully-vs-postspark'
+      path: '/alternatives/typefully-vs-postspark'
+      fullPath: '/alternatives/typefully-vs-postspark'
+      preLoaderRoute: typeof AlternativesTypefullyVsPostsparkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alternatives/jasper-vs-postspark': {
       id: '/alternatives/jasper-vs-postspark'
       path: '/alternatives/jasper-vs-postspark'
@@ -1703,11 +1894,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AlternativesJasperVsPostsparkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alternatives/hootsuite-vs-postspark': {
+      id: '/alternatives/hootsuite-vs-postspark'
+      path: '/alternatives/hootsuite-vs-postspark'
+      fullPath: '/alternatives/hootsuite-vs-postspark'
+      preLoaderRoute: typeof AlternativesHootsuiteVsPostsparkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alternatives/chatgpt-for-content-repurposing': {
       id: '/alternatives/chatgpt-for-content-repurposing'
       path: '/alternatives/chatgpt-for-content-repurposing'
       fullPath: '/alternatives/chatgpt-for-content-repurposing'
       preLoaderRoute: typeof AlternativesChatgptForContentRepurposingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alternatives/buffer-vs-postspark': {
+      id: '/alternatives/buffer-vs-postspark'
+      path: '/alternatives/buffer-vs-postspark'
+      fullPath: '/alternatives/buffer-vs-postspark'
+      preLoaderRoute: typeof AlternativesBufferVsPostsparkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/suppression': {
@@ -1932,9 +2137,12 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  AlternativesBufferVsPostsparkRoute: AlternativesBufferVsPostsparkRoute,
   AlternativesChatgptForContentRepurposingRoute:
     AlternativesChatgptForContentRepurposingRoute,
+  AlternativesHootsuiteVsPostsparkRoute: AlternativesHootsuiteVsPostsparkRoute,
   AlternativesJasperVsPostsparkRoute: AlternativesJasperVsPostsparkRoute,
+  AlternativesTypefullyVsPostsparkRoute: AlternativesTypefullyVsPostsparkRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
@@ -1951,10 +2159,17 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewTokenRoute: ReviewTokenRoute,
   TemplatesSlugRoute: TemplatesSlugRoute,
   TemplatesGalleryRoute: TemplatesGalleryRoute,
+  ToolsAiImageGeneratorRoute: ToolsAiImageGeneratorRoute,
   ToolsBlogToLinkedinCarouselRoute: ToolsBlogToLinkedinCarouselRoute,
+  ToolsBlogToNewsletterRoute: ToolsBlogToNewsletterRoute,
+  ToolsHookGeneratorRoute: ToolsHookGeneratorRoute,
   ToolsLinkedinVideoDownloaderRoute: ToolsLinkedinVideoDownloaderRoute,
   ToolsNewsletterToSocialRoute: ToolsNewsletterToSocialRoute,
   ToolsPodcastToNewsletterRoute: ToolsPodcastToNewsletterRoute,
+  ToolsPodcastTranscriptGeneratorRoute: ToolsPodcastTranscriptGeneratorRoute,
+  ToolsReplyGeneratorRoute: ToolsReplyGeneratorRoute,
+  ToolsYoutubeThumbnailMakerRoute: ToolsYoutubeThumbnailMakerRoute,
+  ToolsYoutubeToBlogRoute: ToolsYoutubeToBlogRoute,
   ToolsYoutubeToTwitterThreadRoute: ToolsYoutubeToTwitterThreadRoute,
   UHandleRoute: UHandleRoute,
   UseCasesContentRepurposingAgenciesRoute:
@@ -1983,12 +2198,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
