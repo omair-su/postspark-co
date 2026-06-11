@@ -9,19 +9,31 @@ const COL_PRODUCT = [
   { label: "Changelog", to: "/changelog" },
 ];
 
+const COL_TOOLS = [
+  { label: "AI Image Generator", to: "/tools/ai-image-generator" },
+  { label: "YouTube Thumbnail Maker", to: "/tools/youtube-thumbnail-maker" },
+  { label: "LinkedIn Video Downloader", to: "/tools/linkedin-video-downloader" },
+  { label: "Hook Generator", to: "/tools/hook-generator" },
+  { label: "Podcast Transcript", to: "/tools/podcast-transcript-generator" },
+  { label: "YouTube → Blog", to: "/tools/youtube-to-blog" },
+  { label: "Blog → Newsletter", to: "/tools/blog-to-newsletter" },
+];
+
 const COL_SOLUTIONS = [
   { label: "For Creators", to: "/for/creators" },
   { label: "For Agencies", to: "/for/agencies" },
+  { label: "For Podcasters", to: "/for/podcasters" },
+  { label: "For YouTubers", to: "/for/youtubers" },
   { label: "LinkedIn Ghostwriters", to: "/use-cases/linkedin-ghostwriters" },
   { label: "Podcast to Social", to: "/use-cases/podcast-to-social" },
-  { label: "YouTube to LinkedIn", to: "/use-cases/youtube-to-linkedin" },
-  { label: "LinkedIn Video Downloader", to: "/tools/linkedin-video-downloader" },
 ];
 
 const COL_COMPARE = [
-  { label: "PostSpark vs ChatGPT", to: "/alternatives/chatgpt-for-content-repurposing" },
-  { label: "PostSpark vs Jasper", to: "/alternatives/jasper-vs-postspark" },
-  { label: "PostSpark for Agencies", to: "/use-cases/content-repurposing-agencies" },
+  { label: "vs Buffer", to: "/alternatives/buffer-vs-postspark" },
+  { label: "vs Hootsuite", to: "/alternatives/hootsuite-vs-postspark" },
+  { label: "vs Typefully", to: "/alternatives/typefully-vs-postspark" },
+  { label: "vs ChatGPT", to: "/alternatives/chatgpt-for-content-repurposing" },
+  { label: "vs Jasper", to: "/alternatives/jasper-vs-postspark" },
 ];
 
 export function FooterV2() {
@@ -35,8 +47,8 @@ export function FooterV2() {
       className="pt-16 pb-8"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-4">
-          <div>
+        <div className="grid gap-10 md:grid-cols-5">
+          <div className="md:col-span-1">
             <div className="flex items-center gap-2">
               <PostSparkLogo variant="wordmark" size={28} tone="light" />
             </div>
@@ -53,6 +65,7 @@ export function FooterV2() {
 
           {[
             { title: "Product", items: COL_PRODUCT },
+            { title: "Tools", items: COL_TOOLS },
             { title: "Solutions", items: COL_SOLUTIONS },
             { title: "Compare", items: COL_COMPARE },
           ].map((col) => (
