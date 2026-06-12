@@ -248,15 +248,42 @@ function CarouselPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-electric glow-electric">
-          <Layers className="h-5 w-5 text-primary-foreground" />
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-electric glow-electric">
+            <Layers className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Carousel Generator</h1>
+            <p className="text-sm text-muted-foreground">Branded swipeable slides — edit, rewrite, export.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Carousel Generator</h1>
-          <p className="text-sm text-muted-foreground">Branded swipeable slides — edit, rewrite, export.</p>
-        </div>
+        <UsageMeter refreshKey={slides.length} />
       </div>
+
+      {/* Watermark toggle */}
+      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
+        <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium">
+          <input
+            type="checkbox"
+            checked={watermarkOn}
+            onChange={(e) => setWatermarkOn(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          <Droplet className="h-3.5 w-3.5 text-primary" /> Watermark slides & PDF
+        </label>
+        <input
+          type="text"
+          value={watermarkText}
+          onChange={(e) => setWatermarkText(e.target.value)}
+          maxLength={40}
+          disabled={!watermarkOn}
+          placeholder="@yourbrand"
+          className="w-44 rounded-md border border-input bg-background px-2 py-1 text-xs disabled:opacity-50"
+        />
+        <p className="text-[11px] text-muted-foreground">Applies to PNG & PDF exports.</p>
+      </div>
+
 
       <div className="mt-6 rounded-2xl border border-border bg-card p-5">
         <label className="text-sm font-semibold text-foreground">Topic or angle</label>
