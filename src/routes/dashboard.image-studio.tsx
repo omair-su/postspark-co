@@ -836,7 +836,7 @@ function ImageStudioPage() {
               </div>
               <textarea
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={(e) => { setPrompt(e.target.value); setOriginalPrompt(null); }}
                 rows={4}
                 placeholder="e.g. A laptop on a sunlit desk with coffee, soft morning light"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
