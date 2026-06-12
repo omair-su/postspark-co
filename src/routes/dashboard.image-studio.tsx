@@ -40,6 +40,9 @@ import {
 } from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import JSZip from "jszip";
+import { LimitReachedModal } from "@/components/image/LimitReachedModal";
+import { EnhancePromptModal } from "@/components/image/EnhancePromptModal";
+
 
 export const Route = createFileRoute("/dashboard/image-studio")({
   component: ImageStudioPage,
