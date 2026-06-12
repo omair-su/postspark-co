@@ -246,20 +246,23 @@ function ThumbnailPage() {
     // Text
     const padding = canvas.width * 0.05;
     const maxTextWidth = canvas.width - padding * 2;
-    const baseFontSize = Math.round(canvas.height * 0.11);
-    const families: Record<string, string> = {
-      display: '"Inter", system-ui, sans-serif',
-      serif: '"Instrument Serif", Georgia, serif',
-      mono: '"JetBrains Mono", Menlo, monospace',
-    };
+    const baseFontSize = Math.round(canvas.height * 0.11 * fontScale);
+    const familyCss = FONT_FAMILIES.find((f) => f.id === fontFamily)?.css || FONT_FAMILIES[0].css;
+    const displayHeadline = allCaps ? headline.toUpperCase() : headline;
+    const displaySub = allCaps ? subhead.toUpperCase() : subhead;
+
+    // Letter spacing via canvas property (modern Chromium/Edge/Safari)
+    try {
+      (ctx as any).letterSpacing = `${letterSpacing}px`;
+    } catch {}
+
     ctx.fillStyle = headlineColor;
-    ctx.font = `900 ${baseFontSize}px ${families[fontFamily]}`;
-    const lines = wrapText(ctx, headline, maxTextWidth);
+    ctx.font = `${fontWeight} ${baseFontSize}px ${familyCss}`;
+    const lines = wrapText(ctx, displayHeadline, maxTextWidth);
     const lineHeight = baseFontSize * 1.05;
 
     const subSize = Math.round(baseFontSize * 0.42);
-    ctx.font = `900 ${baseFontSize}px ${families[fontFamily]}`;
-    const totalH = lines.length * lineHeight + (subhead ? subSize * 1.5 : 0);
+    const totalH = lines.length * lineHeight + (displaySub ? subSize * 1.5 : 0);
 
     let yStart: number;
     let textAlign: CanvasTextAlign = "left";
@@ -280,30 +283,50 @@ function ThumbnailPage() {
     ctx.textAlign = textAlign;
     ctx.textBaseline = "alphabetic";
 
-    // Headline with shadow
-    ctx.shadowColor = "rgba(0,0,0,0.6)";
-    ctx.shadowBlur = baseFontSize * 0.15;
-    ctx.shadowOffsetY = baseFontSize * 0.04;
+    // Headline shadow
+    if (textShadow) {
+      ctx.shadowColor = "rgba(0,0,0,0.65)";
+      ctx.shadowBlur = baseFontSize * shadowBlur;
+      ctx.shadowOffsetY = baseFontSize * 0.04;
+    } else {
+      ctx.shadowColor = "transparent";
+    }
+    // Headline outline + fill
+    ctx.font = `${fontWeight} ${baseFontSize}px ${familyCss}`;
     lines.forEach((line, i) => {
+      const yy = yStart + i * lineHeight;
+      if (textOutline) {
+        ctx.lineJoin = "round";
+        ctx.miterLimit = 2;
+        ctx.lineWidth = outlineWidth * 2;
+        ctx.strokeStyle = outlineColor;
+        ctx.strokeText(line, x, yy);
+      }
       ctx.fillStyle = headlineColor;
-      ctx.font = `900 ${baseFontSize}px ${families[fontFamily]}`;
-      ctx.fillText(line, x, yStart + i * lineHeight);
+      ctx.fillText(line, x, yy);
     });
     ctx.shadowColor = "transparent";
 
-    // Subhead with accent strip
-    if (subhead) {
+    // Subhead
+    if (displaySub) {
       ctx.fillStyle = accentColor;
-      ctx.font = `700 ${subSize}px ${families[fontFamily]}`;
+      ctx.font = `700 ${subSize}px ${familyCss}`;
       const subY = yStart + lines.length * lineHeight + subSize * 0.6;
-      ctx.fillText(subhead, x, subY);
+      if (textOutline) {
+        ctx.lineWidth = outlineWidth * 1.4;
+        ctx.strokeStyle = outlineColor;
+        ctx.strokeText(displaySub, x, subY);
+      }
+      ctx.fillText(displaySub, x, subY);
     }
+
+    try { (ctx as any).letterSpacing = "0px"; } catch {}
   };
 
   useEffect(() => {
     draw();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, presetId]);
+  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId]);
 
   const downloadAs = (format: "png" | "jpg") => {
     const canvas = canvasRef.current;
