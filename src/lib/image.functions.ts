@@ -218,11 +218,13 @@ export const generateImageVariations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      prompt: z.string().min(3).max(1000),
+      prompt: z.string().min(3).max(2000),
       style: z.string().min(1).max(40),
       aspect: z.enum(["square", "portrait", "landscape"]),
       template: z.string().max(40).optional(),
       count: z.number().int().min(2).max(4).default(4),
+      model: IMAGE_MODEL,
+      quality: QUALITY,
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -236,8 +238,9 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       data.aspect,
       data.template,
       data.count,
+      data.model,
+      data.quality,
     );
-    // Auto-persist every successful variation
     await Promise.all(
       results.map(async (r) => {
         if (!r.imageUrl) return;
@@ -262,6 +265,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
     z.object({
       topic: z.string().min(3).max(500),
       style: z.string().min(1).max(40).default("minimal"),
+      model: IMAGE_MODEL.default("gpt"),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -273,7 +277,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
         slides: [],
         error: "Carousel generation is a Pro feature. Upgrade to unlock.",
       };
-    const out = await generateCarouselSet(data.topic, data.style);
+    const out = await generateCarouselSet(data.topic, data.style, data.model);
     await Promise.all(
       (out.results || []).map(async (r: any, i: number) => {
         if (!r?.imageUrl) return;
@@ -292,6 +296,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
     );
     return out;
   });
+
 
 export const editUploadedImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
