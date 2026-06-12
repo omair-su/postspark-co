@@ -36,6 +36,7 @@ import {
   captionForImage,
   removeImageBackground,
   upscaleUploadedImage,
+  enhancePrompt as enhancePromptFn,
 } from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import JSZip from "jszip";
@@ -44,13 +45,23 @@ export const Route = createFileRoute("/dashboard/image-studio")({
   component: ImageStudioPage,
 });
 
+type ModelId = "flux" | "gpt" | "gemini";
+const MODELS: { id: ModelId; name: string; badge: string; desc: string; bestFor: string; cost: string; color: string }[] = [
+  { id: "flux", name: "Flux Pro 1.1", badge: "⚡ Photorealistic", desc: "Photos, art & portraits", bestFor: "Product shots, portraits, concept art", cost: "$0.04 / image", color: "#F97316" },
+  { id: "gpt",  name: "GPT Image 2",  badge: "✦ Text Perfect",   desc: "Thumbnails & graphics with text", bestFor: "Text in image, thumbnails, carousels", cost: "$0.04 / image", color: "#059669" },
+  { id: "gemini", name: "Gemini Flash", badge: "◈ Fast & Smart", desc: "Fast iteration & exploration", bestFor: "Quick iterations, diverse styles", cost: "Free tier", color: "#1DA1F2" },
+];
+
 const STYLES = [
-  { id: "photorealistic", label: "Photorealistic" },
-  { id: "3d-render", label: "3D Render" },
-  { id: "illustration", label: "Illustration" },
-  { id: "minimal", label: "Minimal" },
-  { id: "cinematic", label: "Cinematic" },
-  { id: "cyberpunk", label: "Cyberpunk" },
+  { id: "photorealistic", label: "Photorealistic", icon: "📸" },
+  { id: "3d-render", label: "3D Render", icon: "🎮" },
+  { id: "illustration", label: "Illustration", icon: "🎨" },
+  { id: "minimal", label: "Minimal", icon: "◻️" },
+  { id: "cinematic", label: "Cinematic", icon: "🎬" },
+  { id: "cyberpunk", label: "Cyberpunk", icon: "💜" },
+  { id: "oil-painting", label: "Oil Painting", icon: "🖼️" },
+  { id: "anime", label: "Anime", icon: "🌸" },
+  { id: "architectural", label: "Architectural", icon: "📐" },
 ] as const;
 
 const ASPECTS = [
