@@ -47,6 +47,9 @@ function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterFav, setFilterFav] = useState(false);
+  const [filterTool, setFilterTool] = useState<string>("all");
+  const [filterModel, setFilterModel] = useState<string>("all");
+  const [filterRange, setFilterRange] = useState<"all" | "7" | "30" | "90">("all");
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
   const [bulkMode, setBulkMode] = useState(false);
 
