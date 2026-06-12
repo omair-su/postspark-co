@@ -27,13 +27,24 @@ type ThemeId = keyof typeof THEMES;
 
 const DEFAULTS = { primary: "#1a1a2e", accent: "#7c3aed" };
 
+const PLATFORMS = [
+  { id: "instagram", label: "Instagram", icon: "📸" },
+  { id: "linkedin", label: "LinkedIn", icon: "💼" },
+  { id: "twitter", label: "Twitter / X", icon: "🐦" },
+] as const;
+type PlatformId = (typeof PLATFORMS)[number]["id"];
+
+const TONES = ["authoritative", "playful", "professional", "bold", "educational", "story-driven"] as const;
+
 function CarouselPage() {
   const { session } = useAuth();
   const [topic, setTopic] = useState("");
   const [audience, setAudience] = useState("");
-  const [tone, setTone] = useState("authoritative");
+  const [tone, setTone] = useState<(typeof TONES)[number]>("authoritative");
   const [slideCount, setSlideCount] = useState(8);
   const [theme, setTheme] = useState<ThemeId>("brand");
+  const [platform, setPlatform] = useState<PlatformId>("instagram");
+  const [hashtagCount, setHashtagCount] = useState<5 | 8 | 15 | 30>(8);
   const [loading, setLoading] = useState(false);
   const [slides, setSlides] = useState<Slide[]>([]);
   const [caption, setCaption] = useState("");
@@ -114,6 +125,32 @@ function CarouselPage() {
 
   const updateSlide = (idx: number, patch: Partial<Slide>) =>
     setSlides((prev) => prev.map((x, i) => i === idx ? { ...x, ...patch } : x));
+
+  const moveSlide = (idx: number, dir: -1 | 1) => {
+    setSlides((prev) => {
+      const next = [...prev];
+      const j = idx + dir;
+      if (j < 0 || j >= next.length) return prev;
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+    setActive((a) => Math.min(slides.length - 1, Math.max(0, a + dir)));
+  };
+  const deleteSlide = (idx: number) => {
+    if (slides.length <= 3) return toast.error("Keep at least 3 slides");
+    setSlides((prev) => prev.filter((_, i) => i !== idx));
+    setActive((a) => Math.max(0, Math.min(a, slides.length - 2)));
+  };
+  const addSlide = () => {
+    setSlides((prev) => {
+      const next = [...prev];
+      // Insert before CTA if last slide is cta, else at end
+      const lastIsCta = next[next.length - 1]?.kind === "cta";
+      const insertAt = lastIsCta ? next.length - 1 : next.length;
+      next.splice(insertAt, 0, { title: "New slide", body: "Add your insight here.", kind: "content" });
+      return next;
+    });
+  };
 
   const handleCopy = async (text: string, id: string) => {
     await navigator.clipboard.writeText(text);
@@ -215,37 +252,68 @@ function CarouselPage() {
           placeholder="e.g. 7 mistakes founders make on LinkedIn"
           className="mt-2 h-24 w-full resize-none rounded-lg border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Audience (optional)</label>
             <input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="solo founders" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Tone</label>
-            <select value={tone} onChange={(e) => setTone(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
-              {["authoritative", "playful", "professional", "bold", "educational", "story-driven"].map((v) => <option key={v} value={v}>{v}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Slides</label>
-            <select value={slideCount} onChange={(e) => setSlideCount(parseInt(e.target.value, 10))} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
-              {[6, 7, 8, 9, 10].map((n) => <option key={n} value={n}>{n} slides</option>)}
-            </select>
+            <label className="text-xs font-medium text-muted-foreground">Platform</label>
+            <div className="mt-1 flex gap-1.5">
+              {PLATFORMS.map((p) => (
+                <button key={p.id} onClick={() => setPlatform(p.id)}
+                  className={`flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition ${platform === p.id ? "border-primary bg-primary/10 text-foreground" : "border-input bg-background text-muted-foreground hover:bg-accent"}`}>
+                  <span className="mr-1">{p.icon}</span>{p.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="mt-4">
-          <label className="text-xs font-medium text-muted-foreground">Theme</label>
-          <div className="mt-1 flex flex-wrap gap-2">
-            {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-              <button
-                key={id}
-                onClick={() => setTheme(id)}
-                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold capitalize transition ${theme === id ? "border-primary bg-primary/10 text-foreground" : "border-input bg-background text-muted-foreground hover:bg-accent"}`}
-              >
-                {THEMES[id].label}
+          <label className="text-xs font-medium text-muted-foreground">Tone</label>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {TONES.map((v) => (
+              <button key={v} onClick={() => setTone(v)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition ${tone === v ? "border-primary bg-primary/10 text-foreground" : "border-input bg-background text-muted-foreground hover:bg-accent"}`}>
+                {v}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="text-xs font-medium text-muted-foreground">Slides</label>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {[6, 7, 8, 9, 10].map((n) => (
+              <button key={n} onClick={() => setSlideCount(n)}
+                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${slideCount === n ? "border-primary bg-primary/10 text-foreground" : "border-input bg-background text-muted-foreground hover:bg-accent"}`}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="text-xs font-medium text-muted-foreground">Theme — preview before generating</label>
+          <div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {(Object.keys(THEMES) as ThemeId[]).map((id) => {
+              const previewStyles: Record<ThemeId, React.CSSProperties> = {
+                brand: { background: "linear-gradient(135deg,#1a1a2e,#7c3aed)", color: "#fff" },
+                minimal: { background: "#fafafa", color: "#111" },
+                bold: { background: "#000", color: "#facc15" },
+                neon: { background: "#0b0014", color: "#22d3ee", textShadow: "0 0 8px rgba(34,211,238,0.8)" },
+              };
+              return (
+                <button key={id} onClick={() => setTheme(id)}
+                  className={`overflow-hidden rounded-xl border-2 transition ${theme === id ? "border-primary" : "border-input hover:border-primary/40"}`}>
+                  <div className="flex h-14 items-center justify-center text-[11px] font-bold" style={previewStyles[id]}>
+                    {THEMES[id].label}
+                  </div>
+                  <div className="bg-background px-2 py-1 text-center text-[11px] font-semibold text-foreground">{THEMES[id].label}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -324,18 +392,25 @@ function CarouselPage() {
 
           {/* Caption + hashtags */}
           <div className="rounded-2xl border border-border bg-card p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-foreground">Suggested caption</h3>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{caption}</p>
-                <p className="mt-3 text-xs text-primary">{hashtags.map((h) => `#${h}`).join(" ")}</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-foreground">Suggested caption</h3>
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span>Hashtags:</span>
+                {[5, 8, 15, 30].map((n) => (
+                  <button key={n} onClick={() => setHashtagCount(n as 5 | 8 | 15 | 30)}
+                    className={`rounded-md border px-2 py-0.5 font-semibold transition ${hashtagCount === n ? "border-primary bg-primary/10 text-primary" : "border-input hover:bg-accent"}`}>
+                    {n}
+                  </button>
+                ))}
               </div>
             </div>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{caption}</p>
+            <p className="mt-3 text-xs text-primary">{hashtags.slice(0, hashtagCount).map((h) => `#${h}`).join(" ")}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={() => handleCopy(caption, "cap")} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent">
                 {copied === "cap" ? <><Check className="h-3 w-3 text-primary" /> Copied</> : <><Copy className="h-3 w-3" /> Copy caption</>}
               </button>
-              <button onClick={() => handleCopy(hashtags.map((h) => `#${h}`).join(" "), "tags")} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent">
+              <button onClick={() => handleCopy(hashtags.slice(0, hashtagCount).map((h) => `#${h}`).join(" "), "tags")} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent">
                 {copied === "tags" ? <><Check className="h-3 w-3 text-primary" /> Copied</> : <><Copy className="h-3 w-3" /> Copy hashtags</>}
               </button>
               <button onClick={() => handleCopy(allText(), "all")} className="inline-flex items-center gap-1.5 rounded-lg gradient-electric px-2.5 py-1 text-xs font-bold text-primary-foreground hover:opacity-90">
@@ -344,15 +419,25 @@ function CarouselPage() {
             </div>
           </div>
 
+
           {/* All slides — inline editing */}
           <div className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="text-sm font-semibold text-foreground">Edit slides</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">Edit slides</h3>
+              <button onClick={addSlide} className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10">
+                + Add slide
+              </button>
+            </div>
             <ol className="mt-3 space-y-3">
               {slides.map((s, i) => (
                 <li key={i} className="rounded-lg border border-border bg-background p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{s.kind} · slide {i + 1}</span>
                     <div className="flex gap-1.5">
+                      <button onClick={() => moveSlide(i, -1)} disabled={i === 0}
+                        className="rounded-md border border-border px-1.5 py-1 text-[11px] hover:bg-accent disabled:opacity-30" aria-label="Move up">↑</button>
+                      <button onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
+                        className="rounded-md border border-border px-1.5 py-1 text-[11px] hover:bg-accent disabled:opacity-30" aria-label="Move down">↓</button>
                       <button onClick={() => setEditingIdx(editingIdx === i ? null : i)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent">
                         {editingIdx === i ? "Done" : "Edit"}
                       </button>
@@ -362,6 +447,9 @@ function CarouselPage() {
                       <button onClick={() => handleCopy(`${s.title}\n\n${s.body}`, `s${i}`)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent">
                         {copied === `s${i}` ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
                       </button>
+                      <button onClick={() => deleteSlide(i)} disabled={slides.length <= 3}
+                        className="rounded-md border border-destructive/40 bg-destructive/5 px-1.5 py-1 text-[11px] text-destructive hover:bg-destructive/10 disabled:opacity-30"
+                        aria-label="Delete slide">×</button>
                     </div>
                   </div>
                   {editingIdx === i ? (

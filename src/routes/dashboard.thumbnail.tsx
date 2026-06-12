@@ -111,6 +111,21 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines;
 }
 
+type ModelId = "flux" | "gpt" | "gemini";
+type FontFamily = "display" | "sans" | "serif" | "mono" | "condensed" | "slab" | "handwritten";
+type FontWeight = 300 | 500 | 700 | 900;
+
+const COLOR_SWATCHES = ["#ffffff", "#000000", "#7c3aed", "#facc15", "#ef4444", "#059669", "#1da1f2", "#f97316"];
+const FONT_FAMILIES: { id: FontFamily; label: string; css: string }[] = [
+  { id: "display", label: "Display", css: '"Inter", system-ui, sans-serif' },
+  { id: "sans", label: "Sans", css: '"Inter", system-ui, sans-serif' },
+  { id: "serif", label: "Serif", css: '"Instrument Serif", Georgia, serif' },
+  { id: "mono", label: "Mono", css: '"JetBrains Mono", Menlo, monospace' },
+  { id: "condensed", label: "Condensed", css: '"Arial Narrow", "Inter", sans-serif' },
+  { id: "slab", label: "Slab", css: 'Rockwell, "Roboto Slab", serif' },
+  { id: "handwritten", label: "Hand", css: '"Caveat", "Brush Script MT", cursive' },
+];
+
 function ThumbnailPage() {
   const { session } = useAuth();
   const [presetId, setPresetId] = useState<string>("youtube");
@@ -123,7 +138,17 @@ function ThumbnailPage() {
   const [accentColor, setAccentColor] = useState("#facc15");
   const [position, setPosition] = useState<(typeof POSITIONS)[number]["id"]>("bottom-left");
   const [overlayStrength, setOverlayStrength] = useState(0.55);
-  const [fontFamily, setFontFamily] = useState<"display" | "serif" | "mono">("display");
+  const [fontFamily, setFontFamily] = useState<FontFamily>("display");
+  const [fontWeight, setFontWeight] = useState<FontWeight>(900);
+  const [fontScale, setFontScale] = useState(1.0); // multiplier of base size
+  const [letterSpacing, setLetterSpacing] = useState(0); // px
+  const [allCaps, setAllCaps] = useState(false);
+  const [textShadow, setTextShadow] = useState(true);
+  const [shadowBlur, setShadowBlur] = useState(0.15);
+  const [textOutline, setTextOutline] = useState(false);
+  const [outlineColor, setOutlineColor] = useState("#000000");
+  const [outlineWidth, setOutlineWidth] = useState(2);
+  const [model, setModel] = useState<ModelId>("gpt");
 
   const [bgUrl, setBgUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -139,7 +164,10 @@ function ThumbnailPage() {
     setLoading(true);
     setBgUrl("");
     try {
-      const finalPrompt = (bgPrompt.trim() || preset.defaultPrompt) + ". Leave clear empty space for large text overlay. No text in image.";
+      // For Flux/Gemini we leave room for canvas overlay. For GPT-Image-2 we render text INTO the image.
+      const finalPrompt = model === "gpt"
+        ? `${bgPrompt.trim() || preset.defaultPrompt}. The image must clearly include the following exact text rendered prominently and legibly: HEADLINE: "${headline}"${subhead ? `, SUBHEAD: "${subhead}"` : ""}. Bold display typography, strong contrast against background, ${preset.id === "youtube" ? "MrBeast-style click-worthy YouTube thumbnail" : preset.id === "linkedin-banner" ? "clean professional LinkedIn banner" : "premium social graphic"}. No watermarks, no borders.`
+        : (bgPrompt.trim() || preset.defaultPrompt) + ". Leave clear empty space for large text overlay. No text in image.";
       const res = await withAIProgress(
         generateImage({
           data: {
@@ -147,6 +175,8 @@ function ThumbnailPage() {
             style: "cinematic",
             aspect: preset.aspect,
             template: preset.id === "blog-cover" ? "blog-cover" : "thumbnail",
+            model,
+            quality: "standard",
           },
           headers: authHeaders,
         }),
@@ -216,20 +246,23 @@ function ThumbnailPage() {
     // Text
     const padding = canvas.width * 0.05;
     const maxTextWidth = canvas.width - padding * 2;
-    const baseFontSize = Math.round(canvas.height * 0.11);
-    const families: Record<string, string> = {
-      display: '"Inter", system-ui, sans-serif',
-      serif: '"Instrument Serif", Georgia, serif',
-      mono: '"JetBrains Mono", Menlo, monospace',
-    };
+    const baseFontSize = Math.round(canvas.height * 0.11 * fontScale);
+    const familyCss = FONT_FAMILIES.find((f) => f.id === fontFamily)?.css || FONT_FAMILIES[0].css;
+    const displayHeadline = allCaps ? headline.toUpperCase() : headline;
+    const displaySub = allCaps ? subhead.toUpperCase() : subhead;
+
+    // Letter spacing via canvas property (modern Chromium/Edge/Safari)
+    try {
+      (ctx as any).letterSpacing = `${letterSpacing}px`;
+    } catch {}
+
     ctx.fillStyle = headlineColor;
-    ctx.font = `900 ${baseFontSize}px ${families[fontFamily]}`;
-    const lines = wrapText(ctx, headline, maxTextWidth);
+    ctx.font = `${fontWeight} ${baseFontSize}px ${familyCss}`;
+    const lines = wrapText(ctx, displayHeadline, maxTextWidth);
     const lineHeight = baseFontSize * 1.05;
 
     const subSize = Math.round(baseFontSize * 0.42);
-    ctx.font = `900 ${baseFontSize}px ${families[fontFamily]}`;
-    const totalH = lines.length * lineHeight + (subhead ? subSize * 1.5 : 0);
+    const totalH = lines.length * lineHeight + (displaySub ? subSize * 1.5 : 0);
 
     let yStart: number;
     let textAlign: CanvasTextAlign = "left";
@@ -250,30 +283,50 @@ function ThumbnailPage() {
     ctx.textAlign = textAlign;
     ctx.textBaseline = "alphabetic";
 
-    // Headline with shadow
-    ctx.shadowColor = "rgba(0,0,0,0.6)";
-    ctx.shadowBlur = baseFontSize * 0.15;
-    ctx.shadowOffsetY = baseFontSize * 0.04;
+    // Headline shadow
+    if (textShadow) {
+      ctx.shadowColor = "rgba(0,0,0,0.65)";
+      ctx.shadowBlur = baseFontSize * shadowBlur;
+      ctx.shadowOffsetY = baseFontSize * 0.04;
+    } else {
+      ctx.shadowColor = "transparent";
+    }
+    // Headline outline + fill
+    ctx.font = `${fontWeight} ${baseFontSize}px ${familyCss}`;
     lines.forEach((line, i) => {
+      const yy = yStart + i * lineHeight;
+      if (textOutline) {
+        ctx.lineJoin = "round";
+        ctx.miterLimit = 2;
+        ctx.lineWidth = outlineWidth * 2;
+        ctx.strokeStyle = outlineColor;
+        ctx.strokeText(line, x, yy);
+      }
       ctx.fillStyle = headlineColor;
-      ctx.font = `900 ${baseFontSize}px ${families[fontFamily]}`;
-      ctx.fillText(line, x, yStart + i * lineHeight);
+      ctx.fillText(line, x, yy);
     });
     ctx.shadowColor = "transparent";
 
-    // Subhead with accent strip
-    if (subhead) {
+    // Subhead
+    if (displaySub) {
       ctx.fillStyle = accentColor;
-      ctx.font = `700 ${subSize}px ${families[fontFamily]}`;
+      ctx.font = `700 ${subSize}px ${familyCss}`;
       const subY = yStart + lines.length * lineHeight + subSize * 0.6;
-      ctx.fillText(subhead, x, subY);
+      if (textOutline) {
+        ctx.lineWidth = outlineWidth * 1.4;
+        ctx.strokeStyle = outlineColor;
+        ctx.strokeText(displaySub, x, subY);
+      }
+      ctx.fillText(displaySub, x, subY);
     }
+
+    try { (ctx as any).letterSpacing = "0px"; } catch {}
   };
 
   useEffect(() => {
     draw();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, presetId]);
+  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId]);
 
   const downloadAs = (format: "png" | "jpg") => {
     const canvas = canvasRef.current;
@@ -358,6 +411,30 @@ function ThumbnailPage() {
           </div>
 
           <div>
+            <label className="mb-2 block text-sm font-medium">AI model for background</label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {([
+                { id: "gpt" as ModelId, name: "GPT Image 2", note: "Text in image", color: "#059669" },
+                { id: "flux" as ModelId, name: "Flux 1.1", note: "Photoreal BG", color: "#F97316" },
+                { id: "gemini" as ModelId, name: "Gemini", note: "Fast", color: "#1DA1F2" },
+              ]).map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setModel(m.id)}
+                  className={`rounded-lg border-2 px-2 py-1.5 text-left transition-all ${model === m.id ? "" : "border-input bg-background hover:border-primary/40"}`}
+                  style={model === m.id ? { borderColor: m.color, background: `${m.color}0d` } : undefined}
+                >
+                  <div className="text-[11px] font-bold" style={{ color: m.color }}>{m.name}</div>
+                  <div className="text-[10px] text-muted-foreground">{m.note}</div>
+                </button>
+              ))}
+            </div>
+            {model === "gpt" && (
+              <p className="mt-1 text-[10px] text-emerald-600">✦ Renders headline + subhead text directly into the image.</p>
+            )}
+          </div>
+
+          <div>
             <label className="mb-2 block text-sm font-medium">Background prompt</label>
             <textarea
               value={bgPrompt}
@@ -379,24 +456,123 @@ function ThumbnailPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* TYPOGRAPHY PANEL */}
+          <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Typography</div>
+
             <div>
-              <label className="mb-1 block text-xs font-medium">Headline color</label>
-              <input
-                type="color"
-                value={headlineColor}
-                onChange={(e) => setHeadlineColor(e.target.value)}
-                className="h-9 w-full rounded-md border border-input bg-background"
-              />
+              <label className="mb-1 block text-xs font-medium">Font family</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {FONT_FAMILIES.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setFontFamily(f.id)}
+                    className={`rounded-md border px-1.5 py-1 text-[11px] transition-colors ${fontFamily === f.id ? "border-primary bg-primary/10 text-primary" : "border-input bg-background hover:bg-accent"}`}
+                    style={{ fontFamily: f.css }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Size: {Math.round(fontScale * 100)}%</label>
+                <input type="range" min={50} max={180} value={fontScale * 100}
+                  onChange={(e) => setFontScale(Number(e.target.value) / 100)} className="w-full" />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Letter spacing: {letterSpacing}px</label>
+                <input type="range" min={-2} max={12} value={letterSpacing}
+                  onChange={(e) => setLetterSpacing(Number(e.target.value))} className="w-full" />
+              </div>
+            </div>
+
             <div>
-              <label className="mb-1 block text-xs font-medium">Accent color</label>
-              <input
-                type="color"
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
-                className="h-9 w-full rounded-md border border-input bg-background"
-              />
+              <label className="mb-1 block text-[11px] text-muted-foreground">Weight</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {([300, 500, 700, 900] as FontWeight[]).map((w) => (
+                  <button
+                    key={w}
+                    onClick={() => setFontWeight(w)}
+                    className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${fontWeight === w ? "border-primary bg-primary/10 text-primary" : "border-input bg-background hover:bg-accent"}`}
+                    style={{ fontWeight: w }}
+                  >
+                    {w === 300 ? "Light" : w === 500 ? "Med" : w === 700 ? "Bold" : "Heavy"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="inline-flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={allCaps} onChange={(e) => setAllCaps(e.target.checked)} className="h-3.5 w-3.5 rounded" />
+                All caps
+              </label>
+              <label className="inline-flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={textShadow} onChange={(e) => setTextShadow(e.target.checked)} className="h-3.5 w-3.5 rounded" />
+                Text shadow
+              </label>
+              <label className="inline-flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={textOutline} onChange={(e) => setTextOutline(e.target.checked)} className="h-3.5 w-3.5 rounded" />
+                Outline
+              </label>
+            </div>
+
+            {textShadow && (
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Shadow blur: {Math.round(shadowBlur * 100)}%</label>
+                <input type="range" min={4} max={40} value={shadowBlur * 100}
+                  onChange={(e) => setShadowBlur(Number(e.target.value) / 100)} className="w-full" />
+              </div>
+            )}
+
+            {textOutline && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-[11px] text-muted-foreground">Outline color</label>
+                  <input type="color" value={outlineColor} onChange={(e) => setOutlineColor(e.target.value)} className="h-8 w-full rounded border border-input" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-muted-foreground">Outline width: {outlineWidth}px</label>
+                  <input type="range" min={1} max={8} value={outlineWidth}
+                    onChange={(e) => setOutlineWidth(Number(e.target.value))} className="w-full" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* COLORS */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">Headline color</label>
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {COLOR_SWATCHES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setHeadlineColor(c)}
+                  className={`h-7 w-7 rounded-md border-2 transition-transform hover:scale-110 ${headlineColor === c ? "border-foreground" : "border-transparent"}`}
+                  style={{ backgroundColor: c, boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}
+                  aria-label={c}
+                />
+              ))}
+              <input type="color" value={headlineColor} onChange={(e) => setHeadlineColor(e.target.value)}
+                className="h-7 w-7 cursor-pointer rounded-md border border-input" />
+            </div>
+
+            <label className="mb-2 block text-sm font-medium">Accent color</label>
+            <div className="flex flex-wrap gap-1.5">
+              {COLOR_SWATCHES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setAccentColor(c)}
+                  className={`h-7 w-7 rounded-md border-2 transition-transform hover:scale-110 ${accentColor === c ? "border-foreground" : "border-transparent"}`}
+                  style={{ backgroundColor: c, boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}
+                  aria-label={c}
+                />
+              ))}
+              <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)}
+                className="h-7 w-7 cursor-pointer rounded-md border border-input" />
             </div>
           </div>
 
@@ -414,25 +590,6 @@ function ThumbnailPage() {
                   }`}
                 >
                   {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">Font</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(["display", "serif", "mono"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFontFamily(f)}
-                  className={`rounded-md border px-2 py-1.5 text-xs font-medium capitalize transition-colors ${
-                    fontFamily === f
-                      ? "border-primary bg-primary/10"
-                      : "border-input bg-background hover:bg-accent"
-                  }`}
-                >
-                  {f}
                 </button>
               ))}
             </div>

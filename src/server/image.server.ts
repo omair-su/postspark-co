@@ -40,6 +40,8 @@ function buildPrompt(prompt: string, style?: string, aspect?: string, template?:
   return parts.join(". ");
 }
 
+export type ImageModel = "auto" | "flux" | "gpt" | "gemini";
+
 // Stable image models in fallback order. Lovable AI Gateway is used as the
 // fallback when Replicate is unavailable or for image-edit (multimodal) calls.
 const IMAGE_MODELS = [
@@ -52,6 +54,67 @@ const REPLICATE_ASPECT: Record<string, string> = {
   portrait: "9:16",
   landscape: "16:9",
 };
+
+const OPENAI_SIZE: Record<string, string> = {
+  square: "1024x1024",
+  portrait: "1024x1792",
+  landscape: "1792x1024",
+};
+
+// OpenAI gpt-image-2 (text-perfect image generation). Falls back to
+// gpt-image-1 if the requested model id is rejected.
+async function callOpenAIImage(
+  prompt: string,
+  aspect: "square" | "portrait" | "landscape" = "square",
+  quality: "standard" | "hd" = "standard",
+): Promise<ImageGenResult> {
+  const key = process.env.Openai_api || process.env.OPENAI_API_KEY;
+  if (!key) return { imageUrl: "", error: "OpenAI key not configured" };
+
+  const size = OPENAI_SIZE[aspect] || "1024x1024";
+  const models = ["gpt-image-2", "gpt-image-1"];
+  let lastErr = "OpenAI image generation failed";
+
+  for (const model of models) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 55_000);
+      const res = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          prompt: prompt.slice(0, 4000),
+          n: 1,
+          size,
+          quality: quality === "hd" ? "high" : "medium",
+        }),
+      }).finally(() => clearTimeout(t));
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error(`OpenAI ${model} error:`, res.status, text.slice(0, 300));
+        if (res.status === 401) return { imageUrl: "", error: "OpenAI auth failed. Check Openai_api secret." };
+        if (res.status === 429) return { imageUrl: "", error: "OpenAI rate limit reached. Try again shortly." };
+        if (res.status === 402) return { imageUrl: "", error: "OpenAI billing issue — add credits at platform.openai.com." };
+        // Unknown model → try fallback (gpt-image-1)
+        if ((res.status === 400 || res.status === 404) && /model/i.test(text)) { lastErr = `OpenAI ${model} unavailable`; continue; }
+        lastErr = `OpenAI error (${res.status})`;
+        continue;
+      }
+      const j: any = await res.json();
+      const item = j?.data?.[0];
+      if (item?.b64_json) return { imageUrl: `data:image/png;base64,${item.b64_json}` };
+      if (item?.url) return { imageUrl: item.url };
+      lastErr = "OpenAI returned no image";
+    } catch (err: any) {
+      console.error(`OpenAI ${model} request error:`, err?.message || err);
+      lastErr = "Failed to reach OpenAI";
+    }
+  }
+  return { imageUrl: "", error: lastErr };
+}
 
 // Replicate Flux 1.1 Pro — premium photorealistic generation.
 // Worker-friendly async pattern: create prediction (returns instantly with an ID),
@@ -236,24 +299,49 @@ async function callImageAI(messages: any[]): Promise<ImageGenResult> {
   return last;
 }
 
-// Text-to-image: try Lovable AI Gateway (Gemini image) first because it's
-// fast and reliable inside the Worker. Fall back to Replicate Flux 1.1 Pro
-// only if the gateway returns a retriable failure (network / no image).
-// Replicate's polling pattern is more fragile under Cloudflare Workers so
-// we treat it as the backup, not the default.
+// Text-to-image with explicit model routing.
+//   flux   → Replicate Flux 1.1 Pro (photorealism, no required text)
+//   gpt    → OpenAI gpt-image-2 (text-perfect overlays, thumbnails, carousels)
+//   gemini → Lovable AI Gateway (Gemini Flash image — fast, free tier)
+//   auto   → Gemini first, then Replicate Flux as fallback (legacy behavior)
 async function generateFromPrompt(
   fullPrompt: string,
   aspect: "square" | "portrait" | "landscape",
+  model: ImageModel = "auto",
+  quality: "standard" | "hd" = "standard",
 ): Promise<ImageGenResult> {
+  if (model === "gpt") {
+    const r = await callOpenAIImage(fullPrompt, aspect, quality);
+    if (r.imageUrl) return r;
+    // Soft fallback to Gemini so users aren't blocked
+    const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
+    if (fb.imageUrl) return fb;
+    return r;
+  }
+
+  if (model === "flux") {
+    if (process.env.REPLICATE_API_TOKEN) {
+      const r = await callReplicateFlux(fullPrompt, aspect);
+      if (r.imageUrl) return r;
+      // Soft fallback to Gemini
+      const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
+      if (fb.imageUrl) return fb;
+      return r;
+    }
+    return callImageAI([{ role: "user", content: fullPrompt }]);
+  }
+
+  if (model === "gemini") {
+    return callImageAI([{ role: "user", content: fullPrompt }]);
+  }
+
+  // auto: Gemini first, Replicate Flux as fallback
   const primary = await callImageAI([{ role: "user", content: fullPrompt }]);
   if (primary.imageUrl) return primary;
-  // Don't retry on hard failures (rate limit / no credits).
   if (primary.error && /credits|rate limit/i.test(primary.error)) return primary;
-
   if (process.env.REPLICATE_API_TOKEN) {
     const r = await callReplicateFlux(fullPrompt, aspect);
     if (r.imageUrl) return r;
-    console.warn("Replicate fallback also failed:", r.error);
     return r;
   }
   return primary;
@@ -264,10 +352,16 @@ export async function generateSocialImage(
   style: string,
   aspect: string,
   template?: string,
+  model: ImageModel = "auto",
+  quality: "standard" | "hd" = "standard",
+  negativePrompt?: string,
 ): Promise<ImageGenResult> {
-  const fullPrompt = buildPrompt(prompt, style, aspect, template);
+  let fullPrompt = buildPrompt(prompt, style, aspect, template);
+  if (negativePrompt && negativePrompt.trim()) {
+    fullPrompt += `. Avoid: ${negativePrompt.trim()}`;
+  }
   const a = (aspect as "square" | "portrait" | "landscape") || "square";
-  return generateFromPrompt(fullPrompt, a);
+  return generateFromPrompt(fullPrompt, a, model, quality);
 }
 
 export async function generateVariations(
@@ -276,6 +370,8 @@ export async function generateVariations(
   aspect: string,
   template: string | undefined,
   count: number,
+  model: ImageModel = "auto",
+  quality: "standard" | "hd" = "standard",
 ): Promise<ImageGenResult[]> {
   const variants = [
     "",
@@ -292,9 +388,48 @@ export async function generateVariations(
       aspect,
       template,
     );
-    return generateFromPrompt(finalPrompt, a);
+    return generateFromPrompt(finalPrompt, a, model, quality);
   });
   return Promise.all(tasks);
+}
+
+// Enhance a basic prompt into a detailed one using a text model.
+export async function enhanceImagePrompt(
+  rawPrompt: string,
+  model: ImageModel,
+  style?: string,
+): Promise<{ prompt: string; error?: string }> {
+  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+  if (!LOVABLE_API_KEY) return { prompt: rawPrompt, error: "AI not configured" };
+  const target =
+    model === "gpt"
+      ? "OpenAI gpt-image-2 (great at rendering exact text overlays)"
+      : model === "flux"
+        ? "Flux Pro 1.1 (photorealistic; loves camera terms like f/2.8, golden hour, cinematic)"
+        : "Gemini Flash image";
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content:
+              `You are an expert prompt engineer for AI image generation. Rewrite the user's basic prompt into a single detailed, vivid prompt for ${target}. Keep the core idea. Add lighting, composition, color, mood, lens/style details where helpful. ${style ? `Match this style: ${style}.` : ""} Max 120 words. Return ONLY the rewritten prompt, no preface, no quotes.`,
+          },
+          { role: "user", content: rawPrompt.slice(0, 1500) },
+        ],
+      }),
+    });
+    if (!res.ok) return { prompt: rawPrompt, error: `Enhancer error (${res.status})` };
+    const j: any = await res.json();
+    const out = (j.choices?.[0]?.message?.content || "").trim();
+    return { prompt: out || rawPrompt };
+  } catch (e: any) {
+    return { prompt: rawPrompt, error: e?.message || "Enhancer failed" };
+  }
 }
 
 export async function editImage(
@@ -312,10 +447,12 @@ export async function editImage(
   ]);
 }
 
-// Generate a 5-slide Instagram carousel with consistent style/typography
+// Generate a 5-slide Instagram carousel with consistent style/typography.
+// Carousels default to gpt-image-2 for accurate text rendering inside slides.
 export async function generateCarouselSet(
   topic: string,
   style: string,
+  model: ImageModel = "gpt",
 ): Promise<{ results: ImageGenResult[]; slides: { title: string; body: string }[] }> {
   // Step 1: ask a text model for slide copy + a shared visual style descriptor
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
@@ -378,7 +515,7 @@ export async function generateCarouselSet(
       styleHints[style] || styleHints.minimal,
       "Premium social-media design, share-worthy.",
     ].join(" ");
-    return generateFromPrompt(slidePrompt, "square");
+    return generateFromPrompt(slidePrompt, "square", model);
   });
 
   const results = await Promise.all(tasks);

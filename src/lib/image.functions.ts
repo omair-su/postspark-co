@@ -11,7 +11,11 @@ import {
   generateCaption,
   removeBackground as removeBackgroundServer,
   upscaleImage as upscaleImageServer,
+  enhanceImagePrompt,
 } from "@/server/image.server";
+
+const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
+const QUALITY = z.enum(["standard", "hd"]).default("standard");
 
 const FREE_MONTHLY_LIMIT = 5; // free tier preview generations
 const PRO_MONTHLY_LIMIT = 500; // soft cap for Pro/Agency
@@ -149,10 +153,13 @@ export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      prompt: z.string().min(3).max(1000),
+      prompt: z.string().min(3).max(2000),
       style: z.string().min(1).max(40),
       aspect: z.enum(["square", "portrait", "landscape"]),
       template: z.string().max(40).optional(),
+      model: IMAGE_MODEL,
+      quality: QUALITY,
+      negativePrompt: z.string().max(500).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -162,7 +169,15 @@ export const generateImage = createServerFn({ method: "POST" })
       return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)) && data.template !== "thumbnail" && data.template !== "blog-cover")
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
-    const res = await generateSocialImage(data.prompt, data.style, data.aspect, data.template);
+    const res = await generateSocialImage(
+      data.prompt,
+      data.style,
+      data.aspect,
+      data.template,
+      data.model,
+      data.quality,
+      data.negativePrompt,
+    );
     if (res.imageUrl) {
       const persisted = await persistGeneratedImage({
         userId,
@@ -180,21 +195,36 @@ export const generateImage = createServerFn({ method: "POST" })
         tool: isThumb ? "thumbnail" : "image",
         title: data.prompt.slice(0, 80),
         inputText: data.prompt,
-        outputs: { image_url: res.imageUrl, style: data.style, aspect: data.aspect, template: data.template || "" },
+        outputs: { image_url: res.imageUrl, style: data.style, aspect: data.aspect, template: data.template || "", model: data.model },
       });
     }
     return res;
+  });
+
+export const enhancePrompt = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      prompt: z.string().min(3).max(2000),
+      model: IMAGE_MODEL,
+      style: z.string().max(40).optional(),
+    }).parse,
+  )
+  .handler(async ({ data }) => {
+    return enhanceImagePrompt(data.prompt, data.model, data.style);
   });
 
 export const generateImageVariations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      prompt: z.string().min(3).max(1000),
+      prompt: z.string().min(3).max(2000),
       style: z.string().min(1).max(40),
       aspect: z.enum(["square", "portrait", "landscape"]),
       template: z.string().max(40).optional(),
       count: z.number().int().min(2).max(4).default(4),
+      model: IMAGE_MODEL,
+      quality: QUALITY,
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -208,8 +238,9 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       data.aspect,
       data.template,
       data.count,
+      data.model,
+      data.quality,
     );
-    // Auto-persist every successful variation
     await Promise.all(
       results.map(async (r) => {
         if (!r.imageUrl) return;
@@ -234,6 +265,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
     z.object({
       topic: z.string().min(3).max(500),
       style: z.string().min(1).max(40).default("minimal"),
+      model: IMAGE_MODEL.default("gpt"),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -245,7 +277,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
         slides: [],
         error: "Carousel generation is a Pro feature. Upgrade to unlock.",
       };
-    const out = await generateCarouselSet(data.topic, data.style);
+    const out = await generateCarouselSet(data.topic, data.style, data.model);
     await Promise.all(
       (out.results || []).map(async (r: any, i: number) => {
         if (!r?.imageUrl) return;
@@ -264,6 +296,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
     );
     return out;
   });
+
 
 export const editUploadedImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
