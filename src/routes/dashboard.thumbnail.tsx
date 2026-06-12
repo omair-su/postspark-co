@@ -164,7 +164,10 @@ function ThumbnailPage() {
     setLoading(true);
     setBgUrl("");
     try {
-      const finalPrompt = (bgPrompt.trim() || preset.defaultPrompt) + ". Leave clear empty space for large text overlay. No text in image.";
+      // For Flux/Gemini we leave room for canvas overlay. For GPT-Image-2 we render text INTO the image.
+      const finalPrompt = model === "gpt"
+        ? `${bgPrompt.trim() || preset.defaultPrompt}. The image must clearly include the following exact text rendered prominently and legibly: HEADLINE: "${headline}"${subhead ? `, SUBHEAD: "${subhead}"` : ""}. Bold display typography, strong contrast against background, ${preset.id === "youtube" ? "MrBeast-style click-worthy YouTube thumbnail" : preset.id === "linkedin-banner" ? "clean professional LinkedIn banner" : "premium social graphic"}. No watermarks, no borders.`
+        : (bgPrompt.trim() || preset.defaultPrompt) + ". Leave clear empty space for large text overlay. No text in image.";
       const res = await withAIProgress(
         generateImage({
           data: {
@@ -172,6 +175,8 @@ function ThumbnailPage() {
             style: "cinematic",
             aspect: preset.aspect,
             template: preset.id === "blog-cover" ? "blog-cover" : "thumbnail",
+            model,
+            quality: "standard",
           },
           headers: authHeaders,
         }),
