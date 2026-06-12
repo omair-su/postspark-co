@@ -536,6 +536,11 @@ function HistoryPage() {
                           {TOOL_LABEL[job.tool] || job.tool}
                         </span>
                       )}
+                      {(job.outputs as any)?.model && (
+                        <span className="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+                          {(job.outputs as any).model}
+                        </span>
+                      )}
                     </div>
                     {formats.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
