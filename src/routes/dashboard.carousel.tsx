@@ -27,13 +27,24 @@ type ThemeId = keyof typeof THEMES;
 
 const DEFAULTS = { primary: "#1a1a2e", accent: "#7c3aed" };
 
+const PLATFORMS = [
+  { id: "instagram", label: "Instagram", icon: "📸" },
+  { id: "linkedin", label: "LinkedIn", icon: "💼" },
+  { id: "twitter", label: "Twitter / X", icon: "🐦" },
+] as const;
+type PlatformId = (typeof PLATFORMS)[number]["id"];
+
+const TONES = ["authoritative", "playful", "professional", "bold", "educational", "story-driven"] as const;
+
 function CarouselPage() {
   const { session } = useAuth();
   const [topic, setTopic] = useState("");
   const [audience, setAudience] = useState("");
-  const [tone, setTone] = useState("authoritative");
+  const [tone, setTone] = useState<(typeof TONES)[number]>("authoritative");
   const [slideCount, setSlideCount] = useState(8);
   const [theme, setTheme] = useState<ThemeId>("brand");
+  const [platform, setPlatform] = useState<PlatformId>("instagram");
+  const [hashtagCount, setHashtagCount] = useState<5 | 8 | 15 | 30>(8);
   const [loading, setLoading] = useState(false);
   const [slides, setSlides] = useState<Slide[]>([]);
   const [caption, setCaption] = useState("");
