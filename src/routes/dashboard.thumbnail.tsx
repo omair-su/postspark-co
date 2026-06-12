@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { generateImage } from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { UsageMeter } from "@/components/image/UsageMeter";
+import { LimitReachedModal } from "@/components/image/LimitReachedModal";
+import { getWatermarkState, setWatermarkState, drawWatermarkOnCanvas } from "@/lib/imageWatermark";
+import { Droplet } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/thumbnail")({
   component: ThumbnailPage,
