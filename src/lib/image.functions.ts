@@ -304,8 +304,25 @@ export const generateCarousel = createServerFn({ method: "POST" })
         if (persisted) r.imageUrl = persisted;
       }),
     );
+    const urls = (out.results || []).map((r: any) => r?.imageUrl).filter(Boolean);
+    if (urls.length) {
+      await logToHistory({
+        userId,
+        tool: "carousel",
+        title: `Carousel: ${data.topic.slice(0, 60)}`,
+        inputText: data.topic,
+        outputs: {
+          carousel_images: urls,
+          slides: out.slides,
+          style: data.style,
+          model: data.model,
+          prompt: data.topic,
+        },
+      });
+    }
     return out;
   });
+
 
 
 export const editUploadedImage = createServerFn({ method: "POST" })
