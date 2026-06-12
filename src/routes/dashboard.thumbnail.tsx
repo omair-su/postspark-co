@@ -331,12 +331,17 @@ function ThumbnailPage() {
     }
 
     try { (ctx as any).letterSpacing = "0px"; } catch {}
+
+    if (watermarkOn && watermarkText.trim()) {
+      drawWatermarkOnCanvas(canvas, watermarkText.trim());
+    }
   };
 
   useEffect(() => {
     draw();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId]);
+  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId, watermarkOn, watermarkText]);
+
 
   const downloadAs = (format: "png" | "jpg") => {
     const canvas = canvasRef.current;
