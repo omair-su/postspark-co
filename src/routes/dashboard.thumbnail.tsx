@@ -411,6 +411,30 @@ function ThumbnailPage() {
           </div>
 
           <div>
+            <label className="mb-2 block text-sm font-medium">AI model for background</label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {([
+                { id: "gpt" as ModelId, name: "GPT Image 2", note: "Text in image", color: "#059669" },
+                { id: "flux" as ModelId, name: "Flux 1.1", note: "Photoreal BG", color: "#F97316" },
+                { id: "gemini" as ModelId, name: "Gemini", note: "Fast", color: "#1DA1F2" },
+              ]).map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setModel(m.id)}
+                  className={`rounded-lg border-2 px-2 py-1.5 text-left transition-all ${model === m.id ? "" : "border-input bg-background hover:border-primary/40"}`}
+                  style={model === m.id ? { borderColor: m.color, background: `${m.color}0d` } : undefined}
+                >
+                  <div className="text-[11px] font-bold" style={{ color: m.color }}>{m.name}</div>
+                  <div className="text-[10px] text-muted-foreground">{m.note}</div>
+                </button>
+              ))}
+            </div>
+            {model === "gpt" && (
+              <p className="mt-1 text-[10px] text-emerald-600">✦ Renders headline + subhead text directly into the image.</p>
+            )}
+          </div>
+
+          <div>
             <label className="mb-2 block text-sm font-medium">Background prompt</label>
             <textarea
               value={bgPrompt}
@@ -432,24 +456,123 @@ function ThumbnailPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* TYPOGRAPHY PANEL */}
+          <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Typography</div>
+
             <div>
-              <label className="mb-1 block text-xs font-medium">Headline color</label>
-              <input
-                type="color"
-                value={headlineColor}
-                onChange={(e) => setHeadlineColor(e.target.value)}
-                className="h-9 w-full rounded-md border border-input bg-background"
-              />
+              <label className="mb-1 block text-xs font-medium">Font family</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {FONT_FAMILIES.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setFontFamily(f.id)}
+                    className={`rounded-md border px-1.5 py-1 text-[11px] transition-colors ${fontFamily === f.id ? "border-primary bg-primary/10 text-primary" : "border-input bg-background hover:bg-accent"}`}
+                    style={{ fontFamily: f.css }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Size: {Math.round(fontScale * 100)}%</label>
+                <input type="range" min={50} max={180} value={fontScale * 100}
+                  onChange={(e) => setFontScale(Number(e.target.value) / 100)} className="w-full" />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Letter spacing: {letterSpacing}px</label>
+                <input type="range" min={-2} max={12} value={letterSpacing}
+                  onChange={(e) => setLetterSpacing(Number(e.target.value))} className="w-full" />
+              </div>
+            </div>
+
             <div>
-              <label className="mb-1 block text-xs font-medium">Accent color</label>
-              <input
-                type="color"
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
-                className="h-9 w-full rounded-md border border-input bg-background"
-              />
+              <label className="mb-1 block text-[11px] text-muted-foreground">Weight</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {([300, 500, 700, 900] as FontWeight[]).map((w) => (
+                  <button
+                    key={w}
+                    onClick={() => setFontWeight(w)}
+                    className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${fontWeight === w ? "border-primary bg-primary/10 text-primary" : "border-input bg-background hover:bg-accent"}`}
+                    style={{ fontWeight: w }}
+                  >
+                    {w === 300 ? "Light" : w === 500 ? "Med" : w === 700 ? "Bold" : "Heavy"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="inline-flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={allCaps} onChange={(e) => setAllCaps(e.target.checked)} className="h-3.5 w-3.5 rounded" />
+                All caps
+              </label>
+              <label className="inline-flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={textShadow} onChange={(e) => setTextShadow(e.target.checked)} className="h-3.5 w-3.5 rounded" />
+                Text shadow
+              </label>
+              <label className="inline-flex items-center gap-1.5 text-[11px]">
+                <input type="checkbox" checked={textOutline} onChange={(e) => setTextOutline(e.target.checked)} className="h-3.5 w-3.5 rounded" />
+                Outline
+              </label>
+            </div>
+
+            {textShadow && (
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Shadow blur: {Math.round(shadowBlur * 100)}%</label>
+                <input type="range" min={4} max={40} value={shadowBlur * 100}
+                  onChange={(e) => setShadowBlur(Number(e.target.value) / 100)} className="w-full" />
+              </div>
+            )}
+
+            {textOutline && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-[11px] text-muted-foreground">Outline color</label>
+                  <input type="color" value={outlineColor} onChange={(e) => setOutlineColor(e.target.value)} className="h-8 w-full rounded border border-input" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-muted-foreground">Outline width: {outlineWidth}px</label>
+                  <input type="range" min={1} max={8} value={outlineWidth}
+                    onChange={(e) => setOutlineWidth(Number(e.target.value))} className="w-full" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* COLORS */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">Headline color</label>
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {COLOR_SWATCHES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setHeadlineColor(c)}
+                  className={`h-7 w-7 rounded-md border-2 transition-transform hover:scale-110 ${headlineColor === c ? "border-foreground" : "border-transparent"}`}
+                  style={{ backgroundColor: c, boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}
+                  aria-label={c}
+                />
+              ))}
+              <input type="color" value={headlineColor} onChange={(e) => setHeadlineColor(e.target.value)}
+                className="h-7 w-7 cursor-pointer rounded-md border border-input" />
+            </div>
+
+            <label className="mb-2 block text-sm font-medium">Accent color</label>
+            <div className="flex flex-wrap gap-1.5">
+              {COLOR_SWATCHES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setAccentColor(c)}
+                  className={`h-7 w-7 rounded-md border-2 transition-transform hover:scale-110 ${accentColor === c ? "border-foreground" : "border-transparent"}`}
+                  style={{ backgroundColor: c, boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}
+                  aria-label={c}
+                />
+              ))}
+              <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)}
+                className="h-7 w-7 cursor-pointer rounded-md border border-input" />
             </div>
           </div>
 
@@ -467,25 +590,6 @@ function ThumbnailPage() {
                   }`}
                 >
                   {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">Font</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(["display", "serif", "mono"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFontFamily(f)}
-                  className={`rounded-md border px-2 py-1.5 text-xs font-medium capitalize transition-colors ${
-                    fontFamily === f
-                      ? "border-primary bg-primary/10"
-                      : "border-input bg-background hover:bg-accent"
-                  }`}
-                >
-                  {f}
                 </button>
               ))}
             </div>
