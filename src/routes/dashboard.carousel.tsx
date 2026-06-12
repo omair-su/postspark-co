@@ -58,6 +58,11 @@ function CarouselPage() {
   const [rewritingIdx, setRewritingIdx] = useState<number | null>(null);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
+  const initialWm = getWatermarkState();
+  const [watermarkOn, setWatermarkOn] = useState<boolean>(initialWm.on);
+  const [watermarkText, setWatermarkText] = useState<string>(initialWm.text);
+  useEffect(() => setWatermarkState(watermarkOn, watermarkText), [watermarkOn, watermarkText]);
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   useEffect(() => {
