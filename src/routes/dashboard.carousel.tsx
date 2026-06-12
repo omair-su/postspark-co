@@ -2,13 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Download, Copy, Check, ChevronLeft, ChevronRight, Layers, Wand2, Image as ImageIcon, FileText } from "lucide-react";
+import { Loader2, Sparkles, Download, Copy, Check, ChevronLeft, ChevronRight, Layers, Wand2, Image as ImageIcon, FileText, Droplet } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import JSZip from "jszip";
 import { createCarousel, rewriteSlide } from "@/lib/carousel.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { UsageMeter } from "@/components/image/UsageMeter";
+import { LimitReachedModal } from "@/components/image/LimitReachedModal";
+import { getWatermarkState, setWatermarkState } from "@/lib/imageWatermark";
 
 export const Route = createFileRoute("/dashboard/carousel")({
   component: CarouselPage,
