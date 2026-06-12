@@ -189,9 +189,13 @@ function ImageStudioPage() {
 
   // shared
   const [prompt, setPrompt] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState("");
   const [style, setStyle] = useState<(typeof STYLES)[number]["id"]>("photorealistic");
   const [aspect, setAspect] = useState<(typeof ASPECTS)[number]["id"]>("square");
   const [template, setTemplate] = useState<string | undefined>(undefined);
+  const [model, setModel] = useState<ModelId>("flux");
+  const [quality, setQuality] = useState<"standard" | "hd">("standard");
+  const [enhancing, setEnhancing] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
