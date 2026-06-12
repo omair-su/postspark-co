@@ -1371,6 +1371,17 @@ function ImageStudioPage() {
           )}
         </div>
       )}
+
+      <EnhancePromptModal
+        open={enhanceOpen}
+        loading={enhancing}
+        original={enhanceBefore}
+        enhanced={enhancedDraft}
+        onApply={applyEnhanced}
+        onClose={() => setEnhanceOpen(false)}
+      />
+      <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} />
     </div>
   );
 }
+
