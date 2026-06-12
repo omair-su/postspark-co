@@ -392,18 +392,25 @@ function CarouselPage() {
 
           {/* Caption + hashtags */}
           <div className="rounded-2xl border border-border bg-card p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-foreground">Suggested caption</h3>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{caption}</p>
-                <p className="mt-3 text-xs text-primary">{hashtags.map((h) => `#${h}`).join(" ")}</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-foreground">Suggested caption</h3>
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span>Hashtags:</span>
+                {[5, 8, 15, 30].map((n) => (
+                  <button key={n} onClick={() => setHashtagCount(n as 5 | 8 | 15 | 30)}
+                    className={`rounded-md border px-2 py-0.5 font-semibold transition ${hashtagCount === n ? "border-primary bg-primary/10 text-primary" : "border-input hover:bg-accent"}`}>
+                    {n}
+                  </button>
+                ))}
               </div>
             </div>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{caption}</p>
+            <p className="mt-3 text-xs text-primary">{hashtags.slice(0, hashtagCount).map((h) => `#${h}`).join(" ")}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={() => handleCopy(caption, "cap")} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent">
                 {copied === "cap" ? <><Check className="h-3 w-3 text-primary" /> Copied</> : <><Copy className="h-3 w-3" /> Copy caption</>}
               </button>
-              <button onClick={() => handleCopy(hashtags.map((h) => `#${h}`).join(" "), "tags")} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent">
+              <button onClick={() => handleCopy(hashtags.slice(0, hashtagCount).map((h) => `#${h}`).join(" "), "tags")} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent">
                 {copied === "tags" ? <><Check className="h-3 w-3 text-primary" /> Copied</> : <><Copy className="h-3 w-3" /> Copy hashtags</>}
               </button>
               <button onClick={() => handleCopy(allText(), "all")} className="inline-flex items-center gap-1.5 rounded-lg gradient-electric px-2.5 py-1 text-xs font-bold text-primary-foreground hover:opacity-90">
@@ -411,6 +418,7 @@ function CarouselPage() {
               </button>
             </div>
           </div>
+
 
           {/* All slides — inline editing */}
           <div className="rounded-2xl border border-border bg-card p-5">
