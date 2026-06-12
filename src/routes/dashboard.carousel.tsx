@@ -236,10 +236,15 @@ function CarouselPage() {
       const bodyLines = doc.splitTextToSize(slide.body, SIZE - 120);
       doc.text(bodyLines, 60, titleY + titleLines.length * titleSize * 0.7 + 50);
       doc.setFillColor(accent); doc.rect(0, SIZE - 8, SIZE, 8, "F");
+      if (watermarkOn && watermarkText.trim()) {
+        doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(textColor);
+        doc.text(watermarkText.trim(), SIZE - 30, SIZE - 28, { align: "right" });
+      }
     });
     doc.save(`carousel-${Date.now()}.pdf`);
     toast.success("PDF downloaded");
   };
+
 
   return (
     <div className="mx-auto max-w-4xl">
