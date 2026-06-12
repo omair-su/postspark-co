@@ -405,7 +405,8 @@ function ImageStudioPage() {
         data: { topic: carouselTopic.trim(), style, model: "gpt" },
         headers: authHeaders,
       }));
-      if (res.error) {
+      if ((res.error as string) === "LIMIT_REACHED") setLimitOpen(true);
+      else if (res.error) {
         toast.error(res.error);
       } else {
         const slides = (res.results || []).map((r: any, i: number) => ({
@@ -418,6 +419,7 @@ function ImageStudioPage() {
         else {
           setCarouselSlides(ok);
           toast.success(`${ok.length} slides ready`);
+          refreshUsage();
         }
       }
     } catch (e) {
