@@ -2,13 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Download, Copy, Check, ChevronLeft, ChevronRight, Layers, Wand2, Image as ImageIcon, FileText } from "lucide-react";
+import { Loader2, Sparkles, Download, Copy, Check, ChevronLeft, ChevronRight, Layers, Wand2, Image as ImageIcon, FileText, Droplet } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import JSZip from "jszip";
 import { createCarousel, rewriteSlide } from "@/lib/carousel.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { UsageMeter } from "@/components/image/UsageMeter";
+import { LimitReachedModal } from "@/components/image/LimitReachedModal";
+import { getWatermarkState, setWatermarkState } from "@/lib/imageWatermark";
 
 export const Route = createFileRoute("/dashboard/carousel")({
   component: CarouselPage,
@@ -55,6 +58,11 @@ function CarouselPage() {
   const [rewritingIdx, setRewritingIdx] = useState<number | null>(null);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
+  const initialWm = getWatermarkState();
+  const [watermarkOn, setWatermarkOn] = useState<boolean>(initialWm.on);
+  const [watermarkText, setWatermarkText] = useState<string>(initialWm.text);
+  useEffect(() => setWatermarkState(watermarkOn, watermarkText), [watermarkOn, watermarkText]);
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   useEffect(() => {
@@ -94,7 +102,8 @@ function CarouselPage() {
         }),
       );
       if (res.error) {
-        toast.error(res.error === "LIMIT_REACHED" ? "Monthly limit reached. Upgrade to Pro." : res.error);
+        if (res.error === "LIMIT_REACHED") setLimitOpen(true);
+        else toast.error(res.error);
         return;
       }
       setSlides(res.slides);
@@ -227,22 +236,54 @@ function CarouselPage() {
       const bodyLines = doc.splitTextToSize(slide.body, SIZE - 120);
       doc.text(bodyLines, 60, titleY + titleLines.length * titleSize * 0.7 + 50);
       doc.setFillColor(accent); doc.rect(0, SIZE - 8, SIZE, 8, "F");
+      if (watermarkOn && watermarkText.trim()) {
+        doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(textColor);
+        doc.text(watermarkText.trim(), SIZE - 30, SIZE - 28, { align: "right" });
+      }
     });
     doc.save(`carousel-${Date.now()}.pdf`);
     toast.success("PDF downloaded");
   };
 
+
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-electric glow-electric">
-          <Layers className="h-5 w-5 text-primary-foreground" />
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-electric glow-electric">
+            <Layers className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Carousel Generator</h1>
+            <p className="text-sm text-muted-foreground">Branded swipeable slides — edit, rewrite, export.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Carousel Generator</h1>
-          <p className="text-sm text-muted-foreground">Branded swipeable slides — edit, rewrite, export.</p>
-        </div>
+        <UsageMeter refreshKey={slides.length} />
       </div>
+
+      {/* Watermark toggle */}
+      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
+        <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium">
+          <input
+            type="checkbox"
+            checked={watermarkOn}
+            onChange={(e) => setWatermarkOn(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          <Droplet className="h-3.5 w-3.5 text-primary" /> Watermark slides & PDF
+        </label>
+        <input
+          type="text"
+          value={watermarkText}
+          onChange={(e) => setWatermarkText(e.target.value)}
+          maxLength={40}
+          disabled={!watermarkOn}
+          placeholder="@yourbrand"
+          className="w-44 rounded-md border border-input bg-background px-2 py-1 text-xs disabled:opacity-50"
+        />
+        <p className="text-[11px] text-muted-foreground">Applies to PNG & PDF exports.</p>
+      </div>
+
 
       <div className="mt-6 rounded-2xl border border-border bg-card p-5">
         <label className="text-sm font-semibold text-foreground">Topic or angle</label>
@@ -373,6 +414,7 @@ function CarouselPage() {
                       brandName={brandName}
                       handle={handle}
                       logoUrl={kit?.logo_url || null}
+                      watermark={watermarkOn ? watermarkText.trim() : ""}
                     />
                   </div>
                 ))}
@@ -489,9 +531,11 @@ function CarouselPage() {
           </div>
         </div>
       )}
+      <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} feature="carousel" />
     </div>
   );
 }
+
 
 import { forwardRef } from "react";
 const SlideCanvas = forwardRef<HTMLDivElement, {
@@ -505,7 +549,8 @@ const SlideCanvas = forwardRef<HTMLDivElement, {
   brandName: string;
   handle: string;
   logoUrl: string | null;
-}>(function SlideCanvas({ slide, index, total, primary, accent, textColor, subtleColor, brandName, handle, logoUrl }, ref) {
+  watermark?: string;
+}>(function SlideCanvas({ slide, index, total, primary, accent, textColor, subtleColor, brandName, handle, logoUrl, watermark }, ref) {
   return (
     <div
       ref={ref}
@@ -544,6 +589,14 @@ const SlideCanvas = forwardRef<HTMLDivElement, {
           Swipe back · Save · Share
         </div>
       )}
+      {watermark ? (
+        <div
+          className="absolute bottom-3 right-3 rounded-md px-2 py-1 text-[10px] font-semibold"
+          style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
+        >
+          {watermark}
+        </div>
+      ) : null}
     </div>
   );
 });

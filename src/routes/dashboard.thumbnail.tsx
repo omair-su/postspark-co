@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { generateImage } from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { UsageMeter } from "@/components/image/UsageMeter";
+import { LimitReachedModal } from "@/components/image/LimitReachedModal";
+import { getWatermarkState, setWatermarkState, drawWatermarkOnCanvas } from "@/lib/imageWatermark";
+import { Droplet } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/thumbnail")({
   component: ThumbnailPage,
@@ -152,6 +156,11 @@ function ThumbnailPage() {
 
   const [bgUrl, setBgUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
+  const initialWm = getWatermarkState();
+  const [watermarkOn, setWatermarkOn] = useState<boolean>(initialWm.on);
+  const [watermarkText, setWatermarkText] = useState<string>(initialWm.text);
+  useEffect(() => setWatermarkState(watermarkOn, watermarkText), [watermarkOn, watermarkText]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const authHeaders = useMemo(
@@ -181,6 +190,7 @@ function ThumbnailPage() {
           headers: authHeaders,
         }),
       );
+      if (res.error === "LIMIT_REACHED") { setLimitOpen(true); return; }
       if (res.error) toast.error(res.error);
       else if (!res.imageUrl) toast.error("No background returned");
       else {
@@ -321,12 +331,17 @@ function ThumbnailPage() {
     }
 
     try { (ctx as any).letterSpacing = "0px"; } catch {}
+
+    if (watermarkOn && watermarkText.trim()) {
+      drawWatermarkOnCanvas(canvas, watermarkText.trim());
+    }
   };
 
   useEffect(() => {
     draw();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId]);
+  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId, watermarkOn, watermarkText]);
+
 
   const downloadAs = (format: "png" | "jpg") => {
     const canvas = canvasRef.current;
@@ -358,12 +373,39 @@ function ThumbnailPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Thumbnail &amp; Cover Generator</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          AI background + crisp text overlay. Optimized sizes for YouTube, X, LinkedIn, blog &amp; podcast.
-        </p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Thumbnail &amp; Cover Generator</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            AI background + crisp text overlay. Optimized sizes for YouTube, X, LinkedIn, blog &amp; podcast.
+          </p>
+        </div>
+        <UsageMeter refreshKey={bgUrl ? 1 : 0} />
       </div>
+
+      {/* Watermark toggle */}
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
+        <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium">
+          <input
+            type="checkbox"
+            checked={watermarkOn}
+            onChange={(e) => setWatermarkOn(e.target.checked)}
+            className="h-4 w-4 rounded border-input"
+          />
+          <Droplet className="h-3.5 w-3.5 text-primary" /> Watermark on export
+        </label>
+        <input
+          type="text"
+          value={watermarkText}
+          onChange={(e) => setWatermarkText(e.target.value)}
+          maxLength={40}
+          disabled={!watermarkOn}
+          placeholder="@yourbrand"
+          className="w-44 rounded-md border border-input bg-background px-2 py-1 text-xs disabled:opacity-50"
+        />
+        <p className="text-[11px] text-muted-foreground">Live preview updates immediately.</p>
+      </div>
+
 
       <div className="grid gap-6 lg:grid-cols-[360px,1fr]">
         <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
@@ -645,6 +687,8 @@ function ThumbnailPage() {
           </div>
         </div>
       </div>
+      <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} />
     </div>
   );
 }
+

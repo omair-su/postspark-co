@@ -40,6 +40,9 @@ import {
 } from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import JSZip from "jszip";
+import { LimitReachedModal } from "@/components/image/LimitReachedModal";
+import { EnhancePromptModal } from "@/components/image/EnhancePromptModal";
+
 
 export const Route = createFileRoute("/dashboard/image-studio")({
   component: ImageStudioPage,
@@ -200,6 +203,12 @@ function ImageStudioPage() {
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [variations, setVariations] = useState<string[]>([]);
+  const [originalPrompt, setOriginalPrompt] = useState<string | null>(null);
+  const [enhanceOpen, setEnhanceOpen] = useState(false);
+  const [enhancedDraft, setEnhancedDraft] = useState("");
+  const [enhanceBefore, setEnhanceBefore] = useState("");
+  const [limitOpen, setLimitOpen] = useState(false);
+
 
   // edit
   const [uploadedUrl, setUploadedUrl] = useState("");
@@ -305,14 +314,16 @@ function ImageStudioPage() {
     setImageUrl("");
     try {
       const res = await withAIProgress(generateImage({
-        data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined },
+        data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined, originalPrompt: originalPrompt || undefined },
         headers: authHeaders,
       }));
-      if (res.error) toast.error(res.error);
+      if (res.error === "LIMIT_REACHED") { setLimitOpen(true); }
+      else if (res.error) toast.error(res.error);
       else if (!res.imageUrl) toast.error("No image returned");
       else {
         setImageUrl(res.imageUrl);
         toast.success("Image ready");
+        refreshUsage();
       }
     } catch (e) {
       console.error(e);
@@ -325,23 +336,34 @@ function ImageStudioPage() {
   const handleEnhance = async () => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Add a basic prompt first");
+    const before = prompt.trim();
+    setEnhanceBefore(before);
+    setEnhancedDraft("");
+    setEnhanceOpen(true);
     setEnhancing(true);
     try {
       const r = await enhancePromptFn({
-        data: { prompt: prompt.trim(), model, style },
+        data: { prompt: before, model, style },
         headers: authHeaders,
       });
       if (r.error) toast.error(r.error);
-      else if (r.prompt) {
-        setPrompt(r.prompt);
-        toast.success("Prompt enhanced with AI");
-      }
+      setEnhancedDraft(r.prompt || "");
     } catch {
       toast.error("Enhancer failed");
+      setEnhanceOpen(false);
     } finally {
       setEnhancing(false);
     }
   };
+
+  const applyEnhanced = () => {
+    if (!enhancedDraft) return;
+    setOriginalPrompt(enhanceBefore);
+    setPrompt(enhancedDraft);
+    setEnhanceOpen(false);
+    toast.success("Enhanced prompt applied — original preserved");
+  };
+
 
   const handleVariations = async () => {
     if (!session) return toast.error("Please sign in");
@@ -353,7 +375,8 @@ function ImageStudioPage() {
         data: { prompt: prompt.trim(), style, aspect, template, count: 4, model, quality },
         headers: authHeaders,
       }));
-      if (res.error) {
+      if ((res.error as string) === "LIMIT_REACHED") setLimitOpen(true);
+      else if (res.error) {
         toast.error(res.error);
       } else {
         const urls = (res.results || []).map((r: any) => r.imageUrl).filter(Boolean);
@@ -361,6 +384,7 @@ function ImageStudioPage() {
         else {
           setVariations(urls);
           toast.success(`${urls.length} variations ready`);
+          refreshUsage();
         }
       }
     } catch (e) {
@@ -381,7 +405,8 @@ function ImageStudioPage() {
         data: { topic: carouselTopic.trim(), style, model: "gpt" },
         headers: authHeaders,
       }));
-      if (res.error) {
+      if ((res.error as string) === "LIMIT_REACHED") setLimitOpen(true);
+      else if (res.error) {
         toast.error(res.error);
       } else {
         const slides = (res.results || []).map((r: any, i: number) => ({
@@ -394,6 +419,7 @@ function ImageStudioPage() {
         else {
           setCarouselSlides(ok);
           toast.success(`${ok.length} slides ready`);
+          refreshUsage();
         }
       }
     } catch (e) {
@@ -810,7 +836,7 @@ function ImageStudioPage() {
               </div>
               <textarea
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={(e) => { setPrompt(e.target.value); setOriginalPrompt(null); }}
                 rows={4}
                 placeholder="e.g. A laptop on a sunlit desk with coffee, soft morning light"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -1349,6 +1375,17 @@ function ImageStudioPage() {
           )}
         </div>
       )}
+
+      <EnhancePromptModal
+        open={enhanceOpen}
+        loading={enhancing}
+        original={enhanceBefore}
+        enhanced={enhancedDraft}
+        onApply={applyEnhanced}
+        onClose={() => setEnhanceOpen(false)}
+      />
+      <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} />
     </div>
   );
 }
+
