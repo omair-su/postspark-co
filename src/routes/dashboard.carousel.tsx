@@ -414,13 +414,22 @@ function CarouselPage() {
 
           {/* All slides — inline editing */}
           <div className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="text-sm font-semibold text-foreground">Edit slides</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">Edit slides</h3>
+              <button onClick={addSlide} className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10">
+                + Add slide
+              </button>
+            </div>
             <ol className="mt-3 space-y-3">
               {slides.map((s, i) => (
                 <li key={i} className="rounded-lg border border-border bg-background p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{s.kind} · slide {i + 1}</span>
                     <div className="flex gap-1.5">
+                      <button onClick={() => moveSlide(i, -1)} disabled={i === 0}
+                        className="rounded-md border border-border px-1.5 py-1 text-[11px] hover:bg-accent disabled:opacity-30" aria-label="Move up">↑</button>
+                      <button onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
+                        className="rounded-md border border-border px-1.5 py-1 text-[11px] hover:bg-accent disabled:opacity-30" aria-label="Move down">↓</button>
                       <button onClick={() => setEditingIdx(editingIdx === i ? null : i)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent">
                         {editingIdx === i ? "Done" : "Edit"}
                       </button>
@@ -430,6 +439,9 @@ function CarouselPage() {
                       <button onClick={() => handleCopy(`${s.title}\n\n${s.body}`, `s${i}`)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent">
                         {copied === `s${i}` ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
                       </button>
+                      <button onClick={() => deleteSlide(i)} disabled={slides.length <= 3}
+                        className="rounded-md border border-destructive/40 bg-destructive/5 px-1.5 py-1 text-[11px] text-destructive hover:bg-destructive/10 disabled:opacity-30"
+                        aria-label="Delete slide">×</button>
                     </div>
                   </div>
                   {editingIdx === i ? (
