@@ -190,6 +190,7 @@ function ThumbnailPage() {
           headers: authHeaders,
         }),
       );
+      if (res.error === "LIMIT_REACHED") { setLimitOpen(true); return; }
       if (res.error) toast.error(res.error);
       else if (!res.imageUrl) toast.error("No background returned");
       else {
