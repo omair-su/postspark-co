@@ -322,6 +322,27 @@ function ImageStudioPage() {
     }
   };
 
+  const handleEnhance = async () => {
+    if (!session) return toast.error("Please sign in");
+    if (prompt.trim().length < 3) return toast.error("Add a basic prompt first");
+    setEnhancing(true);
+    try {
+      const r = await enhancePromptFn({
+        data: { prompt: prompt.trim(), model, style },
+        headers: authHeaders,
+      });
+      if (r.error) toast.error(r.error);
+      else if (r.prompt) {
+        setPrompt(r.prompt);
+        toast.success("Prompt enhanced with AI");
+      }
+    } catch {
+      toast.error("Enhancer failed");
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
   const handleVariations = async () => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
