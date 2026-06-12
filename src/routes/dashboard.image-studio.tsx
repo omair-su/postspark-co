@@ -375,7 +375,8 @@ function ImageStudioPage() {
         data: { prompt: prompt.trim(), style, aspect, template, count: 4, model, quality },
         headers: authHeaders,
       }));
-      if (res.error) {
+      if (res.error === "LIMIT_REACHED") setLimitOpen(true);
+      else if (res.error) {
         toast.error(res.error);
       } else {
         const urls = (res.results || []).map((r: any) => r.imageUrl).filter(Boolean);
@@ -383,6 +384,7 @@ function ImageStudioPage() {
         else {
           setVariations(urls);
           toast.success(`${urls.length} variations ready`);
+          refreshUsage();
         }
       }
     } catch (e) {
