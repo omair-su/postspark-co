@@ -687,6 +687,8 @@ function ThumbnailPage() {
           </div>
         </div>
       </div>
+      <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} />
     </div>
   );
 }
+
