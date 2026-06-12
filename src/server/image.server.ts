@@ -447,10 +447,12 @@ export async function editImage(
   ]);
 }
 
-// Generate a 5-slide Instagram carousel with consistent style/typography
+// Generate a 5-slide Instagram carousel with consistent style/typography.
+// Carousels default to gpt-image-2 for accurate text rendering inside slides.
 export async function generateCarouselSet(
   topic: string,
   style: string,
+  model: ImageModel = "gpt",
 ): Promise<{ results: ImageGenResult[]; slides: { title: string; body: string }[] }> {
   // Step 1: ask a text model for slide copy + a shared visual style descriptor
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
