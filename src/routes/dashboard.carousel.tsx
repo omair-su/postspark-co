@@ -520,7 +520,8 @@ const SlideCanvas = forwardRef<HTMLDivElement, {
   brandName: string;
   handle: string;
   logoUrl: string | null;
-}>(function SlideCanvas({ slide, index, total, primary, accent, textColor, subtleColor, brandName, handle, logoUrl }, ref) {
+  watermark?: string;
+}>(function SlideCanvas({ slide, index, total, primary, accent, textColor, subtleColor, brandName, handle, logoUrl, watermark }, ref) {
   return (
     <div
       ref={ref}
