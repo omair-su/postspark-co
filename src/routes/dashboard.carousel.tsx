@@ -387,6 +387,7 @@ function CarouselPage() {
                       brandName={brandName}
                       handle={handle}
                       logoUrl={kit?.logo_url || null}
+                      watermark={watermarkOn ? watermarkText.trim() : ""}
                     />
                   </div>
                 ))}
