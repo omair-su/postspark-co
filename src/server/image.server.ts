@@ -515,7 +515,7 @@ export async function generateCarouselSet(
       styleHints[style] || styleHints.minimal,
       "Premium social-media design, share-worthy.",
     ].join(" ");
-    return generateFromPrompt(slidePrompt, "square");
+    return generateFromPrompt(slidePrompt, "square", model);
   });
 
   const results = await Promise.all(tasks);
