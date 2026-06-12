@@ -314,14 +314,16 @@ function ImageStudioPage() {
     setImageUrl("");
     try {
       const res = await withAIProgress(generateImage({
-        data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined },
+        data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined, originalPrompt: originalPrompt || undefined },
         headers: authHeaders,
       }));
-      if (res.error) toast.error(res.error);
+      if (res.error === "LIMIT_REACHED") { setLimitOpen(true); }
+      else if (res.error) toast.error(res.error);
       else if (!res.imageUrl) toast.error("No image returned");
       else {
         setImageUrl(res.imageUrl);
         toast.success("Image ready");
+        refreshUsage();
       }
     } catch (e) {
       console.error(e);
@@ -334,23 +336,34 @@ function ImageStudioPage() {
   const handleEnhance = async () => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Add a basic prompt first");
+    const before = prompt.trim();
+    setEnhanceBefore(before);
+    setEnhancedDraft("");
+    setEnhanceOpen(true);
     setEnhancing(true);
     try {
       const r = await enhancePromptFn({
-        data: { prompt: prompt.trim(), model, style },
+        data: { prompt: before, model, style },
         headers: authHeaders,
       });
       if (r.error) toast.error(r.error);
-      else if (r.prompt) {
-        setPrompt(r.prompt);
-        toast.success("Prompt enhanced with AI");
-      }
+      setEnhancedDraft(r.prompt || "");
     } catch {
       toast.error("Enhancer failed");
+      setEnhanceOpen(false);
     } finally {
       setEnhancing(false);
     }
   };
+
+  const applyEnhanced = () => {
+    if (!enhancedDraft) return;
+    setOriginalPrompt(enhanceBefore);
+    setPrompt(enhancedDraft);
+    setEnhanceOpen(false);
+    toast.success("Enhanced prompt applied — original preserved");
+  };
+
 
   const handleVariations = async () => {
     if (!session) return toast.error("Please sign in");
