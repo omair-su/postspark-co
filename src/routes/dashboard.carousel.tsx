@@ -126,6 +126,32 @@ function CarouselPage() {
   const updateSlide = (idx: number, patch: Partial<Slide>) =>
     setSlides((prev) => prev.map((x, i) => i === idx ? { ...x, ...patch } : x));
 
+  const moveSlide = (idx: number, dir: -1 | 1) => {
+    setSlides((prev) => {
+      const next = [...prev];
+      const j = idx + dir;
+      if (j < 0 || j >= next.length) return prev;
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+    setActive((a) => Math.min(slides.length - 1, Math.max(0, a + dir)));
+  };
+  const deleteSlide = (idx: number) => {
+    if (slides.length <= 3) return toast.error("Keep at least 3 slides");
+    setSlides((prev) => prev.filter((_, i) => i !== idx));
+    setActive((a) => Math.max(0, Math.min(a, slides.length - 2)));
+  };
+  const addSlide = () => {
+    setSlides((prev) => {
+      const next = [...prev];
+      // Insert before CTA if last slide is cta, else at end
+      const lastIsCta = next[next.length - 1]?.kind === "cta";
+      const insertAt = lastIsCta ? next.length - 1 : next.length;
+      next.splice(insertAt, 0, { title: "New slide", body: "Add your insight here.", kind: "content" });
+      return next;
+    });
+  };
+
   const handleCopy = async (text: string, id: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(id);
