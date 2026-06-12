@@ -156,6 +156,11 @@ function ThumbnailPage() {
 
   const [bgUrl, setBgUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
+  const initialWm = getWatermarkState();
+  const [watermarkOn, setWatermarkOn] = useState<boolean>(initialWm.on);
+  const [watermarkText, setWatermarkText] = useState<string>(initialWm.text);
+  useEffect(() => setWatermarkState(watermarkOn, watermarkText), [watermarkOn, watermarkText]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const authHeaders = useMemo(
