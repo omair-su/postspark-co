@@ -102,7 +102,8 @@ function CarouselPage() {
         }),
       );
       if (res.error) {
-        toast.error(res.error === "LIMIT_REACHED" ? "Monthly limit reached. Upgrade to Pro." : res.error);
+        if (res.error === "LIMIT_REACHED") setLimitOpen(true);
+        else toast.error(res.error);
         return;
       }
       setSlides(res.slides);
