@@ -378,7 +378,7 @@ function ImageStudioPage() {
     setCarouselSlides([]);
     try {
       const res: any = await withAIProgress(generateCarousel({
-        data: { topic: carouselTopic.trim(), style },
+        data: { topic: carouselTopic.trim(), style, model: "gpt" },
         headers: authHeaders,
       }));
       if (res.error) {
