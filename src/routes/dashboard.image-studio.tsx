@@ -305,7 +305,7 @@ function ImageStudioPage() {
     setImageUrl("");
     try {
       const res = await withAIProgress(generateImage({
-        data: { prompt: prompt.trim(), style, aspect, template },
+        data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined },
         headers: authHeaders,
       }));
       if (res.error) toast.error(res.error);
