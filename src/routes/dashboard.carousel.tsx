@@ -226,37 +226,68 @@ function CarouselPage() {
           placeholder="e.g. 7 mistakes founders make on LinkedIn"
           className="mt-2 h-24 w-full resize-none rounded-lg border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div>
             <label className="text-xs font-medium text-muted-foreground">Audience (optional)</label>
             <input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="solo founders" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">Tone</label>
-            <select value={tone} onChange={(e) => setTone(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
-              {["authoritative", "playful", "professional", "bold", "educational", "story-driven"].map((v) => <option key={v} value={v}>{v}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Slides</label>
-            <select value={slideCount} onChange={(e) => setSlideCount(parseInt(e.target.value, 10))} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
-              {[6, 7, 8, 9, 10].map((n) => <option key={n} value={n}>{n} slides</option>)}
-            </select>
+            <label className="text-xs font-medium text-muted-foreground">Platform</label>
+            <div className="mt-1 flex gap-1.5">
+              {PLATFORMS.map((p) => (
+                <button key={p.id} onClick={() => setPlatform(p.id)}
+                  className={`flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition ${platform === p.id ? "border-primary bg-primary/10 text-foreground" : "border-input bg-background text-muted-foreground hover:bg-accent"}`}>
+                  <span className="mr-1">{p.icon}</span>{p.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="mt-4">
-          <label className="text-xs font-medium text-muted-foreground">Theme</label>
-          <div className="mt-1 flex flex-wrap gap-2">
-            {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-              <button
-                key={id}
-                onClick={() => setTheme(id)}
-                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold capitalize transition ${theme === id ? "border-primary bg-primary/10 text-foreground" : "border-input bg-background text-muted-foreground hover:bg-accent"}`}
-              >
-                {THEMES[id].label}
+          <label className="text-xs font-medium text-muted-foreground">Tone</label>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {TONES.map((v) => (
+              <button key={v} onClick={() => setTone(v)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition ${tone === v ? "border-primary bg-primary/10 text-foreground" : "border-input bg-background text-muted-foreground hover:bg-accent"}`}>
+                {v}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="text-xs font-medium text-muted-foreground">Slides</label>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {[6, 7, 8, 9, 10].map((n) => (
+              <button key={n} onClick={() => setSlideCount(n)}
+                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${slideCount === n ? "border-primary bg-primary/10 text-foreground" : "border-input bg-background text-muted-foreground hover:bg-accent"}`}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="text-xs font-medium text-muted-foreground">Theme — preview before generating</label>
+          <div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {(Object.keys(THEMES) as ThemeId[]).map((id) => {
+              const previewStyles: Record<ThemeId, React.CSSProperties> = {
+                brand: { background: "linear-gradient(135deg,#1a1a2e,#7c3aed)", color: "#fff" },
+                minimal: { background: "#fafafa", color: "#111" },
+                bold: { background: "#000", color: "#facc15" },
+                neon: { background: "#0b0014", color: "#22d3ee", textShadow: "0 0 8px rgba(34,211,238,0.8)" },
+              };
+              return (
+                <button key={id} onClick={() => setTheme(id)}
+                  className={`overflow-hidden rounded-xl border-2 transition ${theme === id ? "border-primary" : "border-input hover:border-primary/40"}`}>
+                  <div className="flex h-14 items-center justify-center text-[11px] font-bold" style={previewStyles[id]}>
+                    {THEMES[id].label}
+                  </div>
+                  <div className="bg-background px-2 py-1 text-center text-[11px] font-semibold text-foreground">{THEMES[id].label}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
