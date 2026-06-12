@@ -560,6 +560,14 @@ const SlideCanvas = forwardRef<HTMLDivElement, {
           Swipe back · Save · Share
         </div>
       )}
+      {watermark ? (
+        <div
+          className="absolute bottom-3 right-3 rounded-md px-2 py-1 text-[10px] font-semibold"
+          style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
+        >
+          {watermark}
+        </div>
+      ) : null}
     </div>
   );
 });
