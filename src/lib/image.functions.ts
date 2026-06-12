@@ -160,6 +160,7 @@ export const generateImage = createServerFn({ method: "POST" })
       model: IMAGE_MODEL,
       quality: QUALITY,
       negativePrompt: z.string().max(500).optional(),
+      originalPrompt: z.string().max(2000).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -193,13 +194,22 @@ export const generateImage = createServerFn({ method: "POST" })
       await logToHistory({
         userId,
         tool: isThumb ? "thumbnail" : "image",
-        title: data.prompt.slice(0, 80),
-        inputText: data.prompt,
-        outputs: { image_url: res.imageUrl, style: data.style, aspect: data.aspect, template: data.template || "", model: data.model },
+        title: (data.originalPrompt || data.prompt).slice(0, 80),
+        inputText: data.originalPrompt || data.prompt,
+        outputs: {
+          image_url: res.imageUrl,
+          style: data.style,
+          aspect: data.aspect,
+          template: data.template || "",
+          model: data.model,
+          prompt: data.prompt,
+          original_prompt: data.originalPrompt || null,
+        },
       });
     }
     return res;
   });
+
 
 export const enhancePrompt = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
