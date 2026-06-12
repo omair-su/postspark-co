@@ -111,6 +111,21 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines;
 }
 
+type ModelId = "flux" | "gpt" | "gemini";
+type FontFamily = "display" | "sans" | "serif" | "mono" | "condensed" | "slab" | "handwritten";
+type FontWeight = 300 | 500 | 700 | 900;
+
+const COLOR_SWATCHES = ["#ffffff", "#000000", "#7c3aed", "#facc15", "#ef4444", "#059669", "#1da1f2", "#f97316"];
+const FONT_FAMILIES: { id: FontFamily; label: string; css: string }[] = [
+  { id: "display", label: "Display", css: '"Inter", system-ui, sans-serif' },
+  { id: "sans", label: "Sans", css: '"Inter", system-ui, sans-serif' },
+  { id: "serif", label: "Serif", css: '"Instrument Serif", Georgia, serif' },
+  { id: "mono", label: "Mono", css: '"JetBrains Mono", Menlo, monospace' },
+  { id: "condensed", label: "Condensed", css: '"Arial Narrow", "Inter", sans-serif' },
+  { id: "slab", label: "Slab", css: 'Rockwell, "Roboto Slab", serif' },
+  { id: "handwritten", label: "Hand", css: '"Caveat", "Brush Script MT", cursive' },
+];
+
 function ThumbnailPage() {
   const { session } = useAuth();
   const [presetId, setPresetId] = useState<string>("youtube");
@@ -123,7 +138,17 @@ function ThumbnailPage() {
   const [accentColor, setAccentColor] = useState("#facc15");
   const [position, setPosition] = useState<(typeof POSITIONS)[number]["id"]>("bottom-left");
   const [overlayStrength, setOverlayStrength] = useState(0.55);
-  const [fontFamily, setFontFamily] = useState<"display" | "serif" | "mono">("display");
+  const [fontFamily, setFontFamily] = useState<FontFamily>("display");
+  const [fontWeight, setFontWeight] = useState<FontWeight>(900);
+  const [fontScale, setFontScale] = useState(1.0); // multiplier of base size
+  const [letterSpacing, setLetterSpacing] = useState(0); // px
+  const [allCaps, setAllCaps] = useState(false);
+  const [textShadow, setTextShadow] = useState(true);
+  const [shadowBlur, setShadowBlur] = useState(0.15);
+  const [textOutline, setTextOutline] = useState(false);
+  const [outlineColor, setOutlineColor] = useState("#000000");
+  const [outlineWidth, setOutlineWidth] = useState(2);
+  const [model, setModel] = useState<ModelId>("gpt");
 
   const [bgUrl, setBgUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
