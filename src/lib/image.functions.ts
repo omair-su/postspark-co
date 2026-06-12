@@ -153,10 +153,13 @@ export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      prompt: z.string().min(3).max(1000),
+      prompt: z.string().min(3).max(2000),
       style: z.string().min(1).max(40),
       aspect: z.enum(["square", "portrait", "landscape"]),
       template: z.string().max(40).optional(),
+      model: IMAGE_MODEL,
+      quality: QUALITY,
+      negativePrompt: z.string().max(500).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -166,7 +169,15 @@ export const generateImage = createServerFn({ method: "POST" })
       return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)) && data.template !== "thumbnail" && data.template !== "blog-cover")
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
-    const res = await generateSocialImage(data.prompt, data.style, data.aspect, data.template);
+    const res = await generateSocialImage(
+      data.prompt,
+      data.style,
+      data.aspect,
+      data.template,
+      data.model,
+      data.quality,
+      data.negativePrompt,
+    );
     if (res.imageUrl) {
       const persisted = await persistGeneratedImage({
         userId,
@@ -184,10 +195,23 @@ export const generateImage = createServerFn({ method: "POST" })
         tool: isThumb ? "thumbnail" : "image",
         title: data.prompt.slice(0, 80),
         inputText: data.prompt,
-        outputs: { image_url: res.imageUrl, style: data.style, aspect: data.aspect, template: data.template || "" },
+        outputs: { image_url: res.imageUrl, style: data.style, aspect: data.aspect, template: data.template || "", model: data.model },
       });
     }
     return res;
+  });
+
+export const enhancePrompt = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      prompt: z.string().min(3).max(2000),
+      model: IMAGE_MODEL,
+      style: z.string().max(40).optional(),
+    }).parse,
+  )
+  .handler(async ({ data }) => {
+    return enhanceImagePrompt(data.prompt, data.model, data.style);
   });
 
 export const generateImageVariations = createServerFn({ method: "POST" })
