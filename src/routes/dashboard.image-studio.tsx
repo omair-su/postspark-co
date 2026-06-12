@@ -769,8 +769,45 @@ function ImageStudioPage() {
                 </button>
               </div>
             )}
+            {/* AI Model selector */}
             <div>
-              <label className="mb-2 block text-sm font-medium">Describe your image</label>
+              <label className="mb-2 block text-sm font-medium">AI Model</label>
+              <div className="grid grid-cols-3 gap-2">
+                {MODELS.map((m) => {
+                  const selected = model === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setModel(m.id)}
+                      className={`relative rounded-xl border-2 p-3 text-left transition-all ${selected ? "shadow-sm" : "border-input bg-background hover:border-primary/40"}`}
+                      style={selected ? { borderColor: m.color, background: `${m.color}0d` } : undefined}
+                    >
+                      <div className="inline-block rounded-md px-1.5 py-0.5 text-[10px] font-bold" style={{ color: m.color, background: `${m.color}1a` }}>
+                        {m.badge}
+                      </div>
+                      <div className="mt-1.5 text-xs font-semibold text-foreground">{m.name}</div>
+                      <div className="text-[11px] text-muted-foreground leading-tight">{m.desc}</div>
+                      <div className="mt-1.5 border-t border-border/60 pt-1 text-[10px] text-muted-foreground">{m.cost}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              {model === "gpt" && (
+                <p className="mt-1.5 text-[11px] text-emerald-600">✦ GPT Image 2 renders exact text into your image — best for thumbnails & graphics.</p>
+              )}
+            </div>
+
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="block text-sm font-medium">Describe your image</label>
+                <button
+                  onClick={handleEnhance}
+                  disabled={enhancing || prompt.trim().length < 3}
+                  className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-[11px] font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  {enhancing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} Enhance with AI
+                </button>
+              </div>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -781,23 +818,49 @@ function ImageStudioPage() {
             </div>
 
             <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Negative prompt — what to avoid (optional)</label>
+              <input
+                value={negativePrompt}
+                onChange={(e) => setNegativePrompt(e.target.value)}
+                maxLength={300}
+                placeholder="blurry, watermark, extra fingers, low quality"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <div>
               <label className="mb-2 block text-sm font-medium">Style</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {STYLES.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => setStyle(s.id)}
-                    className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                      style === s.id
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-input bg-background hover:bg-accent"
+                    className={`rounded-lg border px-2 py-2 text-center text-xs font-medium transition-colors ${
+                      style === s.id ? "border-primary bg-primary/10 text-primary" : "border-input bg-background hover:bg-accent"
                     }`}
                   >
-                    {s.label}
+                    <div className="text-base leading-none">{s.icon}</div>
+                    <div className="mt-1 leading-tight">{s.label}</div>
                   </button>
                 ))}
               </div>
             </div>
+
+            {model === "gpt" && (
+              <div>
+                <label className="mb-2 block text-sm font-medium">Quality</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setQuality("standard")}
+                    className={`rounded-lg border px-3 py-2 text-xs font-medium ${quality === "standard" ? "border-primary bg-primary/10" : "border-input bg-background hover:bg-accent"}`}
+                  >Standard</button>
+                  <button
+                    onClick={() => setQuality("hd")}
+                    className={`rounded-lg border px-3 py-2 text-xs font-medium ${quality === "hd" ? "border-primary bg-primary/10" : "border-input bg-background hover:bg-accent"}`}
+                  >HD · higher detail</button>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="mb-2 block text-sm font-medium">Aspect ratio</label>
