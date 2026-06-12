@@ -531,9 +531,11 @@ function CarouselPage() {
           </div>
         </div>
       )}
+      <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} feature="carousel" />
     </div>
   );
 }
+
 
 import { forwardRef } from "react";
 const SlideCanvas = forwardRef<HTMLDivElement, {
