@@ -40,6 +40,8 @@ function buildPrompt(prompt: string, style?: string, aspect?: string, template?:
   return parts.join(". ");
 }
 
+export type ImageModel = "auto" | "flux" | "gpt" | "gemini";
+
 // Stable image models in fallback order. Lovable AI Gateway is used as the
 // fallback when Replicate is unavailable or for image-edit (multimodal) calls.
 const IMAGE_MODELS = [
@@ -52,6 +54,67 @@ const REPLICATE_ASPECT: Record<string, string> = {
   portrait: "9:16",
   landscape: "16:9",
 };
+
+const OPENAI_SIZE: Record<string, string> = {
+  square: "1024x1024",
+  portrait: "1024x1792",
+  landscape: "1792x1024",
+};
+
+// OpenAI gpt-image-2 (text-perfect image generation). Falls back to
+// gpt-image-1 if the requested model id is rejected.
+async function callOpenAIImage(
+  prompt: string,
+  aspect: "square" | "portrait" | "landscape" = "square",
+  quality: "standard" | "hd" = "standard",
+): Promise<ImageGenResult> {
+  const key = process.env.Openai_api || process.env.OPENAI_API_KEY;
+  if (!key) return { imageUrl: "", error: "OpenAI key not configured" };
+
+  const size = OPENAI_SIZE[aspect] || "1024x1024";
+  const models = ["gpt-image-2", "gpt-image-1"];
+  let lastErr = "OpenAI image generation failed";
+
+  for (const model of models) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 55_000);
+      const res = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          prompt: prompt.slice(0, 4000),
+          n: 1,
+          size,
+          quality: quality === "hd" ? "high" : "medium",
+        }),
+      }).finally(() => clearTimeout(t));
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error(`OpenAI ${model} error:`, res.status, text.slice(0, 300));
+        if (res.status === 401) return { imageUrl: "", error: "OpenAI auth failed. Check Openai_api secret." };
+        if (res.status === 429) return { imageUrl: "", error: "OpenAI rate limit reached. Try again shortly." };
+        if (res.status === 402) return { imageUrl: "", error: "OpenAI billing issue — add credits at platform.openai.com." };
+        // Unknown model → try fallback (gpt-image-1)
+        if ((res.status === 400 || res.status === 404) && /model/i.test(text)) { lastErr = `OpenAI ${model} unavailable`; continue; }
+        lastErr = `OpenAI error (${res.status})`;
+        continue;
+      }
+      const j: any = await res.json();
+      const item = j?.data?.[0];
+      if (item?.b64_json) return { imageUrl: `data:image/png;base64,${item.b64_json}` };
+      if (item?.url) return { imageUrl: item.url };
+      lastErr = "OpenAI returned no image";
+    } catch (err: any) {
+      console.error(`OpenAI ${model} request error:`, err?.message || err);
+      lastErr = "Failed to reach OpenAI";
+    }
+  }
+  return { imageUrl: "", error: lastErr };
+}
 
 // Replicate Flux 1.1 Pro — premium photorealistic generation.
 // Worker-friendly async pattern: create prediction (returns instantly with an ID),
