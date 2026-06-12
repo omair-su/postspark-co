@@ -375,7 +375,7 @@ function ImageStudioPage() {
         data: { prompt: prompt.trim(), style, aspect, template, count: 4, model, quality },
         headers: authHeaders,
       }));
-      if (res.error === "LIMIT_REACHED") setLimitOpen(true);
+      if ((res.error as string) === "LIMIT_REACHED") setLimitOpen(true);
       else if (res.error) {
         toast.error(res.error);
       } else {
