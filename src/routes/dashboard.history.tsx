@@ -86,13 +86,29 @@ function HistoryPage() {
 
   const filteredJobs = jobs.filter((j) => {
     if (filterFav && !j.is_favorite) return false;
+    if (filterTool !== "all" && (j.tool || "repurpose") !== filterTool) return false;
+    if (filterModel !== "all") {
+      const m = (j.outputs as any)?.model || "";
+      if (m !== filterModel) return false;
+    }
+    if (filterRange !== "all") {
+      const days = Number(filterRange);
+      const cutoff = Date.now() - days * 86_400_000;
+      if (new Date(j.created_at).getTime() < cutoff) return false;
+    }
     if (search) {
       const q = search.toLowerCase();
-      const hay = `${j.title || ""} ${j.input_text}`.toLowerCase();
+      const promptText = (j.outputs as any)?.prompt || (j.outputs as any)?.original_prompt || "";
+      const hay = `${j.title || ""} ${j.input_text} ${promptText}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
+
+  const availableModels = Array.from(
+    new Set(jobs.map((j) => (j.outputs as any)?.model).filter(Boolean) as string[]),
+  );
+  const availableTools = Array.from(new Set(jobs.map((j) => j.tool || "repurpose")));
 
   const handleBulkDelete = async () => {
     if (!session) return;
