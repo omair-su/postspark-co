@@ -11,7 +11,11 @@ import {
   generateCaption,
   removeBackground as removeBackgroundServer,
   upscaleImage as upscaleImageServer,
+  enhanceImagePrompt,
 } from "@/server/image.server";
+
+const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
+const QUALITY = z.enum(["standard", "hd"]).default("standard");
 
 const FREE_MONTHLY_LIMIT = 5; // free tier preview generations
 const PRO_MONTHLY_LIMIT = 500; // soft cap for Pro/Agency
