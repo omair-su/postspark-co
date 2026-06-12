@@ -329,7 +329,7 @@ function ImageStudioPage() {
     setVariations([]);
     try {
       const res = await withAIProgress(generateImageVariations({
-        data: { prompt: prompt.trim(), style, aspect, template, count: 4 },
+        data: { prompt: prompt.trim(), style, aspect, template, count: 4, model, quality },
         headers: authHeaders,
       }));
       if (res.error) {
