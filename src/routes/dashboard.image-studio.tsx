@@ -203,6 +203,12 @@ function ImageStudioPage() {
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [variations, setVariations] = useState<string[]>([]);
+  const [originalPrompt, setOriginalPrompt] = useState<string | null>(null);
+  const [enhanceOpen, setEnhanceOpen] = useState(false);
+  const [enhancedDraft, setEnhancedDraft] = useState("");
+  const [enhanceBefore, setEnhanceBefore] = useState("");
+  const [limitOpen, setLimitOpen] = useState(false);
+
 
   // edit
   const [uploadedUrl, setUploadedUrl] = useState("");
