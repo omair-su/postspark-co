@@ -264,6 +264,9 @@ function CarouselPage() {
           <UsageMeter refreshKey={slides.length} />
           <ModelHealthBadge compact />
         </div>
+      </div>
+
+
 
       {/* Watermark toggle */}
       <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
