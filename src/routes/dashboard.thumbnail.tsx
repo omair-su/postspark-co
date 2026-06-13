@@ -160,6 +160,9 @@ function ThumbnailPage() {
   const [outlineColor, setOutlineColor] = useState("#000000");
   const [outlineWidth, setOutlineWidth] = useState(2);
   const [model, setModel] = useState<ModelId>("gpt");
+  const [styleId, setStyleId] = useState<ThumbnailStyleId>("mrbeast");
+  // When ON + model=gpt, the AI-generated image IS the final thumbnail (no canvas text overlay).
+  const [pureGptMode, setPureGptMode] = useState(true);
 
   const [bgUrl, setBgUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
