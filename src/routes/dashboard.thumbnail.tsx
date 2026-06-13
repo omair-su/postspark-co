@@ -386,7 +386,7 @@ function ThumbnailPage() {
   useEffect(() => {
     draw();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId, watermarkOn, watermarkText]);
+  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId, watermarkOn, watermarkText, pureGptMode, model]);
 
 
   const downloadAs = (format: "png" | "jpg") => {
