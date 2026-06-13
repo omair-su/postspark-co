@@ -20,7 +20,7 @@ import { UsageMeter } from "@/components/image/UsageMeter";
 import { LimitReachedModal } from "@/components/image/LimitReachedModal";
 import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
 import { getWatermarkState, setWatermarkState, drawWatermarkOnCanvas } from "@/lib/imageWatermark";
-import { Droplet, Wand2, Sparkle } from "lucide-react";
+import { Droplet } from "lucide-react";
 import {
   THUMBNAIL_STYLES,
   THUMBNAIL_STARTERS,
