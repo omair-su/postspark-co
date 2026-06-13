@@ -544,9 +544,53 @@ function ThumbnailPage() {
               ))}
             </div>
             {model === "gpt" && (
-              <p className="mt-1 text-[10px] text-emerald-600">✦ Renders headline + subhead text directly into the image.</p>
+              <label className="mt-2 flex cursor-pointer items-start gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-2">
+                <input
+                  type="checkbox"
+                  checked={pureGptMode}
+                  onChange={(e) => setPureGptMode(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 rounded"
+                />
+                <span className="text-[11px] leading-tight">
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400">Pure GPT mode</span>
+                  <span className="block text-muted-foreground">
+                    AI renders the entire finished thumbnail (text + design). No canvas overlay. Best for click-worthy YouTube covers.
+                  </span>
+                </span>
+              </label>
+            )}
+            {model !== "gpt" && (
+              <p className="mt-1 text-[10px] text-muted-foreground">Background only — crisp text rendered on canvas.</p>
             )}
           </div>
+
+          {/* Style preset (drives the mega-prompt) */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Visual style <span className="text-[10px] font-normal text-muted-foreground">— shapes the AI direction</span>
+            </label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {THUMBNAIL_STYLES.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    setStyleId(s.id);
+                    setHeadlineColor(s.defaultHeadlineColor);
+                    setAccentColor(s.defaultAccentColor);
+                  }}
+                  className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[11px] font-medium transition ${
+                    styleId === s.id
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-input bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent"
+                  }`}
+                >
+                  <span>{s.emoji}</span>
+                  <span className="truncate">{s.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
 
           <div>
             <label className="mb-2 block text-sm font-medium">Background prompt</label>
