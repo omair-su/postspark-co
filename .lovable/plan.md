@@ -1,114 +1,177 @@
 
-# PostSpark — Traffic & Conversion SEO/GEO Plan
+# Visual Suite v2 — Canva-class Carousel, Thumbnail & Image Studio
 
-Goal: get PostSpark ranking on Google page 1 for buyer-intent + high-volume terms across all features (not just the homepage), be cited by AI engines (ChatGPT, Perplexity, Google AI Overviews), and turn that traffic into Pro/Agency upgrades.
+## Goal
+Turn the three visual tools into a premium, "no manual touch-up needed" workflow:
+- **Carousel Generator** → real templated slide library + per-slide AI imagery + drag editor
+- **Thumbnail / Cover** → fully-finished thumbnails out of GPT Image 2 (no canvas patching required)
+- **Image Studio** → polished 3-model studio with verified Flux / GPT Image 2 / Gemini paths
 
-## Phase 1 — Foundation fixes (this session)
-
-Issue from screenshot: Google only shows the homepage as a single blue link. No sitelinks, no feature pages indexed prominently. Two root causes:
-
-1. Weak per-page metadata + missing structured data on key feature/tool/use-case routes.
-2. No internal linking hub pushing authority into feature pages.
-3. No GEO (Generative Engine Optimization) signals: no `llms-full.txt`, weak FAQ schema coverage, no HowTo/SoftwareApp schema on tool pages.
-
-Concrete changes:
-
-- **Rewrite head() metadata** on every public-facing route to a buyer-intent template:
-  - Title: `<Primary Keyword> — <Outcome> | PostSpark` (≤60 chars)
-  - Description: hook + outcome + free-tier CTA (150–160 chars, keyword in first 100 chars)
-  - Add `og:title`, `og:description`, `og:url`, `og:type`, `twitter:card`, canonical (leaf only)
-  - Routes to upgrade: `pricing`, `tools.linkedin-video-downloader`, `dashboard.image-studio` landing (new public `/tools/ai-image-generator`), `tools.podcast-to-newsletter`, `tools.youtube-to-twitter-thread`, `tools.blog-to-linkedin-carousel`, `tools.newsletter-to-social`, `features.*`, `for.*`, `use-cases.*`, `alternatives.*`, `gallery`, `blog`.
-
-- **Add JSON-LD per page type:**
-  - Tools → `SoftwareApplication` + `HowTo` + `FAQPage`
-  - Features → `SoftwareApplication` + `FAQPage`
-  - Use-cases → `Article` + `FAQPage` + `BreadcrumbList`
-  - Alternatives → `Article` + `ItemList` (comparison) + `FAQPage`
-  - Pricing → `Product` with `Offer` for each tier
-  - Blog post → `Article` + `BreadcrumbList` + `FAQPage` (already partial)
-
-- **Homepage sitelinks fix:** add a `SiteNavigationElement` JSON-LD + `WebSite` `potentialAction` SearchAction in `__root.tsx`, and tighten the homepage internal nav so Google can extract sitelinks (Pricing, Tools, Gallery, Blog, Features).
-
-## Phase 2 — Sitemap & robots upgrades
-
-- Audit `src/routes/sitemap[.]xml.tsx`: confirm every public route above is present with correct `<priority>` and `<lastmod>`. Currently missing or under-prioritized: new public tool landing pages (image generator, podcast diarization), use-cases podcasters/youtubers, comparison pages, gallery `$slug`.
-- Split into a sitemap index when >5k URLs: `sitemap.xml` → `sitemap-pages.xml`, `sitemap-blog.xml`, `sitemap-gallery.xml`, `sitemap-tools.xml`. Improves crawl budget.
-- Add `<image:image>` extensions for blog posts and gallery entries so Google Images indexes them.
-- `robots.txt`: keep current disallows; add `Allow: /api/public/` so demo/track endpoints used in landing JS aren't false-positive blocked; add explicit `User-agent: GPTBot`, `PerplexityBot`, `ClaudeBot`, `Google-Extended` with `Allow: /` so AI engines index us. Add `Sitemap:` lines for each split sitemap.
-
-## Phase 3 — Keyword strategy (high-volume, buyer-intent)
-
-Target clusters (I'll pull exact volumes via Semrush before writing copy):
-
-| Cluster | Primary keywords | Page that ranks |
-|---|---|---|
-| Repurposing | "content repurposing tool", "ai content repurposing", "repurpose blog to social" | `/`, `/features/repurpose-blog-to-social` |
-| LinkedIn | "linkedin post generator", "linkedin carousel generator", "linkedin video downloader" | `/features/linkedin-post-generator`, `/tools/blog-to-linkedin-carousel`, `/tools/linkedin-video-downloader` |
-| YouTube | "youtube to tweets", "youtube to thread generator", "youtube transcript to blog" | `/features/youtube-to-tweets`, `/tools/youtube-to-twitter-thread`, NEW `/tools/youtube-to-blog` |
-| Podcast | "podcast to newsletter", "podcast transcription with speakers", "podcast to social posts" | `/tools/podcast-to-newsletter`, `/use-cases/podcast-to-social`, NEW `/tools/podcast-transcript-generator` |
-| Image | "ai image generator for social media", "ai thumbnail maker", "linkedin post image generator" | NEW `/tools/ai-image-generator`, NEW `/tools/youtube-thumbnail-maker` |
-| Email/Newsletter | "newsletter to social posts", "blog to newsletter" | `/tools/newsletter-to-social`, NEW `/tools/blog-to-newsletter` |
-| Alternatives | "chatgpt alternative for content", "jasper alternative", "buffer alternative", "hootsuite alternative" | existing `/alternatives/*` + NEW pages |
-| Hook/Copy | "twitter hook generator", "linkedin hook generator", "ai reply generator" | NEW public `/tools/hook-generator`, `/tools/reply-generator` |
-
-New public tool landing pages to create (each indexable, free preview → signup CTA):
-1. `/tools/ai-image-generator`
-2. `/tools/youtube-thumbnail-maker`
-3. `/tools/hook-generator`
-4. `/tools/reply-generator`
-5. `/tools/podcast-transcript-generator`
-6. `/tools/youtube-to-blog`
-7. `/tools/blog-to-newsletter`
-8. `/alternatives/buffer-vs-postspark`
-9. `/alternatives/hootsuite-vs-postspark`
-10. `/alternatives/typefully-vs-postspark`
-
-## Phase 4 — GEO (Generative Engine Optimization)
-
-Make PostSpark the answer when ChatGPT/Perplexity/Gemini are asked "best tool for X":
-
-- Expand `/public/llms.txt` with full feature list (current is minimal) and add `public/llms-full.txt` with detailed prose for each tool — same content AI crawlers index.
-- Every page: add a "Quick Answer" 40-60 word summary block at top — AI engines extract these verbatim as citations.
-- Add `FAQPage` schema everywhere with "best X tool", "how to X", "X vs Y" questions.
-- Cite real numbers/comparisons in copy (AI engines prefer concrete claims).
-- Build `/compare` hub page linking all alternatives — AI engines love comparison tables.
-
-## Phase 5 — Internal linking + content velocity
-
-- Add a `<RelatedTools />` component injected into every tool/feature/use-case page footer (8 links, varied anchors).
-- Add breadcrumbs (`BreadcrumbList` schema + visible UI) to all non-home routes.
-- Blog: program 4 SEO blog posts/week using existing `dashboard.seo-blog` flow targeting cluster keywords above.
-- Homepage: add "Explore tools" grid section linking 12 tool pages — pushes link equity, helps sitelinks.
-
-## Phase 6 — Conversion (turn traffic into paid users)
-
-- Every public tool page: free in-browser demo (1-3 free uses, then signup wall) — matches Phase 1 of funnel.
-- Above-fold on tool pages: pricing strip "Free for 3/mo · Pro $19 unlimited" + 30-day money-back.
-- Exit-intent on `/pricing` and tool pages: 20% off first month code (gated, server-validated).
-- Add comparison table on `/pricing` (Free vs Pro vs Agency vs alternatives).
-- Sticky "Try free" CTA on scroll on all marketing pages.
-
-## Phase 7 — Verification & monitoring
-
-- Verify property in Google Search Console via meta-tag flow (already documented), submit each split sitemap.
-- Run `seo--trigger_scan` after Phase 1 to validate metadata.
-- Run Semrush `domain_analysis` weekly to track ranking; add tracked keywords for top 20 from Phase 3.
+Plus a one-time health check of all three models (`flux`, `gpt`, `gemini`) and fixes for anything not active.
 
 ---
 
-## Execution order (when you switch me to build mode)
+## Phase 0 — Model connectivity audit (do first)
 
-1. Foundation: rewrite head() + add JSON-LD on top 25 routes; update `__root.tsx` with `SiteNavigationElement` + `WebSite` SearchAction; expand `llms.txt` + add `llms-full.txt`.
-2. Sitemaps: split into 4 sub-sitemaps + index; update `robots.txt` (AI bots, sitemap lines).
-3. Create 10 new tool/alternative landing pages with full schema + free demo CTA.
-4. Build shared `<RelatedTools />` + `<Breadcrumbs />` + `<QuickAnswer />` components; inject into all marketing pages.
-5. Pricing/comparison upgrades + exit-intent.
-6. Trigger SEO rescan + run Semrush keyword research to refine titles before deploy.
+Add `src/lib/imageModelHealth.functions.ts` exposing `pingImageModels()` (admin-only serverFn) that runs a tiny 256×256 prompt against each provider:
 
-Estimated: ~25–35 file changes. Mostly additive — no schema/db work.
+| Model | Path | Secret checked |
+|---|---|---|
+| flux | Replicate `black-forest-labs/flux-1.1-pro` | `REPLICATE_API_TOKEN` |
+| gpt  | OpenAI `gpt-image-2` (fallback `gpt-image-1`) | `Openai_api` / `OPENAI_API_KEY` |
+| gemini | Lovable AI Gateway `google/gemini-2.5-flash-image` | `LOVABLE_API_KEY` |
 
-## Open questions
+Surface results on a small `/dashboard/image-studio` "Model status" strip (green/red dot + last-tested timestamp) and toast the user if any model is down. Fix whatever is red:
+- If `Openai_api` missing → request via secrets tool.
+- If `REPLICATE_API_TOKEN` missing → request via secrets tool.
+- Confirm `gpt-image-2` is the live model (currently `server/image.server.ts` tries `gpt-image-2` first, then falls back to `gpt-image-1` — keep that order).
 
-- Should new tool pages run a live free demo (uses Lovable AI credits) or be marketing-only with "Try free" CTA? Live demo converts ~3× better but costs credits.
-- Are the 10 proposed alternative/tool URLs OK, or do you want to prune/add?
-- Pull exact Semrush volumes for the keyword clusters before writing titles, or proceed with my keyword guesses and refine later?
+---
+
+## Phase 1 — Carousel Generator → Canva-class
+
+Current state: Claude writes copy, slides render as a canvas template (no per-slide AI image). We will keep canvas templates but layer in real design power.
+
+### 1a. Template library (`src/lib/carouselTemplates.ts`)
+12 hand-designed slide templates × 4 themes (Brand / Minimal / Bold / Neon) = visual variety without AI rolls:
+- Cover: Big Quote, Number Hook ("7 mistakes…"), Split-Photo
+- Content: Stat Card, Step Card, Comparison (vs.), Checklist, Pull-Quote, Icon Grid
+- CTA: Follow Card, Save-this Card, Resource Link
+
+Each template = `(slide, theme, brandKit, ctx) => void` canvas painter. Selectable per-slide via a template picker dropdown on each slide thumbnail.
+
+### 1b. Per-slide AI image option
+Toggle "Add AI background" on any slide → calls `generateImage` with `model: "gpt"` (text legible) or `model: "flux"` (photo bg), aspect `square`, persisted into history. Image becomes the slide background with auto dark-overlay for legibility.
+
+### 1c. Drag-reorder + inline edit
+Replace current Move ←/→ buttons with `@dnd-kit/sortable` drag handles on the slide strip. Inline-edit title & body directly in the preview (already partially there — finish it).
+
+### 1d. Brand kit auto-apply
+When `brand_kit` exists, auto-set theme=brand, primary/accent colors, logo watermark, and handle. Already partially wired — extend to logo image rendered top-right of every slide.
+
+### 1e. Export upgrades
+- ZIP of PNGs (already done)
+- Single PDF (already done) — add cover thumbnail page
+- New: **MP4 reel** export (Phase 2 stretch — skip unless requested)
+- New: copy "Instagram alt-text" auto-generated per slide
+
+### 1f. Caption / hashtag UX
+Already has 5/8/15/30 selector — add per-platform hashtag pools (Instagram = lifestyle-heavy, LinkedIn = professional, X = trending) by passing `platform` to Claude prompt.
+
+---
+
+## Phase 2 — Thumbnail & Cover → "no editing needed"
+
+The user's pain: GPT Image 2 isn't reliably producing complete finished thumbnails. Fix:
+
+### 2a. GPT-Image-2 prompt rewrite
+Rewrite `dashboard.thumbnail.tsx` `generateBackground()` when `model === "gpt"` to use a structured "finished thumbnail" mega-prompt template that includes:
+- Exact headline + subhead in quotes
+- Layout instructions (text position, color, font weight, outline)
+- Style anchor (MrBeast / Ali Abdaal / minimalist / cinematic — user-selectable)
+- Negative prompts (no watermark, no logos, no extra text, no borders)
+- "Render as final 16:9 YouTube thumbnail, ready to upload"
+
+Add a **Style preset row** (MrBeast Bold / Cinematic / Editorial / Tech / Faceless / Podcast) — each is a curated mega-prompt.
+
+### 2b. "Pure GPT mode" toggle
+When ON: skip canvas text overlay entirely — GPT Image 2 output is the final asset. When OFF: keep current canvas-overlay path (Flux/Gemini backgrounds + crisp client-side text). Default ON when model=gpt.
+
+### 2c. Face / subject upload (Pro)
+Optional uploader: user uploads selfie → server passes as image input to GPT Image 2 edit endpoint with prompt "use this person as the subject of the thumbnail." Requires switching that single call to OpenAI images-edits API. Behind Pro gate.
+
+### 2d. Variations
+"Generate 4 variations" button — calls `generateImageVariations` with model=gpt and slightly varied style anchors, shows 2×2 grid, user picks one.
+
+### 2e. A/B headline tester
+Toggle: generate two thumbnails with slightly different headlines side-by-side for testing.
+
+### 2f. Templates / starter library
+Curated grid of 24 example prompts ("How I made $10k", "I tried X for 30 days", podcast cover patterns…) — click to autofill headline + style + prompt.
+
+### 2g. Smart defaults per preset
+YouTube → MrBeast style + bold yellow accent. LinkedIn banner → editorial gradient. Podcast → centered headshot composition. Already partial — flesh out.
+
+---
+
+## Phase 3 — Image Studio refinements
+
+Current studio already has tabs + 3 models. Adds:
+
+### 3a. Model health badge (from Phase 0)
+Green/red dot beside each model card in the picker.
+
+### 3b. Reference image input
+On Generate tab: optional "use this image as reference" uploader. When set + model=gpt or gemini, send as multimodal input (edit-style). Flux ignores (gracefully shows "use Edit tab for Flux").
+
+### 3c. Style consistency mode
+"Use same seed/style across this session" toggle — pass a stable style descriptor (saved in state) to every generation so a batch looks cohesive.
+
+### 3d. Template-driven flow
+The Templates tab already exists — wire each template's `aspect` & `promptStarter` to also auto-pick the right model (Quote/Thumbnail/Carousel → gpt; Product Mockup/Blog Cover → flux; default → flux).
+
+### 3e. Per-image enhance/regenerate
+On generated image: "Regenerate" (same prompt), "Enhance prompt & retry" (use enhancer), "Edit this" (jumps to Edit tab with image loaded).
+
+### 3f. Quality of life
+- Show currently-selected model name above output
+- Show prompt + enhanced prompt as collapsible chip under result
+- Copy-prompt button
+- Save to brand kit (set as logo / background asset)
+
+---
+
+## Phase 4 — Shared infra
+
+### 4a. New file: `src/lib/imageModelHealth.functions.ts`
+`pingImageModels()` serverFn → `{ flux, gpt, gemini } : { ok, latencyMs, error? }`.
+
+### 4b. New file: `src/lib/carouselTemplates.ts`
+Canvas painters keyed by template id + theme.
+
+### 4c. Update `src/server/image.server.ts`
+- New `generateFinishedThumbnail(headline, subhead, style, aspect)` helper using the mega-prompt template (Phase 2a).
+- Add `seed` plumbing to `generateFromPrompt` (Phase 3c).
+- Extend `generateCarouselSet` to accept `templateId` for canvas-only renders that skip AI image gen.
+
+### 4d. Update `src/lib/image.functions.ts`
+- New serverFn `generateThumbnail(...)` wrapping the mega-prompt helper, persisted under `tool: "thumbnail"` (already correct).
+- New serverFn `pingImageModels()`.
+
+### 4e. UI components (new)
+- `src/components/image/ModelHealthBadge.tsx`
+- `src/components/image/ThumbnailStylePresets.tsx`
+- `src/components/carousel/TemplatePicker.tsx`
+- `src/components/carousel/SortableSlideStrip.tsx` (uses `@dnd-kit/sortable`)
+- `src/components/carousel/SlideTemplateRenderer.tsx`
+
+### 4f. Dependency
+Add `@dnd-kit/core` + `@dnd-kit/sortable` (lightweight, SSR-safe).
+
+---
+
+## Phase 5 — QA pass
+
+1. Smoke-test all 3 models from `/dashboard/image-studio` model-status strip.
+2. Generate carousel with each theme + 4 different templates; verify drag reorder + brand-kit auto-apply.
+3. Generate YouTube thumbnail with MrBeast preset + gpt-image-2 in Pure GPT Mode; confirm headline renders cleanly in image (no canvas overlay).
+4. Verify limit enforcement still fires for free users.
+5. Verify watermark toggle persists across all three tools (already shared via `getWatermarkState`).
+6. Verify history page logs each generation with model + prompt + thumbnail.
+
+---
+
+## Out of scope (intentionally deferred)
+- MP4 reel export
+- Animated/Lottie carousels
+- Real-time collaborative editing
+- Stock photo library (Unsplash integration)
+
+Tell me if you want any of these pulled into Phase 2.
+
+---
+
+## Confirmations needed before build
+1. **OK to add `@dnd-kit/core` + `@dnd-kit/sortable`?** (≈15kb gzipped, SSR-safe)
+2. **OK to make face-upload thumbnail (Phase 2c) Pro-only?**
+3. **Is `Openai_api` secret already populated?** If not, I'll request it before Phase 0.

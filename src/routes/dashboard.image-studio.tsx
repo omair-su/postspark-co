@@ -42,6 +42,7 @@ import { withAIProgress } from "@/lib/aiProgress";
 import JSZip from "jszip";
 import { LimitReachedModal } from "@/components/image/LimitReachedModal";
 import { EnhancePromptModal } from "@/components/image/EnhancePromptModal";
+import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
 
 
 export const Route = createFileRoute("/dashboard/image-studio")({
@@ -697,6 +698,7 @@ function ImageStudioPage() {
             </p>
           </div>
         )}
+        <ModelHealthBadge />
       </div>
 
       {/* Settings strip: watermark + safety */}

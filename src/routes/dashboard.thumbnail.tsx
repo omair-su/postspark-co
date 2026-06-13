@@ -18,8 +18,15 @@ import { generateImage } from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { UsageMeter } from "@/components/image/UsageMeter";
 import { LimitReachedModal } from "@/components/image/LimitReachedModal";
+import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
 import { getWatermarkState, setWatermarkState, drawWatermarkOnCanvas } from "@/lib/imageWatermark";
 import { Droplet } from "lucide-react";
+import {
+  THUMBNAIL_STYLES,
+  THUMBNAIL_STARTERS,
+  buildFinishedThumbnailPrompt,
+  type ThumbnailStyleId,
+} from "@/lib/thumbnailStyles";
 
 export const Route = createFileRoute("/dashboard/thumbnail")({
   component: ThumbnailPage,
@@ -153,6 +160,9 @@ function ThumbnailPage() {
   const [outlineColor, setOutlineColor] = useState("#000000");
   const [outlineWidth, setOutlineWidth] = useState(2);
   const [model, setModel] = useState<ModelId>("gpt");
+  const [styleId, setStyleId] = useState<ThumbnailStyleId>("mrbeast");
+  // When ON + model=gpt, the AI-generated image IS the final thumbnail (no canvas text overlay).
+  const [pureGptMode, setPureGptMode] = useState(true);
 
   const [bgUrl, setBgUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -173,10 +183,21 @@ function ThumbnailPage() {
     setLoading(true);
     setBgUrl("");
     try {
-      // For Flux/Gemini we leave room for canvas overlay. For GPT-Image-2 we render text INTO the image.
-      const finalPrompt = model === "gpt"
-        ? `${bgPrompt.trim() || preset.defaultPrompt}. The image must clearly include the following exact text rendered prominently and legibly: HEADLINE: "${headline}"${subhead ? `, SUBHEAD: "${subhead}"` : ""}. Bold display typography, strong contrast against background, ${preset.id === "youtube" ? "MrBeast-style click-worthy YouTube thumbnail" : preset.id === "linkedin-banner" ? "clean professional LinkedIn banner" : "premium social graphic"}. No watermarks, no borders.`
-        : (bgPrompt.trim() || preset.defaultPrompt) + ". Leave clear empty space for large text overlay. No text in image.";
+      const usePureGpt = model === "gpt" && pureGptMode;
+      const finalPrompt = usePureGpt
+        ? buildFinishedThumbnailPrompt({
+            headline,
+            subhead,
+            styleId,
+            preset: preset.id as any,
+            userPrompt: bgPrompt.trim() || undefined,
+            headlineColor,
+            accentColor,
+            position,
+          })
+        : model === "gpt"
+          ? `${bgPrompt.trim() || preset.defaultPrompt}. The image must clearly include the headline "${headline}"${subhead ? ` and subhead "${subhead}"` : ""}. Bold display typography, strong contrast. No watermarks, no borders.`
+          : (bgPrompt.trim() || preset.defaultPrompt) + ". Leave clear empty space for large text overlay. No text in image.";
       const res = await withAIProgress(
         generateImage({
           data: {
@@ -185,7 +206,8 @@ function ThumbnailPage() {
             aspect: preset.aspect,
             template: preset.id === "blog-cover" ? "blog-cover" : "thumbnail",
             model,
-            quality: "standard",
+            quality: "hd",
+            originalPrompt: `${headline} | ${subhead}`,
           },
           headers: authHeaders,
         }),
@@ -195,7 +217,7 @@ function ThumbnailPage() {
       else if (!res.imageUrl) toast.error("No background returned");
       else {
         setBgUrl(res.imageUrl);
-        toast.success("Background ready — text overlay applied");
+        toast.success(usePureGpt ? "Finished thumbnail ready — no editing needed!" : "Background ready — text overlay applied");
       }
     } catch (e) {
       console.error(e);
@@ -204,6 +226,21 @@ function ThumbnailPage() {
       setLoading(false);
     }
   };
+
+  const applyStarter = (s: typeof THUMBNAIL_STARTERS[number]) => {
+    setPresetId(s.preset);
+    setStyleId(s.style);
+    setHeadline(s.headline);
+    setSubhead(s.subhead);
+    setBgPrompt(s.bgPrompt);
+    const sty = THUMBNAIL_STYLES.find((t) => t.id === s.style);
+    if (sty) {
+      setHeadlineColor(sty.defaultHeadlineColor);
+      setAccentColor(sty.defaultAccentColor);
+    }
+    toast.success(`Loaded: ${s.label}`);
+  };
+
 
   // Draw whenever inputs change
   const draw = async () => {
@@ -234,6 +271,15 @@ function ThumbnailPage() {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
+
+    // Pure GPT mode: the AI image IS the final design. Skip overlay + text.
+    if (pureGptMode && model === "gpt" && bgUrl) {
+      if (watermarkOn && watermarkText.trim()) {
+        drawWatermarkOnCanvas(canvas, watermarkText.trim());
+      }
+      return;
+    }
+
 
     // Dark overlay for text legibility
     ctx.fillStyle = `rgba(0,0,0,${overlayStrength})`;
@@ -340,7 +386,7 @@ function ThumbnailPage() {
   useEffect(() => {
     draw();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId, watermarkOn, watermarkText]);
+  }, [bgUrl, headline, subhead, headlineColor, accentColor, position, overlayStrength, fontFamily, fontWeight, fontScale, letterSpacing, allCaps, textShadow, shadowBlur, textOutline, outlineColor, outlineWidth, presetId, watermarkOn, watermarkText, pureGptMode, model]);
 
 
   const downloadAs = (format: "png" | "jpg") => {
@@ -380,7 +426,33 @@ function ThumbnailPage() {
             AI background + crisp text overlay. Optimized sizes for YouTube, X, LinkedIn, blog &amp; podcast.
           </p>
         </div>
-        <UsageMeter refreshKey={bgUrl ? 1 : 0} />
+        <div className="flex flex-col items-end gap-2">
+          <UsageMeter refreshKey={bgUrl ? 1 : 0} />
+          <ModelHealthBadge compact />
+        </div>
+      </div>
+
+      {/* One-click starter templates */}
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Quick start templates
+          </h3>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {THUMBNAIL_STARTERS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => applyStarter(s)}
+              className="group flex min-w-[150px] flex-col items-start gap-1 rounded-xl border border-border bg-background p-3 text-left transition hover:border-primary hover:bg-primary/5"
+            >
+              <span className="text-lg">{s.emoji}</span>
+              <span className="line-clamp-2 text-[11px] font-semibold text-foreground">{s.label}</span>
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{s.preset}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Watermark toggle */}
@@ -472,9 +544,53 @@ function ThumbnailPage() {
               ))}
             </div>
             {model === "gpt" && (
-              <p className="mt-1 text-[10px] text-emerald-600">✦ Renders headline + subhead text directly into the image.</p>
+              <label className="mt-2 flex cursor-pointer items-start gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-2">
+                <input
+                  type="checkbox"
+                  checked={pureGptMode}
+                  onChange={(e) => setPureGptMode(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 rounded"
+                />
+                <span className="text-[11px] leading-tight">
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400">Pure GPT mode</span>
+                  <span className="block text-muted-foreground">
+                    AI renders the entire finished thumbnail (text + design). No canvas overlay. Best for click-worthy YouTube covers.
+                  </span>
+                </span>
+              </label>
+            )}
+            {model !== "gpt" && (
+              <p className="mt-1 text-[10px] text-muted-foreground">Background only — crisp text rendered on canvas.</p>
             )}
           </div>
+
+          {/* Style preset (drives the mega-prompt) */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Visual style <span className="text-[10px] font-normal text-muted-foreground">— shapes the AI direction</span>
+            </label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {THUMBNAIL_STYLES.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    setStyleId(s.id);
+                    setHeadlineColor(s.defaultHeadlineColor);
+                    setAccentColor(s.defaultAccentColor);
+                  }}
+                  className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[11px] font-medium transition ${
+                    styleId === s.id
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-input bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent"
+                  }`}
+                >
+                  <span>{s.emoji}</span>
+                  <span className="truncate">{s.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
 
           <div>
             <label className="mb-2 block text-sm font-medium">Background prompt</label>
