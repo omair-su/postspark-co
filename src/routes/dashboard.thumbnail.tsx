@@ -272,6 +272,15 @@ function ThumbnailPage() {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
+    // Pure GPT mode: the AI image IS the final design. Skip overlay + text.
+    if (pureGptMode && model === "gpt" && bgUrl) {
+      if (watermarkOn && watermarkText.trim()) {
+        drawWatermarkOnCanvas(canvas, watermarkText.trim());
+      }
+      return;
+    }
+
+
     // Dark overlay for text legibility
     ctx.fillStyle = `rgba(0,0,0,${overlayStrength})`;
     if (position === "bottom" || position === "bottom-left") {
