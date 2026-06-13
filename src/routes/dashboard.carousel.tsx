@@ -260,8 +260,10 @@ function CarouselPage() {
             <p className="text-sm text-muted-foreground">Branded swipeable slides — edit, rewrite, export.</p>
           </div>
         </div>
-        <UsageMeter refreshKey={slides.length} />
-      </div>
+        <div className="flex flex-col items-end gap-2">
+          <UsageMeter refreshKey={slides.length} />
+          <ModelHealthBadge compact />
+        </div>
 
       {/* Watermark toggle */}
       <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
