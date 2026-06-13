@@ -472,64 +472,76 @@ function CarouselPage() {
                 + Add slide
               </button>
             </div>
-            <ol className="mt-3 space-y-3">
-              {slides.map((s, i) => (
-                <li key={i} className="rounded-lg border border-border bg-background p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{s.kind} · slide {i + 1}</span>
-                    <div className="flex gap-1.5">
-                      <button onClick={() => moveSlide(i, -1)} disabled={i === 0}
-                        className="rounded-md border border-border px-1.5 py-1 text-[11px] hover:bg-accent disabled:opacity-30" aria-label="Move up">↑</button>
-                      <button onClick={() => moveSlide(i, 1)} disabled={i === slides.length - 1}
-                        className="rounded-md border border-border px-1.5 py-1 text-[11px] hover:bg-accent disabled:opacity-30" aria-label="Move down">↓</button>
-                      <button onClick={() => setEditingIdx(editingIdx === i ? null : i)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent">
-                        {editingIdx === i ? "Done" : "Edit"}
-                      </button>
-                      <button onClick={() => handleRewrite(i)} disabled={rewritingIdx === i} className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/5 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/10 disabled:opacity-60">
-                        {rewritingIdx === i ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />} AI rewrite
-                      </button>
-                      <button onClick={() => handleCopy(`${s.title}\n\n${s.body}`, `s${i}`)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent">
-                        {copied === `s${i}` ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
-                      </button>
-                      <button onClick={() => deleteSlide(i)} disabled={slides.length <= 3}
-                        className="rounded-md border border-destructive/40 bg-destructive/5 px-1.5 py-1 text-[11px] text-destructive hover:bg-destructive/10 disabled:opacity-30"
-                        aria-label="Delete slide">×</button>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Drag the handle (⋮⋮) to reorder slides — covers and CTAs included.
+            </p>
+            <div className="mt-3">
+              <SortableSlideList
+                items={slides}
+                getId={(_, i) => `slide-${i}`}
+                onReorder={(next) => {
+                  setSlides(next);
+                  setActive(0);
+                }}
+                renderItem={(s, i, handle) => (
+                  <div className="rounded-lg border border-border bg-background p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        {handle}
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          {s.kind} · slide {i + 1}
+                        </span>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button onClick={() => setEditingIdx(editingIdx === i ? null : i)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent">
+                          {editingIdx === i ? "Done" : "Edit"}
+                        </button>
+                        <button onClick={() => handleRewrite(i)} disabled={rewritingIdx === i} className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/5 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/10 disabled:opacity-60">
+                          {rewritingIdx === i ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />} AI rewrite
+                        </button>
+                        <button onClick={() => handleCopy(`${s.title}\n\n${s.body}`, `s${i}`)} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-accent">
+                          {copied === `s${i}` ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
+                        </button>
+                        <button onClick={() => deleteSlide(i)} disabled={slides.length <= 3}
+                          className="rounded-md border border-destructive/40 bg-destructive/5 px-1.5 py-1 text-[11px] text-destructive hover:bg-destructive/10 disabled:opacity-30"
+                          aria-label="Delete slide">×</button>
+                      </div>
                     </div>
+                    {editingIdx === i ? (
+                      <div className="mt-2 space-y-2">
+                        <input
+                          value={s.title}
+                          onChange={(e) => updateSlide(i, { title: e.target.value })}
+                          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring"
+                          placeholder="Slide title"
+                        />
+                        <textarea
+                          value={s.body}
+                          onChange={(e) => updateSlide(i, { body: e.target.value })}
+                          rows={3}
+                          className="w-full resize-none rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          placeholder="Slide body"
+                        />
+                        <select
+                          value={s.kind}
+                          onChange={(e) => updateSlide(i, { kind: e.target.value as Slide["kind"] })}
+                          className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        >
+                          <option value="cover">Cover</option>
+                          <option value="content">Content</option>
+                          <option value="cta">CTA</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="mt-1 text-sm font-bold text-foreground">{s.title}</p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{s.body}</p>
+                      </>
+                    )}
                   </div>
-                  {editingIdx === i ? (
-                    <div className="mt-2 space-y-2">
-                      <input
-                        value={s.title}
-                        onChange={(e) => updateSlide(i, { title: e.target.value })}
-                        className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ring"
-                        placeholder="Slide title"
-                      />
-                      <textarea
-                        value={s.body}
-                        onChange={(e) => updateSlide(i, { body: e.target.value })}
-                        rows={3}
-                        className="w-full resize-none rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        placeholder="Slide body"
-                      />
-                      <select
-                        value={s.kind}
-                        onChange={(e) => updateSlide(i, { kind: e.target.value as Slide["kind"] })}
-                        className="rounded-md border border-input bg-background px-2 py-1 text-xs"
-                      >
-                        <option value="cover">Cover</option>
-                        <option value="content">Content</option>
-                        <option value="cta">CTA</option>
-                      </select>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="mt-1 text-sm font-bold text-foreground">{s.title}</p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{s.body}</p>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ol>
+                )}
+              />
+            </div>
           </div>
         </div>
       )}
