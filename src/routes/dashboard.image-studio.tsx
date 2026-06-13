@@ -697,6 +697,7 @@ function ImageStudioPage() {
             </p>
           </div>
         )}
+        <ModelHealthBadge />
       </div>
 
       {/* Settings strip: watermark + safety */}
