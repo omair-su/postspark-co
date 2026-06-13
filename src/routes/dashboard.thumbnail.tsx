@@ -18,8 +18,15 @@ import { generateImage } from "@/lib/image.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { UsageMeter } from "@/components/image/UsageMeter";
 import { LimitReachedModal } from "@/components/image/LimitReachedModal";
+import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
 import { getWatermarkState, setWatermarkState, drawWatermarkOnCanvas } from "@/lib/imageWatermark";
-import { Droplet } from "lucide-react";
+import { Droplet, Wand2, Sparkle } from "lucide-react";
+import {
+  THUMBNAIL_STYLES,
+  THUMBNAIL_STARTERS,
+  buildFinishedThumbnailPrompt,
+  type ThumbnailStyleId,
+} from "@/lib/thumbnailStyles";
 
 export const Route = createFileRoute("/dashboard/thumbnail")({
   component: ThumbnailPage,
