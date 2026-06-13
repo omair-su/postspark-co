@@ -183,10 +183,21 @@ function ThumbnailPage() {
     setLoading(true);
     setBgUrl("");
     try {
-      // For Flux/Gemini we leave room for canvas overlay. For GPT-Image-2 we render text INTO the image.
-      const finalPrompt = model === "gpt"
-        ? `${bgPrompt.trim() || preset.defaultPrompt}. The image must clearly include the following exact text rendered prominently and legibly: HEADLINE: "${headline}"${subhead ? `, SUBHEAD: "${subhead}"` : ""}. Bold display typography, strong contrast against background, ${preset.id === "youtube" ? "MrBeast-style click-worthy YouTube thumbnail" : preset.id === "linkedin-banner" ? "clean professional LinkedIn banner" : "premium social graphic"}. No watermarks, no borders.`
-        : (bgPrompt.trim() || preset.defaultPrompt) + ". Leave clear empty space for large text overlay. No text in image.";
+      const usePureGpt = model === "gpt" && pureGptMode;
+      const finalPrompt = usePureGpt
+        ? buildFinishedThumbnailPrompt({
+            headline,
+            subhead,
+            styleId,
+            preset: preset.id as any,
+            userPrompt: bgPrompt.trim() || undefined,
+            headlineColor,
+            accentColor,
+            position,
+          })
+        : model === "gpt"
+          ? `${bgPrompt.trim() || preset.defaultPrompt}. The image must clearly include the headline "${headline}"${subhead ? ` and subhead "${subhead}"` : ""}. Bold display typography, strong contrast. No watermarks, no borders.`
+          : (bgPrompt.trim() || preset.defaultPrompt) + ". Leave clear empty space for large text overlay. No text in image.";
       const res = await withAIProgress(
         generateImage({
           data: {
@@ -195,7 +206,8 @@ function ThumbnailPage() {
             aspect: preset.aspect,
             template: preset.id === "blog-cover" ? "blog-cover" : "thumbnail",
             model,
-            quality: "standard",
+            quality: "hd",
+            originalPrompt: `${headline} | ${subhead}`,
           },
           headers: authHeaders,
         }),
@@ -205,7 +217,7 @@ function ThumbnailPage() {
       else if (!res.imageUrl) toast.error("No background returned");
       else {
         setBgUrl(res.imageUrl);
-        toast.success("Background ready — text overlay applied");
+        toast.success(usePureGpt ? "Finished thumbnail ready — no editing needed!" : "Background ready — text overlay applied");
       }
     } catch (e) {
       console.error(e);
@@ -214,6 +226,21 @@ function ThumbnailPage() {
       setLoading(false);
     }
   };
+
+  const applyStarter = (s: typeof THUMBNAIL_STARTERS[number]) => {
+    setPresetId(s.preset);
+    setStyleId(s.style);
+    setHeadline(s.headline);
+    setSubhead(s.subhead);
+    setBgPrompt(s.bgPrompt);
+    const sty = THUMBNAIL_STYLES.find((t) => t.id === s.style);
+    if (sty) {
+      setHeadlineColor(sty.defaultHeadlineColor);
+      setAccentColor(sty.defaultAccentColor);
+    }
+    toast.success(`Loaded: ${s.label}`);
+  };
+
 
   // Draw whenever inputs change
   const draw = async () => {
