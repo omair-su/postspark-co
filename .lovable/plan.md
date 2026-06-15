@@ -1,177 +1,109 @@
+# PostSpark Rescue Plan — From Zero to First Paying Users
 
-# Visual Suite v2 — Canva-class Carousel, Thumbnail & Image Studio
+You don't have a product problem. You have a **checkout, trust, and distribution** problem. The audit found that your product is feature-complete and well-architected, but three things are silently killing every conversion attempt. We fix those first, then build the loops that bring users in.
 
-## Goal
-Turn the three visual tools into a premium, "no manual touch-up needed" workflow:
-- **Carousel Generator** → real templated slide library + per-slide AI imagery + drag editor
-- **Thumbnail / Cover** → fully-finished thumbnails out of GPT Image 2 (no canvas patching required)
-- **Image Studio** → polished 3-model studio with verified Flux / GPT Image 2 / Gemini paths
-
-Plus a one-time health check of all three models (`flux`, `gpt`, `gemini`) and fixes for anything not active.
+> **Brutal headline finding:** the Paddle price IDs in `PricingV2.tsx` and `dashboard.billing.tsx` are placeholder strings (`"pro_monthly_trial"`, etc.), not real Paddle IDs (`pri_01...`). If this is the case, **no one can pay you even if they want to**. This is hypothesis #1 for zero conversions.
 
 ---
 
-## Phase 0 — Model connectivity audit (do first)
+## Phase 0 — Stop the bleed (THIS WEEK, ~2 days)
 
-Add `src/lib/imageModelHealth.functions.ts` exposing `pingImageModels()` (admin-only serverFn) that runs a tiny 256×256 prompt against each provider:
+These are P0 fixes. Without them nothing else matters.
 
-| Model | Path | Secret checked |
-|---|---|---|
-| flux | Replicate `black-forest-labs/flux-1.1-pro` | `REPLICATE_API_TOKEN` |
-| gpt  | OpenAI `gpt-image-2` (fallback `gpt-image-1`) | `Openai_api` / `OPENAI_API_KEY` |
-| gemini | Lovable AI Gateway `google/gemini-2.5-flash-image` | `LOVABLE_API_KEY` |
+1. **Verify and fix Paddle checkout** — Audit every `priceId` passed to `usePaddleCheckout`. Replace placeholder strings with real Paddle `pri_01...` IDs. Manually run the Pro checkout flow end-to-end in production and confirm a test charge succeeds.
+2. **Fix the email-signup dead end** — `signup.tsx` currently redirects email signups to `/login` after confirmation. Redirect straight to `/dashboard` (or `/onboarding`) so momentum isn't lost.
+3. **Fix trust-eroding inconsistencies**:
+   - Hero demo widget says "3 free demos/day" but pricing says "10/month" — make them match.
+   - Changelog has `date: "May 7, 2026"` (future-dated) — set to real release dates.
+   - Remove `/funnel` (public live conversion stats) from the sitemap; gate it admin-only.
 
-Surface results on a small `/dashboard/image-studio` "Model status" strip (green/red dot + last-tested timestamp) and toast the user if any model is down. Fix whatever is red:
-- If `Openai_api` missing → request via secrets tool.
-- If `REPLICATE_API_TOKEN` missing → request via secrets tool.
-- Confirm `gpt-image-2` is the live model (currently `server/image.server.ts` tries `gpt-image-2` first, then falls back to `gpt-image-1` — keep that order).
+## Phase 1 — Landing page refinement (NO rebuild, 3 days)
 
----
+Verdict: **refine, do not rebuild**. The structure (Hero → Pain → WhoFor → HowItWorks → Pricing → FAQ) is sound. What's missing is **proof and specificity**.
 
-## Phase 1 — Carousel Generator → Canva-class
+1. **Rewrite the hero headline** with a concrete number. Current "Stop Rewriting the Same Content for Every Platform" is generic. Try: *"Turn 1 blog post into 30 platform-ready posts in 90 seconds."* Shorten CTA from "Start Repurposing Content for Free" → **"Start Free"**.
+2. **Replace SocialProofBar copy** ("Join early creators…" = admission of smallness). Wire the existing `LiveCounter` component with a real metric (e.g. "8,400 content pieces generated this month") pulled from the DB.
+3. **Add a real testimonials section** between PricingV2 and FoundingMember. Component already exists (`TestimonialsSection.tsx`), it just isn't imported. Seed with 3–5 real quotes (see Phase 4 for how to get them); **kill the hardcoded "4.9 · 127 reviews"** — that's a credibility bomb.
+4. **Make Founding Member real** — render a live counter ("63 of 100 spots claimed") from a Supabase count of paid subscribers. Without a counter, the urgency is theatre.
+5. **Move the hero demo output below the fold** so visitors see a real AI result on the page, not just a form.
 
-Current state: Claude writes copy, slides render as a canvas template (no per-slide AI image). We will keep canvas templates but layer in real design power.
+## Phase 2 — Pricing & free-tier rework (2 days)
 
-### 1a. Template library (`src/lib/carouselTemplates.ts`)
-12 hand-designed slide templates × 4 themes (Brand / Minimal / Bold / Neon) = visual variety without AI rolls:
-- Cover: Big Quote, Number Hook ("7 mistakes…"), Split-Photo
-- Content: Stat Card, Step Card, Comparison (vs.), Checklist, Pull-Quote, Icon Grid
-- CTA: Follow Card, Save-this Card, Resource Link
+The audit confirms the 2026 reality: **10 free repurposes/month is too generous** — casual creators get all the value they need and never feel the wall. Competitor research recommends shifting from "credits forever" to "trial drives intent."
 
-Each template = `(slide, theme, brandKit, ctx) => void` canvas painter. Selectable per-slide via a template picker dropdown on each slide thumbnail.
+Proposed structure (please confirm before we build):
+- **Starter (Free):** 3 repurposes/month + watermark on images. Enough to feel value, not enough to live on.
+- **Pro:** $24/mo (was $19) — unlimited repurposes, no watermark, Brand Voice, all image models.
+- **Creator:** $59/mo — everything in Pro + team seat + scheduled publishing + API.
+- **Founding deal:** First 50 paid sign-ups get **$97 Lifetime Deal** (one-time). Creates an evangelist cohort, generates non-dilutive cash, and gives you real testimonials in 2 weeks.
 
-### 1b. Per-slide AI image option
-Toggle "Add AI background" on any slide → calls `generateImage` with `model: "gpt"` (text legible) or `model: "flux"` (photo bg), aspect `square`, persisted into history. Image becomes the slide background with auto dark-overlay for legibility.
+Add a soft "you've used 2/3" upgrade nudge **before** the wall, not after generation completes.
 
-### 1c. Drag-reorder + inline edit
-Replace current Move ←/→ buttons with `@dnd-kit/sortable` drag handles on the slide strip. Inline-edit title & body directly in the preview (already partially there — finish it).
+## Phase 3 — Email infrastructure (the single biggest growth lever, 3 days)
 
-### 1d. Brand kit auto-apply
-When `brand_kit` exists, auto-set theme=brand, primary/accent colors, logo watermark, and handle. Already partially wired — extend to logo image rendered top-right of every slide.
+Today PostSpark has exactly **one email route** (unsubscribe). Users sign up and never hear from you again. This is the #1 reason free → paid is broken. Build (using your existing Lovable Emails infra):
 
-### 1e. Export upgrades
-- ZIP of PNGs (already done)
-- Single PDF (already done) — add cover thumbnail page
-- New: **MP4 reel** export (Phase 2 stretch — skip unless requested)
-- New: copy "Instagram alt-text" auto-generated per slide
+- **Day 0:** Welcome + "your first repurpose in 60 seconds" (link straight into a pre-filled studio).
+- **Day 2:** "Here are 3 things creators do with PostSpark" (real examples).
+- **Day 5:** Brand Voice teaser ("Make AI sound like *you*") → Pro upsell.
+- **Day 7:** Founding Member offer ($97 LTD or trial).
+- **Usage triggers:** at 2/3 free credits → "you're almost out, here's what Pro unlocks."
+- **Trial-end:** 24h reminder + offer.
 
-### 1f. Caption / hashtag UX
-Already has 5/8/15/30 selector — add per-platform hashtag pools (Instagram = lifestyle-heavy, LinkedIn = professional, X = trending) by passing `platform` to Claude prompt.
+## Phase 4 — Real social proof campaign (1 week, ongoing)
 
----
+1. **Email every existing free user**: "Use PostSpark Pro free for 2 months in exchange for a 60-second video testimonial with your handle." Even 5 real ones replaces the fake fallbacks.
+2. **Seed the public Gallery** with 20–30 high-quality examples from your own use — currently it's empty, which makes the brand look unused.
+3. **Activate referrals UX**: pre-written tweets, LinkedIn templates, share-image cards. Right now users get a link and no message — nobody shares friction.
+4. **Post-generation "Share my result"** button → tweet card "I turned 1 post into 30 with @PostSpark" — viral loop that's currently missing.
 
-## Phase 2 — Thumbnail & Cover → "no editing needed"
+## Phase 5 — Distribution (parallel to everything, weeks 2–6)
 
-The user's pain: GPT Image 2 isn't reliably producing complete finished thumbnails. Fix:
+Three channels, ranked by 2026 ROI for solo SaaS:
 
-### 2a. GPT-Image-2 prompt rewrite
-Rewrite `dashboard.thumbnail.tsx` `generateBackground()` when `model === "gpt"` to use a structured "finished thumbnail" mega-prompt template that includes:
-- Exact headline + subhead in quotes
-- Layout instructions (text position, color, font weight, outline)
-- Style anchor (MrBeast / Ali Abdaal / minimalist / cinematic — user-selectable)
-- Negative prompts (no watermark, no logos, no extra text, no borders)
-- "Render as final 16:9 YouTube thumbnail, ready to upload"
+1. **TikTok / Shorts demos** — 30–60s screen recordings of PostSpark turning a known creator's video into a thread/carousel. Post daily. This is the #1 lever in 2026 for creator tools.
+2. **AppSumo / LTD launch** — list the $97 lifetime deal. Buys you 500+ users, $20k+ non-dilutive, and an army of feedback givers.
+3. **Build-in-public on X/LinkedIn** — daily founder posts about prompt engineering, AI quality, before/after outputs. Be your own best case study.
 
-Add a **Style preset row** (MrBeast Bold / Cinematic / Editorial / Tech / Faceless / Podcast) — each is a curated mega-prompt.
+Plus quick wins: list on **Futurepedia, There's An AI For That, FutureTools, Perplexity Pages**; publish **10 real blog posts** (your blog is at sitemap priority 0.9 with **zero posts** — that's actively hurting SEO), and write 3 honest "PostSpark vs Castmagic/OpusClip/Repurpose.io" comparison pages with real screenshots.
 
-### 2b. "Pure GPT mode" toggle
-When ON: skip canvas text overlay entirely — GPT Image 2 output is the final asset. When OFF: keep current canvas-overlay path (Flux/Gemini backgrounds + crisp client-side text). Default ON when model=gpt.
+## Phase 6 — Product gaps to close next (week 3+)
 
-### 2c. Face / subject upload (Pro)
-Optional uploader: user uploads selfie → server passes as image input to GPT Image 2 edit endpoint with prompt "use this person as the subject of the thumbnail." Requires switching that single call to OpenAI images-edits API. Behind Pro gate.
+In priority order, based on competitor analysis:
 
-### 2d. Variations
-"Generate 4 variations" button — calls `generateImageVariations` with model=gpt and slightly varied style anchors, shows 2×2 grid, user picks one.
+1. **Native publishing (Buffer / Typefully / X / LinkedIn OAuth)** — calendar today schedules to nowhere. This is the #1 reason creators churn from PostSpark to Buffer.
+2. **Chrome extension** — "Repurpose this page" — every competitor has one; it's a distribution channel via Chrome Web Store.
+3. **Connect Humanizer + Hook Lab + Image Studio into the Repurpose flow** as one-click steps, not separate islands.
+4. **Brand Voice feedback loop** — thumbs up/down on outputs to fine-tune.
+5. **Notion / Google Docs / Zapier import** — eliminate the manual paste step.
 
-### 2e. A/B headline tester
-Toggle: generate two thumbnails with slightly different headlines side-by-side for testing.
-
-### 2f. Templates / starter library
-Curated grid of 24 example prompts ("How I made $10k", "I tried X for 30 days", podcast cover patterns…) — click to autofill headline + style + prompt.
-
-### 2g. Smart defaults per preset
-YouTube → MrBeast style + bold yellow accent. LinkedIn banner → editorial gradient. Podcast → centered headshot composition. Already partial — flesh out.
+## Pages to kill or merge
+- 23 unused `src/components/landing/v1` files — delete.
+- 4 `dashboard.guided.*` routes — consolidate.
+- 3 thin `features.*` pages — merge into one.
+- `/funnel` public page — make admin-only.
 
 ---
 
-## Phase 3 — Image Studio refinements
+## Technical references (file:line for the agent)
 
-Current studio already has tabs + 3 models. Adds:
-
-### 3a. Model health badge (from Phase 0)
-Green/red dot beside each model card in the picker.
-
-### 3b. Reference image input
-On Generate tab: optional "use this image as reference" uploader. When set + model=gpt or gemini, send as multimodal input (edit-style). Flux ignores (gracefully shows "use Edit tab for Flux").
-
-### 3c. Style consistency mode
-"Use same seed/style across this session" toggle — pass a stable style descriptor (saved in state) to every generation so a batch looks cohesive.
-
-### 3d. Template-driven flow
-The Templates tab already exists — wire each template's `aspect` & `promptStarter` to also auto-pick the right model (Quote/Thumbnail/Carousel → gpt; Product Mockup/Blog Cover → flux; default → flux).
-
-### 3e. Per-image enhance/regenerate
-On generated image: "Regenerate" (same prompt), "Enhance prompt & retry" (use enhancer), "Edit this" (jumps to Edit tab with image loaded).
-
-### 3f. Quality of life
-- Show currently-selected model name above output
-- Show prompt + enhanced prompt as collapsible chip under result
-- Copy-prompt button
-- Save to brand kit (set as logo / background asset)
+- Paddle IDs: `src/components/landing/v2/PricingV2.tsx` (priceId props), `src/routes/dashboard.billing.tsx:85`, `src/routes/dashboard.settings.tsx` checkout calls.
+- Signup redirect: `src/routes/signup.tsx:77`.
+- Hero: `src/components/landing/v2/Hero.tsx:78` (CTA), demo inconsistency at `src/components/landing/v2/HeroDemoWidget.tsx:57`.
+- SocialProofBar: `src/components/landing/v2/SocialProofBar.tsx:12`.
+- Testimonials wire-in: `src/routes/index.tsx` add after `<PricingV2 />`; fix hardcoded "127 reviews" at `src/components/landing/TestimonialsSection.tsx:42`.
+- Founding Member counter: `src/components/landing/v2/FoundingMember.tsx:36`.
+- Changelog dates: `src/routes/changelog.tsx`.
+- Sitemap exclusions: `src/routes/sitemap[.]xml.tsx`.
+- Email infra: extend existing Lovable Emails templates under `src/lib/email-templates/`.
 
 ---
 
-## Phase 4 — Shared infra
+## Questions before we build
 
-### 4a. New file: `src/lib/imageModelHealth.functions.ts`
-`pingImageModels()` serverFn → `{ flux, gpt, gemini } : { ok, latencyMs, error? }`.
+1. **Paddle IDs — are `pro_monthly_trial` etc. real or placeholders?** Critical to confirm before anything else.
+2. **OK to drop free tier from 10/mo → 3/mo** and add the **$97 lifetime founding deal**?
+3. **Which channel will YOU personally drive** — TikTok demos, X/LinkedIn building-in-public, or AppSumo prep? I can scaffold all three but you need to pick one to commit to weekly.
+4. **OK to delete the 23 v1 landing components and merge the duplicate marketing pages?**
 
-### 4b. New file: `src/lib/carouselTemplates.ts`
-Canvas painters keyed by template id + theme.
-
-### 4c. Update `src/server/image.server.ts`
-- New `generateFinishedThumbnail(headline, subhead, style, aspect)` helper using the mega-prompt template (Phase 2a).
-- Add `seed` plumbing to `generateFromPrompt` (Phase 3c).
-- Extend `generateCarouselSet` to accept `templateId` for canvas-only renders that skip AI image gen.
-
-### 4d. Update `src/lib/image.functions.ts`
-- New serverFn `generateThumbnail(...)` wrapping the mega-prompt helper, persisted under `tool: "thumbnail"` (already correct).
-- New serverFn `pingImageModels()`.
-
-### 4e. UI components (new)
-- `src/components/image/ModelHealthBadge.tsx`
-- `src/components/image/ThumbnailStylePresets.tsx`
-- `src/components/carousel/TemplatePicker.tsx`
-- `src/components/carousel/SortableSlideStrip.tsx` (uses `@dnd-kit/sortable`)
-- `src/components/carousel/SlideTemplateRenderer.tsx`
-
-### 4f. Dependency
-Add `@dnd-kit/core` + `@dnd-kit/sortable` (lightweight, SSR-safe).
-
----
-
-## Phase 5 — QA pass
-
-1. Smoke-test all 3 models from `/dashboard/image-studio` model-status strip.
-2. Generate carousel with each theme + 4 different templates; verify drag reorder + brand-kit auto-apply.
-3. Generate YouTube thumbnail with MrBeast preset + gpt-image-2 in Pure GPT Mode; confirm headline renders cleanly in image (no canvas overlay).
-4. Verify limit enforcement still fires for free users.
-5. Verify watermark toggle persists across all three tools (already shared via `getWatermarkState`).
-6. Verify history page logs each generation with model + prompt + thumbnail.
-
----
-
-## Out of scope (intentionally deferred)
-- MP4 reel export
-- Animated/Lottie carousels
-- Real-time collaborative editing
-- Stock photo library (Unsplash integration)
-
-Tell me if you want any of these pulled into Phase 2.
-
----
-
-## Confirmations needed before build
-1. **OK to add `@dnd-kit/core` + `@dnd-kit/sortable`?** (≈15kb gzipped, SSR-safe)
-2. **OK to make face-upload thumbnail (Phase 2c) Pro-only?**
-3. **Is `Openai_api` secret already populated?** If not, I'll request it before Phase 0.
+Once you answer these, we start with Phase 0 (checkout fix) the same turn.
