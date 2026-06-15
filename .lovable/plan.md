@@ -1,109 +1,110 @@
-# PostSpark Rescue Plan — From Zero to First Paying Users
+# Phase 5 — Distribution (Comprehensive)
 
-You don't have a product problem. You have a **checkout, trust, and distribution** problem. The audit found that your product is feature-complete and well-architected, but three things are silently killing every conversion attempt. We fix those first, then build the loops that bring users in.
+User-picked primary channel: **TikTok / Shorts demos**. Plus AppSumo LTD prep and build-in-public scaffolding so the founder can run one weekly cadence and get free compounding distribution.
 
-> **Brutal headline finding:** the Paddle price IDs in `PricingV2.tsx` and `dashboard.billing.tsx` are placeholder strings (`"pro_monthly_trial"`, etc.), not real Paddle IDs (`pri_01...`). If this is the case, **no one can pay you even if they want to**. This is hypothesis #1 for zero conversions.
-
----
-
-## Phase 0 — Stop the bleed (THIS WEEK, ~2 days)
-
-These are P0 fixes. Without them nothing else matters.
-
-1. **Verify and fix Paddle checkout** — Audit every `priceId` passed to `usePaddleCheckout`. Replace placeholder strings with real Paddle `pri_01...` IDs. Manually run the Pro checkout flow end-to-end in production and confirm a test charge succeeds.
-2. **Fix the email-signup dead end** — `signup.tsx` currently redirects email signups to `/login` after confirmation. Redirect straight to `/dashboard` (or `/onboarding`) so momentum isn't lost.
-3. **Fix trust-eroding inconsistencies**:
-   - Hero demo widget says "3 free demos/day" but pricing says "10/month" — make them match.
-   - Changelog has `date: "May 7, 2026"` (future-dated) — set to real release dates.
-   - Remove `/funnel` (public live conversion stats) from the sitemap; gate it admin-only.
-
-## Phase 1 — Landing page refinement (NO rebuild, 3 days)
-
-Verdict: **refine, do not rebuild**. The structure (Hero → Pain → WhoFor → HowItWorks → Pricing → FAQ) is sound. What's missing is **proof and specificity**.
-
-1. **Rewrite the hero headline** with a concrete number. Current "Stop Rewriting the Same Content for Every Platform" is generic. Try: *"Turn 1 blog post into 30 platform-ready posts in 90 seconds."* Shorten CTA from "Start Repurposing Content for Free" → **"Start Free"**.
-2. **Replace SocialProofBar copy** ("Join early creators…" = admission of smallness). Wire the existing `LiveCounter` component with a real metric (e.g. "8,400 content pieces generated this month") pulled from the DB.
-3. **Add a real testimonials section** between PricingV2 and FoundingMember. Component already exists (`TestimonialsSection.tsx`), it just isn't imported. Seed with 3–5 real quotes (see Phase 4 for how to get them); **kill the hardcoded "4.9 · 127 reviews"** — that's a credibility bomb.
-4. **Make Founding Member real** — render a live counter ("63 of 100 spots claimed") from a Supabase count of paid subscribers. Without a counter, the urgency is theatre.
-5. **Move the hero demo output below the fold** so visitors see a real AI result on the page, not just a form.
-
-## Phase 2 — Pricing & free-tier rework (2 days)
-
-The audit confirms the 2026 reality: **10 free repurposes/month is too generous** — casual creators get all the value they need and never feel the wall. Competitor research recommends shifting from "credits forever" to "trial drives intent."
-
-Proposed structure (please confirm before we build):
-- **Starter (Free):** 3 repurposes/month + watermark on images. Enough to feel value, not enough to live on.
-- **Pro:** $24/mo (was $19) — unlimited repurposes, no watermark, Brand Voice, all image models.
-- **Creator:** $59/mo — everything in Pro + team seat + scheduled publishing + API.
-- **Founding deal:** First 50 paid sign-ups get **$97 Lifetime Deal** (one-time). Creates an evangelist cohort, generates non-dilutive cash, and gives you real testimonials in 2 weeks.
-
-Add a soft "you've used 2/3" upgrade nudge **before** the wall, not after generation completes.
-
-## Phase 3 — Email infrastructure (the single biggest growth lever, 3 days)
-
-Today PostSpark has exactly **one email route** (unsubscribe). Users sign up and never hear from you again. This is the #1 reason free → paid is broken. Build (using your existing Lovable Emails infra):
-
-- **Day 0:** Welcome + "your first repurpose in 60 seconds" (link straight into a pre-filled studio).
-- **Day 2:** "Here are 3 things creators do with PostSpark" (real examples).
-- **Day 5:** Brand Voice teaser ("Make AI sound like *you*") → Pro upsell.
-- **Day 7:** Founding Member offer ($97 LTD or trial).
-- **Usage triggers:** at 2/3 free credits → "you're almost out, here's what Pro unlocks."
-- **Trial-end:** 24h reminder + offer.
-
-## Phase 4 — Real social proof campaign (1 week, ongoing)
-
-1. **Email every existing free user**: "Use PostSpark Pro free for 2 months in exchange for a 60-second video testimonial with your handle." Even 5 real ones replaces the fake fallbacks.
-2. **Seed the public Gallery** with 20–30 high-quality examples from your own use — currently it's empty, which makes the brand look unused.
-3. **Activate referrals UX**: pre-written tweets, LinkedIn templates, share-image cards. Right now users get a link and no message — nobody shares friction.
-4. **Post-generation "Share my result"** button → tweet card "I turned 1 post into 30 with @PostSpark" — viral loop that's currently missing.
-
-## Phase 5 — Distribution (parallel to everything, weeks 2–6)
-
-Three channels, ranked by 2026 ROI for solo SaaS:
-
-1. **TikTok / Shorts demos** — 30–60s screen recordings of PostSpark turning a known creator's video into a thread/carousel. Post daily. This is the #1 lever in 2026 for creator tools.
-2. **AppSumo / LTD launch** — list the $97 lifetime deal. Buys you 500+ users, $20k+ non-dilutive, and an army of feedback givers.
-3. **Build-in-public on X/LinkedIn** — daily founder posts about prompt engineering, AI quality, before/after outputs. Be your own best case study.
-
-Plus quick wins: list on **Futurepedia, There's An AI For That, FutureTools, Perplexity Pages**; publish **10 real blog posts** (your blog is at sitemap priority 0.9 with **zero posts** — that's actively hurting SEO), and write 3 honest "PostSpark vs Castmagic/OpusClip/Repurpose.io" comparison pages with real screenshots.
-
-## Phase 6 — Product gaps to close next (week 3+)
-
-In priority order, based on competitor analysis:
-
-1. **Native publishing (Buffer / Typefully / X / LinkedIn OAuth)** — calendar today schedules to nowhere. This is the #1 reason creators churn from PostSpark to Buffer.
-2. **Chrome extension** — "Repurpose this page" — every competitor has one; it's a distribution channel via Chrome Web Store.
-3. **Connect Humanizer + Hook Lab + Image Studio into the Repurpose flow** as one-click steps, not separate islands.
-4. **Brand Voice feedback loop** — thumbs up/down on outputs to fine-tune.
-5. **Notion / Google Docs / Zapier import** — eliminate the manual paste step.
-
-## Pages to kill or merge
-- 23 unused `src/components/landing/v1` files — delete.
-- 4 `dashboard.guided.*` routes — consolidate.
-- 3 thin `features.*` pages — merge into one.
-- `/funnel` public page — make admin-only.
+Five workstreams, all built in one session.
 
 ---
 
-## Technical references (file:line for the agent)
+## 1. TikTok / Shorts Demo Factory (the primary lever)
 
-- Paddle IDs: `src/components/landing/v2/PricingV2.tsx` (priceId props), `src/routes/dashboard.billing.tsx:85`, `src/routes/dashboard.settings.tsx` checkout calls.
-- Signup redirect: `src/routes/signup.tsx:77`.
-- Hero: `src/components/landing/v2/Hero.tsx:78` (CTA), demo inconsistency at `src/components/landing/v2/HeroDemoWidget.tsx:57`.
-- SocialProofBar: `src/components/landing/v2/SocialProofBar.tsx:12`.
-- Testimonials wire-in: `src/routes/index.tsx` add after `<PricingV2 />`; fix hardcoded "127 reviews" at `src/components/landing/TestimonialsSection.tsx:42`.
-- Founding Member counter: `src/components/landing/v2/FoundingMember.tsx:36`.
-- Changelog dates: `src/routes/changelog.tsx`.
-- Sitemap exclusions: `src/routes/sitemap[.]xml.tsx`.
-- Email infra: extend existing Lovable Emails templates under `src/lib/email-templates/`.
+A new dashboard tool: `/dashboard/shorts-studio` — turns any input (creator URL, transcript, blog post) into a **30-60s vertical video script + shot list + on-screen captions + hook variants**, ready to record with OBS or CapCut.
+
+**Server**: `src/lib/shorts.functions.ts` + `src/server/shorts.server.ts`
+- `generateShortsScript({ input, style, duration })` → calls Claude with a vertical-video prompt that returns:
+  - 3 hook variants (first 1.5s)
+  - Shot list with timestamps, B-roll suggestion, on-screen caption per shot
+  - CTA card text
+  - Suggested trending audio category (no licensed audio, just a category tag)
+  - Title + description + 8 hashtags
+
+**UI**: `src/routes/dashboard.shorts-studio.tsx`
+- Input panel reusing `ImportInputPanel` (URL/paste/upload).
+- Output panel: collapsible shot cards, copy-all button, "Export script as .txt" and "Export captions as .srt".
+- Counts against the same `repurpose_jobs` table with `tool='shorts_studio'` (free 3/mo, Pro unlimited).
+
+**Public landing tool**: `src/routes/tools.shorts-script-generator.tsx`
+- SEO page targeting "tiktok script generator", "youtube shorts script", "instagram reels script".
+- One free demo behind `/api/public/demo` (existing pattern).
+
+**Daily demo template (founder workflow)**: `src/lib/email-templates/founder-daily-shorts.tsx` + new admin button on `/dashboard/testimonials-admin` "Email me today's shorts brief" — picks a recent viral creator URL from a curated seed list and emails the founder a ready-to-record brief. Internal accelerator, not user-facing.
+
+## 2. AppSumo / LTD Launch Landing
+
+New route `src/routes/deals.lifetime.tsx` — a dedicated, AppSumo-style pitch page for the **$97 Founding Lifetime** deal (already wired in Paddle). Separate from the homepage so we can link it from AppSumo, Reddit, X, IH, etc.
+
+Sections:
+- Hero with live spots-remaining counter (reuse `getFoundingSpots`).
+- "What you get for $97 forever" feature checklist.
+- 60s value calculator: "At $24/mo Pro, $97 pays back in 4 months. Lifetime = $X saved over 3 years."
+- FAQ accordion (refunds, transferability, what counts as "lifetime").
+- Single sticky CTA → Paddle checkout (`founding_lifetime_97`).
+- Pre-launch sign-up form for waitlist after 50 spots fill (writes to `profiles.ltd_waitlist=true`).
+
+Add `src/components/deals/LtdValueCalculator.tsx` and `LtdFaq.tsx`.
+Add route to sitemap with priority 0.9.
+
+## 3. Build-in-Public Engine
+
+New dashboard tool: `/dashboard/build-in-public` — turns real product metrics into daily X/LinkedIn posts so the founder never has to think about what to write.
+
+**Server**: `src/lib/buildInPublic.functions.ts`
+- `getMetricsSnapshot()` — pulls real numbers: signups last 7d, repurposes last 7d, MRR (from `subscriptions`), top tool used.
+- `generateFounderPosts({ metrics, tone })` — Claude prompt returns 5 post variants (milestone, lesson, before/after, question, behind-the-scenes), each with X (280) and LinkedIn (1300) versions.
+
+**UI**: `src/routes/dashboard.build-in-public.tsx`
+- Live metrics tiles at top.
+- "Generate today's 5 posts" button.
+- Each post card: edit-in-place, copy, "Open in X" / "Open in LinkedIn" intent URLs.
+- Pro-only; nudges free users.
+
+## 4. Directory Listing Kit (one-time founder asset)
+
+New route `src/routes/dashboard.distribution-kit.tsx` (admin-only) with ready-to-paste assets:
+- Futurepedia / TAFT / FutureTools / Perplexity Pages submission text (short + long descriptions, tags, screenshots checklist).
+- "About PostSpark" press-kit one-pager (markdown copy block).
+- Logo download links (existing `/brand-assets` bucket).
+- Submission checklist with `localStorage`-persisted checkboxes.
+
+No backend changes — purely a static admin workspace so the founder ships submissions in one sitting.
+
+## 5. SEO blog seed (kill the "0 posts at priority 0.9" leak)
+
+Seed **10 real blog posts** via a one-shot migration into `blog_posts` table using Claude-drafted content. Topics chosen for actual search demand from the audit:
+1. "How to repurpose a blog post into 30 social posts in 2026"
+2. "PostSpark vs Castmagic: honest comparison"
+3. "PostSpark vs OpusClip: which is right for you"
+4. "PostSpark vs Repurpose.io"
+5. "The 2026 creator content stack"
+6. "How to write hooks that get 100k views (with templates)"
+7. "Brand voice AI: what it is and why it matters"
+8. "From podcast to 50 pieces of content: a workflow"
+9. "Why content repurposing beats content creation in 2026"
+10. "The complete guide to LinkedIn carousels"
+
+Each post: 800-1200 words, real markdown, author = founder, category = "Guides" or "Comparisons", `published_at = now() - random(0-30 days)`, real cover image (generate one per post via Replicate at build).
+
+Implementation: `scripts/seed-blog.ts` (one-off Node script) writes via service role. Run once, results land in DB. The audit's 3 "alternatives.*" routes already exist; keep them but cross-link from the new comparison blog posts.
+
+Update `sitemap[.]xml.tsx` already pulls from `blog_posts` so the 10 posts auto-appear.
 
 ---
 
-## Questions before we build
+## Technical references
 
-1. **Paddle IDs — are `pro_monthly_trial` etc. real or placeholders?** Critical to confirm before anything else.
-2. **OK to drop free tier from 10/mo → 3/mo** and add the **$97 lifetime founding deal**?
-3. **Which channel will YOU personally drive** — TikTok demos, X/LinkedIn building-in-public, or AppSumo prep? I can scaffold all three but you need to pick one to commit to weekly.
-4. **OK to delete the 23 v1 landing components and merge the duplicate marketing pages?**
+- Tool registration: add `shorts_studio` and `build_in_public` to `src/lib/tools-catalog.ts` and dashboard tile grid.
+- Usage tracking: reuse `repurpose_jobs` table with new `tool` values; respect `FREE_MONTHLY_LIMIT = 3`.
+- Paddle: no new IDs needed (uses existing `founding_lifetime_97`).
+- Claude calls: extend `src/server/anthropic.server.ts` with shorts + founder-posts prompts; pull brand voice + brand kit server-side (existing pattern).
+- Memory updates: new entries for Shorts Studio, Build-in-Public, LTD landing, blog seed.
 
-Once you answer these, we start with Phase 0 (checkout fix) the same turn.
+## Out of scope this turn
+- Native publishing OAuth (Phase 6).
+- Chrome extension (Phase 6).
+- Auto-posting to TikTok/X/LinkedIn — we generate, founder posts manually for now.
+
+---
+
+## One question before I build
+
+The blog seed (#5) writes 10 generated posts straight to the DB under the founder's name. That's real content but AI-drafted — confirm you want me to ship it as-is, or scaffold the 10 *titles + outlines* only and let you write the bodies?
