@@ -87,8 +87,6 @@ export const generateBuildInPublicPosts = createServerFn({ method: "POST" })
       return { posts: [], error: "Build-in-Public is a Pro feature." };
     }
 
-    const snap = await getMetricsSnapshot({ headers: {} as any } as any).catch(() => null);
-    // Re-derive metrics inline to avoid awkward nested call typing
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const since = new Date(Date.now() - 7 * 86400000).toISOString();
     const [{ count: s7 }, { count: r7 }, { count: tu }, { count: tr }, subs, tools] = await Promise.all([

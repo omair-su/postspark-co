@@ -37,6 +37,7 @@ import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as ToolsYoutubeToTwitterThreadRouteImport } from './routes/tools.youtube-to-twitter-thread'
 import { Route as ToolsYoutubeToBlogRouteImport } from './routes/tools.youtube-to-blog'
 import { Route as ToolsYoutubeThumbnailMakerRouteImport } from './routes/tools.youtube-thumbnail-maker'
+import { Route as ToolsShortsScriptGeneratorRouteImport } from './routes/tools.shorts-script-generator'
 import { Route as ToolsReplyGeneratorRouteImport } from './routes/tools.reply-generator'
 import { Route as ToolsPodcastTranscriptGeneratorRouteImport } from './routes/tools.podcast-transcript-generator'
 import { Route as ToolsPodcastToNewsletterRouteImport } from './routes/tools.podcast-to-newsletter'
@@ -59,10 +60,12 @@ import { Route as FeaturesYoutubeToTweetsRouteImport } from './routes/features.y
 import { Route as FeaturesRepurposeBlogToSocialRouteImport } from './routes/features.repurpose-blog-to-social'
 import { Route as FeaturesLinkedinPostGeneratorRouteImport } from './routes/features.linkedin-post-generator'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as DealsLifetimeRouteImport } from './routes/deals.lifetime'
 import { Route as DashboardThumbnailRouteImport } from './routes/dashboard.thumbnail'
 import { Route as DashboardTestimonialsAdminRouteImport } from './routes/dashboard.testimonials-admin'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
+import { Route as DashboardShortsStudioRouteImport } from './routes/dashboard.shorts-studio'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blog'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
@@ -75,8 +78,10 @@ import { Route as DashboardHumanizerRouteImport } from './routes/dashboard.human
 import { Route as DashboardHookLabRouteImport } from './routes/dashboard.hook-lab'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardFunnelRouteImport } from './routes/dashboard.funnel'
+import { Route as DashboardDistributionKitRouteImport } from './routes/dashboard.distribution-kit'
 import { Route as DashboardCarouselRouteImport } from './routes/dashboard.carousel'
 import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
+import { Route as DashboardBuildInPublicRouteImport } from './routes/dashboard.build-in-public'
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
 import { Route as DashboardBrandKitRouteImport } from './routes/dashboard.brand-kit'
 import { Route as DashboardBlogAdminRouteImport } from './routes/dashboard.blog-admin'
@@ -257,6 +262,12 @@ const ToolsYoutubeThumbnailMakerRoute =
     path: '/tools/youtube-thumbnail-maker',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ToolsShortsScriptGeneratorRoute =
+  ToolsShortsScriptGeneratorRouteImport.update({
+    id: '/tools/shorts-script-generator',
+    path: '/tools/shorts-script-generator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ToolsReplyGeneratorRoute = ToolsReplyGeneratorRouteImport.update({
   id: '/tools/reply-generator',
   path: '/tools/reply-generator',
@@ -373,6 +384,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DealsLifetimeRoute = DealsLifetimeRouteImport.update({
+  id: '/deals/lifetime',
+  path: '/deals/lifetime',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardThumbnailRoute = DashboardThumbnailRouteImport.update({
   id: '/thumbnail',
   path: '/thumbnail',
@@ -392,6 +408,11 @@ const DashboardTemplatesRoute = DashboardTemplatesRouteImport.update({
 const DashboardTeamRoute = DashboardTeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardShortsStudioRoute = DashboardShortsStudioRouteImport.update({
+  id: '/shorts-studio',
+  path: '/shorts-studio',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
@@ -454,6 +475,12 @@ const DashboardFunnelRoute = DashboardFunnelRouteImport.update({
   path: '/funnel',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardDistributionKitRoute =
+  DashboardDistributionKitRouteImport.update({
+    id: '/distribution-kit',
+    path: '/distribution-kit',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardCarouselRoute = DashboardCarouselRouteImport.update({
   id: '/carousel',
   path: '/carousel',
@@ -462,6 +489,11 @@ const DashboardCarouselRoute = DashboardCarouselRouteImport.update({
 const DashboardCalendarRoute = DashboardCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBuildInPublicRoute = DashboardBuildInPublicRouteImport.update({
+  id: '/build-in-public',
+  path: '/build-in-public',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardBrandVoiceRoute = DashboardBrandVoiceRouteImport.update({
@@ -682,8 +714,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
+  '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
+  '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
@@ -696,10 +730,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
   '/dashboard/thumbnail': typeof DashboardThumbnailRoute
+  '/deals/lifetime': typeof DealsLifetimeRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -722,6 +758,7 @@ export interface FileRoutesByFullPath {
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/podcast-transcript-generator': typeof ToolsPodcastTranscriptGeneratorRoute
   '/tools/reply-generator': typeof ToolsReplyGeneratorRoute
+  '/tools/shorts-script-generator': typeof ToolsShortsScriptGeneratorRoute
   '/tools/youtube-thumbnail-maker': typeof ToolsYoutubeThumbnailMakerRoute
   '/tools/youtube-to-blog': typeof ToolsYoutubeToBlogRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
@@ -785,8 +822,10 @@ export interface FileRoutesByTo {
   '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
+  '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
+  '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
@@ -799,10 +838,12 @@ export interface FileRoutesByTo {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
   '/dashboard/thumbnail': typeof DashboardThumbnailRoute
+  '/deals/lifetime': typeof DealsLifetimeRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -825,6 +866,7 @@ export interface FileRoutesByTo {
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/podcast-transcript-generator': typeof ToolsPodcastTranscriptGeneratorRoute
   '/tools/reply-generator': typeof ToolsReplyGeneratorRoute
+  '/tools/shorts-script-generator': typeof ToolsShortsScriptGeneratorRoute
   '/tools/youtube-thumbnail-maker': typeof ToolsYoutubeThumbnailMakerRoute
   '/tools/youtube-to-blog': typeof ToolsYoutubeToBlogRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
@@ -890,8 +932,10 @@ export interface FileRoutesById {
   '/dashboard/blog-admin': typeof DashboardBlogAdminRoute
   '/dashboard/brand-kit': typeof DashboardBrandKitRoute
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
+  '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
+  '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/hook-lab': typeof DashboardHookLabRoute
@@ -904,10 +948,12 @@ export interface FileRoutesById {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
   '/dashboard/thumbnail': typeof DashboardThumbnailRoute
+  '/deals/lifetime': typeof DealsLifetimeRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -930,6 +976,7 @@ export interface FileRoutesById {
   '/tools/podcast-to-newsletter': typeof ToolsPodcastToNewsletterRoute
   '/tools/podcast-transcript-generator': typeof ToolsPodcastTranscriptGeneratorRoute
   '/tools/reply-generator': typeof ToolsReplyGeneratorRoute
+  '/tools/shorts-script-generator': typeof ToolsShortsScriptGeneratorRoute
   '/tools/youtube-thumbnail-maker': typeof ToolsYoutubeThumbnailMakerRoute
   '/tools/youtube-to-blog': typeof ToolsYoutubeToBlogRoute
   '/tools/youtube-to-twitter-thread': typeof ToolsYoutubeToTwitterThreadRoute
@@ -996,8 +1043,10 @@ export interface FileRouteTypes {
     | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
+    | '/dashboard/build-in-public'
     | '/dashboard/calendar'
     | '/dashboard/carousel'
+    | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
@@ -1010,10 +1059,12 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/shorts-studio'
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/dashboard/testimonials-admin'
     | '/dashboard/thumbnail'
+    | '/deals/lifetime'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -1036,6 +1087,7 @@ export interface FileRouteTypes {
     | '/tools/podcast-to-newsletter'
     | '/tools/podcast-transcript-generator'
     | '/tools/reply-generator'
+    | '/tools/shorts-script-generator'
     | '/tools/youtube-thumbnail-maker'
     | '/tools/youtube-to-blog'
     | '/tools/youtube-to-twitter-thread'
@@ -1099,8 +1151,10 @@ export interface FileRouteTypes {
     | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
+    | '/dashboard/build-in-public'
     | '/dashboard/calendar'
     | '/dashboard/carousel'
+    | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
@@ -1113,10 +1167,12 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/shorts-studio'
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/dashboard/testimonials-admin'
     | '/dashboard/thumbnail'
+    | '/deals/lifetime'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -1139,6 +1195,7 @@ export interface FileRouteTypes {
     | '/tools/podcast-to-newsletter'
     | '/tools/podcast-transcript-generator'
     | '/tools/reply-generator'
+    | '/tools/shorts-script-generator'
     | '/tools/youtube-thumbnail-maker'
     | '/tools/youtube-to-blog'
     | '/tools/youtube-to-twitter-thread'
@@ -1203,8 +1260,10 @@ export interface FileRouteTypes {
     | '/dashboard/blog-admin'
     | '/dashboard/brand-kit'
     | '/dashboard/brand-voice'
+    | '/dashboard/build-in-public'
     | '/dashboard/calendar'
     | '/dashboard/carousel'
+    | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
     | '/dashboard/history'
     | '/dashboard/hook-lab'
@@ -1217,10 +1276,12 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/shorts-studio'
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/dashboard/testimonials-admin'
     | '/dashboard/thumbnail'
+    | '/deals/lifetime'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -1243,6 +1304,7 @@ export interface FileRouteTypes {
     | '/tools/podcast-to-newsletter'
     | '/tools/podcast-transcript-generator'
     | '/tools/reply-generator'
+    | '/tools/shorts-script-generator'
     | '/tools/youtube-thumbnail-maker'
     | '/tools/youtube-to-blog'
     | '/tools/youtube-to-twitter-thread'
@@ -1302,6 +1364,7 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
+  DealsLifetimeRoute: typeof DealsLifetimeRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   FeaturesLinkedinPostGeneratorRoute: typeof FeaturesLinkedinPostGeneratorRoute
   FeaturesRepurposeBlogToSocialRoute: typeof FeaturesRepurposeBlogToSocialRoute
@@ -1324,6 +1387,7 @@ export interface RootRouteChildren {
   ToolsPodcastToNewsletterRoute: typeof ToolsPodcastToNewsletterRoute
   ToolsPodcastTranscriptGeneratorRoute: typeof ToolsPodcastTranscriptGeneratorRoute
   ToolsReplyGeneratorRoute: typeof ToolsReplyGeneratorRoute
+  ToolsShortsScriptGeneratorRoute: typeof ToolsShortsScriptGeneratorRoute
   ToolsYoutubeThumbnailMakerRoute: typeof ToolsYoutubeThumbnailMakerRoute
   ToolsYoutubeToBlogRoute: typeof ToolsYoutubeToBlogRoute
   ToolsYoutubeToTwitterThreadRoute: typeof ToolsYoutubeToTwitterThreadRoute
@@ -1550,6 +1614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsYoutubeThumbnailMakerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/shorts-script-generator': {
+      id: '/tools/shorts-script-generator'
+      path: '/tools/shorts-script-generator'
+      fullPath: '/tools/shorts-script-generator'
+      preLoaderRoute: typeof ToolsShortsScriptGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/reply-generator': {
       id: '/tools/reply-generator'
       path: '/tools/reply-generator'
@@ -1704,6 +1775,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/deals/lifetime': {
+      id: '/deals/lifetime'
+      path: '/deals/lifetime'
+      fullPath: '/deals/lifetime'
+      preLoaderRoute: typeof DealsLifetimeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/thumbnail': {
       id: '/dashboard/thumbnail'
       path: '/thumbnail'
@@ -1730,6 +1808,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/dashboard/team'
       preLoaderRoute: typeof DashboardTeamRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/shorts-studio': {
+      id: '/dashboard/shorts-studio'
+      path: '/shorts-studio'
+      fullPath: '/dashboard/shorts-studio'
+      preLoaderRoute: typeof DashboardShortsStudioRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/settings': {
@@ -1816,6 +1901,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFunnelRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/distribution-kit': {
+      id: '/dashboard/distribution-kit'
+      path: '/distribution-kit'
+      fullPath: '/dashboard/distribution-kit'
+      preLoaderRoute: typeof DashboardDistributionKitRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/carousel': {
       id: '/dashboard/carousel'
       path: '/carousel'
@@ -1828,6 +1920,13 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/dashboard/calendar'
       preLoaderRoute: typeof DashboardCalendarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/build-in-public': {
+      id: '/dashboard/build-in-public'
+      path: '/build-in-public'
+      fullPath: '/dashboard/build-in-public'
+      preLoaderRoute: typeof DashboardBuildInPublicRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/brand-voice': {
@@ -2078,8 +2177,10 @@ interface DashboardRouteChildren {
   DashboardBlogAdminRoute: typeof DashboardBlogAdminRoute
   DashboardBrandKitRoute: typeof DashboardBrandKitRoute
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
+  DashboardBuildInPublicRoute: typeof DashboardBuildInPublicRoute
   DashboardCalendarRoute: typeof DashboardCalendarRoute
   DashboardCarouselRoute: typeof DashboardCarouselRoute
+  DashboardDistributionKitRoute: typeof DashboardDistributionKitRoute
   DashboardFunnelRoute: typeof DashboardFunnelRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardHookLabRoute: typeof DashboardHookLabRoute
@@ -2092,6 +2193,7 @@ interface DashboardRouteChildren {
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardShortsStudioRoute: typeof DashboardShortsStudioRoute
   DashboardTeamRoute: typeof DashboardTeamRoute
   DashboardTemplatesRoute: typeof DashboardTemplatesRoute
   DashboardTestimonialsAdminRoute: typeof DashboardTestimonialsAdminRoute
@@ -2110,8 +2212,10 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBlogAdminRoute: DashboardBlogAdminRoute,
   DashboardBrandKitRoute: DashboardBrandKitRoute,
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
+  DashboardBuildInPublicRoute: DashboardBuildInPublicRoute,
   DashboardCalendarRoute: DashboardCalendarRoute,
   DashboardCarouselRoute: DashboardCarouselRoute,
+  DashboardDistributionKitRoute: DashboardDistributionKitRoute,
   DashboardFunnelRoute: DashboardFunnelRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardHookLabRoute: DashboardHookLabRoute,
@@ -2124,6 +2228,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSeoBlogRoute: DashboardSeoBlogRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardShortsStudioRoute: DashboardShortsStudioRoute,
   DashboardTeamRoute: DashboardTeamRoute,
   DashboardTemplatesRoute: DashboardTemplatesRoute,
   DashboardTestimonialsAdminRoute: DashboardTestimonialsAdminRoute,
@@ -2166,6 +2271,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
+  DealsLifetimeRoute: DealsLifetimeRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   FeaturesLinkedinPostGeneratorRoute: FeaturesLinkedinPostGeneratorRoute,
   FeaturesRepurposeBlogToSocialRoute: FeaturesRepurposeBlogToSocialRoute,
@@ -2188,6 +2294,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsPodcastToNewsletterRoute: ToolsPodcastToNewsletterRoute,
   ToolsPodcastTranscriptGeneratorRoute: ToolsPodcastTranscriptGeneratorRoute,
   ToolsReplyGeneratorRoute: ToolsReplyGeneratorRoute,
+  ToolsShortsScriptGeneratorRoute: ToolsShortsScriptGeneratorRoute,
   ToolsYoutubeThumbnailMakerRoute: ToolsYoutubeThumbnailMakerRoute,
   ToolsYoutubeToBlogRoute: ToolsYoutubeToBlogRoute,
   ToolsYoutubeToTwitterThreadRoute: ToolsYoutubeToTwitterThreadRoute,
