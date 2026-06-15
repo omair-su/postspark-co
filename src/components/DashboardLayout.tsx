@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare, Layers, PanelLeftClose, PanelLeftOpen, Check, CreditCard } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare, Layers, PanelLeftClose, PanelLeftOpen, Check, CreditCard, Video, Megaphone, Rocket } from "lucide-react";
 import { SparkCopilot } from "@/components/SparkCopilot";
 import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import { useEffect, useState, type ReactNode } from "react";
@@ -35,12 +35,17 @@ const navGroups = [
       { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
       { to: "/dashboard/thumbnail", icon: ImageIcon, label: "Thumbnail / Cover" },
       { to: "/dashboard/carousel", icon: Layers, label: "Carousel Generator" },
+      { to: "/dashboard/shorts-studio", icon: Video, label: "Shorts Studio" },
       { to: "/dashboard/podcast", icon: Mic, label: "Podcast → Content" },
       { to: "/dashboard/humanizer", icon: Wand2, label: "AI Humanizer" },
       { to: "/dashboard/reply-generator", icon: MessageSquare, label: "Reply Generator" },
       { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
     ],
   },
+  {
+    label: "Distribution",
+    items: [
+      { to: "/dashboard/build-in-public", icon: Megaphone, label: "Build-in-Public" },
   {
     label: "Plan & Publish",
     items: [
