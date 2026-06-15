@@ -62,7 +62,7 @@ const releases = [
     date: "Apr 22, 2026",
     title: "Conversion fundamentals",
     items: [
-      "Free tier increased to 10 repurposes/month",
+      "Free tier rebalanced to 3 quality repurposes/month",
       "Interactive hero demo with typewriter animation",
       "Annual billing toggle (save 20%) and feature comparison table",
       "Updated testimonials with creator handles",
