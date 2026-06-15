@@ -10,6 +10,7 @@ import { FAQv2, FAQ_LIST } from "@/components/landing/v2/FAQv2";
 import { FinalCTA } from "@/components/landing/v2/FinalCTA";
 import { FooterV2 } from "@/components/landing/v2/FooterV2";
 import { ExploreTools } from "@/components/marketing/ExploreTools";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { Navigate, createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -75,6 +76,7 @@ function LandingPage() {
         <HowItWorks />
         <ExploreTools />
         <PricingV2 />
+        <TestimonialsSection />
         <FoundingMember />
         <FAQv2 />
         <FinalCTA />
