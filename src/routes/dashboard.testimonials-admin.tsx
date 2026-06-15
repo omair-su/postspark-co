@@ -2,13 +2,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Save, Trash2, Send } from "lucide-react";
 import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import {
   adminListTestimonials,
   adminUpsertTestimonial,
   adminDeleteTestimonial,
 } from "@/lib/testimonialsAdmin.functions";
+import { sendTestimonialCampaign } from "@/lib/campaigns.functions";
 
 export const Route = createFileRoute("/dashboard/testimonials-admin")({
   component: TestimonialsAdminPage,
@@ -124,6 +125,9 @@ function TestimonialsAdminPage() {
         <p className="text-sm text-muted-foreground">Manage social proof shown on the landing page.</p>
       </div>
 
+      <CampaignCard />
+
+
       <div className="rounded-xl border border-border bg-card p-5 space-y-3">
         <h2 className="text-sm font-semibold flex items-center gap-2"><Plus className="h-4 w-4" />{draft.id ? "Edit testimonial" : "New testimonial"}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -177,3 +181,35 @@ function TestimonialsAdminPage() {
     </div>
   );
 }
+
+function CampaignCard() {
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState<{ queued: number; duplicates?: number; total: number } | null>(null);
+  const run = async () => {
+    if (!confirm("Email ALL free users the 'Pro for testimonial' offer? Already-emailed users are skipped.")) return;
+    setSending(true);
+    try {
+      const r = await sendTestimonialCampaign();
+      setResult(r as any);
+      toast.success(`Queued ${(r as any).queued} email(s)`);
+    } catch (e: any) {
+      toast.error(e.message || "Send failed");
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <div className="rounded-xl border border-primary/30 bg-primary/5 p-5">
+      <h2 className="text-sm font-semibold flex items-center gap-2"><Send className="h-4 w-4 text-primary" />Testimonial campaign</h2>
+      <p className="mt-1 text-xs text-muted-foreground">Email every free user the "2 months Pro for a 60-sec testimonial" offer. Idempotent — safe to re-run.</p>
+      <button onClick={run} disabled={sending} className="mt-3 inline-flex items-center gap-2 rounded gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+        {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+        {sending ? "Sending…" : "Send campaign now"}
+      </button>
+      {result && (
+        <p className="mt-3 text-xs text-muted-foreground">Queued: {result.queued} · Skipped (already sent): {result.duplicates ?? 0} · Total free users: {result.total}</p>
+      )}
+    </div>
+  );
+}
+

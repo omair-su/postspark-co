@@ -21,6 +21,12 @@ export interface TemplateEntry {
 import { template as teamInvite } from './team-invite'
 import { template as approvalRequest } from './approval-request'
 import { template as weeklyDigest } from './weekly-digest'
+import { template as welcomeDay0 } from './welcome-day-0'
+import { template as dripDay2 } from './drip-day-2'
+import { template as dripDay5 } from './drip-day-5'
+import { template as dripDay7 } from './drip-day-7'
+import { template as usageWarning } from './usage-warning'
+import { template as testimonialRequest } from './testimonial-request'
 import { PaymentFailedEmail } from './payment-failed'
 import { SubscriptionCanceledEmail } from './subscription-canceled'
 import { AccountDeletedEmail } from './account-deleted'
@@ -30,6 +36,12 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'team-invite': { ...teamInvite, callerRestriction: 'invite_owner' },
   'approval-request': { ...approvalRequest, callerRestriction: 'approval_owner' },
   'weekly-digest': { ...weeklyDigest, callerRestriction: 'server_only' },
+  'welcome-day-0': { ...welcomeDay0, callerRestriction: 'server_only' },
+  'drip-day-2': { ...dripDay2, callerRestriction: 'server_only' },
+  'drip-day-5': { ...dripDay5, callerRestriction: 'server_only' },
+  'drip-day-7': { ...dripDay7, callerRestriction: 'server_only' },
+  'usage-warning': { ...usageWarning, callerRestriction: 'server_only' },
+  'testimonial-request': { ...testimonialRequest, callerRestriction: 'server_only' },
   'welcome-paid': {
     component: WelcomePaidEmail,
     subject: (d: any) => `Welcome to PostSpark ${d?.planName ?? 'Premium'} 🎉`,

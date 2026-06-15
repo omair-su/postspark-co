@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getReferralStats } from "@/lib/referrals.functions";
-import { Gift, Copy, Check, Users, Sparkles, Loader2 } from "lucide-react";
+import { Gift, Copy, Check, Users, Sparkles, Loader2, Twitter, Linkedin, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/referrals")({
@@ -75,6 +75,8 @@ function ReferralsPage() {
         </div>
       </div>
 
+      {link && <ShareKit link={link} />}
+
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <StatCard icon={<Users className="h-4 w-4" />} label="Total invites" value={stats?.total ?? 0} />
         <StatCard icon={<Sparkles className="h-4 w-4" />} label="Rewarded" value={stats?.rewarded ?? 0} />
@@ -124,6 +126,100 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center gap-2 text-muted-foreground">{icon}<span className="text-xs">{label}</span></div>
       <p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+const TEMPLATES = [
+  {
+    label: "Short & punchy",
+    copy: (link: string) =>
+      `I turned 1 blog post into 30 platform-ready posts in 90 seconds with @PostSparkApp.\n\nGame-changer for creators who hate rewriting:\n${link}`,
+  },
+  {
+    label: "Founder story",
+    copy: (link: string) =>
+      `Been using PostSpark to repurpose my long-form content into LinkedIn, Twitter, and IG posts — saves me ~6 hours/week.\n\nFree to try here: ${link}`,
+  },
+  {
+    label: "Curiosity hook",
+    copy: (link: string) =>
+      `One blog post = 30 posts across every platform.\n\nThat's PostSpark. I'm now publishing 5x more content without writing 5x more.\n\nTry it: ${link}`,
+  },
+];
+
+function ShareKit({ link }: { link: string }) {
+  const [active, setActive] = useState(0);
+  const [text, setText] = useState(TEMPLATES[0].copy(link));
+
+  useEffect(() => { setText(TEMPLATES[active].copy(link)); }, [active, link]);
+
+  const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  const linkedin = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`;
+  const mail = `mailto:?subject=${encodeURIComponent("You should try PostSpark")}&body=${encodeURIComponent(text)}`;
+
+  const copyText = async () => {
+    await navigator.clipboard.writeText(text);
+    toast.success("Post copied — paste anywhere");
+  };
+
+  return (
+    <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+      <h3 className="text-sm font-semibold text-foreground">Share kit — ready-made posts</h3>
+      <p className="mt-1 text-xs text-muted-foreground">Pick a tone, tweak the words, share in one click.</p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {TEMPLATES.map((t, i) => (
+          <button
+            key={t.label}
+            onClick={() => setActive(i)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              i === active
+                ? "bg-primary text-primary-foreground"
+                : "border border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="mt-3 min-h-[120px] w-full resize-y rounded-xl border border-input bg-muted/30 p-3 text-sm leading-relaxed text-foreground focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
+      />
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <a
+          href={tweet}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-xs font-semibold text-background hover:opacity-90"
+        >
+          <Twitter className="h-3.5 w-3.5" /> Post to X
+        </a>
+        <a
+          href={linkedin}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#0a66c2] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+        >
+          <Linkedin className="h-3.5 w-3.5" /> Share on LinkedIn
+        </a>
+        <a
+          href={mail}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary hover:text-primary"
+        >
+          <Mail className="h-3.5 w-3.5" /> Email a friend
+        </a>
+        <button
+          onClick={copyText}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:border-primary hover:text-primary"
+        >
+          <Copy className="h-3.5 w-3.5" /> Copy text
+        </button>
+      </div>
     </div>
   );
 }

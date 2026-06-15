@@ -99,6 +99,36 @@ export const repurposeContent = createServerFn({ method: "POST" })
       if (!countError && (count ?? 0) >= FREE_MONTHLY_LIMIT) {
         return { output: "", error: "LIMIT_REACHED" };
       }
+
+      // Fire-and-forget: warn the user when they hit 2/3.
+      if (!countError && (count ?? 0) === FREE_MONTHLY_LIMIT - 1) {
+        try {
+          const [{ supabaseAdmin }, { renderAndEnqueueEmail }] = await Promise.all([
+            import("@/integrations/supabase/client.server"),
+            import("@/lib/email/render-and-enqueue.server"),
+          ]);
+          const { data: au } = await supabaseAdmin.auth.admin.getUserById(userId);
+          const email = au?.user?.email;
+          if (email) {
+            const month = new Date().toISOString().slice(0, 7);
+            const { data: prof } = await supabaseAdmin
+              .from("profiles").select("display_name").eq("user_id", userId).maybeSingle();
+            await renderAndEnqueueEmail({
+              supabase: supabaseAdmin,
+              templateName: "usage-warning",
+              to: email,
+              idempotencyKey: `usage-warning-${userId}-${month}`,
+              templateData: {
+                firstName: ((prof?.display_name as string | null) || "").split(" ")[0] || undefined,
+                used: count ?? 0,
+                limit: FREE_MONTHLY_LIMIT,
+              },
+            });
+          }
+        } catch (e) {
+          console.warn("usage-warning email failed", e);
+        }
+      }
     }
 
     // Fetch active brand voice (Pro feature) to personalize output

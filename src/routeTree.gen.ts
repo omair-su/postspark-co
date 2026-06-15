@@ -110,6 +110,7 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
+import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
@@ -643,6 +644,11 @@ const ApiPublicHooksWeeklyDigestRoute =
     path: '/api/public/hooks/weekly-digest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksEmailDripRoute = ApiPublicHooksEmailDripRouteImport.update({
+  id: '/api/public/hooks/email-drip',
+  path: '/api/public/hooks/email-drip',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -739,6 +745,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -841,6 +848,7 @@ export interface FileRoutesByTo {
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -945,6 +953,7 @@ export interface FileRoutesById {
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1050,6 +1059,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/email-drip'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -1152,6 +1162,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/email-drip'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -1255,6 +1266,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
+    | '/api/public/hooks/email-drip'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/lovable/email/auth/preview'
@@ -1330,6 +1342,7 @@ export interface RootRouteChildren {
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicHooksEmailDripRoute: typeof ApiPublicHooksEmailDripRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -2048,6 +2061,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksWeeklyDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/email-drip': {
+      id: '/api/public/hooks/email-drip'
+      path: '/api/public/hooks/email-drip'
+      fullPath: '/api/public/hooks/email-drip'
+      preLoaderRoute: typeof ApiPublicHooksEmailDripRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2187,6 +2207,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicHooksEmailDripRoute: ApiPublicHooksEmailDripRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
