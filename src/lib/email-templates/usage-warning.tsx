@@ -8,7 +8,7 @@ interface Props { firstName?: string; used?: number; limit?: number; pricingUrl?
 const Email = ({ firstName, used = 2, limit = 3, pricingUrl = "https://postspark.co/pricing" }: Props) => (
   <Html lang="en">
     <Head />
-    <Preview>You've used {used} of {limit} free repurposes this month</Preview>
+    <Preview>{`You've used ${used} of ${limit} free repurposes this month`}</Preview>
     <Body style={main}>
       <Container style={container}>
         <BrandHeader />
