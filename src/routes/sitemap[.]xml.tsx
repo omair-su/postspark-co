@@ -42,7 +42,7 @@ const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string 
   { path: "/alternatives/typefully-vs-postspark", priority: "0.85", changefreq: "monthly" },
   { path: "/changelog", priority: "0.6", changefreq: "weekly" },
   { path: "/demo", priority: "0.7", changefreq: "monthly" },
-  { path: "/funnel", priority: "0.5", changefreq: "monthly" },
+  // /funnel intentionally excluded — admin/internal page
   { path: "/roadmap", priority: "0.6", changefreq: "weekly" },
   { path: "/signup", priority: "0.6", changefreq: "monthly" },
   { path: "/login", priority: "0.4", changefreq: "yearly" },

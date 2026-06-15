@@ -386,7 +386,7 @@ export function HeroDemoWidget() {
         <p className="mt-2 text-center text-[11px]" style={{ color: "#64748B" }}>
           {remaining} of 3 free demos left today ·{" "}
           <Link to="/signup" className="font-bold" style={{ color: "#7C3AED" }}>
-            Unlimited with free account →
+            Sign up free for 3/month →
           </Link>
         </p>
       )}
@@ -485,7 +485,7 @@ export function HeroDemoWidget() {
                     Unlock {activeTab.label}
                   </p>
                   <p className="mb-3 mt-0.5 text-xs" style={{ color: "#64748B" }}>
-                    Free account · 10 repurposes/month · No card required
+                    Free account · 3 repurposes/month · No card required
                   </p>
                   <Link
                     to="/signup"

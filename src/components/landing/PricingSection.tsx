@@ -22,7 +22,7 @@ const tiers: Tier[] = [
     monthly: 0,
     annual: 0,
     desc: "Get started with content repurposing",
-    features: ["10 repurposes/month", "All content formats", "Copy & export"],
+    features: ["3 repurposes/month", "All content formats", "Copy & export"],
     cta: "Start Free",
     popular: false,
     monthlyPriceId: null,
@@ -30,8 +30,8 @@ const tiers: Tier[] = [
   },
   {
     name: "Pro",
-    monthly: 19,
-    annual: 15,
+    monthly: 24,
+    annual: 19,
     desc: "For creators who publish daily",
     features: [
       "14-day free trial",
@@ -69,7 +69,7 @@ const tiers: Tier[] = [
 ];
 
 const comparisonRows: Array<{ label: string; values: [string | boolean, string | boolean, string | boolean] }> = [
-  { label: "Monthly repurposes", values: ["10", "Unlimited", "Unlimited"] },
+  { label: "Monthly repurposes", values: ["3", "Unlimited", "Unlimited"] },
   { label: "Output formats (tweets, LinkedIn, email…)", values: [true, true, true] },
   { label: "YouTube / PDF / URL import", values: [true, true, true] },
   { label: "Tone & custom instructions", values: [true, true, true] },

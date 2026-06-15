@@ -16,7 +16,7 @@ export function FinalCTA() {
           className="mx-auto mt-6 max-w-xl text-base"
           style={{ color: "rgba(255,255,255,0.8)", lineHeight: 1.7 }}
         >
-          Join PostSpark free. No credit card. 10 repurposes every month. See what
+          Join PostSpark free. No credit card. 3 repurposes every month. See what
           Claude AI does with your best ideas.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

@@ -912,7 +912,7 @@ function RepurposePage() {
             <Sparkles className="h-7 w-7 text-primary" />
           </div>
           <h2 className="text-center text-xl font-bold text-foreground">You've hit your monthly limit</h2>
-          <p className="mt-2 text-center text-sm text-muted-foreground">Free accounts get 10 repurposes per month. Upgrade to <strong>Pro</strong> for unlimited.</p>
+          <p className="mt-2 text-center text-sm text-muted-foreground">Free accounts get 3 repurposes per month. Upgrade to <strong>Pro</strong> for unlimited.</p>
           <div className="mt-6 space-y-3">
             <Link to="/dashboard/billing" className="block w-full rounded-xl bg-gradient-to-r from-primary to-violet-500 px-6 py-3 text-center text-sm font-bold text-primary-foreground shadow hover:opacity-90">
               Upgrade to Pro — $19/mo

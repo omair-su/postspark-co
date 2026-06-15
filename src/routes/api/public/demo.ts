@@ -60,7 +60,7 @@ export const Route = createFileRoute("/api/public/demo")({
           return Response.json(
             {
               error:
-                "You've reached the free demo limit. Sign up free to keep going — 10 repurposes/month, no card required.",
+                "You've reached the free demo limit. Sign up free to keep going — 3 repurposes/month, no card required.",
               limited: true,
             },
             { status: 429 },

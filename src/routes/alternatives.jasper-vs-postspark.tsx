@@ -25,7 +25,7 @@ export const Route = createFileRoute("/alternatives/jasper-vs-postspark")({
         "Brand Voice AI trains on your samples and only sharpens with use.",
       ]}
       workflow={[
-        { title: "Sign up free", body: "10 repurposes/month, no card. See if PostSpark fits before you pay." },
+        { title: "Sign up free", body: "3 repurposes/month, no card. See if PostSpark fits before you pay." },
         { title: "Train your voice once", body: "Drop in writing samples. Outputs sound like you immediately." },
         { title: "Cancel Jasper", body: "Keep the same output volume at less than half the price." },
       ]}

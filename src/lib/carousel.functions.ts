@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateCarousel, rewriteSlideClaude } from "@/server/carousel.server";
 
-const FREE_MONTHLY_LIMIT = 10;
+const FREE_MONTHLY_LIMIT = 3;
 
 const RATE_BUCKET = new Map<string, number[]>();
 function rateLimited(userId: string): boolean {

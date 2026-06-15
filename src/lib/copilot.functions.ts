@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { humanizeText, generateReplies } from "@/server/copilot.server";
 
-const FREE_MONTHLY_LIMIT = 10;
+const FREE_MONTHLY_LIMIT = 3;
 
 const RATE_BUCKET = new Map<string, number[]>();
 const RATE_WINDOW_MS = 60_000;

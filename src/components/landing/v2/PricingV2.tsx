@@ -22,9 +22,9 @@ const TIERS: Tier[] = [
     name: "Free",
     monthly: 0,
     annual: 0,
-    desc: "Start without a credit card",
+    desc: "Try it without a credit card",
     features: [
-      "10 repurposes per month",
+      "3 repurposes per month",
       "All content formats",
       "Tweet, LinkedIn, Email outputs",
       "Copy and export",
@@ -37,8 +37,8 @@ const TIERS: Tier[] = [
   },
   {
     name: "Pro",
-    monthly: 19,
-    annual: 15,
+    monthly: 24,
+    annual: 19,
     desc: "For creators who publish daily",
     features: [
       "Unlimited repurposes",
@@ -269,7 +269,7 @@ export function PricingV2() {
             <span style={{ textDecoration: "line-through" }}>$168/month</span>
           </p>
           <p className="mt-1 text-sm font-bold" style={{ color: "#7C3AED" }}>
-            PostSpark: from $19/month
+            PostSpark Pro: $19/month billed annually
           </p>
         </div>
       </div>

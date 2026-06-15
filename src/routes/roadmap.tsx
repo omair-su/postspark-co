@@ -44,7 +44,7 @@ const columns = [
     items: [
       { title: "Publish to Typefully & Buffer", desc: "One click from any result." },
       { title: "Public Gallery + Remix", desc: "Get inspired by community posts." },
-      { title: "Free tier → 10/month", desc: "More room to fall in love with PostSpark." },
+      { title: "Free tier → 3/month", desc: "More room to fall in love with PostSpark." },
       { title: "Onboarding aha moment", desc: "Auto-run a sample on first login." },
     ],
   },
