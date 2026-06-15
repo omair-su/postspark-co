@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Returns how many founding-lifetime spots remain out of 50.
