@@ -193,7 +193,7 @@ function BillingPage() {
                     disabled={checkoutLoading}
                     className="flex w-full items-center justify-between rounded-lg gradient-electric px-3 py-2.5 text-sm font-semibold text-primary-foreground glow-electric disabled:opacity-50"
                   >
-                    <span>Annual · $15/mo</span>
+                    <span>Annual · $19/mo</span>
                     <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px]">Save 21%</span>
                   </button>
                   <button
@@ -201,7 +201,7 @@ function BillingPage() {
                     disabled={checkoutLoading}
                     className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-accent disabled:opacity-50"
                   >
-                    <span>Monthly · $19/mo</span>
+                    <span>Monthly · $24/mo</span>
                   </button>
                 </div>
                 <p className="mt-3 text-center text-[10px] text-muted-foreground">14-day free trial · cancel anytime</p>

@@ -10,9 +10,9 @@ export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
       { title: "Start Free — PostSpark AI Content Repurposing" },
-      { name: "description", content: "Create your free PostSpark account and start repurposing content with AI. 10 free repurposes per month, no credit card required." },
+      { name: "description", content: "Create your free PostSpark account and start repurposing content with AI. 3 free repurposes per month, no credit card required." },
       { property: "og:title", content: "Start Free on PostSpark" },
-      { property: "og:description", content: "10 free AI repurposes every month. No credit card." },
+      { property: "og:description", content: "3 free AI repurposes every month. No credit card." },
       { property: "og:url", content: "https://postspark.co/signup" },
       { property: "og:image", content: "https://postspark.co/og-image.png" },
     ],
