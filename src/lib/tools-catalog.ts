@@ -17,6 +17,7 @@ export const TOOLS_CATALOG: ToolCatalogEntry[] = [
   { path: "/tools/ai-image-generator", name: "AI Image Generator", short: "Platform-sized AI images, brand-matched.", emoji: "🎨", category: "Tools", volume: 823000 },
   { path: "/tools/youtube-thumbnail-maker", name: "YouTube Thumbnail Maker", short: "Click-worthy thumbnails in seconds.", emoji: "🖼️", category: "Tools", volume: 5400 },
   { path: "/tools/linkedin-video-downloader", name: "LinkedIn Video Downloader", short: "Save any public LinkedIn video as MP4.", emoji: "⬇️", category: "Tools", volume: 2400 },
+  { path: "/tools/shorts-script-generator", name: "TikTok / Shorts Script Generator", short: "Idea → 60s vertical script with hooks & shot list.", emoji: "🎬", category: "Tools", volume: 4900 },
   { path: "/tools/hook-generator", name: "Hook Generator", short: "Scroll-stopping first lines for any post.", emoji: "🪝", category: "Tools", volume: 1600 },
   { path: "/tools/podcast-transcript-generator", name: "Podcast Transcript Generator", short: "Accurate transcripts + show notes.", emoji: "🎙️", category: "Tools", volume: 480 },
   { path: "/tools/reply-generator", name: "Reply Generator", short: "On-brand replies that grow your reach.", emoji: "💬", category: "Tools", volume: 390 },

@@ -31,6 +31,8 @@ const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string 
   { path: "/tools/podcast-transcript-generator", priority: "0.85", changefreq: "monthly" },
   { path: "/tools/youtube-to-blog", priority: "0.85", changefreq: "monthly" },
   { path: "/tools/blog-to-newsletter", priority: "0.8", changefreq: "monthly" },
+  { path: "/tools/shorts-script-generator", priority: "0.9", changefreq: "monthly" },
+  { path: "/deals/lifetime", priority: "0.9", changefreq: "weekly" },
   { path: "/use-cases/linkedin-ghostwriters", priority: "0.85", changefreq: "monthly" },
   { path: "/use-cases/podcast-to-social", priority: "0.85", changefreq: "monthly" },
   { path: "/use-cases/youtube-to-linkedin", priority: "0.85", changefreq: "monthly" },
