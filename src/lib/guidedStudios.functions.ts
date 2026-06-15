@@ -6,7 +6,7 @@ import {
   generateProductLaunch, generateMarketingTip, editStudioOutput,
 } from "@/server/guidedStudios.server";
 
-const FREE_MONTHLY_LIMIT = 10;
+const FREE_MONTHLY_LIMIT = 3;
 
 const RATE_BUCKET = new Map<string, number[]>();
 function rateLimited(userId: string) {

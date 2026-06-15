@@ -13,11 +13,9 @@ type Testimonial = {
   rating?: number | null;
 };
 
-const fallback: Testimonial[] = [
-  { name: "Sarah Chen", handle: "@sarahbuilds", role: "Newsletter creator · 18k subs", avatar_initials: "SC", quote: "I paste my Sunday essay into PostSpark and walk away with a full week of tweets, a LinkedIn post, and a podcast outline. It cut my Monday from 4 hours to 20 minutes." },
-  { name: "Marcus Johnson", handle: "@marcusgrowth", role: "Head of Content · B2B SaaS", avatar_initials: "MJ", quote: "Our team's social output tripled in the first month. Brand Voice nails our tone — readers don't realize anything changed except how often we post." },
-  { name: "Emily Rodriguez", handle: "@emilysolopreneur", role: "Solo founder · indie SaaS", avatar_initials: "ER", quote: "I'm a one-person team. PostSpark is the closest thing I have to a content department. The Hook Lab alone earned my Pro upgrade." },
-];
+// No fallback testimonials — we render nothing rather than show fake names.
+// Real testimonials come from the testimonials admin page (DB-backed).
+const fallback: Testimonial[] = [];
 
 export function TestimonialsSection() {
   const [items, setItems] = useState<Testimonial[]>(fallback);
@@ -30,6 +28,9 @@ export function TestimonialsSection() {
       .catch(() => {});
   }, []);
 
+  // Hide the whole section if we have no real testimonials yet — better than fake proof.
+  if (items.length === 0) return null;
+
   return (
     <section className="relative isolate overflow-hidden cream-surface-alt py-24">
       <div className="cream-grain" aria-hidden />
@@ -39,8 +40,8 @@ export function TestimonialsSection() {
             {[0, 1, 2, 3, 4].map((i) => (
               <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
             ))}
-            <span className="ml-1.5 font-semibold luxury-heading">4.9</span>
-            <span className="text-[#1a1a2e]/60">· 127 reviews</span>
+            <span className="ml-1.5 font-semibold luxury-heading">Loved</span>
+            <span className="text-[#1a1a2e]/60">· {items.length} review{items.length === 1 ? "" : "s"}</span>
           </div>
           <h2 className="mt-5 luxury-heading" style={{ fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
             Loved by <span className="luxury-gradient-text">Creators</span>

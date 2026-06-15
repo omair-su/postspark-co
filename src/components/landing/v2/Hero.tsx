@@ -39,28 +39,20 @@ export function Hero() {
               color: "#0F172A",
               fontFamily: "Inter, system-ui, -apple-system, sans-serif",
               fontWeight: 700,
-              
             }}
           >
-            Stop Rewriting the
-            <br /> Same Content for
-            <br /> <span className="ps-display-accent">Every Platform.</span>
+            Turn 1 blog post into
+            <br /> <span className="ps-display-accent">30 platform-ready</span>
+            <br /> pieces in 90 seconds.
           </h1>
 
           <p
             className="mt-6 max-w-xl text-base sm:text-lg"
             style={{ color: "#64748B", lineHeight: 1.7 }}
           >
-            Paste one blog post, YouTube video, or podcast. PostSpark generates
-            tweets, LinkedIn posts, email newsletters, and video scripts in your
-            voice — in under 60 seconds.
-          </p>
-
-          <p
-            className="mt-2 max-w-xl text-sm italic"
-            style={{ color: "#64748B" }}
-          >
-            Used by creators spending 4+ hours weekly on content reformatting.
+            Paste a blog, YouTube video, or podcast. PostSpark writes tweets,
+            LinkedIn posts, newsletters, and video scripts <strong>in your voice</strong>
+            {" "}— powered by Claude AI.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -75,7 +67,7 @@ export function Hero() {
               onMouseEnter={(e) => (e.currentTarget.style.background = "#6D28D9")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "#7C3AED")}
             >
-              Start Repurposing Content for Free <ArrowRight className="h-4 w-4" />
+              Start Free <ArrowRight className="h-4 w-4" />
             </Link>
             <a
               href="#try-demo"
@@ -89,7 +81,7 @@ export function Hero() {
               onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F3FF")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
-              See It Work in 30 Seconds
+              Try It Live ↓
             </a>
           </div>
 
@@ -98,7 +90,7 @@ export function Hero() {
             style={{ color: "#64748B" }}
           >
             {[
-              "10 free repurposes monthly",
+              "3 free repurposes/month",
               "No credit card required",
               "Cancel anytime",
             ].map((t) => (

@@ -107,7 +107,7 @@ async function countMonthlyGenerations(userId: string): Promise<number> {
   return count || 0;
 }
 
-const FREE_REPURPOSE_LIMIT = 10;
+const FREE_REPURPOSE_LIMIT = 3;
 async function checkRepurposeQuota(userId: string, plan: string): Promise<boolean> {
   if (plan === "pro" || plan === "agency") return true;
   const since = await monthStartIso();
