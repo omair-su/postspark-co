@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/public/oauth/youtube/callback")({
         if (existing) {
           await supabaseAdmin.from("social_accounts").update({
             access_token: accessToken,
-            refresh_token: refreshToken || existing.refresh_token,
+            refresh_token: refreshToken || existing.refresh_token || undefined,
             token_expires_at: tokenExpiresAt,
             scopes,
             platform_user_id: channelId || null,
