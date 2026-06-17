@@ -81,7 +81,7 @@ export const Route = createFileRoute("/api/public/oauth/youtube/callback")({
             refresh_token: refreshToken || existing.refresh_token || undefined,
             token_expires_at: tokenExpiresAt,
             scopes,
-            platform_user_id: channelId || null,
+            platform_user_id: channelId || undefined,
             platform_username: channelName,
           }).eq("id", existing.id);
         } else {
