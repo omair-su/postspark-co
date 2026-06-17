@@ -299,12 +299,12 @@ export const recordTikTokIntent = createServerFn({ method: "POST" })
   });
 
 // Re-export the signing helper for the OAuth callback route to verify state.
-export function verifyOAuthState(state: string): { userId: string } | null {
+export async function verifyOAuthState(state: string): Promise<{ userId: string } | null> {
   const parts = state.split(".");
   if (parts.length !== 4) return null;
   const [uid, ts, nonce, sig] = parts;
   const payload = `${uid}.${ts}.${nonce}`;
-  const expected = signState(payload);
+  const expected = await signState(payload);
   if (sig !== expected) return null;
   if (Date.now() - parseInt(ts, 10) > 10 * 60 * 1000) return null;
   return { userId: uid };
