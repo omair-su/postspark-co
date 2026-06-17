@@ -89,10 +89,10 @@ export const Route = createFileRoute("/api/public/oauth/youtube/callback")({
             user_id: verified.userId,
             platform: "youtube",
             access_token: accessToken,
-            refresh_token: refreshToken || null,
+            refresh_token: refreshToken || undefined,
             token_expires_at: tokenExpiresAt,
             scopes,
-            platform_user_id: channelId || null,
+            platform_user_id: channelId || undefined,
             platform_username: channelName,
           } as any);
         }
