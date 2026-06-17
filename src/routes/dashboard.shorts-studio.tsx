@@ -1,13 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Copy, Check, Video, Download, Music2 } from "lucide-react";
+import { Loader2, Sparkles, Copy, Check, Video, Download, Music2, Upload, Youtube, Link2, AlertCircle } from "lucide-react";
 import { generateShorts } from "@/lib/shorts.functions";
+import {
+  getYouTubeAuthUrl,
+  getConnectedSocials,
+  disconnectSocial,
+  attachShortVideo,
+  publishToYouTube,
+  recordTikTokIntent,
+} from "@/lib/socialPublish.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { supabase } from "@/integrations/supabase/client";
 import type { ShortsScript } from "@/server/shorts.server";
 
 export const Route = createFileRoute("/dashboard/shorts-studio")({
+  validateSearch: (s: Record<string, unknown>) => ({ yt: typeof s.yt === "string" ? s.yt : undefined }),
   component: ShortsStudioPage,
 });
 
