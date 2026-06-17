@@ -31,18 +31,42 @@ const DURATIONS = [30, 45, 60] as const;
 
 function ShortsStudioPage() {
   const { session } = useAuth();
+  const search = useSearch({ from: "/dashboard/shorts-studio" });
   const [input, setInput] = useState("");
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]["id"]>("tiktok");
   const [duration, setDuration] = useState<30 | 45 | 60>(45);
   const [angle, setAngle] = useState("");
   const [loading, setLoading] = useState(false);
   const [script, setScript] = useState<ShortsScript | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+
+  // ── publish state ──────────────────────────────────────────────
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPath, setVideoPath] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [connectedYT, setConnectedYT] = useState<{ name: string } | null>(null);
+  const [ytPublishing, setYtPublishing] = useState(false);
+  const [ytPrivacy, setYtPrivacy] = useState<"public" | "unlisted" | "private">("unlisted");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const refreshSocials = async () => {
+    try {
+      const r = await getConnectedSocials();
+      const yt = (r.accounts || []).find((a: any) => a.platform === "youtube");
+      setConnectedYT(yt ? { name: (yt as any).platform_username || "YouTube" } : null);
+    } catch { /* signed out */ }
+  };
+  useEffect(() => { if (session) refreshSocials(); }, [session]);
+  useEffect(() => {
+    if (search.yt === "connected") { toast.success("YouTube connected"); refreshSocials(); }
+    else if (search.yt?.startsWith("error:")) toast.error(`YouTube connect failed: ${search.yt.slice(6)}`);
+  }, [search.yt]);
 
   const run = async () => {
     if (!session) return toast.error("Please sign in");
     if (input.trim().length < 20) return toast.error("Paste at least a paragraph of source content");
-    setLoading(true); setScript(null);
+    setLoading(true); setScript(null); setJobId(null); setVideoFile(null); setVideoPath(null);
     try {
       const res = await withAIProgress(generateShorts({
         data: { inputText: input.trim(), platform, duration, angle: angle.trim() || undefined },
@@ -53,12 +77,89 @@ function ShortsStudioPage() {
         toast.error(res.error);
       } else if (res.script) {
         setScript(res.script);
+        setJobId((res as any).jobId || null);
         toast.success("Script ready");
       }
     } catch (e: any) {
       toast.error(e?.message || "Failed");
     } finally { setLoading(false); }
   };
+
+  // ── upload video to storage + attach to history ────────────────
+  const onPickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !jobId || !session?.user) return;
+    if (!file.type.startsWith("video/")) return toast.error("Pick a video file (mp4/mov/webm)");
+    if (file.size > 200 * 1024 * 1024) return toast.error("Video too large (max 200MB)");
+    setVideoFile(file);
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "mp4";
+      const path = `${session.user.id}/${jobId}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("shorts-videos").upload(path, file, {
+        contentType: file.type, upsert: false,
+      });
+      if (upErr) throw upErr;
+      const att = await attachShortVideo({ data: { jobId, storagePath: path, mimeType: file.type, sizeBytes: file.size } });
+      if ((att as any).error) throw new Error((att as any).error);
+      setVideoPath(path);
+      toast.success("Video uploaded & saved to History");
+    } catch (err: any) {
+      toast.error(err?.message || "Upload failed");
+      setVideoFile(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const connectYouTube = async () => {
+    try {
+      const r = await getYouTubeAuthUrl();
+      if ((r as any).error) return toast.error((r as any).error);
+      if ((r as any).url) window.location.href = (r as any).url;
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+
+  const disconnectYouTube = async () => {
+    await disconnectSocial({ data: { platform: "youtube" } });
+    setConnectedYT(null);
+    toast.success("YouTube disconnected");
+  };
+
+  const publishYouTube = async () => {
+    if (!script || !jobId || !videoPath) return;
+    if (!connectedYT) return toast.error("Connect YouTube first");
+    setYtPublishing(true);
+    try {
+      const r: any = await publishToYouTube({
+        data: {
+          jobId, storagePath: videoPath,
+          title: script.title.slice(0, 100),
+          description: script.description,
+          hashtags: script.hashtags,
+          privacy: ytPrivacy,
+        },
+      });
+      if (r.error === "NOT_CONNECTED") { setConnectedYT(null); return toast.error("Re-connect YouTube"); }
+      if (r.error) return toast.error(r.error);
+      toast.success("Published to YouTube");
+      if (r.url) window.open(r.url, "_blank");
+    } catch (e: any) { toast.error(e?.message || "Publish failed"); }
+    finally { setYtPublishing(false); }
+  };
+
+  const openTikTokUpload = async () => {
+    if (!script || !jobId || !videoPath) return;
+    const desc = [
+      script.description,
+      script.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" "),
+    ].filter(Boolean).join("\n\n");
+    await navigator.clipboard.writeText(desc).catch(() => {});
+    await recordTikTokIntent({ data: { jobId, storagePath: videoPath, title: script.title, description: desc } });
+    toast.success("Caption copied. Opening TikTok upload…");
+    window.open("https://www.tiktok.com/tiktokstudio/upload", "_blank");
+  };
+
 
   const copy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
