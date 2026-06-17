@@ -366,6 +366,114 @@ function ShortsStudioPage() {
               </div>
             </div>
           </Card>
+
+          {/* ───────────────── Publish ───────────────── */}
+          <Card>
+            <div className="mb-3 flex items-center justify-between">
+              <Label className="!mb-0">Record &amp; publish</Label>
+              {videoPath && <span className="text-[11px] font-medium text-emerald-600">✓ Saved to History</span>}
+            </div>
+
+            {/* Step 1: upload */}
+            <div className="rounded-xl border border-dashed border-[#E5E7EB] bg-[#FAFAF8] p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED]">
+                  <Upload className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-semibold text-[#1A1A2E]">1. Record your vertical video</p>
+                  <p className="mt-0.5 text-[12px] text-[#6B7280]">
+                    Use OBS, CapCut, or your phone. 9:16, ≤ 200 MB. Then upload it here so we can publish it.
+                  </p>
+                  <input
+                    ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={onPickVideo}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || !jobId}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-medium text-[#1A1A2E] hover:border-[#6B4EFF] hover:text-[#6B4EFF] disabled:opacity-50"
+                  >
+                    {uploading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading…</>
+                      : videoFile ? <><Check className="h-3.5 w-3.5 text-emerald-600" /> {videoFile.name.slice(0, 28)}</>
+                        : <><Upload className="h-3.5 w-3.5" /> Choose video</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: TikTok */}
+            <div className="mt-4 rounded-xl border border-[#E5E7EB] bg-white p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-black text-white text-[11px] font-bold">TT</div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-semibold text-[#1A1A2E]">TikTok</p>
+                  <p className="mt-0.5 text-[12px] text-[#6B7280]">
+                    One-click: copies caption + hashtags to clipboard and opens TikTok Studio upload. Paste the video and hit post.
+                  </p>
+                  <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-[#9CA3AF]">
+                    <AlertCircle className="h-3 w-3" />
+                    Full auto-publish requires TikTok app review (coming when approved).
+                  </p>
+                  <button
+                    onClick={openTikTokUpload} disabled={!videoPath}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#1A1A2E] px-3 py-1.5 text-xs font-medium text-white hover:bg-black disabled:opacity-50"
+                  >
+                    <Link2 className="h-3.5 w-3.5" /> Open TikTok upload
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: YouTube */}
+            <div className="mt-3 rounded-xl border border-[#E5E7EB] bg-white p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FF0000] text-white">
+                  <Youtube className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[13px] font-semibold text-[#1A1A2E]">YouTube Shorts</p>
+                    {connectedYT ? (
+                      <button onClick={disconnectYouTube} className="text-[11px] text-[#9CA3AF] hover:text-red-500">
+                        Disconnect ({connectedYT.name})
+                      </button>
+                    ) : null}
+                  </div>
+                  <p className="mt-0.5 text-[12px] text-[#6B7280]">
+                    Full auto-publish via YouTube Data API. Uploads as Short (≤ 60s vertical).
+                  </p>
+                  {!connectedYT ? (
+                    <button
+                      onClick={connectYouTube}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#FF0000] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#cc0000]"
+                    >
+                      <Youtube className="h-3.5 w-3.5" /> Connect YouTube
+                    </button>
+                  ) : (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <div className="inline-flex overflow-hidden rounded-lg border border-[#E5E7EB]">
+                        {(["private", "unlisted", "public"] as const).map((p) => (
+                          <button
+                            key={p}
+                            onClick={() => setYtPrivacy(p)}
+                            className={`px-2.5 py-1.5 text-[11px] font-medium capitalize ${ytPrivacy === p ? "bg-[#1A1A2E] text-white" : "bg-white text-[#6B7280] hover:text-[#1A1A2E]"}`}
+                          >{p}</button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={publishYouTube} disabled={!videoPath || ytPublishing}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF0000] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#cc0000] disabled:opacity-50"
+                      >
+                        {ytPublishing
+                          ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Publishing…</>
+                          : <><Youtube className="h-3.5 w-3.5" /> Publish now</>}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
         </>
       )}
     </div>
