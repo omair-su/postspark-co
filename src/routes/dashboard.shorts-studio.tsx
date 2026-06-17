@@ -1,13 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Copy, Check, Video, Download, Music2 } from "lucide-react";
+import { Loader2, Sparkles, Copy, Check, Video, Download, Music2, Upload, Youtube, Link2, AlertCircle } from "lucide-react";
 import { generateShorts } from "@/lib/shorts.functions";
+import {
+  getYouTubeAuthUrl,
+  getConnectedSocials,
+  disconnectSocial,
+  attachShortVideo,
+  publishToYouTube,
+  recordTikTokIntent,
+} from "@/lib/socialPublish.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { supabase } from "@/integrations/supabase/client";
 import type { ShortsScript } from "@/server/shorts.server";
 
 export const Route = createFileRoute("/dashboard/shorts-studio")({
+  validateSearch: (s: Record<string, unknown>) => ({ yt: typeof s.yt === "string" ? s.yt : undefined }),
   component: ShortsStudioPage,
 });
 
@@ -21,18 +31,42 @@ const DURATIONS = [30, 45, 60] as const;
 
 function ShortsStudioPage() {
   const { session } = useAuth();
+  const search = useSearch({ from: "/dashboard/shorts-studio" });
   const [input, setInput] = useState("");
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]["id"]>("tiktok");
   const [duration, setDuration] = useState<30 | 45 | 60>(45);
   const [angle, setAngle] = useState("");
   const [loading, setLoading] = useState(false);
   const [script, setScript] = useState<ShortsScript | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+
+  // ── publish state ──────────────────────────────────────────────
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPath, setVideoPath] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [connectedYT, setConnectedYT] = useState<{ name: string } | null>(null);
+  const [ytPublishing, setYtPublishing] = useState(false);
+  const [ytPrivacy, setYtPrivacy] = useState<"public" | "unlisted" | "private">("unlisted");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const refreshSocials = async () => {
+    try {
+      const r = await getConnectedSocials();
+      const yt = (r.accounts || []).find((a: any) => a.platform === "youtube");
+      setConnectedYT(yt ? { name: (yt as any).platform_username || "YouTube" } : null);
+    } catch { /* signed out */ }
+  };
+  useEffect(() => { if (session) refreshSocials(); }, [session]);
+  useEffect(() => {
+    if (search.yt === "connected") { toast.success("YouTube connected"); refreshSocials(); }
+    else if (search.yt?.startsWith("error:")) toast.error(`YouTube connect failed: ${search.yt.slice(6)}`);
+  }, [search.yt]);
 
   const run = async () => {
     if (!session) return toast.error("Please sign in");
     if (input.trim().length < 20) return toast.error("Paste at least a paragraph of source content");
-    setLoading(true); setScript(null);
+    setLoading(true); setScript(null); setJobId(null); setVideoFile(null); setVideoPath(null);
     try {
       const res = await withAIProgress(generateShorts({
         data: { inputText: input.trim(), platform, duration, angle: angle.trim() || undefined },
@@ -43,12 +77,89 @@ function ShortsStudioPage() {
         toast.error(res.error);
       } else if (res.script) {
         setScript(res.script);
+        setJobId((res as any).jobId || null);
         toast.success("Script ready");
       }
     } catch (e: any) {
       toast.error(e?.message || "Failed");
     } finally { setLoading(false); }
   };
+
+  // ── upload video to storage + attach to history ────────────────
+  const onPickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !jobId || !session?.user) return;
+    if (!file.type.startsWith("video/")) return toast.error("Pick a video file (mp4/mov/webm)");
+    if (file.size > 200 * 1024 * 1024) return toast.error("Video too large (max 200MB)");
+    setVideoFile(file);
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "mp4";
+      const path = `${session.user.id}/${jobId}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("shorts-videos").upload(path, file, {
+        contentType: file.type, upsert: false,
+      });
+      if (upErr) throw upErr;
+      const att = await attachShortVideo({ data: { jobId, storagePath: path, mimeType: file.type, sizeBytes: file.size } });
+      if ((att as any).error) throw new Error((att as any).error);
+      setVideoPath(path);
+      toast.success("Video uploaded & saved to History");
+    } catch (err: any) {
+      toast.error(err?.message || "Upload failed");
+      setVideoFile(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const connectYouTube = async () => {
+    try {
+      const r = await getYouTubeAuthUrl();
+      if ((r as any).error) return toast.error((r as any).error);
+      if ((r as any).url) window.location.href = (r as any).url;
+    } catch (e: any) { toast.error(e?.message || "Failed"); }
+  };
+
+  const disconnectYouTube = async () => {
+    await disconnectSocial({ data: { platform: "youtube" } });
+    setConnectedYT(null);
+    toast.success("YouTube disconnected");
+  };
+
+  const publishYouTube = async () => {
+    if (!script || !jobId || !videoPath) return;
+    if (!connectedYT) return toast.error("Connect YouTube first");
+    setYtPublishing(true);
+    try {
+      const r: any = await publishToYouTube({
+        data: {
+          jobId, storagePath: videoPath,
+          title: script.title.slice(0, 100),
+          description: script.description,
+          hashtags: script.hashtags,
+          privacy: ytPrivacy,
+        },
+      });
+      if (r.error === "NOT_CONNECTED") { setConnectedYT(null); return toast.error("Re-connect YouTube"); }
+      if (r.error) return toast.error(r.error);
+      toast.success("Published to YouTube");
+      if (r.url) window.open(r.url, "_blank");
+    } catch (e: any) { toast.error(e?.message || "Publish failed"); }
+    finally { setYtPublishing(false); }
+  };
+
+  const openTikTokUpload = async () => {
+    if (!script || !jobId || !videoPath) return;
+    const desc = [
+      script.description,
+      script.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" "),
+    ].filter(Boolean).join("\n\n");
+    await navigator.clipboard.writeText(desc).catch(() => {});
+    await recordTikTokIntent({ data: { jobId, storagePath: videoPath, title: script.title, description: desc } });
+    toast.success("Caption copied. Opening TikTok upload…");
+    window.open("https://www.tiktok.com/tiktokstudio/upload", "_blank");
+  };
+
 
   const copy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -252,6 +363,114 @@ function ShortsStudioPage() {
               <div>
                 <span className="text-[11px] uppercase tracking-wide text-[#6B7280]">Hashtags</span>
                 <p className="text-[#7C3AED]">{script.hashtags.map((h) => `#${h}`).join(" ")}</p>
+              </div>
+            </div>
+          </Card>
+
+          {/* ───────────────── Publish ───────────────── */}
+          <Card>
+            <div className="mb-3 flex items-center justify-between">
+              <Label className="!mb-0">Record &amp; publish</Label>
+              {videoPath && <span className="text-[11px] font-medium text-emerald-600">✓ Saved to History</span>}
+            </div>
+
+            {/* Step 1: upload */}
+            <div className="rounded-xl border border-dashed border-[#E5E7EB] bg-[#FAFAF8] p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#7C3AED]/10 text-[#7C3AED]">
+                  <Upload className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-semibold text-[#1A1A2E]">1. Record your vertical video</p>
+                  <p className="mt-0.5 text-[12px] text-[#6B7280]">
+                    Use OBS, CapCut, or your phone. 9:16, ≤ 200 MB. Then upload it here so we can publish it.
+                  </p>
+                  <input
+                    ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={onPickVideo}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || !jobId}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-medium text-[#1A1A2E] hover:border-[#6B4EFF] hover:text-[#6B4EFF] disabled:opacity-50"
+                  >
+                    {uploading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading…</>
+                      : videoFile ? <><Check className="h-3.5 w-3.5 text-emerald-600" /> {videoFile.name.slice(0, 28)}</>
+                        : <><Upload className="h-3.5 w-3.5" /> Choose video</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: TikTok */}
+            <div className="mt-4 rounded-xl border border-[#E5E7EB] bg-white p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-black text-white text-[11px] font-bold">TT</div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-semibold text-[#1A1A2E]">TikTok</p>
+                  <p className="mt-0.5 text-[12px] text-[#6B7280]">
+                    One-click: copies caption + hashtags to clipboard and opens TikTok Studio upload. Paste the video and hit post.
+                  </p>
+                  <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-[#9CA3AF]">
+                    <AlertCircle className="h-3 w-3" />
+                    Full auto-publish requires TikTok app review (coming when approved).
+                  </p>
+                  <button
+                    onClick={openTikTokUpload} disabled={!videoPath}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#1A1A2E] px-3 py-1.5 text-xs font-medium text-white hover:bg-black disabled:opacity-50"
+                  >
+                    <Link2 className="h-3.5 w-3.5" /> Open TikTok upload
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: YouTube */}
+            <div className="mt-3 rounded-xl border border-[#E5E7EB] bg-white p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FF0000] text-white">
+                  <Youtube className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[13px] font-semibold text-[#1A1A2E]">YouTube Shorts</p>
+                    {connectedYT ? (
+                      <button onClick={disconnectYouTube} className="text-[11px] text-[#9CA3AF] hover:text-red-500">
+                        Disconnect ({connectedYT.name})
+                      </button>
+                    ) : null}
+                  </div>
+                  <p className="mt-0.5 text-[12px] text-[#6B7280]">
+                    Full auto-publish via YouTube Data API. Uploads as Short (≤ 60s vertical).
+                  </p>
+                  {!connectedYT ? (
+                    <button
+                      onClick={connectYouTube}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#FF0000] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#cc0000]"
+                    >
+                      <Youtube className="h-3.5 w-3.5" /> Connect YouTube
+                    </button>
+                  ) : (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <div className="inline-flex overflow-hidden rounded-lg border border-[#E5E7EB]">
+                        {(["private", "unlisted", "public"] as const).map((p) => (
+                          <button
+                            key={p}
+                            onClick={() => setYtPrivacy(p)}
+                            className={`px-2.5 py-1.5 text-[11px] font-medium capitalize ${ytPrivacy === p ? "bg-[#1A1A2E] text-white" : "bg-white text-[#6B7280] hover:text-[#1A1A2E]"}`}
+                          >{p}</button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={publishYouTube} disabled={!videoPath || ytPublishing}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF0000] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#cc0000] disabled:opacity-50"
+                      >
+                        {ytPublishing
+                          ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Publishing…</>
+                          : <><Youtube className="h-3.5 w-3.5" /> Publish now</>}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </Card>

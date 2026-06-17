@@ -76,19 +76,21 @@ export const generateShorts = createServerFn({ method: "POST" })
       return { script: null, error: result.error || "Generation failed" };
     }
 
+    let jobId: string | null = null;
     try {
-      await supabase.from("repurpose_jobs").insert({
+      const { data: inserted } = await supabase.from("repurpose_jobs").insert({
         user_id: userId,
         tool: TOOL,
         input_text: data.inputText,
         title: result.script.title?.slice(0, 200) || "Shorts script",
         outputs: result.script as any,
-      } as any);
+      } as any).select("id").single();
+      jobId = inserted?.id ?? null;
     } catch (e) {
       console.error("shorts history insert failed", e);
     }
 
-    return { script: result.script };
+    return { script: result.script, jobId };
   });
 
 export const getShortsUsage = createServerFn({ method: "POST" })
