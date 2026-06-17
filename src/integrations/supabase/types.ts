@@ -840,14 +840,18 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          media_type: string | null
+          media_url: string | null
           platform: string
           platform_post_id: string | null
           publish_error: string | null
           published_at: string | null
+          repurpose_job_id: string | null
           scheduled_for: string
           social_account_id: string | null
           status: string
           title: string
+          tool: string | null
           updated_at: string
           user_id: string
           workspace_id: string | null
@@ -857,14 +861,18 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           platform?: string
           platform_post_id?: string | null
           publish_error?: string | null
           published_at?: string | null
+          repurpose_job_id?: string | null
           scheduled_for: string
           social_account_id?: string | null
           status?: string
           title: string
+          tool?: string | null
           updated_at?: string
           user_id: string
           workspace_id?: string | null
@@ -874,14 +882,18 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           platform?: string
           platform_post_id?: string | null
           publish_error?: string | null
           published_at?: string | null
+          repurpose_job_id?: string | null
           scheduled_for?: string
           social_account_id?: string | null
           status?: string
           title?: string
+          tool?: string | null
           updated_at?: string
           user_id?: string
           workspace_id?: string | null
@@ -892,6 +904,13 @@ export type Database = {
             columns: ["brand_kit_id"]
             isOneToOne: false
             referencedRelation: "brand_kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_posts_repurpose_job_id_fkey"
+            columns: ["repurpose_job_id"]
+            isOneToOne: false
+            referencedRelation: "repurpose_jobs"
             referencedColumns: ["id"]
           },
           {
