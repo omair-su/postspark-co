@@ -1,8 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { createHmac } from "crypto";
-
 const YT_SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
   "https://www.googleapis.com/auth/youtube.readonly",
@@ -14,9 +12,21 @@ function getRedirectUri() {
   return `${base.replace(/\/$/, "")}/api/public/oauth/youtube/callback`;
 }
 
-function signState(payload: string): string {
+async function signState(payload: string): Promise<string> {
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-state-secret";
-  return createHmac("sha256", secret).update(payload).digest("hex").slice(0, 32);
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 32);
 }
 
 export const getYouTubeAuthUrl = createServerFn({ method: "POST" })
