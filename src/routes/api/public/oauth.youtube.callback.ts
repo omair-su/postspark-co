@@ -19,7 +19,7 @@ export const Route = createFileRoute("/api/public/oauth/youtube/callback")({
         if (error) return redirect(`error:${error}`);
         if (!code || !state) return redirect("error:missing_params");
 
-        const verified = verifyOAuthState(state);
+        const verified = await verifyOAuthState(state);
         if (!verified) return redirect("error:invalid_state");
 
         const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
