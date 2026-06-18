@@ -40,6 +40,8 @@ function ShortsStudioPage() {
   const [script, setScript] = useState<ShortsScript | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [limitHit, setLimitHit] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
 
   // ── publish state ──────────────────────────────────────────────
   const [videoFile, setVideoFile] = useState<File | null>(null);
