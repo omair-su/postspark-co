@@ -314,6 +314,25 @@ function ShortsStudioPage() {
         )}
       </button>
 
+      {limitHit && (
+        <div className="rounded-2xl border border-[#FCD34D] bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] p-5">
+          <p className="text-[14px] font-bold text-[#92400E]">You've used all 3 free shorts this month</p>
+          <p className="mt-1 text-[13px] text-[#B45309]">Upgrade to Pro for unlimited shorts, AI voiceover, hook virality scores, and B-roll search.</p>
+          <a href="/dashboard/billing" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#7C3AED] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#6D28D9]">
+            <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro — $19/mo
+          </a>
+        </div>
+      )}
+      {genError && !limitHit && (
+        <div className="flex items-start gap-3 rounded-xl border border-[#FCA5A5] bg-[#FEF2F2] p-4">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#B91C1C]" />
+          <div>
+            <p className="text-[13px] font-semibold text-[#B91C1C]">Generation failed</p>
+            <p className="mt-0.5 text-[12px] text-[#7F1D1D]">{genError}</p>
+          </div>
+        </div>
+      )}
+
       {script && (
         <>
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
