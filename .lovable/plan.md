@@ -1,110 +1,119 @@
-# Phase 5 — Distribution (Comprehensive)
 
-User-picked primary channel: **TikTok / Shorts demos**. Plus AppSumo LTD prep and build-in-public scaffolding so the founder can run one weekly cadence and get free compounding distribution.
+# Shorts Studio + Landing Premium Upgrade
 
-Five workstreams, all built in one session.
-
----
-
-## 1. TikTok / Shorts Demo Factory (the primary lever)
-
-A new dashboard tool: `/dashboard/shorts-studio` — turns any input (creator URL, transcript, blog post) into a **30-60s vertical video script + shot list + on-screen captions + hook variants**, ready to record with OBS or CapCut.
-
-**Server**: `src/lib/shorts.functions.ts` + `src/server/shorts.server.ts`
-- `generateShortsScript({ input, style, duration })` → calls Claude with a vertical-video prompt that returns:
-  - 3 hook variants (first 1.5s)
-  - Shot list with timestamps, B-roll suggestion, on-screen caption per shot
-  - CTA card text
-  - Suggested trending audio category (no licensed audio, just a category tag)
-  - Title + description + 8 hashtags
-
-**UI**: `src/routes/dashboard.shorts-studio.tsx`
-- Input panel reusing `ImportInputPanel` (URL/paste/upload).
-- Output panel: collapsible shot cards, copy-all button, "Export script as .txt" and "Export captions as .srt".
-- Counts against the same `repurpose_jobs` table with `tool='shorts_studio'` (free 3/mo, Pro unlimited).
-
-**Public landing tool**: `src/routes/tools.shorts-script-generator.tsx`
-- SEO page targeting "tiktok script generator", "youtube shorts script", "instagram reels script".
-- One free demo behind `/api/public/demo` (existing pattern).
-
-**Daily demo template (founder workflow)**: `src/lib/email-templates/founder-daily-shorts.tsx` + new admin button on `/dashboard/testimonials-admin` "Email me today's shorts brief" — picks a recent viral creator URL from a curated seed list and emails the founder a ready-to-record brief. Internal accelerator, not user-facing.
-
-## 2. AppSumo / LTD Launch Landing
-
-New route `src/routes/deals.lifetime.tsx` — a dedicated, AppSumo-style pitch page for the **$97 Founding Lifetime** deal (already wired in Paddle). Separate from the homepage so we can link it from AppSumo, Reddit, X, IH, etc.
-
-Sections:
-- Hero with live spots-remaining counter (reuse `getFoundingSpots`).
-- "What you get for $97 forever" feature checklist.
-- 60s value calculator: "At $24/mo Pro, $97 pays back in 4 months. Lifetime = $X saved over 3 years."
-- FAQ accordion (refunds, transferability, what counts as "lifetime").
-- Single sticky CTA → Paddle checkout (`founding_lifetime_97`).
-- Pre-launch sign-up form for waitlist after 50 spots fill (writes to `profiles.ltd_waitlist=true`).
-
-Add `src/components/deals/LtdValueCalculator.tsx` and `LtdFaq.tsx`.
-Add route to sitemap with priority 0.9.
-
-## 3. Build-in-Public Engine
-
-New dashboard tool: `/dashboard/build-in-public` — turns real product metrics into daily X/LinkedIn posts so the founder never has to think about what to write.
-
-**Server**: `src/lib/buildInPublic.functions.ts`
-- `getMetricsSnapshot()` — pulls real numbers: signups last 7d, repurposes last 7d, MRR (from `subscriptions`), top tool used.
-- `generateFounderPosts({ metrics, tone })` — Claude prompt returns 5 post variants (milestone, lesson, before/after, question, behind-the-scenes), each with X (280) and LinkedIn (1300) versions.
-
-**UI**: `src/routes/dashboard.build-in-public.tsx`
-- Live metrics tiles at top.
-- "Generate today's 5 posts" button.
-- Each post card: edit-in-place, copy, "Open in X" / "Open in LinkedIn" intent URLs.
-- Pro-only; nudges free users.
-
-## 4. Directory Listing Kit (one-time founder asset)
-
-New route `src/routes/dashboard.distribution-kit.tsx` (admin-only) with ready-to-paste assets:
-- Futurepedia / TAFT / FutureTools / Perplexity Pages submission text (short + long descriptions, tags, screenshots checklist).
-- "About PostSpark" press-kit one-pager (markdown copy block).
-- Logo download links (existing `/brand-assets` bucket).
-- Submission checklist with `localStorage`-persisted checkboxes.
-
-No backend changes — purely a static admin workspace so the founder ships submissions in one sitting.
-
-## 5. SEO blog seed (kill the "0 posts at priority 0.9" leak)
-
-Seed **10 real blog posts** via a one-shot migration into `blog_posts` table using Claude-drafted content. Topics chosen for actual search demand from the audit:
-1. "How to repurpose a blog post into 30 social posts in 2026"
-2. "PostSpark vs Castmagic: honest comparison"
-3. "PostSpark vs OpusClip: which is right for you"
-4. "PostSpark vs Repurpose.io"
-5. "The 2026 creator content stack"
-6. "How to write hooks that get 100k views (with templates)"
-7. "Brand voice AI: what it is and why it matters"
-8. "From podcast to 50 pieces of content: a workflow"
-9. "Why content repurposing beats content creation in 2026"
-10. "The complete guide to LinkedIn carousels"
-
-Each post: 800-1200 words, real markdown, author = founder, category = "Guides" or "Comparisons", `published_at = now() - random(0-30 days)`, real cover image (generate one per post via Replicate at build).
-
-Implementation: `scripts/seed-blog.ts` (one-off Node script) writes via service role. Run once, results land in DB. The audit's 3 "alternatives.*" routes already exist; keep them but cross-link from the new comparison blog posts.
-
-Update `sitemap[.]xml.tsx` already pulls from `blog_posts` so the 10 posts auto-appear.
+Three workstreams, one plan. Execute in this order so the broken thing is fixed first, the product gets the depth that justifies "million-dollar SaaS", and the landing is rebuilt to actually sell it.
 
 ---
 
-## Technical references
+## Part 1 — Fix "Generate Script" doing nothing
 
-- Tool registration: add `shorts_studio` and `build_in_public` to `src/lib/tools-catalog.ts` and dashboard tile grid.
-- Usage tracking: reuse `repurpose_jobs` table with new `tool` values; respect `FREE_MONTHLY_LIMIT = 3`.
-- Paddle: no new IDs needed (uses existing `founding_lifetime_97`).
-- Claude calls: extend `src/server/anthropic.server.ts` with shorts + founder-posts prompts; pull brand voice + brand kit server-side (existing pattern).
-- Memory updates: new entries for Shorts Studio, Build-in-Public, LTD landing, blog seed.
+Likely root cause based on the wiring (`generateShorts` server fn → `callClaudeWithTool` with `max_tokens: 3500`):
 
-## Out of scope this turn
-- Native publishing OAuth (Phase 6).
-- Chrome extension (Phase 6).
-- Auto-posting to TikTok/X/LinkedIn — we generate, founder posts manually for now.
+1. Claude tool call sometimes returns no `tool_use` block (long blog inputs + strict schema → it text-replies instead). Currently `result.data` becomes null, `error` is "Generation failed", but UI shows a single brief toast that the user is missing.
+2. `withAIProgress` wraps the call — if it throws, the toast never fires.
+3. Free-plan limit returns `LIMIT_REACHED` silently.
+
+Fixes:
+- Use `invoke-server-function` + `server-function-logs` after build to confirm the exact failure path.
+- Tighten `generateShortsScript`:
+  - Bump `maxTokens` to 6000.
+  - When Claude returns no tool block, retry once with a stricter "you MUST call return_shorts_script" reminder.
+  - Truncate input to 8000 chars (down from 12000) — Claude is more reliable.
+  - Return human-readable `error` strings.
+- In `dashboard.shorts-studio.tsx`, wrap `run()` so any thrown error is toasted, and surface `LIMIT_REACHED` with an inline upgrade card (not just a toast that disappears).
+- Add a tiny "Diagnostics" log line in console on failure (status + message).
 
 ---
 
-## One question before I build
+## Part 2 — Make Shorts Studio premium (4 features the user picked)
 
-The blog seed (#5) writes 10 generated posts straight to the DB under the founder's name. That's real content but AI-drafted — confirm you want me to ship it as-is, or scaffold the 10 *titles + outlines* only and let you write the bodies?
+### 2A. AI voiceover + burned-in captions
+- New `narrateShort` server fn in `src/lib/shorts.functions.ts` → calls Lovable AI Gateway `/v1/audio/speech` (`openai/gpt-4o-mini-tts`) with the full assembled VO (all shots joined).
+- Voice picker: Alloy / Verse / Sage / Coral / Echo / Ash (6 chips, free preview limited to Alloy; rest = Pro).
+- SSE stream → client decodes PCM → assembles into one `wav` Blob → uploads to `shorts-videos/<user>/<job>-vo.wav`.
+- "Generate voiceover (Pro)" button below the shot list. Free users see lock badge + upgrade CTA.
+- Captions: keep existing SRT download, but add "Burn captions into video" toggle that uses an in-browser canvas+MediaRecorder pipeline (when a video file is uploaded) — overlays the on-screen captions per timestamp onto the user's uploaded video. Pure browser, no ffmpeg.
+
+### 2B. Hook virality score + B-roll search
+- Extend `return_shorts_script` schema: each hook gets `score` (0-100) and `score_reason` (one sentence). Claude self-rates.
+- Each shot gets `broll_search_query` (e.g. "person typing on laptop coffee shop").
+- New "Find clips" button per shot → calls Pexels videos API (free key, server-side env: `PEXELS_API_KEY` — request via `add_secret` only if user proceeds). Returns 6 vertical-friendly clip thumbnails + download URLs in a popover.
+- Hook cards show a colored score chip (green ≥80, amber 60-79, red <60).
+
+### 2C. Series mode (1 source → 5 shorts)
+- New toggle "Series mode (Pro)" above the Generate button. When on, call a new server fn `generateShortsSeries`:
+  - Asks Claude to split the source into 5 episodic angles with cliffhangers, then runs `return_shorts_script` for each (parallel `Promise.all`).
+  - Inserts 5 rows into `repurpose_jobs` with `outputs.series_index` 1..5 and shared `series_id` UUID stored in `outputs`.
+- UI: tabbed view "Episode 1…5" each rendering the existing script layout.
+- Free plan: blocked with "Upgrade to unlock Series mode" CTA.
+
+### 2D. Trending audio picker + AI thumbnail
+- Trending audio: curated JSON in `src/lib/trendingAudio.ts` (15 sounds per platform × 6 niches — Tech, Fitness, Founder, Lifestyle, Marketing, Education). Selector chip group below "Audio category", filtered by selected platform + niche dropdown. Each sound shows BPM, vibe tag, and a copy-to-clipboard "Search '<sound name>' in <platform>" string (no licensed audio files).
+- Thumbnail: new "Generate cover" button → calls existing image generation path (Replicate already wired) with a prompt assembled from `script.title` + chosen style (Bold, Editorial, Meme, Cinematic). Stores in `generated-images` bucket. Pro feature.
+
+### Schema/data work for Part 2
+- Migration: `ALTER TABLE repurpose_jobs ADD COLUMN voiceover_path TEXT, ADD COLUMN cover_image_path TEXT;` (no new policies needed; existing user-scoped policies apply).
+- No new tables.
+
+---
+
+## Part 3 — Landing redesign (colors + typography stay, everything else premium)
+
+I'll capture the current preview with Playwright first to anchor each section, then refine — not rebuild from scratch. The design tokens in `tokens.css.ts` are the floor; we add depth, motion, and luxury surfaces on top.
+
+### 3A. Hero + premium live demo
+- Hero: keep copy, add layered depth — soft animated aurora behind the headline (CSS `radial-gradient` + slow keyframe), a `Border Beam`-style stroke around the demo widget, and a floating "Powered by Claude · Trusted by 12,000 creators" glass pill.
+- New `HeroDemoWidget` v2: cinematic 3-panel preview that auto-cycles every 4s through:
+  1. "Paste blog" → animated typing into the input
+  2. "AI processing" → 3 progress bars (Twitter, LinkedIn, Newsletter) filling in sequence
+  3. "Ready in 47s" → 3 platform output cards animate in (Twitter thread, LinkedIn post, Reels script) with platform-correct chrome.
+- Replace the basic placeholder with this cinematic loop. CSS-only animations (no framer-motion — per project constraint).
+
+### 3B. 3D-style luxury icon cards for Pain + Features
+- Replace flat lucide icons in `PainSection`, `WhoFor`, and `HowItWorks` with custom 3D-feel icon cards:
+  - 80×80 rounded-2xl tiles with layered gradient (soft purple → white), inner shadow, top-edge highlight, and a `lucide` icon centered with a duotone treatment (foreground purple, background `primaryUltra` halo).
+  - Each card gets a subtle tilt-on-hover (`transform: perspective(800px) rotateX(...)` via CSS only) and a glow that follows pointer with `--mouse-x/--mouse-y` CSS vars.
+- Apply consistently across pain points and feature tiles so the page feels like one luxury system.
+
+### 3C. Competitor comparison vs Repurpose.io / Hootsuite
+- New section `CompareSection` between `HowItWorks` and `PricingV2`:
+  - Header: "Why creators leave Repurpose.io and Hootsuite for PostSpark"
+  - 3-column table: PostSpark / Repurpose.io / Hootsuite × 8 rows (AI writes in your voice, 30 outputs in 60s, Shorts script + voiceover, brand voice training, founding lifetime, etc.).
+  - Premium styling: PostSpark column highlighted with gradient border, gold checkmarks; competitors get grey ✕ or "limited" pills.
+- Add a small footnote: "Comparison based on publicly available features as of June 2026."
+
+### 3D. Animated How-it-works + pricing depth
+- `HowItWorks`: replace the 3 static cards with an animated horizontal pipeline — input → AI engine → outputs. SVG path with an animated dot traveling along it (CSS `offset-path` animation). 3 stops along the path each reveal a glass card on scroll.
+- `PricingV2`:
+  - Add depth: gradient border on the Pro card, "Most popular" ribbon, soft floating shadow, animated price-tier toggle (monthly/annual) with sliding indicator.
+  - Founding Lifetime card gets a gold gradient border + "47 of 50 claimed" live-style scarcity counter.
+  - Add a fourth "Compare plans" link that scrolls to a detailed feature matrix.
+
+### 3E. Cleanup pass
+- Audit `routes/index.tsx` order; tighten section spacing (the user said "crowded"). Increase vertical rhythm to 96-128px between sections.
+- Move `SocialProofBar` up tight under the hero, demote `TestimonialsSection` to a single dense marquee row instead of full cards (less crowded).
+- Verify no duplicated CTA blocks (`FinalCTA` + `FoundingMember` shouldn't both shout "limited time" back-to-back).
+
+---
+
+## Research (before Part 3 build)
+- Fetch live screenshots of repurpose.io and hootsuite landing pages to source the exact feature claims for the comparison table.
+- Capture the current PostSpark landing with Playwright so design refinements can be made against the real anchor, not memory.
+
+---
+
+## Out of scope
+- No color or typography changes (per user instruction).
+- No new auth flows or billing changes.
+- No native ffmpeg / Whisper — caption burning uses MediaRecorder; transcription not added in this round.
+
+---
+
+## Technical notes
+- New secret needed: `PEXELS_API_KEY` (free tier, 200 req/hr). Will request via `add_secret` only after you approve and I'm in build mode.
+- Voiceover uses Lovable AI Gateway TTS — no new key.
+- All AI calls stay in `createServerFn` (text) or server routes (streaming TTS).
+- All luxury visuals are CSS/SVG — no new heavy deps, keeps Worker SSR happy.
+- Migrations follow the `CREATE → GRANT → RLS → POLICY` order.
+
+Approve and I'll start with Part 1 (the bug), then Parts 2 + 3 in parallel sub-tasks.
