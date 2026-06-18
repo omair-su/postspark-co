@@ -2,8 +2,8 @@ import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Copy, Check, Video, Download, Music2, Upload, Youtube, Link2, AlertCircle } from "lucide-react";
-import { generateShorts } from "@/lib/shorts.functions";
+import { Loader2, Sparkles, Copy, Check, Video, Download, Music2, Upload, Youtube, Link2, AlertCircle, Mic, Film, Lock, ChevronDown } from "lucide-react";
+import { generateShorts, getShortsUsage, findBroll } from "@/lib/shorts.functions";
 import {
   getYouTubeAuthUrl,
   getConnectedSocials,
@@ -15,6 +15,7 @@ import {
 import { withAIProgress } from "@/lib/aiProgress";
 import { supabase } from "@/integrations/supabase/client";
 import type { ShortsScript } from "@/server/shorts.server";
+import { TRENDING_AUDIO, NICHES, type Niche, type Platform } from "@/lib/trendingAudio";
 
 export const Route = createFileRoute("/dashboard/shorts-studio")({
   validateSearch: (s: Record<string, unknown>) => ({ yt: typeof s.yt === "string" ? s.yt : undefined }),
@@ -29,6 +30,15 @@ const PLATFORMS = [
 
 const DURATIONS = [30, 45, 60] as const;
 
+const VO_VOICES = [
+  { id: "alloy", label: "Alloy", pro: false },
+  { id: "verse", label: "Verse", pro: true },
+  { id: "sage", label: "Sage", pro: true },
+  { id: "coral", label: "Coral", pro: true },
+  { id: "echo", label: "Echo", pro: true },
+  { id: "ash", label: "Ash", pro: true },
+];
+
 function ShortsStudioPage() {
   const { session } = useAuth();
   const search = useSearch({ from: "/dashboard/shorts-studio" });
@@ -42,6 +52,7 @@ function ShortsStudioPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [limitHit, setLimitHit] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
+  const [userPlan, setUserPlan] = useState<string>("free");
 
   // ── publish state ──────────────────────────────────────────────
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -52,6 +63,22 @@ function ShortsStudioPage() {
   const [ytPrivacy, setYtPrivacy] = useState<"public" | "unlisted" | "private">("unlisted");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── voiceover state ───────────────────────────────────────────
+  const [voiceId, setVoiceId] = useState("alloy");
+  const [voLoading, setVoLoading] = useState(false);
+  const [voAudioUrl, setVoAudioUrl] = useState<string | null>(null);
+  const [voBlob, setVoBlob] = useState<Blob | null>(null);
+
+  // ── b-roll state ───────────────────────────────────────────────
+  const [brollShotIdx, setBrollShotIdx] = useState<number | null>(null);
+  const [brollLoading, setBrollLoading] = useState(false);
+  const [brollClips, setBrollClips] = useState<Record<number, Array<{ id: number; image: string; video_url: string; duration: number }>>>({});
+
+  // ── trending audio state ───────────────────────────────────────
+  const [audioNiche, setAudioNiche] = useState<Niche>("Tech");
+
+  const isPro = userPlan === "pro" || userPlan === "agency";
+
   const refreshSocials = async () => {
     try {
       const r = await getConnectedSocials();
@@ -59,7 +86,14 @@ function ShortsStudioPage() {
       setConnectedYT(yt ? { name: (yt as any).platform_username || "YouTube" } : null);
     } catch { /* signed out */ }
   };
-  useEffect(() => { if (session) refreshSocials(); }, [session]);
+
+  useEffect(() => {
+    if (session) {
+      refreshSocials();
+      getShortsUsage().then((u: any) => setUserPlan(u?.plan || "free")).catch(() => {});
+    }
+  }, [session]);
+
   useEffect(() => {
     if (search.yt === "connected") { toast.success("YouTube connected"); refreshSocials(); }
     else if (search.yt?.startsWith("error:")) toast.error(`YouTube connect failed: ${search.yt.slice(6)}`);
@@ -69,7 +103,7 @@ function ShortsStudioPage() {
     if (!session) return toast.error("Please sign in");
     if (input.trim().length < 20) return toast.error("Paste at least a paragraph of source content");
     setLoading(true); setScript(null); setJobId(null); setVideoFile(null); setVideoPath(null);
-    setLimitHit(false); setGenError(null);
+    setLimitHit(false); setGenError(null); setVoAudioUrl(null); setVoBlob(null); setBrollClips({}); setBrollShotIdx(null);
     try {
       const res = await withAIProgress(generateShorts({
         data: { inputText: input.trim(), platform, duration, angle: angle.trim() || undefined },
@@ -171,7 +205,6 @@ function ShortsStudioPage() {
     window.open("https://www.tiktok.com/tiktokstudio/upload", "_blank");
   };
 
-
   const copy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopied(id);
@@ -228,7 +261,6 @@ function ShortsStudioPage() {
   const downloadSrt = () => {
     if (!script) return;
     const parseTs = (label: string, idx: number) => {
-      // "0:00–0:03" → start sec, end sec
       const match = label.replace("–", "-").match(/(\d+):(\d{1,2})\s*-\s*(\d+):(\d{1,2})/);
       if (match) {
         const s = parseInt(match[1]) * 60 + parseInt(match[2]);
@@ -254,6 +286,70 @@ function ShortsStudioPage() {
     a.href = url; a.download = `captions-${Date.now()}.srt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // ── Voiceover ─────────────────────────────────────────────────
+  const generateVoiceover = async () => {
+    if (!script || !session) return;
+    const voText = script.shots.map((s) => s.voiceover).join(" ");
+    if (!voText.trim()) return toast.error("No voiceover text in shots");
+    setVoLoading(true);
+    if (voAudioUrl) { URL.revokeObjectURL(voAudioUrl); setVoAudioUrl(null); setVoBlob(null); }
+    try {
+      const token = session.access_token;
+      const res = await fetch("/api/narrate-short", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text: voText, voice: voiceId }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(err.error || "TTS failed");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      setVoBlob(blob);
+      setVoAudioUrl(url);
+      toast.success("Voiceover ready");
+    } catch (e: any) {
+      toast.error(e?.message || "Voiceover failed");
+    } finally {
+      setVoLoading(false);
+    }
+  };
+
+  const downloadVo = () => {
+    if (!voBlob) return;
+    const url = URL.createObjectURL(voBlob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `voiceover-${Date.now()}.mp3`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ── B-roll ────────────────────────────────────────────────────
+  const fetchBroll = async (idx: number, query: string) => {
+    if (brollShotIdx === idx) { setBrollShotIdx(null); return; } // toggle off
+    setBrollShotIdx(idx);
+    if (brollClips[idx]) return; // cached
+    setBrollLoading(true);
+    try {
+      const res: any = await findBroll({ data: { query } });
+      if (res.error) toast.error(res.error);
+      setBrollClips((prev) => ({ ...prev, [idx]: res.clips || [] }));
+    } catch (e: any) {
+      toast.error(e?.message || "B-roll fetch failed");
+    } finally {
+      setBrollLoading(false);
+    }
+  };
+
+  // ── Trending audio ────────────────────────────────────────────
+  const audioSounds = TRENDING_AUDIO[audioNiche]?.[platform as Platform] || [];
+
+  const copySearchHint = (hint: string, platform: string) => {
+    navigator.clipboard.writeText(hint).catch(() => {});
+    toast.success(`Copied: Search '${hint}' in ${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
   };
 
   return (
@@ -304,6 +400,38 @@ function ShortsStudioPage() {
           placeholder="e.g. contrarian take, before/after, productivity hack"
           className="ps-input w-full"
         />
+      </Card>
+
+      {/* ── Trending Audio ─────────────────────────────────────── */}
+      <Card>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <Label className="!mb-0">🎵 Trending audio</Label>
+          <div className="relative">
+            <select
+              value={audioNiche}
+              onChange={(e) => setAudioNiche(e.target.value as Niche)}
+              className="appearance-none rounded-lg border border-[#E5E7EB] bg-white pl-3 pr-8 py-1.5 text-[13px] text-[#1A1A2E] focus:border-[#6B4EFF] focus:outline-none"
+            >
+              {NICHES.map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
+          </div>
+        </div>
+        <p className="mt-1 mb-3 text-[11px] text-[#9CA3AF]">Click a chip to copy the search hint to your clipboard — then find the track on {PLATFORMS.find(p => p.id === platform)?.label}.</p>
+        <div className="flex flex-wrap gap-2">
+          {audioSounds.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => copySearchHint(s.search_hint, platform)}
+              className="group inline-flex items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-[#FAFAF8] px-3 py-1.5 text-[12px] text-[#1A1A2E] hover:border-[#6B4EFF] hover:bg-[#F3F0FF] hover:text-[#6B4EFF] transition"
+              title={`${s.bpm} BPM · ${s.vibe}`}
+            >
+              <Music2 className="h-3 w-3 text-[#9CA3AF] group-hover:text-[#6B4EFF]" />
+              {s.name}
+              <span className="text-[10px] text-[#9CA3AF]">{s.bpm}bpm</span>
+            </button>
+          ))}
+        </div>
       </Card>
 
       <button onClick={run} disabled={loading} className="ps-generate-btn">
@@ -378,6 +506,7 @@ function ShortsStudioPage() {
             </div>
           </Card>
 
+          {/* ── Shot list with B-roll ────────────────────────────── */}
           <Card>
             <div className="flex items-center justify-between">
               <Label className="!mb-0">Shot list</Label>
@@ -386,15 +515,104 @@ function ShortsStudioPage() {
             <div className="mt-3 space-y-2.5">
               {script.shots.map((s, i) => (
                 <div key={i} className="rounded-xl border border-[#E5E7EB] bg-white p-4">
-                  <div className="mb-1.5 flex items-center gap-2">
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
                     <span className="rounded-md bg-[#1A1A2E] px-2 py-0.5 text-[10px] font-bold text-white">{s.timestamp}</span>
+                    <button
+                      onClick={() => fetchBroll(i, s.broll_search_query || s.b_roll)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1 text-[11px] font-medium text-[#6B7280] hover:border-[#6B4EFF] hover:text-[#6B4EFF] transition"
+                    >
+                      {brollLoading && brollShotIdx === i
+                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                        : <Film className="h-3 w-3" />}
+                      {brollShotIdx === i && brollClips[i] ? "Hide clips" : "Find stock clips"}
+                    </button>
                   </div>
                   <p className="my-1 text-[14px] text-[#1A1A2E]"><strong className="text-[#6B7280] text-[11px] uppercase tracking-wide">VO</strong><br />{s.voiceover}</p>
                   <p className="my-1 text-[13px] text-[#1A1A2E]"><strong className="text-[#6B7280] text-[11px] uppercase tracking-wide">On-screen</strong><br />{s.on_screen_caption}</p>
                   <p className="my-1 text-[13px] text-[#6B7280] italic"><strong className="not-italic text-[#6B7280] text-[11px] uppercase tracking-wide">B-roll</strong><br />{s.b_roll}</p>
+                  {/* B-roll clip grid */}
+                  {brollShotIdx === i && brollClips[i] && (
+                    <div className="mt-3 border-t border-[#F3F4F6] pt-3">
+                      {brollClips[i].length === 0 ? (
+                        <p className="text-[12px] text-[#9CA3AF]">No clips found. Try a different query.</p>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {brollClips[i].map((clip) => (
+                            <a
+                              key={clip.id}
+                              href={clip.video_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group relative block overflow-hidden rounded-lg border border-[#E5E7EB]"
+                            >
+                              <img src={clip.image} alt="" className="h-24 w-full object-cover transition group-hover:opacity-75" />
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                <span className="rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white">▶ {clip.duration}s</span>
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      <p className="mt-2 text-[10px] text-[#9CA3AF]">Powered by Pexels · Click to open in new tab</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
+          </Card>
+
+          {/* ── AI Voiceover ──────────────────────────────────────── */}
+          <Card>
+            <div className="flex items-center gap-2 mb-1">
+              <Mic className="h-4 w-4 text-[#7C3AED]" />
+              <Label className="!mb-0">AI voiceover</Label>
+            </div>
+            <p className="mb-3 text-[12px] text-[#6B7280]">Generate a full voiceover from the shot VO lines. Alloy is free; other voices require Pro.</p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {VO_VOICES.map((v) => {
+                const locked = v.pro && !isPro;
+                return (
+                  <button
+                    key={v.id}
+                    onClick={() => { if (!locked) setVoiceId(v.id); }}
+                    disabled={locked}
+                    className={`relative inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-medium transition ${
+                      voiceId === v.id && !locked
+                        ? "border-[#6B4EFF] bg-[#6B4EFF] text-white"
+                        : locked
+                        ? "cursor-not-allowed border-[#E5E7EB] bg-[#F9FAFB] text-[#9CA3AF]"
+                        : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#6B4EFF]/40 hover:text-[#1A1A2E]"
+                    }`}
+                  >
+                    {locked && <Lock className="h-3 w-3" />}
+                    {v.label}
+                    {v.pro && <span className="text-[9px] font-bold uppercase opacity-60">Pro</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={generateVoiceover}
+                disabled={voLoading}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#7C3AED] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#6D28D9] disabled:opacity-50"
+              >
+                {voLoading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating…</> : <><Mic className="h-3.5 w-3.5" /> Generate voiceover</>}
+              </button>
+              {voAudioUrl && (
+                <button
+                  onClick={downloadVo}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-[13px] font-medium text-[#6B7280] hover:border-[#6B4EFF] hover:text-[#6B4EFF]"
+                >
+                  <Download className="h-3.5 w-3.5" /> Download MP3
+                </button>
+              )}
+            </div>
+            {voAudioUrl && (
+              <div className="mt-3">
+                <audio controls src={voAudioUrl} className="w-full rounded-lg" />
+              </div>
+            )}
           </Card>
 
           <Card>
