@@ -173,7 +173,7 @@ function ShortsStudioPage() {
       `TITLE: ${script.title}`,
       ``,
       `HOOKS (pick one):`,
-      ...script.hooks.map((h, i) => `${i + 1}. ${h}`),
+      ...script.hooks.map((h, i) => `${i + 1}. [${h.score}/100] ${h.text} — ${h.score_reason}`),
       ``,
       `AUDIO: ${script.audio_category}`,
       ``,
