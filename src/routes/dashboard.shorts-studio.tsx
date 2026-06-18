@@ -195,7 +195,7 @@ function ShortsStudioPage() {
       `TITLE: ${script.title}`,
       ``,
       `HOOKS:`,
-      ...script.hooks.map((h, i) => `${i + 1}. ${h}`),
+      ...script.hooks.map((h, i) => `${i + 1}. [${h.score}/100] ${h.text}`),
       ``,
       `AUDIO CATEGORY: ${script.audio_category}`,
       ``,
