@@ -110,3 +110,30 @@ export const getShortsUsage = createServerFn({ method: "POST" })
       .gte("created_at", start.toISOString());
     return { used: count ?? 0, limit: FREE_MONTHLY_LIMIT, plan };
   });
+
+export const findBroll = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ query: z.string().min(1).max(200) }).parse)
+  .handler(async ({ data }) => {
+    const apiKey = process.env.PEXELS_API_KEY;
+    if (!apiKey) return { clips: [], error: "Pexels not configured" };
+
+    try {
+      const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(data.query)}&orientation=portrait&per_page=6`;
+      const res = await fetch(url, { headers: { Authorization: apiKey } });
+      if (!res.ok) return { clips: [], error: `Pexels error: ${res.status}` };
+      const json: any = await res.json();
+      const clips = (json.videos || []).map((v: any) => ({
+        id: v.id,
+        image: v.image,
+        video_url:
+          v.video_files?.find((f: any) => f.quality === "sd" && f.link)?.link ||
+          v.video_files?.[0]?.link ||
+          "",
+        duration: v.duration,
+      }));
+      return { clips, error: null };
+    } catch (e: any) {
+      return { clips: [], error: e?.message || "Fetch failed" };
+    }
+  });

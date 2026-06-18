@@ -4,6 +4,7 @@ import { SocialProofBar } from "@/components/landing/v2/SocialProofBar";
 import { PainSection } from "@/components/landing/v2/PainSection";
 import { WhoFor } from "@/components/landing/v2/WhoFor";
 import { HowItWorks } from "@/components/landing/v2/HowItWorks";
+import { CompareSection } from "@/components/landing/v2/CompareSection";
 import { PricingV2 } from "@/components/landing/v2/PricingV2";
 import { FoundingMember } from "@/components/landing/v2/FoundingMember";
 import { FAQv2, FAQ_LIST } from "@/components/landing/v2/FAQv2";
@@ -61,6 +62,8 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
+const Spacer = () => <div style={{ height: "clamp(48px, 6vw, 96px)" }} aria-hidden />;
+
 function LandingPage() {
   const { session, loading } = useAuth();
   if (!loading && session) return <Navigate to="/dashboard" replace />;
@@ -71,13 +74,23 @@ function LandingPage() {
       <main>
         <Hero />
         <SocialProofBar />
+        <Spacer />
         <PainSection />
+        <Spacer />
         <WhoFor />
+        <Spacer />
         <HowItWorks />
+        <Spacer />
         <ExploreTools />
+        <Spacer />
+        <CompareSection />
+        <Spacer />
         <PricingV2 />
+        <Spacer />
         <TestimonialsSection />
+        <Spacer />
         <FoundingMember />
+        <Spacer />
         <FAQv2 />
         <FinalCTA />
         <FooterV2 />

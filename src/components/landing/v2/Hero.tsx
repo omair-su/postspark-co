@@ -9,28 +9,124 @@ export function Hero() {
       className="relative overflow-hidden"
       style={{ background: "#FFFFFF" }}
     >
+      <style>{`
+        @keyframes auroraFloat1 {
+          0%   { transform: translate(0%, 0%) scale(1); }
+          100% { transform: translate(6%, -8%) scale(1.12); }
+        }
+        @keyframes auroraFloat2 {
+          0%   { transform: translate(0%, 0%) scale(1); }
+          100% { transform: translate(-7%, 5%) scale(1.08); }
+        }
+        @keyframes auroraFloat3 {
+          0%   { transform: translate(0%, 0%) scale(1); }
+          100% { transform: translate(4%, 9%) scale(1.15); }
+        }
+        @keyframes beamRotate {
+          0%   { --beam-angle: 0deg; }
+          100% { --beam-angle: 360deg; }
+        }
+        .hero-beam-wrapper {
+          position: relative;
+          border-radius: 20px;
+        }
+        .hero-beam-wrapper::before {
+          content: "";
+          position: absolute;
+          inset: -1.5px;
+          border-radius: 22px;
+          padding: 1.5px;
+          background: conic-gradient(
+            from var(--beam-angle, 0deg),
+            #7C3AED 0%,
+            #A78BFA 20%,
+            transparent 40%,
+            transparent 80%,
+            #7C3AED 100%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          animation: beamRotate 4s linear infinite;
+          opacity: 0.75;
+        }
+        @property --beam-angle {
+          syntax: "<angle>";
+          initial-value: 0deg;
+          inherits: false;
+        }
+      `}</style>
+
+      {/* Aurora blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          style={{
+            position: "absolute",
+            top: "-20%",
+            left: "-10%",
+            width: "70%",
+            height: "70%",
+            background: "radial-gradient(ellipse at center, #A78BFA 0%, transparent 70%)",
+            opacity: 0.35,
+            mixBlendMode: "multiply",
+            animation: "auroraFloat1 40s ease-in-out infinite alternate",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: "10%",
+            right: "-15%",
+            width: "65%",
+            height: "65%",
+            background: "radial-gradient(ellipse at center, #F0ABFC 0%, transparent 70%)",
+            opacity: 0.28,
+            mixBlendMode: "multiply",
+            animation: "auroraFloat2 40s ease-in-out infinite alternate",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-10%",
+            left: "25%",
+            width: "55%",
+            height: "55%",
+            background: "radial-gradient(ellipse at center, #C4B5FD 0%, transparent 70%)",
+            opacity: 0.3,
+            mixBlendMode: "multiply",
+            animation: "auroraFloat3 40s ease-in-out infinite alternate",
+          }}
+        />
+      </div>
+
+      {/* Dot grid */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage:
-            "radial-gradient(circle, #E9D5FF 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, #E9D5FF 1px, transparent 1px)",
           backgroundSize: "28px 28px",
           opacity: 0.5,
         }}
       />
+
       <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pb-16 pt-28 sm:px-6 md:grid-cols-12 md:gap-8 md:pt-32 lg:pb-24">
         <div className="md:col-span-7">
+          {/* Glass pill */}
           <span
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest"
+            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest"
             style={{
-              background: "#F5F3FF",
-              border: "1px solid #DDD6FE",
+              background: "rgba(245,243,255,0.75)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(167,139,250,0.45)",
               color: "#7C3AED",
               fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+              boxShadow: "0 2px 12px rgba(124,58,237,0.08)",
             }}
           >
-            ⚡ Powered by Claude AI · Free to try
+            ✨ Powered by Claude · Trusted by 12,000+ creators
           </span>
 
           <h1
@@ -103,7 +199,10 @@ export function Hero() {
         </div>
 
         <div id="try-demo" className="md:col-span-5">
-          <HeroDemoWidget />
+          {/* Border-beam wrapper */}
+          <div className="hero-beam-wrapper">
+            <HeroDemoWidget />
+          </div>
         </div>
       </div>
     </section>

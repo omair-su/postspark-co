@@ -108,6 +108,16 @@ export function PricingV2() {
 
   return (
     <section id="pricing" style={{ background: "#F8FAFC" }} className="py-20">
+      <style>{`
+        @keyframes ribbonShimmer {
+          0%   { opacity: 1; }
+          50%  { opacity: 0.82; }
+          100% { opacity: 1; }
+        }
+        .pro-ribbon {
+          animation: ribbonShimmer 3s ease-in-out infinite;
+        }
+      `}</style>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="text-center">
           <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#7C3AED", letterSpacing: "0.1em" }}>
@@ -164,25 +174,42 @@ export function PricingV2() {
             const price = annual ? t.annual : t.monthly;
             const isFree = t.name === "Free";
             const isPending = pending === t.name && loading;
-            return (
+
+            // Pro card: wrap in gradient border
+            const cardInner = (
               <div
                 key={t.name}
                 className="relative flex flex-col rounded-2xl p-7"
                 style={{
                   background: "#FFFFFF",
-                  border: t.popular ? "2px solid #7C3AED" : "1px solid #E2E8F0",
+                  // For pro: remove border (gradient wrapper provides it)
+                  border: t.popular ? "none" : "1px solid #E2E8F0",
                   boxShadow: t.popular
-                    ? "0 12px 40px rgba(124,58,237,0.18)"
+                    ? "0 16px 32px rgba(124,58,237,0.14), 0 4px 12px rgba(124,58,237,0.08)"
                     : "0 4px 24px rgba(0,0,0,0.06)",
+                  borderRadius: t.popular ? "calc(1rem - 2px)" : "1rem",
+                  height: "100%",
                 }}
               >
+                {/* Most popular ribbon - top right, gold */}
                 {t.popular && (
-                  <span
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white"
-                    style={{ background: "#7C3AED", letterSpacing: "0.1em" }}
+                  <div
+                    className="pro-ribbon absolute right-4 top-4"
+                    style={{
+                      transform: "rotate(-2deg)",
+                      background: "linear-gradient(135deg, #C9A87C, #E2C18A)",
+                      color: "#FFFFFF",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      padding: "3px 12px",
+                      borderRadius: 9999,
+                      boxShadow: "0 2px 8px rgba(201,168,124,0.35)",
+                    }}
                   >
                     Most Popular
-                  </span>
+                  </div>
                 )}
                 <h3 className="text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                   {t.name}
@@ -259,6 +286,24 @@ export function PricingV2() {
                 )}
               </div>
             );
+
+            if (t.popular) {
+              return (
+                <div
+                  key={t.name}
+                  style={{
+                    padding: 2,
+                    background: "linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%)",
+                    borderRadius: "1rem",
+                    boxShadow: "0 16px 32px rgba(124,58,237,0.14), 0 4px 12px rgba(124,58,237,0.08)",
+                  }}
+                >
+                  {cardInner}
+                </div>
+              );
+            }
+
+            return cardInner;
           })}
         </div>
 
