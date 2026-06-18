@@ -1,30 +1,31 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, PenLine, Briefcase, Building2, Mic } from "lucide-react";
+import { LuxIconCard } from "./LuxIconCard";
 
 const CARDS = [
   {
-    icon: "✍️",
+    icon: PenLine,
     title: "Solo Content Creators",
     body: "You have great ideas but spend more time reformatting than creating. PostSpark turns your best content into a week of posts in minutes.",
     cta: "For Creators",
     href: "/for/creators",
   },
   {
-    icon: "💼",
+    icon: Briefcase,
     title: "LinkedIn Ghostwriters",
     body: "Managing 5+ clients means 5x the reformatting work. PostSpark cuts production time by 80% while keeping every client's voice intact.",
     cta: "For Ghostwriters",
     href: "/use-cases/linkedin-ghostwriters",
   },
   {
-    icon: "🏢",
+    icon: Building2,
     title: "Content Agencies",
     body: "Delivering content across platforms for multiple clients is your biggest bottleneck. PostSpark handles repurposing so your team focuses on strategy.",
     cta: "For Agencies",
     href: "/for/agencies",
   },
   {
-    icon: "🎙️",
+    icon: Mic,
     title: "Podcasters & YouTubers",
     body: "Your best content is locked inside long-form audio and video. PostSpark extracts tweets, posts, and newsletters from every episode.",
     cta: "For Podcasters",
@@ -57,9 +58,17 @@ export function WhoFor() {
                 border: "1px solid #E2E8F0",
                 boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
               }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "#DDD6FE";
+                e.currentTarget.style.boxShadow = "0 8px 32px rgba(124,58,237,0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "#E2E8F0";
+                e.currentTarget.style.boxShadow = "0 4px 24px rgba(0,0,0,0.06)";
+              }}
             >
-              <div className="text-3xl">{c.icon}</div>
-              <h3 className="mt-4 text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
+              <LuxIconCard icon={c.icon} size={64} />
+              <h3 className="mt-5 text-xl font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                 {c.title}
               </h3>
               <p className="mt-2 text-sm" style={{ color: "#64748B", lineHeight: 1.7 }}>

@@ -1,10 +1,12 @@
 import { Fragment } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ClipboardList, Zap, Rocket } from "lucide-react";
+import { LuxIconCard } from "./LuxIconCard";
+import type { LucideIcon } from "lucide-react";
 
-const STEPS = [
-  { n: "01", icon: "📋", title: "Paste Your Content", body: "Drop in your blog post, YouTube URL, podcast link, or PDF. PostSpark handles any format." },
-  { n: "02", icon: "⚡", title: "Claude AI Generates", body: "Our Claude AI engine analyzes your content and generates platform-native versions in your exact brand voice." },
-  { n: "03", icon: "🚀", title: "Copy and Publish", body: "Get 30+ ready-to-post pieces. Copy individually or export all. From one input to a full content week." },
+const STEPS: { n: string; icon: LucideIcon; title: string; body: string }[] = [
+  { n: "01", icon: ClipboardList, title: "Paste Your Content", body: "Drop in your blog post, YouTube URL, podcast link, or PDF. PostSpark handles any format." },
+  { n: "02", icon: Zap, title: "Claude AI Generates", body: "Our Claude AI engine analyzes your content and generates platform-native versions in your exact brand voice." },
+  { n: "03", icon: Rocket, title: "Copy and Publish", body: "Get 30+ ready-to-post pieces. Copy individually or export all. From one input to a full content week." },
 ];
 
 const FEATURES = [
@@ -47,16 +49,16 @@ export function HowItWorks() {
                   boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
                 }}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mb-5">
                   <span
                     className="rounded-md px-2 py-0.5 text-xs font-bold"
                     style={{ background: "#F5F3FF", color: "#7C3AED" }}
                   >
                     {s.n}
                   </span>
-                  <span className="text-2xl">{s.icon}</span>
                 </div>
-                <h3 className="mt-4 text-lg font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
+                <LuxIconCard icon={s.icon} size={64} />
+                <h3 className="mt-5 text-lg font-bold" style={{ color: "#0F172A", fontFamily: "Inter, system-ui, -apple-system, sans-serif" }}>
                   {s.title}
                 </h3>
                 <p className="mt-2 text-sm" style={{ color: "#64748B", lineHeight: 1.7 }}>

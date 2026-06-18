@@ -91,6 +91,7 @@ import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ApiNarrateShortRouteImport } from './routes/api/narrate-short'
 import { Route as AlternativesTypefullyVsPostsparkRouteImport } from './routes/alternatives.typefully-vs-postspark'
 import { Route as AlternativesJasperVsPostsparkRouteImport } from './routes/alternatives.jasper-vs-postspark'
 import { Route as AlternativesHootsuiteVsPostsparkRouteImport } from './routes/alternatives.hootsuite-vs-postspark'
@@ -543,6 +544,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNarrateShortRoute = ApiNarrateShortRouteImport.update({
+  id: '/api/narrate-short',
+  path: '/api/narrate-short',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlternativesTypefullyVsPostsparkRoute =
   AlternativesTypefullyVsPostsparkRouteImport.update({
     id: '/alternatives/typefully-vs-postspark',
@@ -712,6 +718,7 @@ export interface FileRoutesByFullPath {
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
+  '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -821,6 +828,7 @@ export interface FileRoutesByTo {
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
+  '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -932,6 +940,7 @@ export interface FileRoutesById {
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
+  '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/success': typeof CheckoutSuccessRoute
@@ -1044,6 +1053,7 @@ export interface FileRouteTypes {
     | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
+    | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -1153,6 +1163,7 @@ export interface FileRouteTypes {
     | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
+    | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -1263,6 +1274,7 @@ export interface FileRouteTypes {
     | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
+    | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
     | '/checkout/success'
@@ -1374,6 +1386,7 @@ export interface RootRouteChildren {
   AlternativesHootsuiteVsPostsparkRoute: typeof AlternativesHootsuiteVsPostsparkRoute
   AlternativesJasperVsPostsparkRoute: typeof AlternativesJasperVsPostsparkRoute
   AlternativesTypefullyVsPostsparkRoute: typeof AlternativesTypefullyVsPostsparkRoute
+  ApiNarrateShortRoute: typeof ApiNarrateShortRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
@@ -2006,6 +2019,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/narrate-short': {
+      id: '/api/narrate-short'
+      path: '/api/narrate-short'
+      fullPath: '/api/narrate-short'
+      preLoaderRoute: typeof ApiNarrateShortRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alternatives/typefully-vs-postspark': {
       id: '/alternatives/typefully-vs-postspark'
       path: '/alternatives/typefully-vs-postspark'
@@ -2289,6 +2309,7 @@ const rootRouteChildren: RootRouteChildren = {
   AlternativesHootsuiteVsPostsparkRoute: AlternativesHootsuiteVsPostsparkRoute,
   AlternativesJasperVsPostsparkRoute: AlternativesJasperVsPostsparkRoute,
   AlternativesTypefullyVsPostsparkRoute: AlternativesTypefullyVsPostsparkRoute,
+  ApiNarrateShortRoute: ApiNarrateShortRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
@@ -2348,3 +2369,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
