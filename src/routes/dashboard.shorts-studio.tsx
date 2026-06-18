@@ -323,15 +323,28 @@ function ShortsStudioPage() {
           <Card>
             <Label>3 hook variants (pick one)</Label>
             <div className="space-y-2">
-              {script.hooks.map((h, i) => (
-                <div key={i} className="flex items-start gap-2 rounded-lg border border-[#E5E7EB] bg-white p-3">
-                  <span className="text-[12px] font-bold text-[#9CA3AF]">#{i + 1}</span>
-                  <p className="flex-1 text-[14px] text-[#1A1A2E]">{h}</p>
-                  <button onClick={() => copy(h, `h${i}`)} className="text-[#9CA3AF] hover:text-[#6B4EFF]">
-                    {copied === `h${i}` ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                  </button>
-                </div>
-              ))}
+              {script.hooks.map((h, i) => {
+                const tone = h.score >= 80 ? { bg: "#ECFDF5", fg: "#047857", border: "#A7F3D0" }
+                  : h.score >= 60 ? { bg: "#FFFBEB", fg: "#B45309", border: "#FCD34D" }
+                  : { bg: "#FEF2F2", fg: "#B91C1C", border: "#FCA5A5" };
+                return (
+                  <div key={i} className="flex items-start gap-2 rounded-lg border border-[#E5E7EB] bg-white p-3">
+                    <span className="text-[12px] font-bold text-[#9CA3AF]">#{i + 1}</span>
+                    <div className="flex-1">
+                      <p className="text-[14px] text-[#1A1A2E]">{h.text}</p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: tone.bg, color: tone.fg, border: `1px solid ${tone.border}` }}>
+                          {h.score}/100
+                        </span>
+                        <span className="text-[11px] text-[#6B7280]">{h.score_reason}</span>
+                      </div>
+                    </div>
+                    <button onClick={() => copy(h.text, `h${i}`)} className="text-[#9CA3AF] hover:text-[#6B4EFF]">
+                      {copied === `h${i}` ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </Card>
 
