@@ -69,21 +69,30 @@ function ShortsStudioPage() {
     if (!session) return toast.error("Please sign in");
     if (input.trim().length < 20) return toast.error("Paste at least a paragraph of source content");
     setLoading(true); setScript(null); setJobId(null); setVideoFile(null); setVideoPath(null);
+    setLimitHit(false); setGenError(null);
     try {
       const res = await withAIProgress(generateShorts({
         data: { inputText: input.trim(), platform, duration, angle: angle.trim() || undefined },
       }));
       if (res.error === "LIMIT_REACHED") {
+        setLimitHit(true);
         toast.error("Free plan limit reached — upgrade to Pro for unlimited shorts.");
       } else if (res.error) {
+        setGenError(res.error);
         toast.error(res.error);
       } else if (res.script) {
         setScript(res.script);
         setJobId((res as any).jobId || null);
         toast.success("Script ready");
+      } else {
+        setGenError("No script returned. Please try again.");
+        toast.error("No script returned. Please try again.");
       }
     } catch (e: any) {
-      toast.error(e?.message || "Failed");
+      const msg = e?.message || "Failed to reach AI service";
+      console.error("[shorts] run threw:", e);
+      setGenError(msg);
+      toast.error(msg);
     } finally { setLoading(false); }
   };
 
