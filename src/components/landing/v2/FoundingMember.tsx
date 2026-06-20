@@ -38,99 +38,107 @@ export function FoundingMember() {
   };
 
   return (
-    <section style={{ background: "#FFFFFF" }} className="py-20">
-      <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-        <h2
-          className="text-3xl sm:text-4xl"
-          style={{
-            color: "#0F172A",
-            fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-            fontWeight: 700,
-            lineHeight: 1.1,
-          }}
-        >
-          Pay Once. Use PostSpark Forever.
-        </h2>
-        <p className="mx-auto mt-5 max-w-xl text-base" style={{ color: "#64748B", lineHeight: 1.7 }}>
-          We're a new product looking for our first 50 power users. Get
-          <strong> lifetime Pro access for a one-time $97</strong> — no monthly
-          fee, ever. After 50 spots, this offer disappears for good.
-        </p>
-
-        <div
-          className="mx-auto mt-10 rounded-3xl p-10 sm:p-12 text-left"
-          style={{
-            background: "linear-gradient(135deg, #2D1B69 0%, #1a1a2e 100%)",
-            border: "1px solid #4c1d95",
-            boxShadow: "0 20px 60px rgba(124,58,237,0.25)",
-          }}
-        >
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div
-              className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white"
-              style={{ background: "rgba(124,58,237,0.25)", border: "1px solid rgba(167,139,250,0.4)" }}
-            >
-              <Crown className="h-3 w-3" /> Founding Member · Lifetime
-            </div>
-            <div className="text-xs font-semibold" style={{ color: "#A78BFA" }}>
-              {isSoldOut ? "Sold out" : `${spots.remaining} of ${spots.total} spots left`}
-            </div>
-          </div>
-
-          <h3
-            className="mt-5 text-2xl sm:text-3xl text-white"
-            style={{ fontFamily: "Inter, system-ui, -apple-system, sans-serif", fontWeight: 700, lineHeight: 1.2 }}
-          >
-            Lifetime Pro Access — $97 one time
-          </h3>
-
-          <p className="mt-3 text-sm" style={{ color: "#CBD5E1", lineHeight: 1.7 }}>
-            Everything in Pro, forever. Unlimited repurposes, Brand Voice AI,
-            Hook Lab, AI Image Studio, all current and future Pro features.
-            Pro is $24/month — at that rate, this pays itself back in 4 months.
-          </p>
-
-          {/* Progress bar */}
-          <div className="mt-6">
-            <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${pct}%`,
-                  background: "linear-gradient(90deg, #A78BFA 0%, #7C3AED 100%)",
-                }}
-              />
-            </div>
-            <p className="mt-2 text-[11px]" style={{ color: "#94A3B8" }}>
-              {spots.claimed} of {spots.total} founding members claimed · price doubles to $197 after sold out
-            </p>
-          </div>
-
-          <button
-            onClick={handleLifetime}
-            disabled={ckLoading || isSoldOut}
-            className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-lg px-7 py-4 text-sm font-bold text-white transition disabled:opacity-50 sm:w-auto"
+    <section className="py-24 sm:py-32 relative overflow-hidden" style={{ background: "#FFFFFF" }}>
+      <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+        <div className="flex flex-col items-center mb-12">
+          <span
+            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em]"
             style={{
-              background: "#7C3AED",
-              boxShadow: "0 4px 20px rgba(124,58,237,0.5)",
+              background: "#F5F3FF",
+              color: "#7C3AED",
+              border: "1px solid rgba(124, 58, 237, 0.1)",
             }}
-            onMouseEnter={(e) => !ckLoading && !isSoldOut && (e.currentTarget.style.background = "#6D28D9")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#7C3AED")}
           >
-            <Sparkles className="h-4 w-4" />
-            {isSoldOut ? "All 50 spots taken" : "Claim Lifetime Access — $97"}
-            {!isSoldOut && <ArrowRight className="h-4 w-4" />}
-          </button>
-
-          <p className="mt-3 text-[11px]" style={{ color: "#94A3B8" }}>
-            30-day money-back guarantee · Pay once, never again
+            Limited Opportunity
+          </span>
+          <h2
+            className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl"
+            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+          >
+            Pay Once. Use PostSpark <span className="text-violet-600">Forever.</span>
+          </h2>
+          <p className="mt-6 max-w-2xl text-lg text-slate-600 leading-relaxed">
+            We're looking for our first 50 power users. Get <strong>lifetime Pro access for a one-time $97</strong> — no monthly fee, ever. After 50 spots, this offer disappears forever.
           </p>
         </div>
 
-        <p className="mt-6 text-xs" style={{ color: "#94A3B8" }}>
-          Prefer monthly? <Link to="/signup" className="font-bold underline" style={{ color: "#7C3AED" }}>
-            Start with the free plan
-          </Link> — 3 repurposes/month, no card required.
+        <div
+          className="relative overflow-hidden rounded-[40px] p-8 sm:p-16 text-left shadow-2xl shadow-violet-900/20"
+          style={{
+            background: "linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)",
+            border: "1px solid rgba(124, 58, 237, 0.2)",
+          }}
+        >
+          {/* Background pattern */}
+          <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#7C3AED 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-10">
+              <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-violet-600 text-white shadow-lg shadow-violet-600/20">
+                <Crown size={12} /> Founding Member · Lifetime
+              </div>
+              <div className="text-sm font-bold text-violet-400">
+                {isSoldOut ? "SOLD OUT" : `${spots.remaining} of ${spots.total} spots remaining`}
+              </div>
+            </div>
+
+            <h3 className="text-3xl sm:text-4xl font-black text-white mb-6" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+              Lifetime Pro Access — $97 <span className="text-violet-400">one time</span>
+            </h3>
+
+            <p className="text-lg text-slate-300 leading-relaxed mb-10 max-w-2xl">
+              Everything in Pro, forever. Unlimited repurposes, Brand Voice AI, Hook Lab, AI Image Studio, and all future Pro updates. Pro is normally $24/month — this pays for itself in just 4 months.
+            </p>
+
+            {/* Progress bar */}
+            <div className="mb-12">
+              <div className="flex justify-between items-end mb-3">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Progress</span>
+                <span className="text-xs font-bold text-white uppercase tracking-widest">{pct}% Claimed</span>
+              </div>
+              <div className="h-4 w-full overflow-hidden rounded-full bg-white/10 p-1 border border-white/5">
+                <div
+                  className="h-full rounded-full transition-all duration-1000 ease-out relative"
+                  style={{
+                    width: `${pct}%`,
+                    background: "linear-gradient(90deg, #A78BFA 0%, #7C3AED 100%)",
+                  }}
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                </div>
+              </div>
+              <p className="mt-4 text-xs font-medium text-slate-500 italic">
+                {spots.claimed} of {spots.total} founding members joined · price doubles to $197 after 50 spots.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <button
+                onClick={handleLifetime}
+                disabled={ckLoading || isSoldOut}
+                className="group relative inline-flex w-full sm:w-auto items-center justify-center gap-3 overflow-hidden rounded-2xl bg-violet-600 px-10 py-5 text-lg font-bold text-white transition-all hover:bg-violet-500 hover:scale-105 active:scale-95 shadow-xl shadow-violet-600/30 disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {ckLoading ? <span className="animate-spin mr-2">◌</span> : <Sparkles className="h-5 w-5" />}
+                {isSoldOut ? "All Spots Taken" : "Claim Lifetime Access"}
+                {!isSoldOut && <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />}
+              </button>
+              
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-8 w-8 rounded-full border-2 border-slate-900 bg-slate-800" />
+                  ))}
+                </div>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  30-day money-back guarantee
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-10 text-sm text-slate-500">
+          Prefer monthly? <Link to="/signup" className="font-bold text-violet-600 hover:underline">Start with the free plan</Link> — 3 repurposes/month, no card required.
         </p>
       </div>
     </section>

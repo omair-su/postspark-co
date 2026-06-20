@@ -15,37 +15,54 @@ export function SocialProofBar() {
   const signups = stats?.signupsThisWeek ?? 312;
 
   return (
-    <section style={{ background: "#F8FAFC" }} className="border-y">
-      <div
-        className="mx-auto max-w-7xl px-4 py-8 text-center sm:px-6"
-        style={{ borderColor: "#E2E8F0" }}
-      >
-        <p
-          className="text-xs font-bold uppercase tracking-widest"
-          style={{ color: "#64748B", letterSpacing: "0.1em" }}
-        >
-          Real numbers from real creators
-        </p>
-        <div
-          className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold"
-          style={{ color: "#0F172A" }}
-        >
-          <span className="inline-flex items-center gap-2">
-            <Flame className="h-4 w-4" style={{ color: "#F97316" }} />
-            <span style={{ color: "#7C3AED" }}>{generated.toLocaleString()}</span>
-            <span style={{ color: "#64748B", fontWeight: 500 }}>pieces generated today</span>
-          </span>
-          <span className="hidden h-1 w-1 rounded-full sm:inline-block" style={{ background: "#CBD5E1" }} />
-          <span className="inline-flex items-center gap-2">
-            <Zap className="h-4 w-4" style={{ color: "#10B981" }} />
-            <span style={{ color: "#7C3AED" }}>{signups.toLocaleString()}</span>
-            <span style={{ color: "#64748B", fontWeight: 500 }}>creators joined this week</span>
-          </span>
-          <span className="hidden h-1 w-1 rounded-full sm:inline-block" style={{ background: "#CBD5E1" }} />
-          <span className="inline-flex items-center gap-2">
-            <Sparkles className="h-4 w-4" style={{ color: "#7C3AED" }} />
-            <span style={{ color: "#64748B", fontWeight: 500 }}>Powered by Claude AI</span>
-          </span>
+    <section className="relative overflow-hidden border-y border-slate-100 bg-white/50 backdrop-blur-sm py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="flex flex-col items-center justify-center gap-8 lg:flex-row lg:gap-16">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shadow-sm shadow-orange-100/50">
+              <Flame size={20} />
+            </div>
+            <div>
+              <p className="text-xl font-black text-slate-900 leading-none">
+                {generated.toLocaleString()}
+              </p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                Pieces generated today
+              </p>
+            </div>
+          </div>
+
+          <div className="hidden lg:block h-8 w-px bg-slate-200" />
+
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm shadow-emerald-100/50">
+              <Zap size={20} />
+            </div>
+            <div>
+              <p className="text-xl font-black text-slate-900 leading-none">
+                {signups.toLocaleString()}
+              </p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                Creators joined this week
+              </p>
+            </div>
+          </div>
+
+          <div className="hidden lg:block h-8 w-px bg-slate-200" />
+
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600 border border-violet-100 shadow-sm shadow-violet-100/50">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <p className="text-xl font-black text-slate-900 leading-none uppercase">
+                Claude 3.5
+              </p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                Advanced AI Engine
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
