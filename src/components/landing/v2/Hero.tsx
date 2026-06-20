@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { HeroDemoWidget } from "./HeroDemoWidget";
 import { track } from "@/lib/analytics";
 
 export function Hero() {
   return (
     <section
-      className="relative overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24 lg:pt-44 lg:pb-32"
+      className="relative overflow-hidden"
       style={{ background: "#FFFFFF" }}
     >
       <style>{`
@@ -28,17 +28,13 @@ export function Hero() {
         }
         .hero-beam-wrapper {
           position: relative;
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.4);
-          backdrop-filter: blur(20px);
-          padding: 8px;
-          box-shadow: 0 25px 50px -12px rgba(124, 58, 237, 0.15);
+          border-radius: 20px;
         }
         .hero-beam-wrapper::before {
           content: "";
           position: absolute;
           inset: -1.5px;
-          border-radius: 26px;
+          border-radius: 22px;
           padding: 1.5px;
           background: conic-gradient(
             from var(--beam-angle, 0deg),
@@ -59,12 +55,6 @@ export function Hero() {
           initial-value: 0deg;
           inherits: false;
         }
-        .premium-glow-text {
-          background: linear-gradient(135deg, #0F172A 0%, #4C1D95 50%, #7C3AED 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
       `}</style>
 
       {/* Aurora blobs */}
@@ -77,7 +67,7 @@ export function Hero() {
             width: "70%",
             height: "70%",
             background: "radial-gradient(ellipse at center, #A78BFA 0%, transparent 70%)",
-            opacity: 0.4,
+            opacity: 0.35,
             mixBlendMode: "multiply",
             animation: "auroraFloat1 40s ease-in-out infinite alternate",
           }}
@@ -90,7 +80,7 @@ export function Hero() {
             width: "65%",
             height: "65%",
             background: "radial-gradient(ellipse at center, #F0ABFC 0%, transparent 70%)",
-            opacity: 0.35,
+            opacity: 0.28,
             mixBlendMode: "multiply",
             animation: "auroraFloat2 40s ease-in-out infinite alternate",
           }}
@@ -115,73 +105,84 @@ export function Hero() {
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: "radial-gradient(circle, #E9D5FF 1.5px, transparent 1.5px)",
-          backgroundSize: "32px 32px",
-          opacity: 0.4,
-          maskImage: "radial-gradient(ellipse at center, black, transparent 80%)",
+          backgroundImage: "radial-gradient(circle, #E9D5FF 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+          opacity: 0.5,
         }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center text-center">
+      <div className="relative mx-auto grid max-w-7xl gap-12 px-4 pb-16 pt-28 sm:px-6 md:grid-cols-12 md:gap-8 md:pt-32 lg:pb-24">
+        <div className="md:col-span-7">
           {/* Glass pill */}
-          <div className="animate-fade-in">
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em]"
-              style={{
-                background: "rgba(255, 255, 255, 0.6)",
-                backdropFilter: "blur(12px)",
-                border: "1px solid rgba(124, 58, 237, 0.2)",
-                color: "#7C3AED",
-                boxShadow: "0 4px 20px rgba(124, 58, 237, 0.1)",
-              }}
-            >
-              <Sparkles className="h-3.5 w-3.5" /> Trusted by 12,000+ High-Growth Creators
-            </span>
-          </div>
+          <span
+            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest"
+            style={{
+              background: "rgba(245,243,255,0.75)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(167,139,250,0.45)",
+              color: "#7C3AED",
+              fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+              boxShadow: "0 2px 12px rgba(124,58,237,0.08)",
+            }}
+          >
+            ✨ Powered by Claude · Trusted by 12,000+ creators
+          </span>
 
           <h1
-            className="mt-8 max-w-4xl text-[44px] leading-[1.1] tracking-tight sm:text-[64px] lg:text-[80px]"
+            className="mt-8 text-[40px] leading-[1.05] tracking-tight md:text-[52px] lg:text-[64px]"
             style={{
               color: "#0F172A",
               fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-              fontWeight: 800,
+              fontWeight: 700,
             }}
           >
-            Turn 1 Post Into <span className="premium-glow-text">30 Platform-Ready</span> Pieces in 90 Seconds
+            Turn 1 blog post into
+            <br /> <span className="ps-display-accent">30 platform-ready</span>
+            <br /> pieces in 90 seconds.
           </h1>
 
           <p
-            className="mt-8 max-w-2xl text-lg sm:text-xl"
-            style={{ color: "#475569", lineHeight: 1.6 }}
+            className="mt-6 max-w-xl text-base sm:text-lg"
+            style={{ color: "#64748B", lineHeight: 1.7 }}
           >
-            Stop re-writing. PostSpark uses Claude AI to transform your blogs, videos, and podcasts into viral social content <strong>in your exact voice</strong>.
+            Paste a blog, YouTube video, or podcast. PostSpark writes tweets,
+            LinkedIn posts, newsletters, and video scripts <strong>in your voice</strong>
+            {" "}— powered by Claude AI.
           </p>
 
-          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               to="/signup"
               onClick={() => track("cta_click", { from: "hero_primary" })}
-              className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl px-8 py-4 text-base font-bold text-white transition-all hover:scale-105 active:scale-95"
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-7 py-3.5 text-sm font-bold text-white transition"
               style={{
-                background: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
-                boxShadow: "0 10px 25px -5px rgba(124, 58, 237, 0.4)",
+                background: "#7C3AED",
+                boxShadow: "0 4px 14px rgba(124,58,237,0.3)",
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#6D28D9")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#7C3AED")}
             >
-              <div className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />
-              Start Free Now <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              Start Free <ArrowRight className="h-4 w-4" />
             </Link>
             <a
               href="#try-demo"
               onClick={() => track("cta_click", { from: "hero_secondary" })}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white/50 px-8 py-4 text-base font-bold text-slate-900 backdrop-blur-sm transition-all hover:border-violet-300 hover:bg-violet-50/50 hover:text-violet-700"
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-7 py-3.5 text-sm font-bold transition"
+              style={{
+                border: "2px solid #7C3AED",
+                color: "#7C3AED",
+                background: "transparent",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F3FF")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
-              Try Interactive Demo ↓
+              Try It Live ↓
             </a>
           </div>
 
           <ul
-            className="mt-8 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm font-medium"
+            className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs"
             style={{ color: "#64748B" }}
           >
             {[
@@ -189,23 +190,18 @@ export function Hero() {
               "No credit card required",
               "Cancel anytime",
             ].map((t) => (
-              <li key={t} className="flex items-center gap-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                  <Check className="h-3 w-3" strokeWidth={3} />
-                </div>
+              <li key={t} className="inline-flex items-center gap-1.5">
+                <Check className="h-3.5 w-3.5" style={{ color: "#10B981" }} />
                 {t}
               </li>
             ))}
           </ul>
         </div>
 
-        <div id="try-demo" className="mt-20 lg:mt-24">
-          <div className="mx-auto max-w-5xl">
-            <div className="hero-beam-wrapper">
-              <div className="overflow-hidden rounded-2xl bg-white shadow-2xl">
-                <HeroDemoWidget />
-              </div>
-            </div>
+        <div id="try-demo" className="md:col-span-5">
+          {/* Border-beam wrapper */}
+          <div className="hero-beam-wrapper">
+            <HeroDemoWidget />
           </div>
         </div>
       </div>

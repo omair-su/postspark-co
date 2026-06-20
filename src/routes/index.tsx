@@ -62,29 +62,36 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
+const Spacer = () => <div style={{ height: "clamp(48px, 6vw, 96px)" }} aria-hidden />;
+
 function LandingPage() {
   const { session, loading } = useAuth();
   if (!loading && session) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="min-h-screen scroll-smooth bg-white selection:bg-violet-100 selection:text-violet-900">
+    <div className="min-h-screen scroll-smooth" style={{ background: "#FFFFFF" }}>
       <Navbar />
-      <main className="relative">
+      <main>
         <Hero />
         <SocialProofBar />
-        
-        <div className="relative z-10">
-          <PainSection />
-          <WhoFor />
-          <HowItWorks />
-          <ExploreTools />
-          <CompareSection />
-          <PricingV2 />
-          <TestimonialsSection />
-          <FoundingMember />
-          <FAQv2 />
-        </div>
-        
+        <Spacer />
+        <PainSection />
+        <Spacer />
+        <WhoFor />
+        <Spacer />
+        <HowItWorks />
+        <Spacer />
+        <ExploreTools />
+        <Spacer />
+        <CompareSection />
+        <Spacer />
+        <PricingV2 />
+        <Spacer />
+        <TestimonialsSection />
+        <Spacer />
+        <FoundingMember />
+        <Spacer />
+        <FAQv2 />
         <FinalCTA />
         <FooterV2 />
       </main>
