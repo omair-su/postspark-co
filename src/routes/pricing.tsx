@@ -21,6 +21,18 @@ const PRICING_JSONLD = {
   ],
 };
 
+const FAQ_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    { "@type": "Question", name: "Is there really a free plan? What's the catch?", acceptedAnswer: { "@type": "Answer", text: "Yes — 10 free repurposes every month, no credit card required. The catch is fair: heavy users on Pro fund the free tier. If 10 isn't enough, upgrade to Pro ($19/mo) for unlimited." } },
+    { "@type": "Question", name: "Can I cancel anytime? What if I'm not satisfied?", acceptedAnswer: { "@type": "Answer", text: "Cancel any time from Settings in one click — and we offer a 30-day money-back guarantee. If PostSpark doesn't save you hours in the first month, email us for a full refund, no questions asked." } },
+    { "@type": "Question", name: "Will the output actually sound like me, not generic AI?", acceptedAnswer: { "@type": "Answer", text: "Yes. Pro and Agency users train PostSpark on writing samples + a Brand Kit (logo, colors, tone). Generations match your voice — so closely your audience won't notice the difference." } },
+    { "@type": "Question", name: "How is PostSpark different from ChatGPT or other AI tools?", acceptedAnswer: { "@type": "Answer", text: "ChatGPT is a blank prompt. PostSpark is a full content engine: brand voice training, image studio, podcast → posts, SEO blog writer, content calendar, agency client approvals, and more — all in one workflow built for creators and agencies." } },
+    { "@type": "Question", name: "Do you offer team seats and white-label for agencies?", acceptedAnswer: { "@type": "Answer", text: "Yes — the Agency plan ($49/mo) includes 5 team seats, multi-brand workspaces, white-label client approval links, and agency-wide analytics. Built specifically for content agencies managing multiple clients." } },
+  ],
+};
+
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
@@ -34,7 +46,10 @@ export const Route = createFileRoute("/pricing")({
       { name: "twitter:description", content: "Free, Pro $19/mo, Agency $49/mo. Cancel anytime." },
     ],
     links: [{ rel: "canonical", href: "https://postspark.co/pricing" }],
-    scripts: [{ type: "application/ld+json", children: JSON.stringify(PRICING_JSONLD) }],
+    scripts: [
+      { type: "application/ld+json", children: JSON.stringify(PRICING_JSONLD) },
+      { type: "application/ld+json", children: JSON.stringify(FAQ_JSONLD) },
+    ],
   }),
   component: PricingPage,
 });

@@ -13,22 +13,40 @@ export const Route = createFileRoute("/blog/")({
     const [posts, categories] = await Promise.all([listPosts({ data: {} }), listCategories()]);
     return { posts, categories };
   },
-  head: () => ({
-    meta: [
-      { title: TITLE },
-      { name: "description", content: DESC },
-      { property: "og:title", content: TITLE },
-      { property: "og:description", content: DESC },
-      { property: "og:url", content: URL },
-      { property: "og:image", content: "https://postspark.co/og-image.png" },
-      { name: "twitter:title", content: TITLE },
-      { name: "twitter:description", content: DESC },
-    ],
-    links: [
-      { rel: "canonical", href: URL },
-      { rel: "alternate", type: "application/rss+xml", title: "PostSpark Blog RSS", href: "https://postspark.co/rss.xml" },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const posts = loaderData?.posts ?? [];
+    const collectionJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: TITLE,
+      description: DESC,
+      url: URL,
+      blogPost: posts.slice(0, 20).map((p) => ({
+        "@type": "BlogPosting",
+        headline: p.title,
+        url: `https://postspark.co/blog/${p.slug}`,
+        ...(p.cover_image_url ? { image: p.cover_image_url } : {}),
+        ...(p.author?.name ? { author: { "@type": "Person", name: p.author.name } } : {}),
+      })),
+    };
+    return {
+      meta: [
+        { title: TITLE },
+        { name: "description", content: DESC },
+        { property: "og:title", content: TITLE },
+        { property: "og:description", content: DESC },
+        { property: "og:url", content: URL },
+        { property: "og:image", content: "https://postspark.co/og-image.png" },
+        { name: "twitter:title", content: TITLE },
+        { name: "twitter:description", content: DESC },
+      ],
+      links: [
+        { rel: "canonical", href: URL },
+        { rel: "alternate", type: "application/rss+xml", title: "PostSpark Blog RSS", href: "https://postspark.co/rss.xml" },
+      ],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(collectionJsonLd) }],
+    };
+  },
   component: BlogIndex,
 });
 
