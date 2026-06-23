@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
-  head: () => ({ meta: [{ title: "Signing in… — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Signing in… — PostSpark" },
+      { name: "description", content: "Completing your PostSpark sign-in. You'll be redirected to your dashboard in a moment." },
+      { property: "og:title", content: "Signing in to PostSpark" },
+      { property: "og:description", content: "Finishing authentication and redirecting to your workspace." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: AuthCallbackPage,
 });
 

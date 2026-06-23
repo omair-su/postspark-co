@@ -10,7 +10,10 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Log in — PostSpark" },
-      { name: "description", content: "Log in to your PostSpark account." },
+      { name: "description", content: "Log in to your PostSpark account to repurpose blogs, podcasts, and videos into 30+ platform-ready posts." },
+      { property: "og:title", content: "Log in to PostSpark" },
+      { property: "og:description", content: "Sign in to your AI content repurposing workspace." },
+      { property: "og:url", content: "https://postspark.co/login" },
       { name: "robots", content: "noindex, nofollow" },
     ],
     links: [{ rel: "canonical", href: "https://postspark.co/login" }],
