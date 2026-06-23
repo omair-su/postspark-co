@@ -93,6 +93,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApiNarrateShortRouteImport } from './routes/api/narrate-short'
 import { Route as AlternativesTypefullyVsPostsparkRouteImport } from './routes/alternatives.typefully-vs-postspark'
+import { Route as AlternativesRepurposeIoVsPostsparkRouteImport } from './routes/alternatives.repurpose-io-vs-postspark'
 import { Route as AlternativesJasperVsPostsparkRouteImport } from './routes/alternatives.jasper-vs-postspark'
 import { Route as AlternativesHootsuiteVsPostsparkRouteImport } from './routes/alternatives.hootsuite-vs-postspark'
 import { Route as AlternativesChatgptForContentRepurposingRouteImport } from './routes/alternatives.chatgpt-for-content-repurposing'
@@ -555,6 +556,12 @@ const AlternativesTypefullyVsPostsparkRoute =
     path: '/alternatives/typefully-vs-postspark',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AlternativesRepurposeIoVsPostsparkRoute =
+  AlternativesRepurposeIoVsPostsparkRouteImport.update({
+    id: '/alternatives/repurpose-io-vs-postspark',
+    path: '/alternatives/repurpose-io-vs-postspark',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AlternativesJasperVsPostsparkRoute =
   AlternativesJasperVsPostsparkRouteImport.update({
     id: '/alternatives/jasper-vs-postspark',
@@ -717,6 +724,7 @@ export interface FileRoutesByFullPath {
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
+  '/alternatives/repurpose-io-vs-postspark': typeof AlternativesRepurposeIoVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -827,6 +835,7 @@ export interface FileRoutesByTo {
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
+  '/alternatives/repurpose-io-vs-postspark': typeof AlternativesRepurposeIoVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -939,6 +948,7 @@ export interface FileRoutesById {
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
+  '/alternatives/repurpose-io-vs-postspark': typeof AlternativesRepurposeIoVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -1052,6 +1062,7 @@ export interface FileRouteTypes {
     | '/alternatives/chatgpt-for-content-repurposing'
     | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
+    | '/alternatives/repurpose-io-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
     | '/api/narrate-short'
     | '/auth/callback'
@@ -1162,6 +1173,7 @@ export interface FileRouteTypes {
     | '/alternatives/chatgpt-for-content-repurposing'
     | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
+    | '/alternatives/repurpose-io-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
     | '/api/narrate-short'
     | '/auth/callback'
@@ -1273,6 +1285,7 @@ export interface FileRouteTypes {
     | '/alternatives/chatgpt-for-content-repurposing'
     | '/alternatives/hootsuite-vs-postspark'
     | '/alternatives/jasper-vs-postspark'
+    | '/alternatives/repurpose-io-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
     | '/api/narrate-short'
     | '/auth/callback'
@@ -1385,6 +1398,7 @@ export interface RootRouteChildren {
   AlternativesChatgptForContentRepurposingRoute: typeof AlternativesChatgptForContentRepurposingRoute
   AlternativesHootsuiteVsPostsparkRoute: typeof AlternativesHootsuiteVsPostsparkRoute
   AlternativesJasperVsPostsparkRoute: typeof AlternativesJasperVsPostsparkRoute
+  AlternativesRepurposeIoVsPostsparkRoute: typeof AlternativesRepurposeIoVsPostsparkRoute
   AlternativesTypefullyVsPostsparkRoute: typeof AlternativesTypefullyVsPostsparkRoute
   ApiNarrateShortRoute: typeof ApiNarrateShortRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -2033,6 +2047,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AlternativesTypefullyVsPostsparkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alternatives/repurpose-io-vs-postspark': {
+      id: '/alternatives/repurpose-io-vs-postspark'
+      path: '/alternatives/repurpose-io-vs-postspark'
+      fullPath: '/alternatives/repurpose-io-vs-postspark'
+      preLoaderRoute: typeof AlternativesRepurposeIoVsPostsparkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alternatives/jasper-vs-postspark': {
       id: '/alternatives/jasper-vs-postspark'
       path: '/alternatives/jasper-vs-postspark'
@@ -2308,6 +2329,8 @@ const rootRouteChildren: RootRouteChildren = {
     AlternativesChatgptForContentRepurposingRoute,
   AlternativesHootsuiteVsPostsparkRoute: AlternativesHootsuiteVsPostsparkRoute,
   AlternativesJasperVsPostsparkRoute: AlternativesJasperVsPostsparkRoute,
+  AlternativesRepurposeIoVsPostsparkRoute:
+    AlternativesRepurposeIoVsPostsparkRoute,
   AlternativesTypefullyVsPostsparkRoute: AlternativesTypefullyVsPostsparkRoute,
   ApiNarrateShortRoute: ApiNarrateShortRoute,
   AuthCallbackRoute: AuthCallbackRoute,

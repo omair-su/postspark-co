@@ -36,6 +36,15 @@ const TOOLS: ToolTileItem[] = [
 ];
 
 export const Route = createFileRoute("/dashboard/")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard — PostSpark" },
+      { name: "description", content: "Your PostSpark command center: track usage, jump into Repurpose, Hook Lab, Shorts Studio, and recent generations." },
+      { property: "og:title", content: "PostSpark Dashboard" },
+      { property: "og:description", content: "Your AI content repurposing command center." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: DashboardHome,
 });
 

@@ -41,6 +41,7 @@ const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string 
   { path: "/alternatives/jasper-vs-postspark", priority: "0.8", changefreq: "monthly" },
   { path: "/alternatives/buffer-vs-postspark", priority: "0.85", changefreq: "monthly" },
   { path: "/alternatives/hootsuite-vs-postspark", priority: "0.85", changefreq: "monthly" },
+  { path: "/alternatives/repurpose-io-vs-postspark", priority: "0.85", changefreq: "monthly" },
   { path: "/alternatives/typefully-vs-postspark", priority: "0.85", changefreq: "monthly" },
   { path: "/changelog", priority: "0.6", changefreq: "weekly" },
   { path: "/demo", priority: "0.7", changefreq: "monthly" },
