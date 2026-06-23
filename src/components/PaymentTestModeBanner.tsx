@@ -14,7 +14,7 @@ export function PaymentTestModeBanner() {
           rel="noopener noreferrer"
           className="underline underline-offset-2 font-medium hover:opacity-80"
         >
-          Learn more
+          Learn about payments test mode
         </a>
       </span>
     </div>
