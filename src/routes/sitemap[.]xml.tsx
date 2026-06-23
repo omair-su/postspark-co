@@ -37,6 +37,7 @@ const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string 
   { path: "/use-cases/podcast-to-social", priority: "0.85", changefreq: "monthly" },
   { path: "/use-cases/youtube-to-linkedin", priority: "0.85", changefreq: "monthly" },
   { path: "/use-cases/content-repurposing-agencies", priority: "0.85", changefreq: "monthly" },
+  { path: "/use-cases/youtube-to-instagram", priority: "0.85", changefreq: "monthly" },
   { path: "/alternatives/chatgpt-for-content-repurposing", priority: "0.8", changefreq: "monthly" },
   { path: "/alternatives/jasper-vs-postspark", priority: "0.8", changefreq: "monthly" },
   { path: "/alternatives/buffer-vs-postspark", priority: "0.85", changefreq: "monthly" },

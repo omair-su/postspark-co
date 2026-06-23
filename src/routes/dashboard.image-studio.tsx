@@ -958,7 +958,7 @@ function ImageStudioPage() {
                   ) : imageUrl ? (
                     <img
                       src={imageUrl}
-                      alt="Generated"
+                      alt="AI-generated image preview"
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -1169,7 +1169,7 @@ function ImageStudioPage() {
               </button>
               {uploadedUrl && (
                 <div className="mt-3 overflow-hidden rounded-lg border border-border">
-                  <img src={uploadedUrl} alt="Uploaded" className="max-h-64 w-full object-contain" />
+                  <img src={uploadedUrl} alt="Original image uploaded by user for AI editing" className="max-h-64 w-full object-contain" />
                 </div>
               )}
             </div>
@@ -1241,7 +1241,7 @@ function ImageStudioPage() {
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
               ) : editedUrl ? (
-                <img src={editedUrl} alt="Edited" className="h-full w-full object-contain" />
+                <img src={editedUrl} alt="Resulting image after AI studio processing" className="h-full w-full object-contain" />
               ) : (
                 <div className="flex h-full w-full flex-col items-center justify-center text-muted-foreground">
                   <Wand2 className="mb-2 h-10 w-10 opacity-40" />

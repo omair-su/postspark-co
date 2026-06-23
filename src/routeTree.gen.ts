@@ -30,6 +30,7 @@ import { Route as GalleryIndexRouteImport } from './routes/gallery.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as UseCasesYoutubeToLinkedinRouteImport } from './routes/use-cases.youtube-to-linkedin'
+import { Route as UseCasesYoutubeToInstagramRouteImport } from './routes/use-cases.youtube-to-instagram'
 import { Route as UseCasesPodcastToSocialRouteImport } from './routes/use-cases.podcast-to-social'
 import { Route as UseCasesLinkedinGhostwritersRouteImport } from './routes/use-cases.linkedin-ghostwriters'
 import { Route as UseCasesContentRepurposingAgenciesRouteImport } from './routes/use-cases.content-repurposing-agencies'
@@ -224,6 +225,12 @@ const UseCasesYoutubeToLinkedinRoute =
   UseCasesYoutubeToLinkedinRouteImport.update({
     id: '/use-cases/youtube-to-linkedin',
     path: '/use-cases/youtube-to-linkedin',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const UseCasesYoutubeToInstagramRoute =
+  UseCasesYoutubeToInstagramRouteImport.update({
+    id: '/use-cases/youtube-to-instagram',
+    path: '/use-cases/youtube-to-instagram',
     getParentRoute: () => rootRouteImport,
   } as any)
 const UseCasesPodcastToSocialRoute = UseCasesPodcastToSocialRouteImport.update({
@@ -788,6 +795,7 @@ export interface FileRoutesByFullPath {
   '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
   '/use-cases/linkedin-ghostwriters': typeof UseCasesLinkedinGhostwritersRoute
   '/use-cases/podcast-to-social': typeof UseCasesPodcastToSocialRoute
+  '/use-cases/youtube-to-instagram': typeof UseCasesYoutubeToInstagramRoute
   '/use-cases/youtube-to-linkedin': typeof UseCasesYoutubeToLinkedinRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -899,6 +907,7 @@ export interface FileRoutesByTo {
   '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
   '/use-cases/linkedin-ghostwriters': typeof UseCasesLinkedinGhostwritersRoute
   '/use-cases/podcast-to-social': typeof UseCasesPodcastToSocialRoute
+  '/use-cases/youtube-to-instagram': typeof UseCasesYoutubeToInstagramRoute
   '/use-cases/youtube-to-linkedin': typeof UseCasesYoutubeToLinkedinRoute
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -1012,6 +1021,7 @@ export interface FileRoutesById {
   '/use-cases/content-repurposing-agencies': typeof UseCasesContentRepurposingAgenciesRoute
   '/use-cases/linkedin-ghostwriters': typeof UseCasesLinkedinGhostwritersRoute
   '/use-cases/podcast-to-social': typeof UseCasesPodcastToSocialRoute
+  '/use-cases/youtube-to-instagram': typeof UseCasesYoutubeToInstagramRoute
   '/use-cases/youtube-to-linkedin': typeof UseCasesYoutubeToLinkedinRoute
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -1126,6 +1136,7 @@ export interface FileRouteTypes {
     | '/use-cases/content-repurposing-agencies'
     | '/use-cases/linkedin-ghostwriters'
     | '/use-cases/podcast-to-social'
+    | '/use-cases/youtube-to-instagram'
     | '/use-cases/youtube-to-linkedin'
     | '/blog/'
     | '/dashboard/'
@@ -1237,6 +1248,7 @@ export interface FileRouteTypes {
     | '/use-cases/content-repurposing-agencies'
     | '/use-cases/linkedin-ghostwriters'
     | '/use-cases/podcast-to-social'
+    | '/use-cases/youtube-to-instagram'
     | '/use-cases/youtube-to-linkedin'
     | '/blog'
     | '/dashboard'
@@ -1349,6 +1361,7 @@ export interface FileRouteTypes {
     | '/use-cases/content-repurposing-agencies'
     | '/use-cases/linkedin-ghostwriters'
     | '/use-cases/podcast-to-social'
+    | '/use-cases/youtube-to-instagram'
     | '/use-cases/youtube-to-linkedin'
     | '/blog/'
     | '/dashboard/'
@@ -1435,6 +1448,7 @@ export interface RootRouteChildren {
   UseCasesContentRepurposingAgenciesRoute: typeof UseCasesContentRepurposingAgenciesRoute
   UseCasesLinkedinGhostwritersRoute: typeof UseCasesLinkedinGhostwritersRoute
   UseCasesPodcastToSocialRoute: typeof UseCasesPodcastToSocialRoute
+  UseCasesYoutubeToInstagramRoute: typeof UseCasesYoutubeToInstagramRoute
   UseCasesYoutubeToLinkedinRoute: typeof UseCasesYoutubeToLinkedinRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
@@ -1604,6 +1618,13 @@ declare module '@tanstack/react-router' {
       path: '/use-cases/youtube-to-linkedin'
       fullPath: '/use-cases/youtube-to-linkedin'
       preLoaderRoute: typeof UseCasesYoutubeToLinkedinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/youtube-to-instagram': {
+      id: '/use-cases/youtube-to-instagram'
+      path: '/use-cases/youtube-to-instagram'
+      fullPath: '/use-cases/youtube-to-instagram'
+      preLoaderRoute: typeof UseCasesYoutubeToInstagramRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/use-cases/podcast-to-social': {
@@ -2368,6 +2389,7 @@ const rootRouteChildren: RootRouteChildren = {
     UseCasesContentRepurposingAgenciesRoute,
   UseCasesLinkedinGhostwritersRoute: UseCasesLinkedinGhostwritersRoute,
   UseCasesPodcastToSocialRoute: UseCasesPodcastToSocialRoute,
+  UseCasesYoutubeToInstagramRoute: UseCasesYoutubeToInstagramRoute,
   UseCasesYoutubeToLinkedinRoute: UseCasesYoutubeToLinkedinRoute,
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
