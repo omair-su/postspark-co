@@ -39,7 +39,7 @@ export function FAQSection() {
           <h2 className="mt-5 luxury-heading" style={{ fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
             Frequently Asked <span className="luxury-gradient-text">Questions</span>
           </h2>
-          <p className="mt-4 text-[#1a1a2e]/65">The 5 things buyers ask before signing up.</p>
+          <p className="mt-4 text-[#1a1a2e]/75">The 5 things buyers ask before signing up.</p>
         </div>
 
         <div className="space-y-3">

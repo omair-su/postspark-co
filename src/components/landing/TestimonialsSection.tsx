@@ -41,12 +41,12 @@ export function TestimonialsSection() {
               <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
             ))}
             <span className="ml-1.5 font-semibold luxury-heading">Loved</span>
-            <span className="text-[#1a1a2e]/60">· {items.length} review{items.length === 1 ? "" : "s"}</span>
+            <span className="text-[#1a1a2e]/75">· {items.length} review{items.length === 1 ? "" : "s"}</span>
           </div>
           <h2 className="mt-5 luxury-heading" style={{ fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
             Loved by <span className="luxury-gradient-text">Creators</span>
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-[#1a1a2e]/65">
+          <p className="mx-auto mt-3 max-w-xl text-sm text-[#1a1a2e]/75">
             Real results from people shipping content every week with PostSpark.
           </p>
         </div>
@@ -73,7 +73,7 @@ export function TestimonialsSection() {
                 )}
                 <div className="min-w-0">
                   <p className="text-sm font-semibold luxury-heading">{t.name}</p>
-                  <p className="truncate text-xs text-[#1a1a2e]/60">
+                  <p className="truncate text-xs text-[#1a1a2e]/75">
                     {t.handle && <span className="font-medium text-[#7c3aed]">{t.handle}</span>}
                     {t.handle && t.role && " · "}
                     {t.role}
