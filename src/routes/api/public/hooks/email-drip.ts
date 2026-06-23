@@ -26,11 +26,8 @@ export const Route = createFileRoute("/api/public/hooks/email-drip")({
     handlers: {
       POST: async ({ request }) => {
         const apiKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        const provided = (request.headers.get("apikey")
-          || request.headers.get("authorization")?.replace(/^Bearer\s+/i, "")
-          || "");
-        const publishable = process.env.SUPABASE_PUBLISHABLE_KEY || "";
-        if (!apiKey || (provided !== apiKey && provided !== publishable)) {
+        const authHeader = request.headers.get("authorization") || request.headers.get("Authorization");
+        if (!apiKey || authHeader !== `Bearer ${apiKey}`) {
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
         const supabase = createClient(process.env.SUPABASE_URL!, apiKey, {
