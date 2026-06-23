@@ -128,7 +128,7 @@ export function PricingSection() {
           <h2 className="mt-5 luxury-heading" style={{ fontSize: "clamp(1.9rem, 4.4vw, 3rem)", lineHeight: 1.05 }}>
             Simple, Transparent <span className="luxury-gradient-text">Pricing</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[#1a1a2e]/65">
+          <p className="mx-auto mt-4 max-w-xl text-[#1a1a2e]/75">
             Start free, or try Pro &amp; Agency free for 14 days. <strong className="text-[#1a1a2e]">30-day money-back guarantee.</strong>
           </p>
 
