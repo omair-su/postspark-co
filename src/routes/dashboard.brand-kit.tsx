@@ -180,7 +180,7 @@ function BrandKitPage() {
             style={{ background: secondary }}
           >
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="max-h-16 max-w-16 object-contain" />
+              <img src={logoUrl} alt="PostSpark brand logo" className="max-h-16 max-w-16 object-contain" />
             ) : (
               <span className="text-xs text-muted-foreground">No logo</span>
             )}

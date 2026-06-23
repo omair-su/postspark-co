@@ -73,7 +73,7 @@ function SettingsPage() {
       <div className="mt-6 rounded-xl border border-border bg-card p-5">
         <div className="flex items-center gap-4 mb-5">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="Avatar" className="h-12 w-12 rounded-full object-cover" />
+            <img src={avatarUrl} alt="User profile photo" className="h-12 w-12 rounded-full object-cover" />
           ) : (
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent">
               <User className="h-5 w-5 text-muted-foreground" />

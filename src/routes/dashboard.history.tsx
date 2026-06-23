@@ -340,7 +340,7 @@ function HistoryPage() {
                 </div>
                 {isImageUrl ? (
                   <div className="mt-2 space-y-2">
-                    <img src={val as string} alt={key} className="max-h-96 w-auto rounded-lg border border-border" />
+                    <img src={val as string} alt={`Generated ${key.replace(/[_-]/g, " ")} output`} className="max-h-96 w-auto rounded-lg border border-border" />
                     <div className="flex gap-2">
                       <a
                         href={val as string}
