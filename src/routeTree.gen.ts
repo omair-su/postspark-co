@@ -23,6 +23,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FunnelRouteImport } from './routes/funnel'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as DataDeletionRouteImport } from './routes/data-deletion'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as IndexRouteImport } from './routes/index'
@@ -189,6 +190,11 @@ const FunnelRoute = FunnelRouteImport.update({
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataDeletionRoute = DataDeletionRouteImport.update({
+  id: '/data-deletion',
+  path: '/data-deletion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -713,6 +719,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/data-deletion': typeof DataDeletionRoute
   '/demo': typeof DemoRoute
   '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
@@ -825,6 +832,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
+  '/data-deletion': typeof DataDeletionRoute
   '/demo': typeof DemoRoute
   '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
@@ -939,6 +947,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/data-deletion': typeof DataDeletionRoute
   '/demo': typeof DemoRoute
   '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
@@ -1054,6 +1063,7 @@ export interface FileRouteTypes {
     | '/'
     | '/changelog'
     | '/dashboard'
+    | '/data-deletion'
     | '/demo'
     | '/funnel'
     | '/login'
@@ -1166,6 +1176,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/changelog'
+    | '/data-deletion'
     | '/demo'
     | '/funnel'
     | '/login'
@@ -1279,6 +1290,7 @@ export interface FileRouteTypes {
     | '/'
     | '/changelog'
     | '/dashboard'
+    | '/data-deletion'
     | '/demo'
     | '/funnel'
     | '/login'
@@ -1393,6 +1405,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChangelogRoute: typeof ChangelogRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  DataDeletionRoute: typeof DataDeletionRoute
   DemoRoute: typeof DemoRoute
   FunnelRoute: typeof FunnelRoute
   LoginRoute: typeof LoginRoute
@@ -1569,6 +1582,13 @@ declare module '@tanstack/react-router' {
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-deletion': {
+      id: '/data-deletion'
+      path: '/data-deletion'
+      fullPath: '/data-deletion'
+      preLoaderRoute: typeof DataDeletionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -2331,6 +2351,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChangelogRoute: ChangelogRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  DataDeletionRoute: DataDeletionRoute,
   DemoRoute: DemoRoute,
   FunnelRoute: FunnelRoute,
   LoginRoute: LoginRoute,
@@ -2414,12 +2435,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
