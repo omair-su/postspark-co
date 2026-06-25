@@ -36,6 +36,8 @@ const navGroups = [
       { to: "/dashboard/thumbnail", icon: ImageIcon, label: "Thumbnail / Cover" },
       { to: "/dashboard/carousel", icon: Layers, label: "Carousel Generator" },
       { to: "/dashboard/shorts-studio", icon: Video, label: "Shorts Studio" },
+      { to: "/dashboard/shorts-series", icon: Layers, label: "Shorts Series", search: undefined as any },
+      { to: "/dashboard/shorts-editor", icon: Video, label: "Shorts Editor" },
       { to: "/dashboard/podcast", icon: Mic, label: "Podcast → Content" },
       { to: "/dashboard/humanizer", icon: Wand2, label: "AI Humanizer" },
       { to: "/dashboard/reply-generator", icon: MessageSquare, label: "Reply Generator" },
