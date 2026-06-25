@@ -470,7 +470,9 @@ export const saveImageToLibrary = createServerFn({ method: "POST" })
 
       const match = data.imageDataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
       if (!match) return { error: "Invalid image data" };
-      const mime = match[1];
+      const mime = match[1].toLowerCase();
+      const ALLOWED_MIMES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+      if (!ALLOWED_MIMES.has(mime)) return { error: "Unsupported image type. Allowed: PNG, JPEG, WEBP, GIF." };
       const ext = mime.split("/")[1].replace("jpeg", "jpg");
       const bytes = Uint8Array.from(atob(match[2]), (c) => c.charCodeAt(0));
 
