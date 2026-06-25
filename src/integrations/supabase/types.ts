@@ -774,6 +774,8 @@ export type Database = {
           is_public: boolean
           outputs: Json | null
           public_slug: string | null
+          series_id: string | null
+          series_index: number | null
           title: string | null
           tool: string
           user_id: string
@@ -792,6 +794,8 @@ export type Database = {
           is_public?: boolean
           outputs?: Json | null
           public_slug?: string | null
+          series_id?: string | null
+          series_index?: number | null
           title?: string | null
           tool?: string
           user_id: string
@@ -810,6 +814,8 @@ export type Database = {
           is_public?: boolean
           outputs?: Json | null
           public_slug?: string | null
+          series_id?: string | null
+          series_index?: number | null
           title?: string | null
           tool?: string
           user_id?: string
