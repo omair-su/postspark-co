@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateShortsScript } from "@/server/shorts.server";
+import { generateShortsScript, generateShortsSeriesScripts } from "@/server/shorts.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 const TOOL = "shorts_studio";
@@ -109,6 +109,63 @@ export const getShortsUsage = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .gte("created_at", start.toISOString());
     return { used: count ?? 0, limit: FREE_MONTHLY_LIMIT, plan };
+  });
+
+export const generateShortsSeries = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      inputText: z.string().min(20).max(50_000),
+      platform: z.enum(["tiktok", "shorts", "reels"]),
+      duration: z.union([z.literal(30), z.literal(45), z.literal(60)]),
+      language: z.string().max(40).optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    if (rateLimited(userId)) return { scripts: [], error: "Rate limit: wait a minute and try again." };
+
+    const { data: profile } = await supabase
+      .from("profiles").select("plan").eq("user_id", userId).single();
+    const plan = profile?.plan || "free";
+    const isPro = plan === "pro" || plan === "agency";
+    if (!isPro) return { scripts: [], error: "PRO_REQUIRED" };
+
+    let brandVoiceSummary = "";
+    const { data: voice } = await supabase
+      .from("brand_voices").select("style_summary")
+      .eq("user_id", userId).eq("is_active", true).maybeSingle();
+    brandVoiceSummary = voice?.style_summary || "";
+
+    const result = await generateShortsSeriesScripts({
+      inputText: data.inputText,
+      platform: data.platform,
+      duration: data.duration,
+      brandVoiceSummary,
+      language: data.language,
+    });
+    if (result.error || result.scripts.length === 0) {
+      return { scripts: [], error: result.error || "Series generation failed" };
+    }
+
+    const seriesId = crypto.randomUUID();
+    const rows = result.scripts.map((s, i) => ({
+      user_id: userId,
+      tool: TOOL,
+      input_text: data.inputText,
+      title: `${s.title?.slice(0, 180) || "Shorts ep"} — Ep ${i + 1}`,
+      outputs: s as any,
+      series_id: seriesId,
+      series_index: i + 1,
+    }));
+    let jobIds: string[] = [];
+    try {
+      const { data: inserted } = await supabase.from("repurpose_jobs").insert(rows as any).select("id");
+      jobIds = (inserted || []).map((r: any) => r.id);
+    } catch (e) {
+      console.error("series insert failed", e);
+    }
+    return { scripts: result.scripts, seriesId, jobIds };
   });
 
 export const findBroll = createServerFn({ method: "POST" })

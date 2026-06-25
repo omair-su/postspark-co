@@ -141,3 +141,25 @@ QUALITY RULES:
   }
   return { script: result.data };
 }
+
+const SERIES_ANGLES = [
+  "Episode 1: The hook / contrarian take that grabs attention",
+  "Episode 2: The deep-dive / how-it-actually-works breakdown",
+  "Episode 3: The mistake / what most people get wrong",
+  "Episode 4: The shortcut / framework / playbook",
+  "Episode 5: The case study / proof / result with cliffhanger",
+];
+
+export async function generateShortsSeriesScripts(opts: Omit<Opts, "angle">): Promise<{ scripts: ShortsScript[]; error?: string }> {
+  const results = await Promise.all(
+    SERIES_ANGLES.map((angle) => generateShortsScript({ ...opts, angle })),
+  );
+  const scripts: ShortsScript[] = [];
+  for (const r of results) {
+    if (r.error || !r.script) {
+      return { scripts: [], error: r.error || "Series generation failed" };
+    }
+    scripts.push(r.script);
+  }
+  return { scripts };
+}
