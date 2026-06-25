@@ -68,6 +68,8 @@ import { Route as DashboardTestimonialsAdminRouteImport } from './routes/dashboa
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
 import { Route as DashboardShortsStudioRouteImport } from './routes/dashboard.shorts-studio'
+import { Route as DashboardShortsSeriesRouteImport } from './routes/dashboard.shorts-series'
+import { Route as DashboardShortsEditorRouteImport } from './routes/dashboard.shorts-editor'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blog'
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
@@ -431,6 +433,16 @@ const DashboardShortsStudioRoute = DashboardShortsStudioRouteImport.update({
   path: '/shorts-studio',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardShortsSeriesRoute = DashboardShortsSeriesRouteImport.update({
+  id: '/shorts-series',
+  path: '/shorts-series',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardShortsEditorRoute = DashboardShortsEditorRouteImport.update({
+  id: '/shorts-editor',
+  path: '/shorts-editor',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -766,6 +778,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
+  '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
@@ -879,6 +893,8 @@ export interface FileRoutesByTo {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
+  '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
@@ -994,6 +1010,8 @@ export interface FileRoutesById {
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
+  '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
@@ -1110,6 +1128,8 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/shorts-editor'
+    | '/dashboard/shorts-series'
     | '/dashboard/shorts-studio'
     | '/dashboard/team'
     | '/dashboard/templates'
@@ -1223,6 +1243,8 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/shorts-editor'
+    | '/dashboard/shorts-series'
     | '/dashboard/shorts-studio'
     | '/dashboard/team'
     | '/dashboard/templates'
@@ -1337,6 +1359,8 @@ export interface FileRouteTypes {
     | '/dashboard/repurpose'
     | '/dashboard/seo-blog'
     | '/dashboard/settings'
+    | '/dashboard/shorts-editor'
+    | '/dashboard/shorts-series'
     | '/dashboard/shorts-studio'
     | '/dashboard/team'
     | '/dashboard/templates'
@@ -1899,6 +1923,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardShortsStudioRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/shorts-series': {
+      id: '/dashboard/shorts-series'
+      path: '/shorts-series'
+      fullPath: '/dashboard/shorts-series'
+      preLoaderRoute: typeof DashboardShortsSeriesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/shorts-editor': {
+      id: '/dashboard/shorts-editor'
+      path: '/shorts-editor'
+      fullPath: '/dashboard/shorts-editor'
+      preLoaderRoute: typeof DashboardShortsEditorRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/settings': {
       id: '/dashboard/settings'
       path: '/settings'
@@ -2296,6 +2334,8 @@ interface DashboardRouteChildren {
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardShortsEditorRoute: typeof DashboardShortsEditorRoute
+  DashboardShortsSeriesRoute: typeof DashboardShortsSeriesRoute
   DashboardShortsStudioRoute: typeof DashboardShortsStudioRoute
   DashboardTeamRoute: typeof DashboardTeamRoute
   DashboardTemplatesRoute: typeof DashboardTemplatesRoute
@@ -2331,6 +2371,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSeoBlogRoute: DashboardSeoBlogRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardShortsEditorRoute: DashboardShortsEditorRoute,
+  DashboardShortsSeriesRoute: DashboardShortsSeriesRoute,
   DashboardShortsStudioRoute: DashboardShortsStudioRoute,
   DashboardTeamRoute: DashboardTeamRoute,
   DashboardTemplatesRoute: DashboardTemplatesRoute,
