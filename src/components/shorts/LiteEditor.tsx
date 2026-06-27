@@ -441,10 +441,16 @@ export function LiteEditor({ initialCaptions = "" }: { initialCaptions?: string 
             <p className="text-[14px] font-bold text-[#1A1A2E]">Export</p>
             <p className="text-[12px] text-[#6B7280]">{W}×{H} · {FPS}fps · WebM</p>
           </div>
-          <button onClick={exportVideo} disabled={exporting || !clips.length || !supportsExport}
-            className="ps-generate-btn !w-auto !px-6">
-            {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> Rendering {(progress * 100).toFixed(0)}%</> : <><Film className="h-4 w-4" /> Export Video</>}
-          </button>
+          {isPro ? (
+            <button onClick={exportVideo} disabled={exporting || !clips.length || !supportsExport}
+              className="ps-generate-btn !w-auto !px-6">
+              {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> Rendering {(progress * 100).toFixed(0)}%</> : <><Film className="h-4 w-4" /> Export Video</>}
+            </button>
+          ) : (
+            <Link to="/dashboard/billing" className="ps-generate-btn !w-auto !px-6 !bg-[#7C3AED]" title="Upgrade to export">
+              <Lock className="h-4 w-4" /> Upgrade to Export
+            </Link>
+          )}
         </div>
         {exporting && (
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#F3F0FF]">
