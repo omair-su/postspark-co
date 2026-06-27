@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Layers, Copy, Check, Lock, Download, ArrowLeft } from "lucide-react";
+import { Loader2, Sparkles, Layers, Copy, Check, Lock, Download, ArrowLeft, FolderOpen, Trash2 } from "lucide-react";
 import { generateShortsSeries, getShortsUsage } from "@/lib/shorts.functions";
+import { listShortsSeries, loadShortsSeries, deleteShortsSeries } from "@/lib/shortsSeries.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import type { ShortsScript } from "@/server/shorts.server";
 
