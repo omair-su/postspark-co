@@ -146,6 +146,33 @@ function ShortsSeriesPage() {
         </div>
       </div>
 
+      {drafts.length > 0 && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <FolderOpen className="h-3.5 w-3.5 text-[#7C3AED]" />
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Saved series ({drafts.length})</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {drafts.map((d) => (
+              <div key={d.series_id}
+                className={`group inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] transition ${
+                  activeDraftId === d.series_id
+                    ? "border-[#7C3AED] bg-[#7C3AED]/10 text-[#7C3AED]"
+                    : "border-[#E5E7EB] bg-white text-[#1A1A2E] hover:border-[#7C3AED]/40"
+                }`}>
+                <button onClick={() => openDraft(d.series_id)} className="font-medium">
+                  {d.first_title.slice(0, 40)}{d.first_title.length > 40 ? "…" : ""}
+                  <span className="ml-1.5 text-[10px] text-[#9CA3AF]">· {d.episode_count} eps</span>
+                </button>
+                <button onClick={() => removeDraft(d.series_id)} className="opacity-0 group-hover:opacity-100 transition text-[#9CA3AF] hover:text-red-500" title="Delete">
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
         <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Source content</label>
         <textarea value={input} onChange={(e) => setInput(e.target.value)} rows={6}
