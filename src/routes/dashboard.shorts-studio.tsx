@@ -352,6 +352,12 @@ function ShortsStudioPage() {
     toast.success(`Copied: Search '${hint}' in ${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
   };
 
+  // ── usage counter for chip ────────────────────────────────────
+  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
+  useEffect(() => {
+    if (session) getShortsUsage().then((u: any) => setUsage({ used: u?.used ?? 0, limit: u?.limit ?? 3 })).catch(() => {});
+  }, [session, script]);
+
   return (
     <div className="mx-auto max-w-[900px] px-6 pb-20 pt-6 space-y-6">
       <div
@@ -362,7 +368,18 @@ function ShortsStudioPage() {
           <Video className="h-6 w-6 text-white" />
         </div>
         <div className="flex-1">
-          <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">Shorts Studio</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">Shorts Studio</h1>
+            {usage && (
+              usage.limit === -1 ? (
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 border border-emerald-200">Unlimited · Pro</span>
+              ) : (
+                <Link to="/pricing" className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-[#E5E7EB] text-[#6B7280] hover:border-[#7C3AED] hover:text-[#7C3AED]">
+                  {usage.used}/{usage.limit} free this month · Upgrade
+                </Link>
+              )
+            )}
+          </div>
           <p className="m-0 mt-1 text-[13px] leading-relaxed text-[#6B7280]">
             Turn any source content into a ready-to-record vertical video script — hooks, shot list, on-screen captions, hashtags. Record in OBS or CapCut.
           </p>
