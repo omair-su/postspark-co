@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Loader2, Upload, Film, X, Music2, Mic, Type, Download, Play, Pause, ArrowUp, ArrowDown, VolumeX, Volume2, Scissors } from "lucide-react";
+import { Loader2, Upload, Film, X, Music2, Mic, Type, Download, Play, Pause, ArrowUp, ArrowDown, VolumeX, Volume2, Scissors, Lock, Sparkles } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface Clip {
   id: string;
