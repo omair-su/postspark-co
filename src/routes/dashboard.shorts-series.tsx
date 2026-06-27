@@ -30,12 +30,42 @@ function ShortsSeriesPage() {
   const [plan, setPlan] = useState<string>("free");
   const [copied, setCopied] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Array<{ series_id: string; created_at: string; first_title: string; episode_count: number }>>([]);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
 
   const isPro = plan === "pro" || plan === "agency";
 
+  const refreshDrafts = useCallback(() => {
+    if (!session) return;
+    listShortsSeries().then((r: any) => setDrafts(r?.series || [])).catch(() => {});
+  }, [session]);
+
   useEffect(() => {
     if (session) getShortsUsage().then((u: any) => setPlan(u?.plan || "free")).catch(() => {});
-  }, [session]);
+    refreshDrafts();
+  }, [session, refreshDrafts]);
+
+  const openDraft = async (seriesId: string) => {
+    setActiveDraftId(seriesId);
+    setLoading(true); setErr(null); setTab(0);
+    try {
+      const res: any = await loadShortsSeries({ data: { seriesId } });
+      if (res?.scripts?.length) {
+        setScripts(res.scripts);
+        setInput(res.inputText || "");
+        toast.success("Draft loaded");
+      } else { toast.error("Couldn't load draft"); }
+    } catch { toast.error("Load failed"); }
+    finally { setLoading(false); }
+  };
+
+  const removeDraft = async (seriesId: string) => {
+    if (!confirm("Delete this series and all 5 episodes?")) return;
+    await deleteShortsSeries({ data: { seriesId } });
+    if (activeDraftId === seriesId) { setActiveDraftId(null); setScripts(null); }
+    refreshDrafts();
+    toast.success("Series deleted");
+  };
 
   const run = async () => {
     if (!session) return toast.error("Please sign in");
