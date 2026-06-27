@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Layers, Copy, Check, Lock, Download, ArrowLeft } from "lucide-react";
+import { Loader2, Sparkles, Layers, Copy, Check, Lock, Download, ArrowLeft, FolderOpen, Trash2 } from "lucide-react";
 import { generateShortsSeries, getShortsUsage } from "@/lib/shorts.functions";
+import { listShortsSeries, loadShortsSeries, deleteShortsSeries } from "@/lib/shortsSeries.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import type { ShortsScript } from "@/server/shorts.server";
 
@@ -29,12 +30,42 @@ function ShortsSeriesPage() {
   const [plan, setPlan] = useState<string>("free");
   const [copied, setCopied] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Array<{ series_id: string; created_at: string; first_title: string; episode_count: number }>>([]);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
 
   const isPro = plan === "pro" || plan === "agency";
 
+  const refreshDrafts = useCallback(() => {
+    if (!session) return;
+    listShortsSeries().then((r: any) => setDrafts(r?.series || [])).catch(() => {});
+  }, [session]);
+
   useEffect(() => {
     if (session) getShortsUsage().then((u: any) => setPlan(u?.plan || "free")).catch(() => {});
-  }, [session]);
+    refreshDrafts();
+  }, [session, refreshDrafts]);
+
+  const openDraft = async (seriesId: string) => {
+    setActiveDraftId(seriesId);
+    setLoading(true); setErr(null); setTab(0);
+    try {
+      const res: any = await loadShortsSeries({ data: { seriesId } });
+      if (res?.scripts?.length) {
+        setScripts(res.scripts);
+        setInput(res.inputText || "");
+        toast.success("Draft loaded");
+      } else { toast.error("Couldn't load draft"); }
+    } catch { toast.error("Load failed"); }
+    finally { setLoading(false); }
+  };
+
+  const removeDraft = async (seriesId: string) => {
+    if (!confirm("Delete this series and all 5 episodes?")) return;
+    await deleteShortsSeries({ data: { seriesId } });
+    if (activeDraftId === seriesId) { setActiveDraftId(null); setScripts(null); }
+    refreshDrafts();
+    toast.success("Series deleted");
+  };
 
   const run = async () => {
     if (!session) return toast.error("Please sign in");
@@ -50,6 +81,8 @@ function ShortsSeriesPage() {
         setErr(res.error); toast.error(res.error);
       } else if (res.scripts?.length) {
         setScripts(res.scripts);
+        if (res.seriesId) setActiveDraftId(res.seriesId);
+        refreshDrafts();
         toast.success(`5 episode scripts ready`);
       }
     } catch (e: any) {
@@ -112,6 +145,33 @@ function ShortsSeriesPage() {
           </p>
         </div>
       </div>
+
+      {drafts.length > 0 && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <FolderOpen className="h-3.5 w-3.5 text-[#7C3AED]" />
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Saved series ({drafts.length})</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {drafts.map((d) => (
+              <div key={d.series_id}
+                className={`group inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] transition ${
+                  activeDraftId === d.series_id
+                    ? "border-[#7C3AED] bg-[#7C3AED]/10 text-[#7C3AED]"
+                    : "border-[#E5E7EB] bg-white text-[#1A1A2E] hover:border-[#7C3AED]/40"
+                }`}>
+                <button onClick={() => openDraft(d.series_id)} className="font-medium">
+                  {d.first_title.slice(0, 40)}{d.first_title.length > 40 ? "…" : ""}
+                  <span className="ml-1.5 text-[10px] text-[#9CA3AF]">· {d.episode_count} eps</span>
+                </button>
+                <button onClick={() => removeDraft(d.series_id)} className="opacity-0 group-hover:opacity-100 transition text-[#9CA3AF] hover:text-red-500" title="Delete">
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
         <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Source content</label>

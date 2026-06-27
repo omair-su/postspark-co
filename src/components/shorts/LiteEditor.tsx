@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Loader2, Upload, Film, X, Music2, Mic, Type, Download, Play, Pause, ArrowUp, ArrowDown, VolumeX, Volume2, Scissors } from "lucide-react";
+import { Loader2, Upload, Film, X, Music2, Mic, Type, Download, Play, Pause, ArrowUp, ArrowDown, VolumeX, Volume2, Scissors, Lock, Sparkles } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface Clip {
   id: string;
@@ -18,6 +20,8 @@ const FPS = 30;
 const MAX_TOTAL_S = 90;
 
 export function LiteEditor({ initialCaptions = "" }: { initialCaptions?: string }) {
+  const { tier } = useSubscription();
+  const isPro = tier === "pro" || tier === "agency";
   const [clips, setClips] = useState<Clip[]>([]);
   const [musicFile, setMusicFile] = useState<File | null>(null);
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
@@ -30,6 +34,7 @@ export function LiteEditor({ initialCaptions = "" }: { initialCaptions?: string 
   const [exportUrl, setExportUrl] = useState<string | null>(null);
   const [previewClipIdx, setPreviewClipIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [scrubT, setScrubT] = useState(0);
   const previewRef = useRef<HTMLVideoElement>(null);
 
   const supportsExport = typeof MediaRecorder !== "undefined" &&
@@ -260,9 +265,71 @@ export function LiteEditor({ initialCaptions = "" }: { initialCaptions?: string 
 
   return (
     <div className="space-y-6">
+      {!isPro && (
+        <div className="rounded-2xl border border-[#FCD34D] bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] p-4">
+          <div className="flex items-start gap-3">
+            <Lock className="mt-0.5 h-4 w-4 text-[#B45309]" />
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-[#92400E]">Editor is a Pro feature</p>
+              <p className="mt-0.5 text-[12px] text-[#B45309]">You can build and preview your project, but export is locked. Upgrade to download .webm and render cloud MP4.</p>
+            </div>
+            <Link to="/dashboard/billing" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#7C3AED] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[#6D28D9]">
+              <Sparkles className="h-3.5 w-3.5" /> Upgrade
+            </Link>
+          </div>
+        </div>
+      )}
+
       {!supportsExport && (
         <div className="rounded-xl border border-[#FCD34D] bg-[#FFFBEB] p-4 text-[13px] text-[#92400E]">
           Browser export uses MediaRecorder which isn't available here. Preview will work — for export use desktop Chrome, Edge, or Brave.
+        </div>
+      )}
+
+      {/* Visual timeline strip */}
+      {clips.length > 0 && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-[#FAFAF8] p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Timeline · {totalDuration.toFixed(1)}s</p>
+            <span className="text-[10px] text-[#9CA3AF]">Click a segment to preview · drag handles below to trim</span>
+          </div>
+          <div className="flex h-12 w-full overflow-hidden rounded-lg ring-1 ring-[#E5E7EB] bg-white">
+            {clips.map((c, i) => {
+              const dur = c.trimEnd - c.trimStart;
+              const pct = totalDuration > 0 ? (dur / totalDuration) * 100 : 0;
+              const active = i === previewClipIdx;
+              return (
+                <button key={c.id} onClick={() => { setPreviewClipIdx(i); setScrubT(0); }}
+                  style={{ width: `${pct}%` }}
+                  className={`relative h-full border-r border-white text-left transition ${
+                    active ? "bg-gradient-to-br from-[#7C3AED] to-[#6D28D9]" : "bg-gradient-to-br from-[#1A1A2E] to-[#2D2D4A] hover:from-[#7C3AED]/70 hover:to-[#6D28D9]/70"
+                  }`} title={`Clip ${i + 1} · ${dur.toFixed(1)}s`}>
+                  <span className="absolute left-1.5 top-1 text-[10px] font-bold text-white/90">{i + 1}</span>
+                  <span className="absolute bottom-1 right-1.5 text-[10px] text-white/70">{dur.toFixed(1)}s</span>
+                </button>
+              );
+            })}
+          </div>
+          {/* Scrubber for active clip */}
+          {clips[previewClipIdx] && (() => {
+            const c = clips[previewClipIdx];
+            return (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[10px] text-[#6B7280]">
+                  <span>Clip {previewClipIdx + 1}: {c.file.name.slice(0, 32)}</span>
+                  <span>{scrubT.toFixed(1)}s / {(c.trimEnd - c.trimStart).toFixed(1)}s</span>
+                </div>
+                <input type="range" min={0} max={Math.max(0.1, c.trimEnd - c.trimStart)} step={0.1} value={scrubT}
+                  onChange={(e) => {
+                    const t = parseFloat(e.target.value);
+                    setScrubT(t);
+                    const v = previewRef.current;
+                    if (v) { try { v.currentTime = c.trimStart + t; } catch {} }
+                  }}
+                  className="mt-1 w-full accent-[#7C3AED]" />
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -374,10 +441,16 @@ export function LiteEditor({ initialCaptions = "" }: { initialCaptions?: string 
             <p className="text-[14px] font-bold text-[#1A1A2E]">Export</p>
             <p className="text-[12px] text-[#6B7280]">{W}×{H} · {FPS}fps · WebM</p>
           </div>
-          <button onClick={exportVideo} disabled={exporting || !clips.length || !supportsExport}
-            className="ps-generate-btn !w-auto !px-6">
-            {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> Rendering {(progress * 100).toFixed(0)}%</> : <><Film className="h-4 w-4" /> Export Video</>}
-          </button>
+          {isPro ? (
+            <button onClick={exportVideo} disabled={exporting || !clips.length || !supportsExport}
+              className="ps-generate-btn !w-auto !px-6">
+              {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> Rendering {(progress * 100).toFixed(0)}%</> : <><Film className="h-4 w-4" /> Export Video</>}
+            </button>
+          ) : (
+            <Link to="/dashboard/billing" className="ps-generate-btn !w-auto !px-6 !bg-[#7C3AED]" title="Upgrade to export">
+              <Lock className="h-4 w-4" /> Upgrade to Export
+            </Link>
+          )}
         </div>
         {exporting && (
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#F3F0FF]">
