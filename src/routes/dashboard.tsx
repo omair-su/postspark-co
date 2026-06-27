@@ -7,6 +7,7 @@ import { getOnboardingStatus } from "@/lib/onboarding.functions";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Dashboard — PostSpark" },
