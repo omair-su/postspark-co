@@ -1,4 +1,4 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { createFileRoute, useSearch, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -352,6 +352,12 @@ function ShortsStudioPage() {
     toast.success(`Copied: Search '${hint}' in ${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
   };
 
+  // ── usage counter for chip ────────────────────────────────────
+  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
+  useEffect(() => {
+    if (session) getShortsUsage().then((u: any) => setUsage({ used: u?.used ?? 0, limit: u?.limit ?? 3 })).catch(() => {});
+  }, [session, script]);
+
   return (
     <div className="mx-auto max-w-[900px] px-6 pb-20 pt-6 space-y-6">
       <div
@@ -362,7 +368,18 @@ function ShortsStudioPage() {
           <Video className="h-6 w-6 text-white" />
         </div>
         <div className="flex-1">
-          <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">Shorts Studio</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">Shorts Studio</h1>
+            {usage && (
+              usage.limit === -1 ? (
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 border border-emerald-200">Unlimited · Pro</span>
+              ) : (
+                <Link to="/pricing" className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-[#E5E7EB] text-[#6B7280] hover:border-[#7C3AED] hover:text-[#7C3AED]">
+                  {usage.used}/{usage.limit} free this month · Upgrade
+                </Link>
+              )
+            )}
+          </div>
           <p className="m-0 mt-1 text-[13px] leading-relaxed text-[#6B7280]">
             Turn any source content into a ready-to-record vertical video script — hooks, shot list, on-screen captions, hashtags. Record in OBS or CapCut.
           </p>
@@ -370,7 +387,7 @@ function ShortsStudioPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <a href="/dashboard/shorts-series" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
+        <Link to="/dashboard/shorts-series" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg, #7C3AED, #4F46E5)" }}>
             <Sparkles className="h-5 w-5" />
           </div>
@@ -381,19 +398,19 @@ function ShortsStudioPage() {
             </div>
             <p className="mt-0.5 text-[12px] text-[#6B7280]">Turn one source into 5 episode scripts with cliffhangers — a week of content in one click.</p>
           </div>
-        </a>
-        <a href="/dashboard/shorts-editor" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
+        </Link>
+        <Link to="/dashboard/shorts-editor" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg, #EC4899, #7C3AED)" }}>
             <Film className="h-5 w-5" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-1.5">
-              <p className="text-[13px] font-bold text-[#1A1A2E]">Multi-Clip Editor</p>
-              <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700 border border-emerald-200">Beta</span>
+              <p className="text-[13px] font-bold text-[#1A1A2E]">Timeline Editor</p>
+              <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700 border border-emerald-200">New</span>
             </div>
-            <p className="mt-0.5 text-[12px] text-[#6B7280]">Drag-reorder clips, trim, crop 9:16, burn captions, export — all in your browser.</p>
+            <p className="mt-0.5 text-[12px] text-[#6B7280]">Drag-trim clips on a visual timeline, scrub preview, burn captions, export WebM — all in your browser.</p>
           </div>
-        </a>
+        </Link>
       </div>
 
       <Card>
@@ -473,9 +490,9 @@ function ShortsStudioPage() {
         <div className="rounded-2xl border border-[#FCD34D] bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] p-5">
           <p className="text-[14px] font-bold text-[#92400E]">You've used all 3 free shorts this month</p>
           <p className="mt-1 text-[13px] text-[#B45309]">Upgrade to Pro for unlimited shorts, AI voiceover, hook virality scores, and B-roll search.</p>
-          <a href="/dashboard/billing" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#7C3AED] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#6D28D9]">
+          <Link to="/dashboard/billing" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#7C3AED] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#6D28D9]">
             <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro — $19/mo
-          </a>
+          </Link>
         </div>
       )}
       {genError && !limitHit && (

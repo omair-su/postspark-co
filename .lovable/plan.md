@@ -1,60 +1,79 @@
 ## Goal
 
-Push Shorts Studio to a "wow" tier: a real in-browser editor, Series mode that turns 1 source into 5 episodic scripts, and roll the new premium landing template across 4 more high-traffic pages.
+Turn Shorts Editor into a real multi-track timeline tool. Fix the `/dashboard/shorts-editor` login bounce, ship WebM + MP4 export, save Series drafts you can switch between, and surface a clean Pro gate + monthly usage meter.
 
-## Part 1 — Series Mode (1 source → 5 episodic scripts)
+## Part 1 — Fix the login bounce + button contrast (this turn, fast)
 
-**Server:** add `generateShortsSeries` in `src/server/shorts.server.ts` + wrapper in `src/lib/shorts.functions.ts`. Pro-gated. Single Claude call returns 5 angled scripts with a shared `series_id`, each persisted as its own `repurpose_jobs` row so all 5 show in History.
+- Move `dashboard.shorts-editor.tsx` and `dashboard.shorts-series.tsx` under the protected layout. Symptom is the SSR-no-session bounce: top-level route → no localStorage on server → kicked to `/auth` → back to `/dashboard`. New paths: `src/routes/_authenticated/dashboard.shorts-editor.tsx` and `…shorts-series.tsx`. Same component code; just relocate so the integration-managed `_authenticated/route.tsx` gates them.
+- Audit `LiteEditor.tsx`, Series page, and Studio for `text-white on light bg` / `text-[#1A1A2E] on navy bg` cases; route every CTA through the existing `Button` variants so contrast is consistent.
 
-**UI:** in `dashboard.shorts-studio.tsx`, add "Single / Series (5×)" toggle above Generate. Series result renders as a tabbed view (Ep 1…Ep 5), each tab uses the existing single-script renderer. Free users see "Pro" lock pill.
+## Part 2 — Pro Timeline Editor
 
-**DB:** migration adds `series_id uuid` + `series_index int` to `repurpose_jobs`. Grants already in place.
+New component `src/components/shorts/TimelineEditor.tsx` replaces `LiteEditor`. Pure browser, Worker-safe, zero ffmpeg in the browser path.
 
-## Part 2 — Lite Multi-Clip Editor (Beta)
+**Tracks (top → bottom):**
+1. Video clips (up to 8, drag-reorder, trim handles on each)
+2. Captions (auto-imported from generated script SRT, click to edit text/timing)
+3. Music (1 track, volume slider, fade-in/out toggle)
+4. Voiceover (1 track from AI narration, volume slider)
 
-New route `src/routes/dashboard.shorts-editor.tsx` + component `src/components/shorts/LiteEditor.tsx`. Pure browser, Worker-safe, zero ffmpeg.
+**Interactions:**
+- Pixel-mapped timeline ruler (1px = configurable px/s, default 40px/s, zoom 20-120)
+- Per-clip left/right trim handles (drag with snap-to-grid 100ms)
+- Drag-reorder video clips (HTML5 DnD with insertion indicator)
+- Playhead scrubber (click ruler or drag handle); spacebar play/pause
+- Live 9:16 preview canvas (1080×1920 scaled to fit) renders current playhead frame in real time
+- Per-clip context menu: mute audio, split at playhead, delete, duplicate
+- Caption inline editor: click a caption block → popover with text + start/end ms
 
-**Capabilities:**
-- Drag-drop up to 5 video clips (mp4/webm/mov, ≤50MB each)
-- Reorder via up/down buttons
-- Per-clip: trim start/end (range slider on a thumbnail strip), mute toggle
-- Global: 9:16 crop (auto-letterbox or center-crop), burned-in caption track (typed or pasted SRT), background music (uploaded mp3, volume slider), AI voiceover (reuses `/api/narrate-short`)
-- Hard caps: ≤90s total, output 1080×1920
+**State:** single `EditorProject` object — `{ clips: Clip[], captions: Caption[], music?: Track, vo?: Track, durationMs: number }`. Autosave every 3s into `localStorage` keyed by user+project id, plus "Save draft" button → `shorts_editor_projects` table.
 
-**Render pipeline (all client-side):**
-1. Parse clips with `<video>` elements (`crossOrigin` not needed — same-origin blobs)
-2. OffscreenCanvas 1080×1920; for each frame at 30fps, `drawImage` current clip cropped to 9:16
-3. Burn captions via canvas `fillText` using active caption window
-4. Mix audio via WebAudio: clip audio (if !muted) + music + voiceover → MediaStreamDestination
-5. Combine canvas `captureStream(30)` + audio destination → `MediaRecorder` → `webm` blob
-6. Show progress, download, "Save to History" (upload to `shorts-videos` + `attachShortVideo`)
+**WebM export:** existing canvas + captureStream + MediaRecorder pipeline, but driven by the timeline timeline state (one continuous render loop walks the full timeline at 30fps).
 
-**Safari/iOS:** detect `MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')`; if false, show "Use Chrome/Edge for export" banner and keep preview-only.
+**MP4 cloud render:** new server route `src/routes/api/public/shorts/render.ts` (authed via signed token, not anon — verifies the caller's Supabase JWT in-handler). Uses a Replicate FFmpeg model to composite the user's already-uploaded clips + music + VO + burned captions into 1080×1920 MP4. Webhook `…/render.callback.ts` updates the row and notifies the user. UI shows "Rendering…" with progress polling.
 
-Add "Open Editor →" CTA inside Shorts Studio once a script is generated, prefilling voiceover + SRT.
+## Part 3 — Series Drafts
 
-## Part 3 — 4 more premium landing redesigns
+New table `shorts_series` `{ id, user_id, title, source_input, platform, duration, status, created_at, updated_at }`. Existing `repurpose_jobs.series_id` already links episodes.
 
-Reuse `PremiumShortsLanding` component with page-specific copy. Each gets unique problems/steps/features/competitors/samples/FAQ + 1 generated 3D hero image.
+UI changes on `dashboard.shorts-series.tsx`:
+- Left rail: list of saved series with create/rename/delete
+- Main: episodes tabs (existing 5-tab view) for the active series
+- "New Series" button opens existing generation modal; on save creates a `shorts_series` row then attaches the 5 generated jobs via `series_id`
 
-- `tools.hook-generator.tsx` — "Viral Hook Generator" vs Tweet Hunter / Taplio
-- `tools.youtube-to-twitter-thread.tsx` — vs Tweet Hunter / Hypefury
-- `use-cases.podcast-to-social.tsx` — vs Castmagic / Capsho
-- `use-cases.youtube-to-linkedin.tsx` — vs Repurpose.io / Taplio
+## Part 4 — Pro gating + usage meter
 
-Reuse existing `shorts-hero-mockup.jpg` + `yt-to-ig-hero.jpg` where contextually fine; generate 2 new images only where needed (hook-generator, podcast-to-social).
+- Reuse existing `useSubscription`; on Editor and Series pages, free users see a top banner: "Editor + Series are Pro features" with inline upgrade CTA → opens existing `UpgradeNudgeModal`.
+- Studio header gains a compact usage chip: `3 / 3 free shorts this month · Upgrade`. Pro/Agency users see `Unlimited`.
+- Free users can still preview the editor with sample data, but Save/Export are disabled with tooltip "Upgrade to export".
 
-## Sequence
+## Part 5 — Verify end-to-end
 
-1. DB migration (series_id, series_index)
-2. Series server fn + wire UI toggle + tabbed renderer
-3. LiteEditor component + new route + entry CTA
-4. 4 landing redesigns + 2 new hero images
-5. Playwright smoke: generate a series, open editor, render a 6-second 2-clip export, screenshot each new landing on mobile
+- Playwright: log in (managed session), open `/dashboard/shorts-studio`, generate a 30s TikTok script, click "Open in Editor", trim 2 clips, scrub, export WebM, confirm downloaded blob > 50KB. Screenshot each step.
+- Generate a Series, save it, refresh, switch series, confirm episodes persist.
+- Free user (second test account) sees gate banner + disabled export.
 
-## Out of scope
+## Files
 
-- Server-side video transcoding, ffmpeg, native codecs (Worker-incompatible)
-- Real TikTok / Instagram publish (still pending app review — UI ready)
-- Color/typography changes to existing pages
-- Redesigning the remaining 10+ tool/use-case pages (follow-up)
+**Migration:** `shorts_series` table + grants/RLS + `shorts_editor_projects` table (`id, user_id, name, project_json, created_at, updated_at`).
+
+**New:**
+- `src/components/shorts/TimelineEditor.tsx` (main editor)
+- `src/components/shorts/TimelineRuler.tsx`, `ClipBlock.tsx`, `CaptionBlock.tsx`, `TrackRow.tsx`, `PreviewCanvas.tsx`
+- `src/lib/editorProjects.functions.ts` (save/list/load drafts)
+- `src/lib/shortsSeries.functions.ts` (CRUD for series drafts)
+- `src/lib/cloudRender.functions.ts` (kick off Replicate MP4 render, poll status)
+- `src/routes/api/public/shorts/render.callback.ts` (webhook)
+- `src/routes/_authenticated/dashboard.shorts-editor.tsx`, `…shorts-series.tsx` (replacements)
+
+**Modified:**
+- `src/routes/dashboard.shorts-studio.tsx` — usage chip, "Open in Editor" hand-off with prefilled SRT + VO
+- `src/components/DashboardLayout.tsx` — nav still works after route move
+
+**Deleted:** old `src/routes/dashboard.shorts-editor.tsx`, `src/routes/dashboard.shorts-series.tsx`, `src/components/shorts/LiteEditor.tsx`.
+
+## Out of scope (next round)
+
+- Real per-platform direct publish (still blocked on TikTok review)
+- Auto B-roll Pexels download into clips (today: links only)
+- Color/typography redesign of unrelated pages
