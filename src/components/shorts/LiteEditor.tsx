@@ -20,6 +20,8 @@ const FPS = 30;
 const MAX_TOTAL_S = 90;
 
 export function LiteEditor({ initialCaptions = "" }: { initialCaptions?: string }) {
+  const { tier } = useSubscription();
+  const isPro = tier === "pro" || tier === "agency";
   const [clips, setClips] = useState<Clip[]>([]);
   const [musicFile, setMusicFile] = useState<File | null>(null);
   const [musicUrl, setMusicUrl] = useState<string | null>(null);
@@ -32,6 +34,7 @@ export function LiteEditor({ initialCaptions = "" }: { initialCaptions?: string 
   const [exportUrl, setExportUrl] = useState<string | null>(null);
   const [previewClipIdx, setPreviewClipIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [scrubT, setScrubT] = useState(0);
   const previewRef = useRef<HTMLVideoElement>(null);
 
   const supportsExport = typeof MediaRecorder !== "undefined" &&
