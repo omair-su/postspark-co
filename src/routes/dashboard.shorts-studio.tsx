@@ -370,7 +370,7 @@ function ShortsStudioPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <a href="/dashboard/shorts-series" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
+        <Link to="/dashboard/shorts-series" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg, #7C3AED, #4F46E5)" }}>
             <Sparkles className="h-5 w-5" />
           </div>
@@ -381,19 +381,19 @@ function ShortsStudioPage() {
             </div>
             <p className="mt-0.5 text-[12px] text-[#6B7280]">Turn one source into 5 episode scripts with cliffhangers — a week of content in one click.</p>
           </div>
-        </a>
-        <a href="/dashboard/shorts-editor" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
+        </Link>
+        <Link to="/dashboard/shorts-editor" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg, #EC4899, #7C3AED)" }}>
             <Film className="h-5 w-5" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-1.5">
-              <p className="text-[13px] font-bold text-[#1A1A2E]">Multi-Clip Editor</p>
-              <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700 border border-emerald-200">Beta</span>
+              <p className="text-[13px] font-bold text-[#1A1A2E]">Timeline Editor</p>
+              <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-700 border border-emerald-200">New</span>
             </div>
-            <p className="mt-0.5 text-[12px] text-[#6B7280]">Drag-reorder clips, trim, crop 9:16, burn captions, export — all in your browser.</p>
+            <p className="mt-0.5 text-[12px] text-[#6B7280]">Drag-trim clips on a visual timeline, scrub preview, burn captions, export WebM — all in your browser.</p>
           </div>
-        </a>
+        </Link>
       </div>
 
       <Card>
