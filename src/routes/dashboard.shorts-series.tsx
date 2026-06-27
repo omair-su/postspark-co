@@ -81,6 +81,8 @@ function ShortsSeriesPage() {
         setErr(res.error); toast.error(res.error);
       } else if (res.scripts?.length) {
         setScripts(res.scripts);
+        if (res.seriesId) setActiveDraftId(res.seriesId);
+        refreshDrafts();
         toast.success(`5 episode scripts ready`);
       }
     } catch (e: any) {
