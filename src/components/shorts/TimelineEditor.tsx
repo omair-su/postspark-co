@@ -69,9 +69,14 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [exportUrl, setExportUrl] = useState<string | null>(null);
+  const [exportBlob, setExportBlob] = useState<Blob | null>(null);
+  const [mp4Url, setMp4Url] = useState<string | null>(null);
+  const [mp4Rendering, setMp4Rendering] = useState(false);
+  const [mp4Status, setMp4Status] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [editingCaptionId, setEditingCaptionId] = useState<string | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const { user } = useAuth();
 
   const dragClipIdxRef = useRef<number | null>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
