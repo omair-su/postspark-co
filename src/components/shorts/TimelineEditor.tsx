@@ -10,6 +10,9 @@ import { useSubscription } from "@/hooks/useSubscription";
 import {
   listEditorProjects, loadEditorProject, saveEditorProject, deleteEditorProject,
 } from "@/lib/editorProjects.functions";
+import { startMp4Render, pollMp4Render } from "@/lib/cloudRender.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 // ── domain types ───────────────────────────────────────────────
 interface Clip {
@@ -66,9 +69,14 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [exportUrl, setExportUrl] = useState<string | null>(null);
+  const [exportBlob, setExportBlob] = useState<Blob | null>(null);
+  const [mp4Url, setMp4Url] = useState<string | null>(null);
+  const [mp4Rendering, setMp4Rendering] = useState(false);
+  const [mp4Status, setMp4Status] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [editingCaptionId, setEditingCaptionId] = useState<string | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const { user } = useAuth();
 
   const dragClipIdxRef = useRef<number | null>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
@@ -474,6 +482,8 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
       const blob = new Blob(chunks, { type: "video/webm" });
       const url = URL.createObjectURL(blob);
       setExportUrl(url);
+      setExportBlob(blob);
+      setMp4Url(null);
       toast.success("Export ready");
     } catch (e: any) {
       toast.error(e?.message || "Export failed");
@@ -485,6 +495,57 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
     const a = document.createElement("a"); a.href = exportUrl;
     a.download = `${projectName.replace(/\W+/g, "-")}-${Date.now()}.webm`; a.click();
   };
+
+  const downloadMp4 = () => {
+    if (!mp4Url) return;
+    const a = document.createElement("a"); a.href = mp4Url;
+    a.download = `${projectName.replace(/\W+/g, "-")}-${Date.now()}.mp4`;
+    a.target = "_blank"; a.rel = "noopener"; a.click();
+  };
+
+  const renderMp4Cloud = async () => {
+    if (!isPro) return toast.error("Pro feature — upgrade to render MP4");
+    if (!exportBlob || !user?.id) return toast.error("Export WebM first");
+    setMp4Rendering(true); setMp4Status("Uploading…"); setMp4Url(null);
+    try {
+      const uid = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const path = `${user.id}/render-source/${uid}.webm`;
+      const up = await supabase.storage.from("shorts-videos")
+        .upload(path, exportBlob, { contentType: "video/webm", upsert: true });
+      if (up.error) throw new Error(up.error.message);
+
+      setMp4Status("Starting render…");
+      const started: any = await startMp4Render({ data: { webmPath: path } });
+      const predictionId = started.predictionId;
+      if (!predictionId) throw new Error("No prediction id");
+
+      setMp4Status("Rendering MP4…");
+      const deadline = Date.now() + 6 * 60 * 1000;
+      let delay = 3000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, delay));
+        delay = Math.min(delay + 1000, 7000);
+        const r: any = await pollMp4Render({ data: { predictionId } });
+        if (r.status === "succeeded" && r.mp4Url) {
+          setMp4Url(r.mp4Url);
+          setMp4Status("Done");
+          toast.success("MP4 ready");
+          return;
+        }
+        if (r.status === "failed" || r.status === "canceled") {
+          throw new Error(r.error || `Render ${r.status}`);
+        }
+        setMp4Status(`Rendering MP4… (${r.status})`);
+      }
+      throw new Error("Render timed out");
+    } catch (e: any) {
+      toast.error(e?.message || "MP4 render failed");
+      setMp4Status("");
+    } finally {
+      setMp4Rendering(false);
+    }
+  };
+
 
   // ── render ──────────────────────────────────────────────────
   const timelineWidthPx = Math.max(600, totalDuration * pxs);
@@ -754,10 +815,21 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
         <div className="text-[12px] text-[#6B7280]">
           {project.clips.length ? <>Final length: <strong className="text-[#1A1A2E]">{totalDuration.toFixed(1)}s</strong> · 1080×1920 · 30fps</> : "Add clips to enable export"}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {exportUrl && (
             <button onClick={downloadExport} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-[12px] font-bold text-emerald-700 hover:bg-emerald-100">
               <Download className="h-3.5 w-3.5" /> Download .webm
+            </button>
+          )}
+          {mp4Url && (
+            <button onClick={downloadMp4} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-[12px] font-bold text-sky-700 hover:bg-sky-100">
+              <Download className="h-3.5 w-3.5" /> Download .mp4
+            </button>
+          )}
+          {exportBlob && !mp4Url && (
+            <button onClick={renderMp4Cloud} disabled={mp4Rendering || !isPro}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#1A1A2E] bg-[#1A1A2E] px-3 py-2 text-[12px] font-bold text-white hover:bg-black disabled:opacity-50">
+              {mp4Rendering ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> {mp4Status || "Rendering…"}</> : <><Film className="h-3.5 w-3.5" /> Render MP4 (cloud)</>}
             </button>
           )}
           <button onClick={exportVideo} disabled={exporting || !project.clips.length || !isPro}
