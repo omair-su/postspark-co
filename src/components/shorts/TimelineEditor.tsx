@@ -10,6 +10,9 @@ import { useSubscription } from "@/hooks/useSubscription";
 import {
   listEditorProjects, loadEditorProject, saveEditorProject, deleteEditorProject,
 } from "@/lib/editorProjects.functions";
+import { startMp4Render, pollMp4Render } from "@/lib/cloudRender.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 // ── domain types ───────────────────────────────────────────────
 interface Clip {
