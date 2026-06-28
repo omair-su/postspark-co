@@ -482,6 +482,8 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
       const blob = new Blob(chunks, { type: "video/webm" });
       const url = URL.createObjectURL(blob);
       setExportUrl(url);
+      setExportBlob(blob);
+      setMp4Url(null);
       toast.success("Export ready");
     } catch (e: any) {
       toast.error(e?.message || "Export failed");
