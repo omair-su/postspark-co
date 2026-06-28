@@ -12,6 +12,7 @@ Disallow: /invite/
 Disallow: /review/
 Disallow: /reset-password
 Disallow: /unsubscribe
+Disallow: /funnel
 Disallow: /lovable/
 
 # AI training & answer engines — explicitly allowed so PostSpark
