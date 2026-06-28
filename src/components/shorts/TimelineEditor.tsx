@@ -496,6 +496,57 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
     a.download = `${projectName.replace(/\W+/g, "-")}-${Date.now()}.webm`; a.click();
   };
 
+  const downloadMp4 = () => {
+    if (!mp4Url) return;
+    const a = document.createElement("a"); a.href = mp4Url;
+    a.download = `${projectName.replace(/\W+/g, "-")}-${Date.now()}.mp4`;
+    a.target = "_blank"; a.rel = "noopener"; a.click();
+  };
+
+  const renderMp4Cloud = async () => {
+    if (!isPro) return toast.error("Pro feature — upgrade to render MP4");
+    if (!exportBlob || !user?.id) return toast.error("Export WebM first");
+    setMp4Rendering(true); setMp4Status("Uploading…"); setMp4Url(null);
+    try {
+      const uid = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const path = `${user.id}/render-source/${uid}.webm`;
+      const up = await supabase.storage.from("shorts-videos")
+        .upload(path, exportBlob, { contentType: "video/webm", upsert: true });
+      if (up.error) throw new Error(up.error.message);
+
+      setMp4Status("Starting render…");
+      const started: any = await startMp4Render({ data: { webmPath: path } });
+      const predictionId = started.predictionId;
+      if (!predictionId) throw new Error("No prediction id");
+
+      setMp4Status("Rendering MP4…");
+      const deadline = Date.now() + 6 * 60 * 1000;
+      let delay = 3000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, delay));
+        delay = Math.min(delay + 1000, 7000);
+        const r: any = await pollMp4Render({ data: { predictionId } });
+        if (r.status === "succeeded" && r.mp4Url) {
+          setMp4Url(r.mp4Url);
+          setMp4Status("Done");
+          toast.success("MP4 ready");
+          return;
+        }
+        if (r.status === "failed" || r.status === "canceled") {
+          throw new Error(r.error || `Render ${r.status}`);
+        }
+        setMp4Status(`Rendering MP4… (${r.status})`);
+      }
+      throw new Error("Render timed out");
+    } catch (e: any) {
+      toast.error(e?.message || "MP4 render failed");
+      setMp4Status("");
+    } finally {
+      setMp4Rendering(false);
+    }
+  };
+
+
   // ── render ──────────────────────────────────────────────────
   const timelineWidthPx = Math.max(600, totalDuration * pxs);
 
