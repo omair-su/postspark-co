@@ -815,10 +815,21 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
         <div className="text-[12px] text-[#6B7280]">
           {project.clips.length ? <>Final length: <strong className="text-[#1A1A2E]">{totalDuration.toFixed(1)}s</strong> · 1080×1920 · 30fps</> : "Add clips to enable export"}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {exportUrl && (
             <button onClick={downloadExport} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-[12px] font-bold text-emerald-700 hover:bg-emerald-100">
               <Download className="h-3.5 w-3.5" /> Download .webm
+            </button>
+          )}
+          {mp4Url && (
+            <button onClick={downloadMp4} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-[12px] font-bold text-sky-700 hover:bg-sky-100">
+              <Download className="h-3.5 w-3.5" /> Download .mp4
+            </button>
+          )}
+          {exportBlob && !mp4Url && (
+            <button onClick={renderMp4Cloud} disabled={mp4Rendering || !isPro}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#1A1A2E] bg-[#1A1A2E] px-3 py-2 text-[12px] font-bold text-white hover:bg-black disabled:opacity-50">
+              {mp4Rendering ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> {mp4Status || "Rendering…"}</> : <><Film className="h-3.5 w-3.5" /> Render MP4 (cloud)</>}
             </button>
           )}
           <button onClick={exportVideo} disabled={exporting || !project.clips.length || !isPro}
