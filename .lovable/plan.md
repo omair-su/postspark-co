@@ -1,79 +1,71 @@
-## Goal
+# Landing Page: Million-Dollar Redesign
 
-Turn Shorts Editor into a real multi-track timeline tool. Fix the `/dashboard/shorts-editor` login bounce, ship WebM + MP4 export, save Series drafts you can switch between, and surface a clean Pro gate + monthly usage meter.
+**Goal:** Cut bounce rate from 75% by transforming the landing page into a premium, conversion-focused experience that rivals top AI SaaS brands (Linear, Vercel, Runway, ElevenLabs, Cursor).
 
-## Part 1 — Fix the login bounce + button contrast (this turn, fast)
+## What's wrong today
+- Generic palette and flat icons → feels like a template
+- Cluttered copy, weak hero hook → visitors don't grasp value in 3 seconds
+- No real social proof or premium visual storytelling
+- Mobile-first polish missing (you're viewing at 360px right now)
 
-- Move `dashboard.shorts-editor.tsx` and `dashboard.shorts-series.tsx` under the protected layout. Symptom is the SSR-no-session bounce: top-level route → no localStorage on server → kicked to `/auth` → back to `/dashboard`. New paths: `src/routes/_authenticated/dashboard.shorts-editor.tsx` and `…shorts-series.tsx`. Same component code; just relocate so the integration-managed `_authenticated/route.tsx` gates them.
-- Audit `LiteEditor.tsx`, Series page, and Studio for `text-white on light bg` / `text-[#1A1A2E] on navy bg` cases; route every CTA through the existing `Button` variants so contrast is consistent.
+## Redesign scope (frontend/presentation only)
 
-## Part 2 — Pro Timeline Editor
+### 1. New visual system
+- **Palette:** Deep obsidian (#0A0A0F) base, electric violet→cyan gradient accents (#7C3AED → #06B6D4), warm ivory text (#FAFAF9). Subtle aurora glow backgrounds.
+- **Typography:** Switch headings to **Instrument Serif** (editorial luxury) + body **Geist Sans** (modern AI-tech). Tight tracking, large display sizes (clamp 48→96px).
+- **Surfaces:** Glassmorphic cards with 1px gradient borders, layered noise texture, soft inner glow.
 
-New component `src/components/shorts/TimelineEditor.tsx` replaces `LiteEditor`. Pure browser, Worker-safe, zero ffmpeg in the browser path.
+### 2. Hero section (above-the-fold)
+- One-line punch headline: *"Turn one video into a month of content."*
+- Subhead with concrete outcome (e.g., "AI repurposes your podcast, YouTube, or Zoom into 30+ posts in 60 seconds.")
+- Dual CTA: "Start free — 3 repurposes" + "Watch 90s demo"
+- **Animated 3D hero mockup:** floating glass dashboard preview with parallax depth + aurora glow behind
+- Trust strip: "Trusted by 2,400+ creators" + brand logos row
 
-**Tracks (top → bottom):**
-1. Video clips (up to 8, drag-reorder, trim handles on each)
-2. Captions (auto-imported from generated script SRT, click to edit text/timing)
-3. Music (1 track, volume slider, fade-in/out toggle)
-4. Voiceover (1 track from AI narration, volume slider)
+### 3. Premium 3D icon system
+- Replace flat lucide icons with custom **isometric 3D glass icons** (generated via imagegen, transparent PNG) for the 6 core features. Each icon: floating, soft shadow, gradient inner light.
+- Hover: subtle tilt + glow intensification (CSS only, Worker-safe).
 
-**Interactions:**
-- Pixel-mapped timeline ruler (1px = configurable px/s, default 40px/s, zoom 20-120)
-- Per-clip left/right trim handles (drag with snap-to-grid 100ms)
-- Drag-reorder video clips (HTML5 DnD with insertion indicator)
-- Playhead scrubber (click ruler or drag handle); spacebar play/pause
-- Live 9:16 preview canvas (1080×1920 scaled to fit) renders current playhead frame in real time
-- Per-clip context menu: mute audio, split at playhead, delete, duplicate
-- Caption inline editor: click a caption block → popover with text + start/end ms
+### 4. Sections (rebuilt, in order)
+1. Hero
+2. Logo trust strip
+3. "How it works" — 3-step horizontal flow with 3D icons + connecting gradient line
+4. Feature bento grid (6 tiles, mixed sizes, glass cards, 3D icons)
+5. Live demo preview — autoplay muted video showing repurpose flow
+6. Competitor comparison table (keep existing, restyle premium)
+7. Testimonials — 3 highlighted quotes with avatar + outcome metric
+8. Pricing teaser (link to /pricing)
+9. FAQ (5 items, accordion)
+10. Final CTA — big gradient block, single button
 
-**State:** single `EditorProject` object — `{ clips: Clip[], captions: Caption[], music?: Track, vo?: Track, durationMs: number }`. Autosave every 3s into `localStorage` keyed by user+project id, plus "Save draft" button → `shorts_editor_projects` table.
+### 5. Copy rewrite
+- Cut all filler, hype words, and redundant text
+- Outcome-led headlines per section ("Ship a week of content in an afternoon")
+- Concrete numbers everywhere (time saved, posts generated, hours back)
 
-**WebM export:** existing canvas + captureStream + MediaRecorder pipeline, but driven by the timeline timeline state (one continuous render loop walks the full timeline at 30fps).
+### 6. Mobile polish (priority — you're on 360px)
+- Hero scales gracefully, CTA buttons full-width
+- Bento collapses to single column with proper spacing
+- Sticky mobile CTA bar appears after scroll
 
-**MP4 cloud render:** new server route `src/routes/api/public/shorts/render.ts` (authed via signed token, not anon — verifies the caller's Supabase JWT in-handler). Uses a Replicate FFmpeg model to composite the user's already-uploaded clips + music + VO + burned captions into 1080×1920 MP4. Webhook `…/render.callback.ts` updates the row and notifies the user. UI shows "Rendering…" with progress polling.
+### 7. Micro-interactions (CSS only — Worker SSR compat)
+- Fade-in-on-scroll for sections
+- Gradient text shimmer on headline
+- Card hover lift + border glow
+- Aurora background slow drift
 
-## Part 3 — Series Drafts
+## Technical notes
+- All changes in `src/routes/index.tsx` + new components under `src/components/landing/`
+- 3D icons generated as transparent PNGs in `src/assets/landing/` (imagegen premium tier for quality)
+- Fonts loaded via `<link>` in `src/routes/__root.tsx` (Instrument Serif + Geist), then registered in `@theme` in `src/styles.css`
+- Add new design tokens (gradients, glass shadows, aurora) to `src/styles.css` — no hardcoded colors in components
+- No framer-motion (per project memory) — CSS animations only
+- SEO: keep existing meta, refresh H1 and description to match new copy
 
-New table `shorts_series` `{ id, user_id, title, source_input, platform, duration, status, created_at, updated_at }`. Existing `repurpose_jobs.series_id` already links episodes.
+## Out of scope
+- Backend, pricing logic, auth flows
+- Dashboard or app interior pages
+- New features — purely presentation upgrade
 
-UI changes on `dashboard.shorts-series.tsx`:
-- Left rail: list of saved series with create/rename/delete
-- Main: episodes tabs (existing 5-tab view) for the active series
-- "New Series" button opens existing generation modal; on save creates a `shorts_series` row then attaches the 5 generated jobs via `series_id`
-
-## Part 4 — Pro gating + usage meter
-
-- Reuse existing `useSubscription`; on Editor and Series pages, free users see a top banner: "Editor + Series are Pro features" with inline upgrade CTA → opens existing `UpgradeNudgeModal`.
-- Studio header gains a compact usage chip: `3 / 3 free shorts this month · Upgrade`. Pro/Agency users see `Unlimited`.
-- Free users can still preview the editor with sample data, but Save/Export are disabled with tooltip "Upgrade to export".
-
-## Part 5 — Verify end-to-end
-
-- Playwright: log in (managed session), open `/dashboard/shorts-studio`, generate a 30s TikTok script, click "Open in Editor", trim 2 clips, scrub, export WebM, confirm downloaded blob > 50KB. Screenshot each step.
-- Generate a Series, save it, refresh, switch series, confirm episodes persist.
-- Free user (second test account) sees gate banner + disabled export.
-
-## Files
-
-**Migration:** `shorts_series` table + grants/RLS + `shorts_editor_projects` table (`id, user_id, name, project_json, created_at, updated_at`).
-
-**New:**
-- `src/components/shorts/TimelineEditor.tsx` (main editor)
-- `src/components/shorts/TimelineRuler.tsx`, `ClipBlock.tsx`, `CaptionBlock.tsx`, `TrackRow.tsx`, `PreviewCanvas.tsx`
-- `src/lib/editorProjects.functions.ts` (save/list/load drafts)
-- `src/lib/shortsSeries.functions.ts` (CRUD for series drafts)
-- `src/lib/cloudRender.functions.ts` (kick off Replicate MP4 render, poll status)
-- `src/routes/api/public/shorts/render.callback.ts` (webhook)
-- `src/routes/_authenticated/dashboard.shorts-editor.tsx`, `…shorts-series.tsx` (replacements)
-
-**Modified:**
-- `src/routes/dashboard.shorts-studio.tsx` — usage chip, "Open in Editor" hand-off with prefilled SRT + VO
-- `src/components/DashboardLayout.tsx` — nav still works after route move
-
-**Deleted:** old `src/routes/dashboard.shorts-editor.tsx`, `src/routes/dashboard.shorts-series.tsx`, `src/components/shorts/LiteEditor.tsx`.
-
-## Out of scope (next round)
-
-- Real per-platform direct publish (still blocked on TikTok review)
-- Auto B-roll Pexels download into clips (today: links only)
-- Color/typography redesign of unrelated pages
+## Deliverable
+A landing page that makes a creator land, scroll once, and reach for their credit card. Approve and I'll build it.
