@@ -44,10 +44,10 @@ export function NavV3() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link to="/auth" className="text-sm" style={{ color: "rgba(250,250,249,0.85)" }}>
+          <Link to="/login" className="text-sm" style={{ color: "rgba(250,250,249,0.85)" }}>
             Sign in
           </Link>
-          <Link to="/auth" className="lv3-cta rounded-full px-5 py-2.5 text-sm font-semibold">
+          <Link to="/signup" className="lv3-cta rounded-full px-5 py-2.5 text-sm font-semibold">
             Start free
           </Link>
         </div>
@@ -75,7 +75,7 @@ export function NavV3() {
                 {i.label}
               </Link>
             ))}
-            <Link to="/auth" className="lv3-cta mt-3 rounded-full px-5 py-3 text-sm font-semibold text-center" onClick={() => setOpen(false)}>
+            <Link to="/signup" className="lv3-cta mt-3 rounded-full px-5 py-3 text-sm font-semibold text-center" onClick={() => setOpen(false)}>
               Start free
             </Link>
           </div>

@@ -44,7 +44,7 @@ export function HeroV3() {
 
           <div className="mt-9 flex flex-col sm:flex-row items-center gap-3 lv3-fade-up w-full sm:w-auto">
             <Link
-              to="/auth"
+              to="/signup"
               className="lv3-cta inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[15px] font-semibold w-full sm:w-auto"
             >
               Start free — 3 repurposes

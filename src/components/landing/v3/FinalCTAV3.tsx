@@ -18,7 +18,7 @@ export function FinalCTAV3() {
           </p>
           <div className="relative mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              to="/auth"
+              to="/signup"
               className="lv3-cta inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold w-full sm:w-auto"
             >
               Start free
