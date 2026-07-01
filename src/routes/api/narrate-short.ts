@@ -32,6 +32,14 @@ export const Route = createFileRoute("/api/narrate-short")({
         const text = (body.text || "").trim();
         const voice = body.voice || "alloy";
         if (!text) return Response.json({ error: "text is required" }, { status: 400 });
+        if (text.length > 4000) {
+          return Response.json({ error: "text too long (max 4000 chars)" }, { status: 400 });
+        }
+        const ALLOWED_VOICES = new Set(["alloy", "echo", "fable", "onyx", "nova", "shimmer"]);
+        if (!ALLOWED_VOICES.has(voice)) {
+          return Response.json({ error: "invalid voice" }, { status: 400 });
+        }
+
 
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) {
