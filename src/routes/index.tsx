@@ -7,7 +7,9 @@ import { FAQV3, FAQ_V3 } from "@/components/landing/v3/FAQV3";
 import { FinalCTAV3 } from "@/components/landing/v3/FinalCTAV3";
 import { FooterV3 } from "@/components/landing/v3/FooterV3";
 import { NavV3 } from "@/components/landing/v3/NavV3";
-import { CompareSection } from "@/components/landing/v2/CompareSection";
+import { ToolsGridV3 } from "@/components/landing/v3/ToolsGridV3";
+import { ModelsStripV3 } from "@/components/landing/v3/ModelsStripV3";
+import { CompareV3 } from "@/components/landing/v3/CompareV3";
 import { Navigate, createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -65,11 +67,11 @@ function LandingPage() {
       <main>
         <HeroV3 />
         <LogoStripV3 />
+        <ToolsGridV3 />
+        <ModelsStripV3 />
         <HowItWorksV3 />
         <FeatureBento />
-        <div className="relative py-8 sm:py-12">
-          <CompareSection />
-        </div>
+        <CompareV3 />
         <TestimonialsV3 />
         <FAQV3 />
         <FinalCTAV3 />
