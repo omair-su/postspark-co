@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { PostSparkWordmark } from "./PostSparkMark";
 
 export function NavV3() {
   const [scrolled, setScrolled] = useState(false);
@@ -22,21 +23,12 @@ export function NavV3() {
       }}
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="h-7 w-7 rounded-lg"
-            style={{
-              background: "linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%)",
-              boxShadow: "0 6px 20px rgba(124,58,237,0.45)",
-            }}
-          />
-          <span className="font-display-lux text-xl" style={{ color: "#FAFAF9", letterSpacing: "-0.01em" }}>
-            PostSpark
-          </span>
+        <Link to="/" aria-label="PostSpark home">
+          <PostSparkWordmark size={28} tone="light" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 text-sm" style={{ color: "rgba(250,250,249,0.75)" }}>
+          <a href="#studios" className="hover:text-white transition">Studios</a>
           <Link to="/pricing" className="hover:text-white transition">Pricing</Link>
           <Link to="/gallery" className="hover:text-white transition">Gallery</Link>
           <Link to="/blog" className="hover:text-white transition">Blog</Link>
@@ -70,6 +62,8 @@ export function NavV3() {
               { to: "/gallery", label: "Gallery" },
               { to: "/blog", label: "Blog" },
               { to: "/for/creators", label: "For creators" },
+              { to: "/tools/ai-image-generator", label: "Image Studio" },
+              { to: "/tools/shorts-script-generator", label: "Shorts Studio" },
             ].map((i) => (
               <Link key={i.to} to={i.to} className="px-3 py-3 rounded-lg text-base" style={{ color: "rgba(250,250,249,0.85)" }} onClick={() => setOpen(false)}>
                 {i.label}
