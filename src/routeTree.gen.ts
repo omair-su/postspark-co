@@ -49,6 +49,7 @@ import { Route as ToolsHookGeneratorRouteImport } from './routes/tools.hook-gene
 import { Route as ToolsBlogToNewsletterRouteImport } from './routes/tools.blog-to-newsletter'
 import { Route as ToolsBlogToLinkedinCarouselRouteImport } from './routes/tools.blog-to-linkedin-carousel'
 import { Route as ToolsAiImageGeneratorRouteImport } from './routes/tools.ai-image-generator'
+import { Route as ToolsAiHumanizerRouteImport } from './routes/tools.ai-humanizer'
 import { Route as TemplatesGalleryRouteImport } from './routes/templates.gallery'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as ReviewTokenRouteImport } from './routes/review.$token'
@@ -333,6 +334,11 @@ const ToolsBlogToLinkedinCarouselRoute =
 const ToolsAiImageGeneratorRoute = ToolsAiImageGeneratorRouteImport.update({
   id: '/tools/ai-image-generator',
   path: '/tools/ai-image-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsAiHumanizerRoute = ToolsAiHumanizerRouteImport.update({
+  id: '/tools/ai-humanizer',
+  path: '/tools/ai-humanizer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TemplatesGalleryRoute = TemplatesGalleryRouteImport.update({
@@ -799,6 +805,7 @@ export interface FileRoutesByFullPath {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/ai-humanizer': typeof ToolsAiHumanizerRoute
   '/tools/ai-image-generator': typeof ToolsAiImageGeneratorRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
   '/tools/blog-to-newsletter': typeof ToolsBlogToNewsletterRoute
@@ -914,6 +921,7 @@ export interface FileRoutesByTo {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/ai-humanizer': typeof ToolsAiHumanizerRoute
   '/tools/ai-image-generator': typeof ToolsAiImageGeneratorRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
   '/tools/blog-to-newsletter': typeof ToolsBlogToNewsletterRoute
@@ -1031,6 +1039,7 @@ export interface FileRoutesById {
   '/review/$token': typeof ReviewTokenRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/templates/gallery': typeof TemplatesGalleryRoute
+  '/tools/ai-humanizer': typeof ToolsAiHumanizerRoute
   '/tools/ai-image-generator': typeof ToolsAiImageGeneratorRoute
   '/tools/blog-to-linkedin-carousel': typeof ToolsBlogToLinkedinCarouselRoute
   '/tools/blog-to-newsletter': typeof ToolsBlogToNewsletterRoute
@@ -1149,6 +1158,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/ai-humanizer'
     | '/tools/ai-image-generator'
     | '/tools/blog-to-linkedin-carousel'
     | '/tools/blog-to-newsletter'
@@ -1264,6 +1274,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/ai-humanizer'
     | '/tools/ai-image-generator'
     | '/tools/blog-to-linkedin-carousel'
     | '/tools/blog-to-newsletter'
@@ -1380,6 +1391,7 @@ export interface FileRouteTypes {
     | '/review/$token'
     | '/templates/$slug'
     | '/templates/gallery'
+    | '/tools/ai-humanizer'
     | '/tools/ai-image-generator'
     | '/tools/blog-to-linkedin-carousel'
     | '/tools/blog-to-newsletter'
@@ -1468,6 +1480,7 @@ export interface RootRouteChildren {
   ReviewTokenRoute: typeof ReviewTokenRoute
   TemplatesSlugRoute: typeof TemplatesSlugRoute
   TemplatesGalleryRoute: typeof TemplatesGalleryRoute
+  ToolsAiHumanizerRoute: typeof ToolsAiHumanizerRoute
   ToolsAiImageGeneratorRoute: typeof ToolsAiImageGeneratorRoute
   ToolsBlogToLinkedinCarouselRoute: typeof ToolsBlogToLinkedinCarouselRoute
   ToolsBlogToNewsletterRoute: typeof ToolsBlogToNewsletterRoute
@@ -1788,6 +1801,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/ai-image-generator'
       fullPath: '/tools/ai-image-generator'
       preLoaderRoute: typeof ToolsAiImageGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/ai-humanizer': {
+      id: '/tools/ai-humanizer'
+      path: '/tools/ai-humanizer'
+      fullPath: '/tools/ai-humanizer'
+      preLoaderRoute: typeof ToolsAiHumanizerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/templates/gallery': {
@@ -2434,6 +2454,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewTokenRoute: ReviewTokenRoute,
   TemplatesSlugRoute: TemplatesSlugRoute,
   TemplatesGalleryRoute: TemplatesGalleryRoute,
+  ToolsAiHumanizerRoute: ToolsAiHumanizerRoute,
   ToolsAiImageGeneratorRoute: ToolsAiImageGeneratorRoute,
   ToolsBlogToLinkedinCarouselRoute: ToolsBlogToLinkedinCarouselRoute,
   ToolsBlogToNewsletterRoute: ToolsBlogToNewsletterRoute,
@@ -2477,12 +2498,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
