@@ -29,6 +29,7 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [referralCode, setReferralCode] = useState<string>("");
+  const [pendingConfirmEmail, setPendingConfirmEmail] = useState<string>("");
 
   useEffect(() => {
     let mounted = true;
