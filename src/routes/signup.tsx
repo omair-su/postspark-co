@@ -102,6 +102,30 @@ function SignupPage() {
           <PostSparkLogo variant="wordmark" size={32} />
         </Link>
 
+        {pendingConfirmEmail ? (
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm text-center">
+            <h1 className="text-xl font-bold text-foreground">Confirm your email</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We sent a confirmation link to <span className="font-semibold text-foreground">{pendingConfirmEmail}</span>.
+              Click the link in that email to activate your account, then log in.
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Didn't get it? Check spam, or wait a minute and try again.
+            </p>
+            <Link
+              to="/login"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-lg gradient-electric px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+            >
+              Go to login
+            </Link>
+            <button
+              onClick={() => setPendingConfirmEmail("")}
+              className="mt-3 text-xs font-medium text-primary hover:underline"
+            >
+              Use a different email
+            </button>
+          </div>
+        ) : (
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <h1 className="text-xl font-bold text-foreground">Create your account</h1>
           <p className="mt-1 text-sm text-muted-foreground">Start repurposing content for free</p>
