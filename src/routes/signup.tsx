@@ -75,8 +75,8 @@ function SignupPage() {
       toast.success("Account created!");
       navigate({ to: "/dashboard", replace: true });
     } else {
-      toast.success("Check your email to confirm your account — then jump in!");
-      navigate({ to: "/dashboard", replace: true });
+      setPendingConfirmEmail(email);
+      toast.success("Check your email to confirm your account.");
     }
   };
 
