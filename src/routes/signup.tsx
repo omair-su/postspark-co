@@ -207,6 +207,9 @@ function SignupPage() {
             </button>
           </form>
         </div>
+        )}
+
+
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
