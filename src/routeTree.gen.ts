@@ -20,6 +20,7 @@ import { Route as RefundsRouteImport } from './routes/refunds'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FunnelRouteImport } from './routes/funnel'
 import { Route as DemoRouteImport } from './routes/demo'
@@ -103,6 +104,8 @@ import { Route as AlternativesJasperVsPostsparkRouteImport } from './routes/alte
 import { Route as AlternativesHootsuiteVsPostsparkRouteImport } from './routes/alternatives.hootsuite-vs-postspark'
 import { Route as AlternativesChatgptForContentRepurposingRouteImport } from './routes/alternatives.chatgpt-for-content-repurposing'
 import { Route as AlternativesBufferVsPostsparkRouteImport } from './routes/alternatives.buffer-vs-postspark'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DashboardGuidedProductLaunchRouteImport } from './routes/dashboard.guided.product-launch'
 import { Route as DashboardGuidedMarketingTipRouteImport } from './routes/dashboard.guided.marketing-tip'
@@ -115,6 +118,7 @@ import { Route as ApiPublicFunnelRouteImport } from './routes/api/public/funnel'
 import { Route as ApiPublicDemoStatusRouteImport } from './routes/api/public/demo-status'
 import { Route as ApiPublicDemoStatsRouteImport } from './routes/api/public/demo-stats'
 import { Route as ApiPublicDemoRouteImport } from './routes/api/public/demo'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -178,6 +182,11 @@ const PricingRoute = PricingRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -617,6 +626,18 @@ const AlternativesBufferVsPostsparkRoute =
     path: '/alternatives/buffer-vs-postspark',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -681,6 +702,12 @@ const ApiPublicDemoRoute = ApiPublicDemoRouteImport.update({
   path: '/api/public/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -741,6 +768,7 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -752,6 +780,8 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/alternatives/buffer-vs-postspark': typeof AlternativesBufferVsPostsparkRoute
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
@@ -828,6 +858,7 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
@@ -857,6 +888,7 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -868,6 +900,8 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/alternatives/buffer-vs-postspark': typeof AlternativesBufferVsPostsparkRoute
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
@@ -944,6 +978,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/gallery': typeof GalleryIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
@@ -975,6 +1010,7 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/funnel': typeof FunnelRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/onboarding': typeof OnboardingRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -986,6 +1022,8 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/alternatives/buffer-vs-postspark': typeof AlternativesBufferVsPostsparkRoute
   '/alternatives/chatgpt-for-content-repurposing': typeof AlternativesChatgptForContentRepurposingRoute
   '/alternatives/hootsuite-vs-postspark': typeof AlternativesHootsuiteVsPostsparkRoute
@@ -1062,6 +1100,7 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/gallery/': typeof GalleryIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/demo': typeof ApiPublicDemoRoute
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
@@ -1094,6 +1133,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/funnel'
     | '/login'
+    | '/mcp'
     | '/onboarding'
     | '/pricing'
     | '/privacy'
@@ -1105,6 +1145,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/alternatives/buffer-vs-postspark'
     | '/alternatives/chatgpt-for-content-repurposing'
     | '/alternatives/hootsuite-vs-postspark'
@@ -1181,6 +1223,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/dashboard/'
     | '/gallery/'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/demo'
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
@@ -1210,6 +1253,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/funnel'
     | '/login'
+    | '/mcp'
     | '/onboarding'
     | '/pricing'
     | '/privacy'
@@ -1221,6 +1265,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/alternatives/buffer-vs-postspark'
     | '/alternatives/chatgpt-for-content-repurposing'
     | '/alternatives/hootsuite-vs-postspark'
@@ -1297,6 +1343,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/dashboard'
     | '/gallery'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/demo'
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
@@ -1327,6 +1374,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/funnel'
     | '/login'
+    | '/mcp'
     | '/onboarding'
     | '/pricing'
     | '/privacy'
@@ -1338,6 +1386,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/unsubscribe'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/alternatives/buffer-vs-postspark'
     | '/alternatives/chatgpt-for-content-repurposing'
     | '/alternatives/hootsuite-vs-postspark'
@@ -1414,6 +1464,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/dashboard/'
     | '/gallery/'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/demo'
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
@@ -1445,6 +1496,7 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   FunnelRoute: typeof FunnelRoute
   LoginRoute: typeof LoginRoute
+  McpRoute: typeof McpRoute
   OnboardingRoute: typeof OnboardingRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1456,6 +1508,8 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AlternativesBufferVsPostsparkRoute: typeof AlternativesBufferVsPostsparkRoute
   AlternativesChatgptForContentRepurposingRoute: typeof AlternativesChatgptForContentRepurposingRoute
   AlternativesHootsuiteVsPostsparkRoute: typeof AlternativesHootsuiteVsPostsparkRoute
@@ -1502,6 +1556,7 @@ export interface RootRouteChildren {
   UseCasesYoutubeToLinkedinRoute: typeof UseCasesYoutubeToLinkedinRoute
   BlogIndexRoute: typeof BlogIndexRoute
   GalleryIndexRoute: typeof GalleryIndexRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicDemoRoute: typeof ApiPublicDemoRoute
   ApiPublicDemoStatsRoute: typeof ApiPublicDemoStatsRoute
   ApiPublicDemoStatusRoute: typeof ApiPublicDemoStatusRoute
@@ -1598,6 +1653,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -2181,6 +2243,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AlternativesBufferVsPostsparkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
       path: '/lovable/email/suppression'
@@ -2263,6 +2339,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/demo'
       fullPath: '/api/public/demo'
       preLoaderRoute: typeof ApiPublicDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/transactional/send': {
@@ -2417,6 +2500,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   FunnelRoute: FunnelRoute,
   LoginRoute: LoginRoute,
+  McpRoute: McpRoute,
   OnboardingRoute: OnboardingRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
@@ -2428,6 +2512,9 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AlternativesBufferVsPostsparkRoute: AlternativesBufferVsPostsparkRoute,
   AlternativesChatgptForContentRepurposingRoute:
     AlternativesChatgptForContentRepurposingRoute,
@@ -2477,6 +2564,7 @@ const rootRouteChildren: RootRouteChildren = {
   UseCasesYoutubeToLinkedinRoute: UseCasesYoutubeToLinkedinRoute,
   BlogIndexRoute: BlogIndexRoute,
   GalleryIndexRoute: GalleryIndexRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicDemoRoute: ApiPublicDemoRoute,
   ApiPublicDemoStatsRoute: ApiPublicDemoStatsRoute,
   ApiPublicDemoStatusRoute: ApiPublicDemoStatusRoute,
