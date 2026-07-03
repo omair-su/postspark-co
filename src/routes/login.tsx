@@ -7,6 +7,9 @@ import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Log in — PostSpark" },
@@ -21,8 +24,14 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+function safeNext(next?: string): string {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+}
+
 function LoginPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const dest = safeNext(next);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,13 +42,13 @@ function LoginPage() {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (mounted && data.session) {
-        navigate({ to: "/dashboard", replace: true });
+        window.location.assign(dest);
       }
     });
     return () => {
       mounted = false;
     };
-  }, [navigate]);
+  }, [dest]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,14 +59,16 @@ function LoginPage() {
       toast.error(error.message);
     } else {
       toast.success("Welcome back!");
-      navigate({ to: "/dashboard", replace: true });
+      window.location.assign(dest);
     }
   };
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
+    const callback = new URL(`${window.location.origin}/auth/callback`);
+    if (dest !== "/dashboard") callback.searchParams.set("next", dest);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/auth/callback`,
+      redirect_uri: callback.toString(),
     });
     if (result.error) {
       toast.error(result.error instanceof Error ? result.error.message : "Google sign-in failed");
@@ -66,7 +77,7 @@ function LoginPage() {
     }
     if (result.redirected) return;
     toast.success("Welcome back!");
-    navigate({ to: "/dashboard", replace: true });
+    window.location.assign(dest);
   };
 
   const handleForgotPassword = async () => {
