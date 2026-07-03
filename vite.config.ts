@@ -6,10 +6,15 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { loadEnv } from "vite";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
 // Load all env vars (no prefix) into process.env so server routes can read
 // SUPABASE_SERVICE_ROLE_KEY, LOVABLE_API_KEY, etc. Do NOT add these to client define.
 const serverEnv = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
 Object.assign(process.env, serverEnv);
 
-export default defineConfig({});
+export default defineConfig({
+  vite: {
+    plugins: [mcpPlugin()],
+  },
+});

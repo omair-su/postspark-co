@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://aioyygolsckqdacgvsvq.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "postspark-mcp",
+      "version": "0.1.0",
+      "title": "PostSpark"
+    },
+    "tools": [
+      {
+        "name": "list_repurpose_jobs",
+        "title": "List repurposed content",
+        "description": "List the signed-in user's recent PostSpark repurpose jobs (blog/podcast/video turned into social posts, threads, newsletters, etc.). Returns id, title, tool, and creation date.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Max number of jobs to return (default 20)."
+            },
+            "tool": {
+              "type": "string",
+              "maxLength": 60,
+              "description": "Optional tool filter, e.g. 'humanizer', 'reply_generator', 'repurpose'."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_repurpose_job",
+        "title": "Get repurpose job",
+        "description": "Fetch a single PostSpark repurpose job by id, including the input text and all generated outputs (tweets, threads, posts, etc.).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The repurpose job id."
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_brand_voice",
+        "title": "Get brand voice",
+        "description": "Returns the signed-in user's active PostSpark brand voice — the trained style summary applied to AI generations.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

@@ -1,9 +1,12 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Loader2, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Signing in… — PostSpark" },
@@ -17,26 +20,23 @@ export const Route = createFileRoute("/auth/callback")({
 });
 
 function AuthCallbackPage() {
-  const [ready, setReady] = useState(false);
+  const { next } = Route.useSearch();
 
   useEffect(() => {
+    const dest = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const accessToken = hashParams.get("access_token");
     const refreshToken = hashParams.get("refresh_token");
 
+    const done = () => window.location.assign(dest);
     if (!accessToken || !refreshToken) {
-      setReady(true);
+      done();
       return;
     }
-
     supabase.auth
       .setSession({ access_token: accessToken, refresh_token: refreshToken })
-      .finally(() => setReady(true));
-  }, []);
-
-  if (ready) {
-    return <Navigate to="/dashboard" replace />;
-  }
+      .finally(done);
+  }, [next]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
