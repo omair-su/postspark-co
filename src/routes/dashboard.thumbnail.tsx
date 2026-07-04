@@ -848,6 +848,30 @@ function ThumbnailPage() {
         </div>
       </div>
       <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} />
+      <StockPickerDialog
+        open={stockOpen}
+        onClose={() => setStockOpen(false)}
+        initialQuery={bgPrompt || preset.defaultPrompt}
+        selectLabel="Use as background"
+        title="Pick a stock background"
+        onSelectPhoto={async (photo) => {
+          if (photo.source === "unsplash" && photo.downloadLocation) {
+            try {
+              await trackUse({ data: { downloadLocation: photo.downloadLocation } });
+            } catch (e) {
+              console.warn("Unsplash tracking failed", e);
+            }
+          }
+          setBgUrl(photo.regularUrl);
+          setBgAttribution({
+            name: photo.photographerName,
+            profileUrl: photo.photographerUrl,
+            source: photo.source,
+            sourceUrl: photo.sourceUrl,
+          });
+          toast.success(`Background set — Photo by ${photo.photographerName}`);
+        }}
+      />
     </div>
   );
 }
