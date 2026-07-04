@@ -77,6 +77,7 @@ const navGroups = [
     label: "More",
     items: [
       { to: "/gallery", icon: Globe, label: "Gallery" },
+      { to: "/dashboard/stock-gallery", icon: ImageIcon, label: "Stock Photos & Video" },
       { to: "/dashboard/referrals", icon: Gift, label: "Refer & Earn" },
       { to: "/dashboard/billing", icon: CreditCard, label: "Billing" },
       { to: "/dashboard/settings", icon: Settings, label: "Settings" },
