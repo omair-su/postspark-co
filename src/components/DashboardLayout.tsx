@@ -41,6 +41,7 @@ const navGroups = [
       { to: "/dashboard/podcast", icon: Mic, label: "Podcast → Content" },
       { to: "/dashboard/humanizer", icon: Wand2, label: "AI Humanizer" },
       { to: "/dashboard/reply-generator", icon: MessageSquare, label: "Reply Generator" },
+      { to: "/dashboard/linkedin", icon: MessageSquare, label: "LinkedIn Composer" },
       { to: "/dashboard/templates", icon: Bookmark, label: "Templates" },
     ],
   },
