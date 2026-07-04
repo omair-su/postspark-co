@@ -169,6 +169,14 @@ function ThumbnailPage() {
   const [pureGptMode, setPureGptMode] = useState(true);
 
   const [bgUrl, setBgUrl] = useState<string>("");
+  const [bgAttribution, setBgAttribution] = useState<{
+    name: string;
+    profileUrl: string;
+    source: "unsplash" | "pexels";
+    sourceUrl: string;
+  } | null>(null);
+  const [stockOpen, setStockOpen] = useState(false);
+  const trackUse = useServerFn(trackUnsplashUse);
   const [loading, setLoading] = useState(false);
   const [limitOpen, setLimitOpen] = useState(false);
   const initialWm = getWatermarkState();
