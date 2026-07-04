@@ -43,6 +43,12 @@ import JSZip from "jszip";
 import { LimitReachedModal } from "@/components/image/LimitReachedModal";
 import { EnhancePromptModal } from "@/components/image/EnhancePromptModal";
 import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
+import { StockPickerDialog } from "@/components/stock/StockPickerDialog";
+import { useServerFn } from "@tanstack/react-start";
+import { trackUnsplashUse } from "@/lib/stockMedia.functions";
+import type { StockPhoto } from "@/server/stockMedia.server";
+import { Images } from "lucide-react";
+
 
 
 export const Route = createFileRoute("/dashboard/image-studio")({
