@@ -12,6 +12,7 @@ import { repurposeOneFormat, getMonthlyUsage, saveToSwipeFile } from "@/lib/repu
 import { importFromUrl } from "@/lib/import.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
+import { PostToTikTokButton } from "@/components/PostToTikTokButton";
 import { createTemplate } from "@/lib/templates.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -1179,6 +1180,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
             <RefreshCw className={`h-3 w-3 ${regenerating ? "animate-spin" : ""}`} /> {regenerating ? "Regenerating…" : "Regenerate"}
           </button>
           <PublishMenu content={edited} formatId={formatId} />
+          <PostToTikTokButton content={edited} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary" />
         </div>
       </div>
 

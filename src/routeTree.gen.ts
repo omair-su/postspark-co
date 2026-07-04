@@ -130,6 +130,7 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
 import { Route as ApiPublicOauthYoutubeCallbackRouteImport } from './routes/api/public/oauth.youtube.callback'
+import { Route as ApiPublicOauthTiktokCallbackRouteImport } from './routes/api/public/oauth.tiktok.callback'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
@@ -771,6 +772,12 @@ const ApiPublicOauthYoutubeCallbackRoute =
     path: '/api/public/oauth/youtube/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicOauthTiktokCallbackRoute =
+  ApiPublicOauthTiktokCallbackRouteImport.update({
+    id: '/api/public/oauth/tiktok/callback',
+    path: '/api/public/oauth/tiktok/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -893,6 +900,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -1015,6 +1023,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
 }
 export interface FileRoutesById {
@@ -1139,6 +1148,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
 }
 export interface FileRouteTypes {
@@ -1264,6 +1274,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/youtube/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1386,6 +1397,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/youtube/callback'
   id:
     | '__root__'
@@ -1509,6 +1521,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/youtube/callback'
   fileRoutesById: FileRoutesById
 }
@@ -1598,6 +1611,7 @@ export interface RootRouteChildren {
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
+  ApiPublicOauthTiktokCallbackRoute: typeof ApiPublicOauthTiktokCallbackRoute
   ApiPublicOauthYoutubeCallbackRoute: typeof ApiPublicOauthYoutubeCallbackRoute
 }
 
@@ -2450,6 +2464,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOauthYoutubeCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/oauth/tiktok/callback': {
+      id: '/api/public/oauth/tiktok/callback'
+      path: '/api/public/oauth/tiktok/callback'
+      fullPath: '/api/public/oauth/tiktok/callback'
+      preLoaderRoute: typeof ApiPublicOauthTiktokCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2623,6 +2644,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
+  ApiPublicOauthTiktokCallbackRoute: ApiPublicOauthTiktokCallbackRoute,
   ApiPublicOauthYoutubeCallbackRoute: ApiPublicOauthYoutubeCallbackRoute,
 }
 export const routeTree = rootRouteImport
