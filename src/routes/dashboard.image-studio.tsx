@@ -1486,6 +1486,18 @@ function ImageStudioPage() {
         onClose={() => setEnhanceOpen(false)}
       />
       <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} />
+      <StockPickerDialog
+        open={stockOpen !== null}
+        onClose={() => setStockOpen(null)}
+        initialQuery={prompt || "creative workspace"}
+        selectLabel={stockOpen === "edit" ? "Use as source" : "Use photo"}
+        title={
+          stockOpen === "edit"
+            ? "Pick a stock photo to edit"
+            : "Insert a stock photo (Unsplash · Pexels)"
+        }
+        onSelectPhoto={(photo) => applyStockPhoto(photo, stockOpen || "generate")}
+      />
     </div>
   );
 }
