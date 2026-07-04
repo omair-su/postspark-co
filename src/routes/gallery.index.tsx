@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getGalleryFeed } from "@/lib/gallery.functions";
-import { Sparkles, Eye, ArrowRight, Loader2, Star, User } from "lucide-react";
+import { getPublicStockFeed } from "@/lib/stockMedia.functions";
+import { Sparkles, Eye, ArrowRight, Loader2, Star, User, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
+import { StockAttribution } from "@/components/stock/StockAttribution";
+
 
 interface Item {
   id: string;
@@ -47,14 +50,44 @@ export const Route = createFileRoute("/gallery/")({
   component: GalleryPage,
 });
 
+interface StockPhotoItem {
+  id: string;
+  source: "unsplash" | "pexels";
+  thumbUrl: string;
+  regularUrl: string;
+  photographerName: string;
+  photographerUrl: string;
+  sourceUrl: string;
+  alt?: string;
+}
+interface StockVideoItem {
+  id: string;
+  thumbUrl: string;
+  previewUrl: string;
+  photographerName: string;
+  photographerUrl: string;
+  sourceUrl: string;
+}
+
 function GalleryPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stockPhotos, setStockPhotos] = useState<StockPhotoItem[]>([]);
+  const [stockVideos, setStockVideos] = useState<StockVideoItem[]>([]);
+  const [stockLoading, setStockLoading] = useState(true);
 
   useEffect(() => {
     getGalleryFeed()
       .then((data) => setItems(data as Item[]))
       .finally(() => setLoading(false));
+
+    getPublicStockFeed({ data: { query: "creator content" } })
+      .then((res: any) => {
+        setStockPhotos((res?.photos as StockPhotoItem[]) || []);
+        setStockVideos((res?.videos as StockVideoItem[]) || []);
+      })
+      .catch(() => {})
+      .finally(() => setStockLoading(false));
   }, []);
 
   return (
@@ -143,6 +176,123 @@ function GalleryPage() {
             ))}
           </div>
         )}
+
+        {/* Stock inspiration: Unsplash + Pexels photos and Pexels videos */}
+        <section className="mt-16">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h2 className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <ImageIcon className="h-5 w-5 text-primary" /> Stock inspiration
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Free premium photos from Unsplash & Pexels. Fully attributed.
+              </p>
+            </div>
+            <Link
+              to="/dashboard/stock-gallery"
+              className="hidden text-xs font-semibold text-primary hover:underline sm:inline"
+            >
+              Open full stock library →
+            </Link>
+          </div>
+
+          {stockLoading ? (
+            <div className="mt-8 flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : stockPhotos.length === 0 && stockVideos.length === 0 ? (
+            <div className="mt-6 rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+              Stock feed unavailable right now.
+            </div>
+          ) : (
+            <>
+              {stockPhotos.length > 0 && (
+                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {stockPhotos.map((p) => (
+                    <a
+                      key={`${p.source}-${p.id}`}
+                      href={p.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative block overflow-hidden rounded-xl border border-border bg-card"
+                    >
+                      <img
+                        src={p.thumbUrl}
+                        alt={p.alt || `Photo by ${p.photographerName}`}
+                        loading="lazy"
+                        className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-105"
+                      />
+                      <StockAttribution photo={p} />
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {stockVideos.length > 0 && (
+                <>
+                  <h3 className="mt-10 flex items-center gap-2 text-lg font-bold text-foreground">
+                    <VideoIcon className="h-4 w-4 text-primary" /> Stock videos
+                  </h3>
+                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {stockVideos.map((v) => (
+                      <a
+                        key={v.id}
+                        href={v.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group relative block overflow-hidden rounded-xl border border-border bg-black"
+                      >
+                        <video
+                          src={v.previewUrl}
+                          poster={v.thumbUrl}
+                          muted
+                          loop
+                          playsInline
+                          preload="metadata"
+                          onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
+                          onMouseLeave={(e) => {
+                            const el = e.currentTarget as HTMLVideoElement;
+                            el.pause();
+                            el.currentTime = 0;
+                          }}
+                          className="aspect-video w-full object-cover"
+                        />
+                        <div
+                          className="pointer-events-none absolute inset-x-0 bottom-0 px-2 py-1.5"
+                          style={{
+                            background:
+                              "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 60%, rgba(0,0,0,0) 100%)",
+                          }}
+                        >
+                          <span className="text-[11px] text-white/90">
+                            Video by{" "}
+                            <a
+                              href={v.photographerUrl}
+                              target="_blank"
+                              rel="noopener noreferrer nofollow"
+                              className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
+                            >
+                              {v.photographerName}
+                            </a>{" "}
+                            on{" "}
+                            <a
+                              href="https://www.pexels.com"
+                              target="_blank"
+                              rel="noopener noreferrer nofollow"
+                              className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
+                            >
+                              Pexels
+                            </a>
+                          </span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </section>
       </main>
     </div>
   );
