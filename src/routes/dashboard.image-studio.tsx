@@ -1011,6 +1011,35 @@ function ImageStudioPage() {
                       <p className="text-xs">Your image will appear here</p>
                     </div>
                   )}
+                  {imageUrl && stockAttribution && (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 px-2 py-1.5"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0))" }}
+                    >
+                      <span className="text-[11px] text-white/95">
+                        Photo by{" "}
+                        <a
+                          href={stockAttribution.profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
+                        >
+                          {stockAttribution.name}
+                        </a>{" "}
+                        on{" "}
+                        <a
+                          href={stockAttribution.source === "unsplash"
+                            ? "https://unsplash.com/?utm_source=postspark&utm_medium=referral"
+                            : "https://www.pexels.com"}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
+                        >
+                          {stockAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
+                        </a>
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {imageUrl && (
                   <div className="mt-3 grid grid-cols-2 gap-2">
