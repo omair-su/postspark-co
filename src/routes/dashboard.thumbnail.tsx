@@ -624,7 +624,39 @@ function ThumbnailPage() {
                 <><Sparkles className="h-4 w-4" /> Generate AI background</>
               )}
             </button>
+            <button
+              type="button"
+              onClick={() => setStockOpen(true)}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              <Images className="h-4 w-4" /> Pick from stock library
+            </button>
+            {bgAttribution && (
+              <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                Background:{" "}
+                <a
+                  href={bgAttribution.profileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="underline"
+                >
+                  Photo by {bgAttribution.name}
+                </a>{" "}
+                on{" "}
+                <a
+                  href={bgAttribution.source === "unsplash"
+                    ? "https://unsplash.com/?utm_source=postspark&utm_medium=referral"
+                    : "https://www.pexels.com"}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="underline"
+                >
+                  {bgAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
+                </a>
+              </p>
+            )}
           </div>
+
 
           {/* TYPOGRAPHY PANEL */}
           <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
