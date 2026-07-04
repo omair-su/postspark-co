@@ -13,6 +13,7 @@ import { importFromUrl } from "@/lib/import.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
 import { PostToTikTokButton } from "@/components/PostToTikTokButton";
+import { PostToLinkedInButton } from "@/components/PostToLinkedInButton";
 import { createTemplate } from "@/lib/templates.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
