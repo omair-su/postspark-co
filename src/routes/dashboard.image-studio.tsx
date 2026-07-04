@@ -223,6 +223,37 @@ function ImageStudioPage() {
   const [editedUrl, setEditedUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Stock library picker
+  const [stockOpen, setStockOpen] = useState<null | "generate" | "edit">(null);
+  const [stockAttribution, setStockAttribution] = useState<{
+    name: string;
+    profileUrl: string;
+    source: "unsplash" | "pexels";
+    sourceUrl: string;
+  } | null>(null);
+  const trackUnsplashDownload = useServerFn(trackUnsplashUse);
+
+  async function applyStockPhoto(photo: StockPhoto, target: "generate" | "edit") {
+    // Compliance: ping Unsplash download_location on every "use".
+    if (photo.source === "unsplash" && photo.downloadLocation) {
+      try {
+        await trackUnsplashDownload({ data: { downloadLocation: photo.downloadLocation } });
+      } catch (e) {
+        console.warn("Unsplash tracking failed", e);
+      }
+    }
+    // Hotlinked provider URL — never re-hosted.
+    if (target === "generate") setImageUrl(photo.regularUrl);
+    else setUploadedUrl(photo.regularUrl);
+    setStockAttribution({
+      name: photo.photographerName,
+      profileUrl: photo.photographerUrl,
+      source: photo.source,
+      sourceUrl: photo.sourceUrl,
+    });
+    toast.success(`Photo by ${photo.photographerName} applied`);
+  }
+
   // carousel
   const [carouselTopic, setCarouselTopic] = useState("");
   const [carouselSlides, setCarouselSlides] = useState<
