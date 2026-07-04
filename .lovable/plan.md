@@ -1,90 +1,78 @@
 
-# Landing Page v4 — Complete the Million-Dollar Story
+## Goal
 
-Goal: make the new landing page fully represent every PostSpark tool, ship a luxury logo icon (no "P"), and bring tool subpages + comparison into the same visual system — while keeping the page short and conversion-focused, in the vibe of Claude / ChatGPT / Perplexity / Gemini.
+Ship a compliant Unsplash + Pexels stock media integration so PostSpark users can search millions of premium photos and videos from inside the app, and so we can pass Unsplash's production API review.
 
----
+## 1. Secrets
 
-## 1. New PostSpark Logo Icon (used everywhere)
+Request via `add_secret`:
+- `UNSPLASH_ACCESS_KEY` (server, required)
+- `PEXELS_API_KEY` (already present — reuse)
 
-- Generate a premium 1024×1024 abstract mark (not a "P" letter). Direction:
-  - A glowing violet-to-cyan **spark / prism** shape on obsidian, similar visual weight to Claude's starburst and Gemini's diamond — geometric, symmetrical, iconic at 32px.
-  - Deliver PNG (transparent) + monochrome SVG version.
-- Replace icon in:
-  - `public/favicon.svg`, `public/manifest.json`, apple-touch icons
-  - `src/components/PostSparkLogo.tsx` (mark + wordmark variants)
-  - OG defaults in `src/routes/__root.tsx`
-  - The downloadable 1024×1024 asset for Meta/TikTok/LinkedIn developer consoles
-- Keep wordmark typography (Instrument Serif) as-is; only the icon changes.
+Server-only. Never exposed to browser.
 
-## 2. Landing page — new sections (still short, conversion-first)
+## 2. Server functions — `src/lib/stockMedia.functions.ts` + `src/server/stockMedia.server.ts`
 
-Insert into `src/routes/index.tsx` between existing hero and pricing, using the V3 component system (same tokens, gradients, glass cards):
+Auth-protected via `requireSupabaseAuth`. All three endpoints:
 
-1. **"Every studio in one subscription" — Tools grid**
-   A single bento section featuring all real tools, each linking to its dedicated landing page:
-   - Repurpose Studio → `/features/repurpose-blog-to-social`
-   - Shorts Studio → `/tools/shorts-script-generator`
-   - Image Studio (GPT-Image-2, Flux 1.1 Pro, Gemini 2.5/3) → `/tools/ai-image-generator`
-   - Hook Lab → `/tools/hook-generator`
-   - Carousel Generator → `/tools/blog-to-linkedin-carousel`
-   - SEO Blog Writer → `/tools/youtube-to-blog`
-   - AI Humanizer → `/dashboard/humanizer` (add a public `/tools/ai-humanizer` landing if missing)
-   - Reply Generator → `/tools/reply-generator`
-   - Thumbnail Maker → `/tools/youtube-thumbnail-maker`
-   - LinkedIn Video Downloader → `/tools/linkedin-video-downloader`
+- `searchStockPhotos({ query, source: 'unsplash' | 'pexels' | 'all', page, orientation })` — returns normalized `StockPhoto[]`:
+  ```
+  { id, source, thumbUrl, regularUrl, fullUrl, width, height,
+    photographerName, photographerUrl, // Unsplash: with utm_source=postspark&utm_medium=referral
+    sourceUrl,                          // link to photo page on provider
+    downloadLocation?                   // Unsplash only, server-side use
+  }
+  ```
+- `searchStockVideos({ query, source: 'pexels', page, orientation })` — Pexels videos only (Unsplash has no video API).
+- `trackUnsplashDownload({ downloadLocation })` — server-side GET to `photo.links.download_location` with `Client-ID` header. Called every time a user picks/inserts/downloads an Unsplash photo. Fire-and-forget, returns `{ ok: true }`.
 
-2. **"Powered by the frontier" — Model logos strip**
-   Small trust bar: Claude Sonnet 4.5, GPT-Image-2, Flux 1.1 Pro, Gemini 3, ElevenLabs. Reinforces premium AI stack.
+Photographer URL format: `https://unsplash.com/@{username}?utm_source=postspark&utm_medium=referral`. "Unsplash" brand link: `https://unsplash.com/?utm_source=postspark&utm_medium=referral`.
 
-3. **"For creators, agencies, podcasters, YouTubers" — audience switcher**
-   4 pill tabs linking to existing `/for/*` pages.
+## 3. Reusable UI — `src/components/stock/`
 
-4. **Redesigned Comparison table** (replaces the light-theme one in the screenshots)
-   Rebuild inside V3 system: obsidian card, violet accent header column, glass rows, gradient check marks, muted red X, "Limited" pills in violet/10. Same rows/content, new shell.
+- `StockMediaPicker.tsx` — dialog/panel with search input, source tabs (All / Unsplash / Pexels / Videos), orientation filter, infinite-scroll grid. Emits `onSelect(item)`. On select for Unsplash, calls `trackUnsplashDownload` before firing `onSelect`.
+- `StockPhotoCard.tsx` — renders hotlinked `regularUrl` (never re-hosted). Bottom-left overlay attribution with dark gradient:
+  - "Photo by [Name] on Unsplash" — 11px, `rgba(255,255,255,0.9)`, both links `target="_blank" rel="noopener noreferrer nofollow"`, always visible, never cropped.
+  - Pexels equivalent: "Photo by [Name] on Pexels" (best-practice parity).
+- `StockAttribution.tsx` — standalone attribution component reused wherever a selected stock photo is displayed inline (previews, published outputs).
 
-5. **FAQ (6 items, collapsible)** — schema.org FAQPage JSON-LD.
+## 4. Integration points
 
-Keep total scroll to ~7 sections max: Hero → Social proof → Tools grid → Models strip → Feature bento (existing) → Comparison → Audience → Pricing → FAQ → CTA.
+Hook `StockMediaPicker` into:
+- **AI Image Studio** (`src/routes/dashboard.image-studio.tsx` if present) — add "Stock" tab next to AI generate.
+- **Thumbnail & Cover Generator** — add "Use stock background" button.
+- **Shorts Studio** — extend existing Pexels video search to use the new normalized picker, and add Unsplash photos as still overlays.
+- **New page**: `src/routes/dashboard.stock-gallery.tsx` — full-screen browsable gallery, main entry point.
+- **Public marketing route**: `src/routes/tools.stock-photos.tsx` — SEO landing "Free stock photos & videos inside PostSpark".
 
-## 3. Footer — surface every tool landing page
+Wherever a picked Unsplash photo is later rendered (preview, exported post, thumbnail export), the attribution follows the image via `StockAttribution`. When Unsplash photo is inserted into a scheduled social post, prepend `Photo by {name} on Unsplash` to the caption automatically (per Unsplash guideline for social use).
 
-Rebuild `src/components/Footer.tsx` with 5 columns matching the V3 dark theme:
-- **Studios**: Repurpose, Shorts, Image, Carousel, SEO Blog, Thumbnail
-- **Free Tools**: Humanizer, Reply Generator, Hook Generator, LinkedIn Downloader, YouTube→Blog, YouTube→Thread
-- **For**: Creators, Agencies, Podcasters, YouTubers
-- **Compare**: vs Buffer, Hootsuite, Jasper, Typefully, Repurpose.io, ChatGPT
-- **Company**: Pricing, Blog, Changelog, Roadmap, Privacy, Terms, Data Deletion
+## 5. Storage rule
 
-## 4. Bring tool + feature + comparison pages into V3 system
+Never re-upload Unsplash images to our bucket. Only store metadata in `stock_media_uses` (new table) for tracking:
+- `user_id, source, external_id, regular_url, photographer_name, photographer_url, download_location, used_in, created_at`
+- RLS: user reads/writes own rows; service_role all; GRANT to authenticated + service_role.
 
-- Create `src/components/landing/v3/ToolPageShell.tsx` — reusable shell with same background, typography, hero, CTA, footer.
-- Migrate these to the shell (keep copy, swap chrome):
-  - All `src/routes/tools.*.tsx`
-  - All `src/routes/features.*.tsx`
-  - All `src/routes/alternatives.*.tsx` (comparison pages)
-  - All `src/routes/for.*.tsx`
-  - `src/routes/use-cases.*.tsx`
-- `SegmentPage.tsx` gets rewritten once — all tool pages inherit the new look automatically.
+For Pexels the same table applies (source='pexels'), attribution shown similarly.
 
-## 5. Copy polish
+## 6. Compliance checklist (to satisfy Unsplash review email)
 
-- Replace generic "AI content" phrases with outcome-led lines matching hero voice.
-- Strip filler / duplicate CTAs on landing.
-- Ensure single H1 per page, meta title/description already handled per route.
+- [x] Attribution visible on every displayed Unsplash photo (search results, previews, exports).
+- [x] Photographer name links to their Unsplash profile with UTM.
+- [x] "Unsplash" brand links to unsplash.com with UTM.
+- [x] `download_location` triggered on every "use" (select/insert/download/set-as-background).
+- [x] Hotlinked `urls.regular` / `urls.full`; no re-hosting.
+- [x] Social-post caption auto-prepends photographer credit.
 
----
+## 7. Screenshot for submission
+
+After deploy, open `postspark.co/dashboard/stock-gallery`, search, and screenshot with the URL bar visible showing attribution on cards.
 
 ## Technical notes
 
-- No new dependencies. Uses existing Tailwind tokens + V3 components.
-- Logo generation via `imagegen` (premium tier for icon legibility).
-- Comparison redesign is CSS/JSX only — same data.
-- Tool page migration = swap outer wrapper in `SegmentPage.tsx`; no route changes, no SEO regressions (URLs, titles, JSON-LD preserved).
-- No backend/schema changes.
+- Rate-limit search endpoints per user (in-memory Map): 30 req/min.
+- Cache search results in-memory 60s to reduce API calls.
+- Unsplash key stays server-only; `trackUnsplashDownload` runs on server so client never sees the key.
+- No database migration for stock_media_uses in v1 if we skip analytics — but recommended to include so we can report to Unsplash if asked.
 
-## Out of scope (ask before doing)
-
-- Rewriting pricing tiers or copy.
-- Changing tool functionality.
-- Adding new tools.
+Ready to implement on approval.
