@@ -1,20 +1,31 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { getConnectedSocials, getTikTokAuthUrl, disconnectSocial } from "@/lib/socialPublish.functions";
+import {
+  getConnectedSocials,
+  getTikTokAuthUrl,
+  getLinkedInAuthUrl,
+  disconnectSocial,
+} from "@/lib/socialPublish.functions";
 import { toast } from "sonner";
-import { Loader2, Link2Off, CheckCircle2 } from "lucide-react";
+import { Loader2, Link2Off, CheckCircle2, Linkedin } from "lucide-react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
 
-type Account = { platform: string; platform_username: string | null; token_expires_at: string | null };
+type Account = {
+  platform: string;
+  platform_username: string | null;
+  token_expires_at: string | null;
+};
+
+type Platform = "tiktok" | "linkedin";
 
 export function ConnectedAccountsCard() {
   const { session } = useAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
-  const [connecting, setConnecting] = useState(false);
-  const [disconnecting, setDisconnecting] = useState(false);
+  const [connecting, setConnecting] = useState<Platform | null>(null);
+  const [disconnecting, setDisconnecting] = useState<Platform | null>(null);
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { tiktok?: string };
+  const search = useSearch({ strict: false }) as { tiktok?: string; linkedin?: string };
 
   const refresh = async () => {
     if (!session) return;
@@ -34,26 +45,36 @@ export function ConnectedAccountsCard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
-  // Handle OAuth return
+  // Handle OAuth return (both TikTok & LinkedIn)
   useEffect(() => {
-    if (!search?.tiktok) return;
-    if (search.tiktok === "connected") {
-      toast.success("TikTok connected successfully ✓");
+    const handle = (label: string, val?: string) => {
+      if (!val) return false;
+      if (val === "connected") {
+        toast.success(`${label} connected successfully ✓`);
+      } else {
+        toast.error(`${label} connection failed: ${val.replace(/^error:/, "")}`);
+      }
+      return true;
+    };
+    let hit = false;
+    hit = handle("TikTok", search?.tiktok) || hit;
+    hit = handle("LinkedIn", search?.linkedin) || hit;
+    if (hit) {
       refresh();
-    } else {
-      toast.error(`TikTok connection failed: ${search.tiktok.replace(/^error:/, "")}`);
+      navigate({ to: "/dashboard/settings", replace: true });
     }
-    navigate({ to: "/dashboard/settings", replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search?.tiktok]);
+  }, [search?.tiktok, search?.linkedin]);
 
   const tiktok = accounts.find((a) => a.platform === "tiktok");
+  const linkedin = accounts.find((a) => a.platform === "linkedin");
 
-  const handleConnect = async () => {
+  const handleConnect = async (platform: Platform) => {
     if (!session) return;
-    setConnecting(true);
+    setConnecting(platform);
     try {
-      const res = await getTikTokAuthUrl({
+      const fn = platform === "tiktok" ? getTikTokAuthUrl : getLinkedInAuthUrl;
+      const res = await fn({
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if ("error" in res && res.error) {
@@ -64,33 +85,115 @@ export function ConnectedAccountsCard() {
         window.location.href = res.url;
       }
     } finally {
-      setConnecting(false);
+      setConnecting(null);
     }
   };
 
-  const handleDisconnect = async () => {
+  const handleDisconnect = async (platform: Platform, label: string) => {
     if (!session) return;
-    if (!confirm("Disconnect TikTok? You can reconnect anytime.")) return;
-    setDisconnecting(true);
+    if (!confirm(`Disconnect ${label}? You can reconnect anytime.`)) return;
+    setDisconnecting(platform);
     try {
       await disconnectSocial({
-        data: { platform: "tiktok" },
+        data: { platform },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      toast.success("TikTok disconnected");
+      toast.success(`${label} disconnected`);
       refresh();
     } catch (e: any) {
       toast.error(e?.message || "Could not disconnect");
     } finally {
-      setDisconnecting(false);
+      setDisconnecting(null);
     }
   };
+
+  const Row = ({
+    platform,
+    label,
+    emoji,
+    icon,
+    tagline,
+    account,
+    accentClass,
+  }: {
+    platform: Platform;
+    label: string;
+    emoji?: string;
+    icon?: React.ReactNode;
+    tagline: string;
+    account: Account | undefined;
+    accentClass: string;
+  }) => (
+    <div className="mt-3 rounded-lg border border-border bg-background p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            {icon || (
+              <span className="text-base" aria-hidden>
+                {emoji}
+              </span>
+            )}
+            <p className="text-sm font-semibold text-foreground">{label}</p>
+            {account && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-3 w-3" /> Connected
+              </span>
+            )}
+          </div>
+          {loading ? (
+            <p className="mt-1 text-xs text-muted-foreground">Loading…</p>
+          ) : account ? (
+            <div className="mt-1 space-y-0.5">
+              <p className="text-xs text-foreground">
+                ● Connected as{" "}
+                <span className="font-semibold">
+                  {platform === "tiktok" ? "@" : ""}
+                  {account.platform_username || label.toLowerCase() + "_user"}
+                </span>
+              </p>
+              {account.token_expires_at && (
+                <p className="text-[11px] text-muted-foreground">
+                  Token valid until {new Date(account.token_expires_at).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">{tagline}</p>
+          )}
+        </div>
+
+        {account ? (
+          <button
+            onClick={() => handleDisconnect(platform, label)}
+            disabled={disconnecting === platform}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+          >
+            {disconnecting === platform ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Link2Off className="h-3 w-3" />
+            )}
+            Disconnect
+          </button>
+        ) : (
+          <button
+            onClick={() => handleConnect(platform)}
+            disabled={connecting === platform}
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50 ${accentClass}`}
+          >
+            {connecting === platform && <Loader2 className="h-3 w-3 animate-spin" />}
+            Connect {label} →
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="mt-4 rounded-xl border border-border bg-card p-5">
       <div className="flex items-center gap-2">
         <span className="text-lg" aria-hidden>
-          🎵
+          🔗
         </span>
         <h2 className="text-sm font-semibold text-foreground">Connected Accounts</h2>
       </div>
@@ -98,62 +201,23 @@ export function ConnectedAccountsCard() {
         Connect your social accounts to publish directly from PostSpark.
       </p>
 
-      <div className="mt-4 rounded-lg border border-border bg-background p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-base" aria-hidden>
-                🎵
-              </span>
-              <p className="text-sm font-semibold text-foreground">TikTok</p>
-              {tiktok && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                  <CheckCircle2 className="h-3 w-3" /> Connected
-                </span>
-              )}
-            </div>
-            {loading ? (
-              <p className="mt-1 text-xs text-muted-foreground">Loading…</p>
-            ) : tiktok ? (
-              <div className="mt-1 space-y-0.5">
-                <p className="text-xs text-foreground">
-                  ● Connected as{" "}
-                  <span className="font-semibold">@{tiktok.platform_username || "tiktok_user"}</span>
-                </p>
-                {tiktok.token_expires_at && (
-                  <p className="text-[11px] text-muted-foreground">
-                    Token valid until {new Date(tiktok.token_expires_at).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Publish videos and scripts straight to TikTok.
-              </p>
-            )}
-          </div>
+      <Row
+        platform="tiktok"
+        label="TikTok"
+        emoji="🎵"
+        tagline="Publish videos and scripts straight to TikTok."
+        account={tiktok}
+        accentClass="gradient-electric"
+      />
 
-          {tiktok ? (
-            <button
-              onClick={handleDisconnect}
-              disabled={disconnecting}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
-            >
-              {disconnecting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2Off className="h-3 w-3" />}
-              Disconnect
-            </button>
-          ) : (
-            <button
-              onClick={handleConnect}
-              disabled={connecting}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg gradient-electric px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
-            >
-              {connecting && <Loader2 className="h-3 w-3 animate-spin" />}
-              Connect TikTok Account →
-            </button>
-          )}
-        </div>
-      </div>
+      <Row
+        platform="linkedin"
+        label="LinkedIn"
+        icon={<Linkedin className="h-4 w-4 text-[#0A66C2]" />}
+        tagline="Publish posts, images, and articles directly to your LinkedIn feed."
+        account={linkedin}
+        accentClass="bg-[#0A66C2] hover:bg-[#0956a8]"
+      />
     </div>
   );
 }
