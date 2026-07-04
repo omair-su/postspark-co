@@ -116,6 +116,7 @@ function SettingsPage() {
       </div>
 
       <PublicShowcaseSettings />
+      <ConnectedAccountsCard />
       <WeeklyDigestToggle />
 
       {/* Password */}
