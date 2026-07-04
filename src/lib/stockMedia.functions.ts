@@ -65,3 +65,24 @@ export const trackUnsplashUse = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     return trackUnsplashDownloadServer(data.downloadLocation);
   });
+
+// Public (unauthenticated) stock feed for the Community Gallery landing page.
+// No auth middleware — safe because it only proxies public search endpoints
+// and returns non-sensitive, provider-hosted URLs.
+export const getPublicStockFeed = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      query: z.string().min(1).max(80).default("creator content"),
+    }).partial().parse,
+  )
+  .handler(async ({ data }) => {
+    const query = data?.query || "creator content";
+    const [photos, videos] = await Promise.all([
+      searchStockPhotosServer({ query, source: "all", page: 1, orientation: "landscape" }),
+      searchStockVideosServer({ query, page: 1, orientation: "landscape" }),
+    ]);
+    return {
+      photos: photos.photos.slice(0, 12),
+      videos: videos.videos.slice(0, 6),
+    };
+  });
