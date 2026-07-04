@@ -309,3 +309,95 @@ export async function verifyOAuthState(state: string): Promise<{ userId: string 
   if (Date.now() - parseInt(ts, 10) > 10 * 60 * 1000) return null;
   return { userId: uid };
 }
+
+// ============================================================================
+// TikTok OAuth (Login Kit + Content Posting API)
+// ============================================================================
+
+const TIKTOK_SCOPES = ["user.info.basic", "video.publish", "video.upload"].join(",");
+
+function getTikTokRedirectUri() {
+  const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
+  return `${base.replace(/\/$/, "")}/api/public/oauth/tiktok/callback`;
+}
+
+export const getTikTokAuthUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const clientKey = process.env.TIKTOK_CLIENT_KEY;
+    if (!clientKey) return { error: "TikTok integration not configured (missing TIKTOK_CLIENT_KEY)." };
+    const ts = Date.now();
+    const nonce = Math.random().toString(36).slice(2, 10);
+    const payload = `${context.userId}.${ts}.${nonce}`;
+    const sig = await signState(payload);
+    const state = `${payload}.${sig}`;
+    const url = new URL("https://www.tiktok.com/v2/auth/authorize/");
+    url.searchParams.set("client_key", clientKey);
+    url.searchParams.set("scope", TIKTOK_SCOPES);
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("redirect_uri", getTikTokRedirectUri());
+    url.searchParams.set("state", state);
+    return { url: url.toString() };
+  });
+
+/**
+ * Publish a video to TikTok using PULL_FROM_URL (Content Posting API v2).
+ * The video URL must be an HTTPS URL on a verified domain (see TikTok docs).
+ */
+export const publishToTikTok = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      videoUrl: z.string().url(),
+      title: z.string().min(1).max(150),
+      privacyLevel: z.enum([
+        "PUBLIC_TO_EVERYONE",
+        "MUTUAL_FOLLOW_FRIENDS",
+        "FOLLOWER_OF_CREATOR",
+        "SELF_ONLY",
+      ]).default("PUBLIC_TO_EVERYONE"),
+      disableDuet: z.boolean().default(false),
+      disableComment: z.boolean().default(false),
+      disableStitch: z.boolean().default(false),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { data: acct } = await context.supabase
+      .from("social_accounts")
+      .select("access_token, token_expires_at")
+      .eq("user_id", context.userId)
+      .eq("platform", "tiktok")
+      .maybeSingle();
+    if (!acct?.access_token) return { error: "TikTok not connected. Connect in Settings first." };
+    if (acct.token_expires_at && new Date(acct.token_expires_at) < new Date()) {
+      return { error: "TikTok access expired. Please reconnect in Settings." };
+    }
+
+    const res = await fetch("https://open.tiktokapis.com/v2/post/publish/video/init/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${acct.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        post_info: {
+          title: data.title.slice(0, 150),
+          privacy_level: data.privacyLevel,
+          disable_duet: data.disableDuet,
+          disable_comment: data.disableComment,
+          disable_stitch: data.disableStitch,
+        },
+        source_info: {
+          source: "PULL_FROM_URL",
+          video_url: data.videoUrl,
+        },
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json?.error?.code !== "ok") {
+      const msg = json?.error?.message || `TikTok publish failed (${res.status})`;
+      console.error("TikTok publish error", res.status, json);
+      return { error: msg };
+    }
+    return { ok: true, publishId: json?.data?.publish_id };
+  });
