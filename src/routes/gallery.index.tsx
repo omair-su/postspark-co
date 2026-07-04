@@ -237,13 +237,14 @@ function GalleryPage() {
 
         {/* Stock inspiration: Unsplash + Pexels photos and Pexels videos */}
         <section className="mt-16">
-          <div className="flex items-end justify-between gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="flex items-center gap-2 text-2xl font-bold text-foreground">
                 <ImageIcon className="h-5 w-5 text-primary" /> Stock inspiration
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Free premium photos from Unsplash & Pexels. Fully attributed.
+                Free premium {stockKind} from{" "}
+                {stockKind === "photos" ? "Unsplash & Pexels" : "Pexels"}. Fully attributed.
               </p>
             </div>
             <Link
@@ -254,104 +255,195 @@ function GalleryPage() {
             </Link>
           </div>
 
-          {stockLoading ? (
-            <div className="mt-8 flex justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          {/* Filters */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setStockQuery(queryInput.trim() || "creator content");
+            }}
+            className="mt-4 flex flex-wrap items-center gap-2"
+          >
+            <div className="inline-flex rounded-md border border-border bg-muted p-0.5">
+              <button
+                type="button"
+                onClick={() => setStockKind("photos")}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  stockKind === "photos"
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <ImageIcon className="h-4 w-4" /> Photos
+              </button>
+              <button
+                type="button"
+                onClick={() => setStockKind("videos")}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  stockKind === "videos"
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <VideoIcon className="h-4 w-4" /> Videos
+              </button>
             </div>
-          ) : stockPhotos.length === 0 && stockVideos.length === 0 ? (
-            <div className="mt-6 rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-              Stock feed unavailable right now.
-            </div>
-          ) : (
-            <>
-              {stockPhotos.length > 0 && (
-                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {stockPhotos.map((p) => (
-                    <a
-                      key={`${p.source}-${p.id}`}
-                      href={p.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group relative block overflow-hidden rounded-xl border border-border bg-card"
-                    >
-                      <img
-                        src={p.thumbUrl}
-                        alt={p.alt || `Photo by ${p.photographerName}`}
-                        loading="lazy"
-                        className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-105"
-                      />
-                      <StockAttribution photo={p} />
-                    </a>
-                  ))}
+
+            <input
+              value={queryInput}
+              onChange={(e) => setQueryInput(e.target.value)}
+              placeholder="Search photos & videos…"
+              className="min-w-[180px] flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+            />
+
+            {stockKind === "photos" && (
+              <div className="inline-flex rounded-md border border-border bg-muted p-0.5 text-xs">
+                {(["all", "unsplash", "pexels"] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setStockSource(s)}
+                    className={`rounded-md px-2.5 py-1 font-medium capitalize transition-colors ${
+                      stockSource === s
+                        ? "bg-background shadow-sm text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {s === "all" ? "All" : s}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+            >
+              Search
+            </button>
+          </form>
+
+          {/* Grid */}
+          {stockKind === "photos" ? (
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {stockPhotos.map((p, i) => (
+                <div
+                  key={`${p.source}-${p.id}-${i}`}
+                  className="group relative overflow-hidden rounded-xl border border-border bg-card"
+                >
+                  <img
+                    src={p.thumbUrl}
+                    alt={p.alt || `Photo by ${p.photographerName}`}
+                    loading="lazy"
+                    className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-105"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setModalAsset({ kind: "photo", photo: p })}
+                    className="absolute right-2 top-2 rounded-md bg-white/95 p-1.5 text-black opacity-0 shadow transition-opacity group-hover:opacity-100"
+                    aria-label="Attribution & download"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                  <StockAttribution photo={p} />
+                </div>
+              ))}
+              {!stockLoading && stockPhotos.length === 0 && (
+                <div className="col-span-full py-10 text-center text-sm text-muted-foreground">
+                  No photos found. Try a different search.
                 </div>
               )}
-
-              {stockVideos.length > 0 && (
-                <>
-                  <h3 className="mt-10 flex items-center gap-2 text-lg font-bold text-foreground">
-                    <VideoIcon className="h-4 w-4 text-primary" /> Stock videos
-                  </h3>
-                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {stockVideos.map((v) => (
+            </div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {stockVideos.map((v, i) => (
+                <div
+                  key={`${v.id}-${i}`}
+                  className="group relative overflow-hidden rounded-xl border border-border bg-black"
+                >
+                  <video
+                    src={v.previewUrl}
+                    poster={v.thumbUrl}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLVideoElement;
+                      el.pause();
+                      el.currentTime = 0;
+                    }}
+                    className="aspect-video w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setModalAsset({ kind: "video", video: v })}
+                    className="absolute right-2 top-2 rounded-md bg-white/95 p-1.5 text-black opacity-0 shadow transition-opacity group-hover:opacity-100"
+                    aria-label="Attribution & download"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                  <div
+                    className="pointer-events-none absolute inset-x-0 bottom-0 px-2 py-1.5"
+                    style={{
+                      background:
+                        "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 60%, rgba(0,0,0,0) 100%)",
+                    }}
+                  >
+                    <span className="text-[11px] text-white/90">
+                      Video by{" "}
                       <a
-                        key={v.id}
-                        href={v.sourceUrl}
+                        href={v.photographerUrl}
                         target="_blank"
-                        rel="noopener noreferrer"
-                        className="group relative block overflow-hidden rounded-xl border border-border bg-black"
+                        rel="noopener noreferrer nofollow"
+                        className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
                       >
-                        <video
-                          src={v.previewUrl}
-                          poster={v.thumbUrl}
-                          muted
-                          loop
-                          playsInline
-                          preload="metadata"
-                          onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
-                          onMouseLeave={(e) => {
-                            const el = e.currentTarget as HTMLVideoElement;
-                            el.pause();
-                            el.currentTime = 0;
-                          }}
-                          className="aspect-video w-full object-cover"
-                        />
-                        <div
-                          className="pointer-events-none absolute inset-x-0 bottom-0 px-2 py-1.5"
-                          style={{
-                            background:
-                              "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 60%, rgba(0,0,0,0) 100%)",
-                          }}
-                        >
-                          <span className="text-[11px] text-white/90">
-                            Video by{" "}
-                            <a
-                              href={v.photographerUrl}
-                              target="_blank"
-                              rel="noopener noreferrer nofollow"
-                              className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
-                            >
-                              {v.photographerName}
-                            </a>{" "}
-                            on{" "}
-                            <a
-                              href="https://www.pexels.com"
-                              target="_blank"
-                              rel="noopener noreferrer nofollow"
-                              className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
-                            >
-                              Pexels
-                            </a>
-                          </span>
-                        </div>
+                        {v.photographerName}
+                      </a>{" "}
+                      on{" "}
+                      <a
+                        href="https://www.pexels.com"
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
+                      >
+                        Pexels
                       </a>
-                    ))}
+                    </span>
                   </div>
-                </>
+                </div>
+              ))}
+              {!stockLoading && stockVideos.length === 0 && (
+                <div className="col-span-full py-10 text-center text-sm text-muted-foreground">
+                  No clips found. Try a different search.
+                </div>
               )}
-            </>
+            </div>
+          )}
+
+          {/* Infinite scroll sentinel + loader */}
+          <div ref={stockSentinelRef} className="h-8" />
+          {stockLoading && (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            </div>
+          )}
+          {!stockHasMore && (stockPhotos.length > 0 || stockVideos.length > 0) && (
+            <p className="py-3 text-center text-xs text-muted-foreground">
+              You've reached the end.
+            </p>
           )}
         </section>
       </main>
+
+      {modalAsset && (
+        <StockAttributionModal
+          open
+          onClose={() => setModalAsset(null)}
+          asset={modalAsset}
+        />
+      )}
     </div>
+
   );
 }
