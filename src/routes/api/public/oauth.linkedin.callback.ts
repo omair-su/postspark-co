@@ -86,7 +86,6 @@ export const Route = createFileRoute("/api/public/oauth/linkedin/callback")({
           scopes,
           platform_user_id: platformUserId,
           platform_username: name,
-          platform_email: email,
         } as any;
 
         if (existing) {
