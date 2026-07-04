@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, ImageIcon, Video as VideoIcon, Info } from "lucide-react";
 import type { StockPhoto, StockVideo } from "@/server/stockMedia.server";
 import { searchStockPhotos, searchStockVideos } from "@/lib/stockMedia.functions";
 import { StockPhotoCard } from "./StockPhotoCard";
 import { StockAttribution } from "./StockAttribution";
+import { StockAttributionModal } from "./StockAttributionModal";
 
-type Source = "all" | "unsplash" | "pexels" | "videos";
+type Kind = "photos" | "videos";
+type PhotoSource = "all" | "unsplash" | "pexels";
 type Orientation = "any" | "landscape" | "portrait" | "squarish";
 
 interface Props {
@@ -23,58 +25,115 @@ export function StockMediaPicker({
   selectLabel,
 }: Props) {
   const [query, setQuery] = useState(initialQuery);
-  const [source, setSource] = useState<Source>("all");
+  const [kind, setKind] = useState<Kind>("photos");
+  const [source, setSource] = useState<PhotoSource>("all");
   const [orientation, setOrientation] = useState<Orientation>("any");
   const [photos, setPhotos] = useState<StockPhoto[]>([]);
   const [videos, setVideos] = useState<StockVideo[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [videoModal, setVideoModal] = useState<StockVideo | null>(null);
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const requestKey = useRef(0);
 
   const doPhotos = useServerFn(searchStockPhotos);
   const doVideos = useServerFn(searchStockVideos);
 
-  const run = useCallback(async () => {
-    if (!query.trim()) return;
-    setLoading(true);
-    setError(null);
-    try {
-      if (source === "videos") {
-        const res = await doVideos({
-          data: { query, page: 1, orientation },
-        });
-        setPhotos([]);
-        setVideos((res as any).videos || []);
-        if ((res as any).error) setError((res as any).error);
-      } else {
-        const providerSource = source === "all" ? "all" : source;
-        const res = await doPhotos({
-          data: { query, source: providerSource, page: 1, orientation },
-        });
-        setVideos([]);
-        setPhotos((res as any).photos || []);
-        if ((res as any).error) setError((res as any).error);
+  const load = useCallback(
+    async (nextPage: number, reset: boolean) => {
+      if (!query.trim()) return;
+      const key = ++requestKey.current;
+      setLoading(true);
+      setError(null);
+      try {
+        if (kind === "videos") {
+          const res: any = await doVideos({ data: { query, page: nextPage, orientation } });
+          if (key !== requestKey.current) return;
+          const items: StockVideo[] = res.videos || [];
+          setVideos((prev) => (reset ? items : [...prev, ...items]));
+          setPhotos([]);
+          setHasMore(items.length > 0);
+          if (res.error) setError(res.error);
+        } else {
+          const res: any = await doPhotos({
+            data: { query, source, page: nextPage, orientation },
+          });
+          if (key !== requestKey.current) return;
+          const items: StockPhoto[] = res.photos || [];
+          setPhotos((prev) => (reset ? items : [...prev, ...items]));
+          setVideos([]);
+          setHasMore(items.length > 0);
+          if (res.error) setError(res.error);
+        }
+        setPage(nextPage);
+      } catch (e: any) {
+        if (key === requestKey.current) setError(e?.message || "Search failed");
+      } finally {
+        if (key === requestKey.current) setLoading(false);
       }
-    } catch (e: any) {
-      setError(e?.message || "Search failed");
-    } finally {
-      setLoading(false);
-    }
-  }, [query, source, orientation, doPhotos, doVideos]);
+    },
+    [query, kind, source, orientation, doPhotos, doVideos],
+  );
 
+  // Reset + load whenever the filters change
   useEffect(() => {
-    run();
+    setPage(1);
+    setHasMore(true);
+    load(1, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source, orientation]);
+  }, [kind, source, orientation]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first?.isIntersecting && !loading && hasMore) {
+          load(page + 1, false);
+        }
+      },
+      { rootMargin: "600px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [loading, hasMore, page, load]);
+
+  const tabBase =
+    "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors";
 
   return (
     <div className="space-y-4">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          run();
+          setPage(1);
+          setHasMore(true);
+          load(1, true);
         }}
         className="flex flex-wrap items-center gap-2"
       >
+        <div className="inline-flex rounded-md border border-border bg-muted p-0.5">
+          <button
+            type="button"
+            onClick={() => setKind("photos")}
+            className={`${tabBase} ${kind === "photos" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <ImageIcon className="h-4 w-4" /> Photos
+          </button>
+          <button
+            type="button"
+            onClick={() => setKind("videos")}
+            className={`${tabBase} ${kind === "videos" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <VideoIcon className="h-4 w-4" /> Videos
+          </button>
+        </div>
+
         <div className="relative flex-1 min-w-[220px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -85,16 +144,17 @@ export function StockMediaPicker({
           />
         </div>
 
-        <select
-          value={source}
-          onChange={(e) => setSource(e.target.value as Source)}
-          className="rounded-md border border-input bg-background px-2 py-2 text-sm"
-        >
-          <option value="all">All photos</option>
-          <option value="unsplash">Unsplash</option>
-          <option value="pexels">Pexels</option>
-          <option value="videos">Videos (Pexels)</option>
-        </select>
+        {kind === "photos" && (
+          <select
+            value={source}
+            onChange={(e) => setSource(e.target.value as PhotoSource)}
+            className="rounded-md border border-input bg-background px-2 py-2 text-sm"
+          >
+            <option value="all">All sources</option>
+            <option value="unsplash">Unsplash only</option>
+            <option value="pexels">Pexels only</option>
+          </select>
+        )}
 
         <select
           value={orientation}
@@ -104,7 +164,7 @@ export function StockMediaPicker({
           <option value="any">Any orientation</option>
           <option value="landscape">Landscape</option>
           <option value="portrait">Portrait</option>
-          <option value="squarish">Square</option>
+          {kind === "photos" && <option value="squarish">Square</option>}
         </select>
 
         <button
@@ -123,11 +183,11 @@ export function StockMediaPicker({
         </div>
       )}
 
-      {source !== "videos" ? (
+      {kind === "photos" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {photos.map((p) => (
+          {photos.map((p, i) => (
             <StockPhotoCard
-              key={`${p.source}-${p.id}`}
+              key={`${p.source}-${p.id}-${i}`}
               photo={p}
               onSelect={onSelectPhoto}
               selectLabel={selectLabel}
@@ -141,9 +201,9 @@ export function StockMediaPicker({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {videos.map((v) => (
+          {videos.map((v, i) => (
             <div
-              key={v.id}
+              key={`${v.id}-${i}`}
               className="group relative overflow-hidden rounded-xl border border-border bg-black"
             >
               <div className="relative aspect-video w-full">
@@ -153,8 +213,13 @@ export function StockMediaPicker({
                   muted
                   loop
                   playsInline
+                  preload="metadata"
                   onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
-                  onMouseLeave={(e) => (e.currentTarget as HTMLVideoElement).pause()}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLVideoElement;
+                    el.pause();
+                    el.currentTime = 0;
+                  }}
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-x-0 top-0 flex items-center justify-end gap-1 p-2 opacity-0 transition-opacity group-hover:opacity-100">
@@ -167,14 +232,14 @@ export function StockMediaPicker({
                       {selectLabel || "Use clip"}
                     </button>
                   )}
-                  <a
-                    href={v.downloadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-md bg-white/95 px-2 py-1 text-[11px] font-medium text-black shadow"
+                  <button
+                    type="button"
+                    onClick={() => setVideoModal(v)}
+                    className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 text-[11px] font-medium text-black shadow"
+                    aria-label="Attribution & download"
                   >
-                    Download
-                  </a>
+                    <Info className="h-3 w-3" />
+                  </button>
                 </div>
                 <StockAttribution
                   photo={{
@@ -193,6 +258,26 @@ export function StockMediaPicker({
             </div>
           )}
         </div>
+      )}
+
+      {/* Infinite-scroll sentinel */}
+      <div ref={sentinelRef} className="h-10" />
+
+      {loading && (photos.length > 0 || videos.length > 0) && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      )}
+      {!hasMore && (photos.length > 0 || videos.length > 0) && (
+        <p className="py-4 text-center text-xs text-muted-foreground">You've reached the end.</p>
+      )}
+
+      {videoModal && (
+        <StockAttributionModal
+          open
+          onClose={() => setVideoModal(null)}
+          asset={{ kind: "video", video: videoModal }}
+        />
       )}
     </div>
   );

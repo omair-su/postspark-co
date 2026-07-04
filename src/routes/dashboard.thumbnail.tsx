@@ -20,6 +20,10 @@ import { UsageMeter } from "@/components/image/UsageMeter";
 import { LimitReachedModal } from "@/components/image/LimitReachedModal";
 import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
 import { getWatermarkState, setWatermarkState, drawWatermarkOnCanvas } from "@/lib/imageWatermark";
+import { StockPickerDialog } from "@/components/stock/StockPickerDialog";
+import { useServerFn } from "@tanstack/react-start";
+import { trackUnsplashUse } from "@/lib/stockMedia.functions";
+import { Images } from "lucide-react";
 import { Droplet } from "lucide-react";
 import {
   THUMBNAIL_STYLES,
@@ -165,6 +169,14 @@ function ThumbnailPage() {
   const [pureGptMode, setPureGptMode] = useState(true);
 
   const [bgUrl, setBgUrl] = useState<string>("");
+  const [bgAttribution, setBgAttribution] = useState<{
+    name: string;
+    profileUrl: string;
+    source: "unsplash" | "pexels";
+    sourceUrl: string;
+  } | null>(null);
+  const [stockOpen, setStockOpen] = useState(false);
+  const trackUse = useServerFn(trackUnsplashUse);
   const [loading, setLoading] = useState(false);
   const [limitOpen, setLimitOpen] = useState(false);
   const initialWm = getWatermarkState();
@@ -612,7 +624,39 @@ function ThumbnailPage() {
                 <><Sparkles className="h-4 w-4" /> Generate AI background</>
               )}
             </button>
+            <button
+              type="button"
+              onClick={() => setStockOpen(true)}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              <Images className="h-4 w-4" /> Pick from stock library
+            </button>
+            {bgAttribution && (
+              <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+                Background:{" "}
+                <a
+                  href={bgAttribution.profileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="underline"
+                >
+                  Photo by {bgAttribution.name}
+                </a>{" "}
+                on{" "}
+                <a
+                  href={bgAttribution.source === "unsplash"
+                    ? "https://unsplash.com/?utm_source=postspark&utm_medium=referral"
+                    : "https://www.pexels.com"}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="underline"
+                >
+                  {bgAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
+                </a>
+              </p>
+            )}
           </div>
+
 
           {/* TYPOGRAPHY PANEL */}
           <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
@@ -804,6 +848,30 @@ function ThumbnailPage() {
         </div>
       </div>
       <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} />
+      <StockPickerDialog
+        open={stockOpen}
+        onClose={() => setStockOpen(false)}
+        initialQuery={bgPrompt || preset.defaultPrompt}
+        selectLabel="Use as background"
+        title="Pick a stock background"
+        onSelectPhoto={async (photo) => {
+          if (photo.source === "unsplash" && photo.downloadLocation) {
+            try {
+              await trackUse({ data: { downloadLocation: photo.downloadLocation } });
+            } catch (e) {
+              console.warn("Unsplash tracking failed", e);
+            }
+          }
+          setBgUrl(photo.regularUrl);
+          setBgAttribution({
+            name: photo.photographerName,
+            profileUrl: photo.photographerUrl,
+            source: photo.source,
+            sourceUrl: photo.sourceUrl,
+          });
+          toast.success(`Background set — Photo by ${photo.photographerName}`);
+        }}
+      />
     </div>
   );
 }

@@ -43,6 +43,12 @@ import JSZip from "jszip";
 import { LimitReachedModal } from "@/components/image/LimitReachedModal";
 import { EnhancePromptModal } from "@/components/image/EnhancePromptModal";
 import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
+import { StockPickerDialog } from "@/components/stock/StockPickerDialog";
+import { useServerFn } from "@tanstack/react-start";
+import { trackUnsplashUse } from "@/lib/stockMedia.functions";
+import type { StockPhoto } from "@/server/stockMedia.server";
+import { Images } from "lucide-react";
+
 
 
 export const Route = createFileRoute("/dashboard/image-studio")({
@@ -217,6 +223,37 @@ function ImageStudioPage() {
   const [editedUrl, setEditedUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Stock library picker
+  const [stockOpen, setStockOpen] = useState<null | "generate" | "edit">(null);
+  const [stockAttribution, setStockAttribution] = useState<{
+    name: string;
+    profileUrl: string;
+    source: "unsplash" | "pexels";
+    sourceUrl: string;
+  } | null>(null);
+  const trackUnsplashDownload = useServerFn(trackUnsplashUse);
+
+  async function applyStockPhoto(photo: StockPhoto, target: "generate" | "edit") {
+    // Compliance: ping Unsplash download_location on every "use".
+    if (photo.source === "unsplash" && photo.downloadLocation) {
+      try {
+        await trackUnsplashDownload({ data: { downloadLocation: photo.downloadLocation } });
+      } catch (e) {
+        console.warn("Unsplash tracking failed", e);
+      }
+    }
+    // Hotlinked provider URL — never re-hosted.
+    if (target === "generate") setImageUrl(photo.regularUrl);
+    else setUploadedUrl(photo.regularUrl);
+    setStockAttribution({
+      name: photo.photographerName,
+      profileUrl: photo.photographerUrl,
+      source: photo.source,
+      sourceUrl: photo.sourceUrl,
+    });
+    toast.success(`Photo by ${photo.photographerName} applied`);
+  }
+
   // carousel
   const [carouselTopic, setCarouselTopic] = useState("");
   const [carouselSlides, setCarouselSlides] = useState<
@@ -313,6 +350,7 @@ function ImageStudioPage() {
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
     setLoading(true);
     setImageUrl("");
+    setStockAttribution(null);
     try {
       const res = await withAIProgress(generateImage({
         data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined, originalPrompt: originalPrompt || undefined },
@@ -836,6 +874,13 @@ function ImageStudioPage() {
                   {enhancing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} Enhance with AI
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => setStockOpen("generate")}
+                className="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted"
+              >
+                <Images className="h-3.5 w-3.5" /> Or pick a stock photo (Unsplash · Pexels)
+              </button>
               <textarea
                 value={prompt}
                 onChange={(e) => { setPrompt(e.target.value); setOriginalPrompt(null); }}
@@ -965,6 +1010,35 @@ function ImageStudioPage() {
                     <div className="flex h-full w-full flex-col items-center justify-center text-muted-foreground">
                       <ImageIcon className="mb-2 h-10 w-10 opacity-40" />
                       <p className="text-xs">Your image will appear here</p>
+                    </div>
+                  )}
+                  {imageUrl && stockAttribution && (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 px-2 py-1.5"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0))" }}
+                    >
+                      <span className="text-[11px] text-white/95">
+                        Photo by{" "}
+                        <a
+                          href={stockAttribution.profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
+                        >
+                          {stockAttribution.name}
+                        </a>{" "}
+                        on{" "}
+                        <a
+                          href={stockAttribution.source === "unsplash"
+                            ? "https://unsplash.com/?utm_source=postspark&utm_medium=referral"
+                            : "https://www.pexels.com"}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
+                        >
+                          {stockAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
+                        </a>
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1167,9 +1241,34 @@ function ImageStudioPage() {
                 <Upload className="h-6 w-6" />
                 {uploadedUrl ? "Replace image" : "Click to upload (max 8MB)"}
               </button>
+              <button
+                type="button"
+                onClick={() => setStockOpen("edit")}
+                className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium hover:bg-muted"
+              >
+                <Images className="h-3.5 w-3.5" /> Or pick a stock photo (Unsplash · Pexels)
+              </button>
               {uploadedUrl && (
                 <div className="mt-3 overflow-hidden rounded-lg border border-border">
                   <img src={uploadedUrl} alt="Original image uploaded by user for AI editing" className="max-h-64 w-full object-contain" />
+                  {stockAttribution && (
+                    <div className="border-t border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground">
+                      Photo by{" "}
+                      <a href={stockAttribution.profileUrl} target="_blank" rel="noopener noreferrer nofollow" className="underline">
+                        {stockAttribution.name}
+                      </a>{" "}
+                      on{" "}
+                      <a
+                        href={stockAttribution.source === "unsplash"
+                          ? "https://unsplash.com/?utm_source=postspark&utm_medium=referral"
+                          : "https://www.pexels.com"}
+                        target="_blank" rel="noopener noreferrer nofollow"
+                        className="underline"
+                      >
+                        {stockAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1387,6 +1486,18 @@ function ImageStudioPage() {
         onClose={() => setEnhanceOpen(false)}
       />
       <LimitReachedModal open={limitOpen} onClose={() => setLimitOpen(false)} />
+      <StockPickerDialog
+        open={stockOpen !== null}
+        onClose={() => setStockOpen(null)}
+        initialQuery={prompt || "creative workspace"}
+        selectLabel={stockOpen === "edit" ? "Use as source" : "Use photo"}
+        title={
+          stockOpen === "edit"
+            ? "Pick a stock photo to edit"
+            : "Insert a stock photo (Unsplash · Pexels)"
+        }
+        onSelectPhoto={(photo) => applyStockPhoto(photo, stockOpen || "generate")}
+      />
     </div>
   );
 }
