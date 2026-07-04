@@ -69,6 +69,7 @@ import { Route as DashboardThumbnailRouteImport } from './routes/dashboard.thumb
 import { Route as DashboardTestimonialsAdminRouteImport } from './routes/dashboard.testimonials-admin'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardTeamRouteImport } from './routes/dashboard.team'
+import { Route as DashboardStockGalleryRouteImport } from './routes/dashboard.stock-gallery'
 import { Route as DashboardShortsStudioRouteImport } from './routes/dashboard.shorts-studio'
 import { Route as DashboardShortsSeriesRouteImport } from './routes/dashboard.shorts-series'
 import { Route as DashboardShortsEditorRouteImport } from './routes/dashboard.shorts-editor'
@@ -442,6 +443,11 @@ const DashboardTemplatesRoute = DashboardTemplatesRouteImport.update({
 const DashboardTeamRoute = DashboardTeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardStockGalleryRoute = DashboardStockGalleryRouteImport.update({
+  id: '/stock-gallery',
+  path: '/stock-gallery',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardShortsStudioRoute = DashboardShortsStudioRouteImport.update({
@@ -823,6 +829,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
+  '/dashboard/stock-gallery': typeof DashboardStockGalleryRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
@@ -944,6 +951,7 @@ export interface FileRoutesByTo {
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
+  '/dashboard/stock-gallery': typeof DashboardStockGalleryRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
@@ -1067,6 +1075,7 @@ export interface FileRoutesById {
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
+  '/dashboard/stock-gallery': typeof DashboardStockGalleryRoute
   '/dashboard/team': typeof DashboardTeamRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
@@ -1191,6 +1200,7 @@ export interface FileRouteTypes {
     | '/dashboard/shorts-editor'
     | '/dashboard/shorts-series'
     | '/dashboard/shorts-studio'
+    | '/dashboard/stock-gallery'
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/dashboard/testimonials-admin'
@@ -1312,6 +1322,7 @@ export interface FileRouteTypes {
     | '/dashboard/shorts-editor'
     | '/dashboard/shorts-series'
     | '/dashboard/shorts-studio'
+    | '/dashboard/stock-gallery'
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/dashboard/testimonials-admin'
@@ -1434,6 +1445,7 @@ export interface FileRouteTypes {
     | '/dashboard/shorts-editor'
     | '/dashboard/shorts-series'
     | '/dashboard/shorts-studio'
+    | '/dashboard/stock-gallery'
     | '/dashboard/team'
     | '/dashboard/templates'
     | '/dashboard/testimonials-admin'
@@ -2011,6 +2023,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTeamRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/stock-gallery': {
+      id: '/dashboard/stock-gallery'
+      path: '/stock-gallery'
+      fullPath: '/dashboard/stock-gallery'
+      preLoaderRoute: typeof DashboardStockGalleryRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/shorts-studio': {
       id: '/dashboard/shorts-studio'
       path: '/shorts-studio'
@@ -2460,6 +2479,7 @@ interface DashboardRouteChildren {
   DashboardShortsEditorRoute: typeof DashboardShortsEditorRoute
   DashboardShortsSeriesRoute: typeof DashboardShortsSeriesRoute
   DashboardShortsStudioRoute: typeof DashboardShortsStudioRoute
+  DashboardStockGalleryRoute: typeof DashboardStockGalleryRoute
   DashboardTeamRoute: typeof DashboardTeamRoute
   DashboardTemplatesRoute: typeof DashboardTemplatesRoute
   DashboardTestimonialsAdminRoute: typeof DashboardTestimonialsAdminRoute
@@ -2497,6 +2517,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardShortsEditorRoute: DashboardShortsEditorRoute,
   DashboardShortsSeriesRoute: DashboardShortsSeriesRoute,
   DashboardShortsStudioRoute: DashboardShortsStudioRoute,
+  DashboardStockGalleryRoute: DashboardStockGalleryRoute,
   DashboardTeamRoute: DashboardTeamRoute,
   DashboardTemplatesRoute: DashboardTemplatesRoute,
   DashboardTestimonialsAdminRoute: DashboardTestimonialsAdminRoute,
