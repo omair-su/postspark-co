@@ -350,6 +350,7 @@ function ImageStudioPage() {
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
     setLoading(true);
     setImageUrl("");
+    setStockAttribution(null);
     try {
       const res = await withAIProgress(generateImage({
         data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined, originalPrompt: originalPrompt || undefined },
