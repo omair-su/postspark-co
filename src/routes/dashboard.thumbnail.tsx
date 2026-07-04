@@ -20,6 +20,10 @@ import { UsageMeter } from "@/components/image/UsageMeter";
 import { LimitReachedModal } from "@/components/image/LimitReachedModal";
 import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
 import { getWatermarkState, setWatermarkState, drawWatermarkOnCanvas } from "@/lib/imageWatermark";
+import { StockPickerDialog } from "@/components/stock/StockPickerDialog";
+import { useServerFn } from "@tanstack/react-start";
+import { trackUnsplashUse } from "@/lib/stockMedia.functions";
+import { Images } from "lucide-react";
 import { Droplet } from "lucide-react";
 import {
   THUMBNAIL_STYLES,
