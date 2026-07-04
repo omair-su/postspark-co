@@ -10,6 +10,7 @@ import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { createPortalSession, previewPlanChange, applyPlanChange, deleteAccount } from "@/lib/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { PublicShowcaseSettings } from "@/components/PublicShowcaseSettings";
+import { ConnectedAccountsCard } from "@/components/ConnectedAccountsCard";
 
 export const Route = createFileRoute("/dashboard/settings")({
   component: SettingsPage,
