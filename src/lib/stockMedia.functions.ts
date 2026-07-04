@@ -66,23 +66,32 @@ export const trackUnsplashUse = createServerFn({ method: "POST" })
     return trackUnsplashDownloadServer(data.downloadLocation);
   });
 
-// Public (unauthenticated) stock feed for the Community Gallery landing page.
+// Public (unauthenticated) stock feed for the Community Gallery.
 // No auth middleware — safe because it only proxies public search endpoints
 // and returns non-sensitive, provider-hosted URLs.
 export const getPublicStockFeed = createServerFn({ method: "GET" })
   .inputValidator(
     z.object({
       query: z.string().min(1).max(80).default("creator content"),
+      kind: z.enum(["photos", "videos"]).default("photos"),
+      source: SOURCE, // unsplash | pexels | all (ignored for videos)
+      page: z.number().int().min(1).max(50).default(1),
+      orientation: ORIENTATION,
+      perPage: z.number().int().min(1).max(48).default(24),
     }).partial().parse,
   )
   .handler(async ({ data }) => {
     const query = data?.query || "creator content";
-    const [photos, videos] = await Promise.all([
-      searchStockPhotosServer({ query, source: "all", page: 1, orientation: "landscape" }),
-      searchStockVideosServer({ query, page: 1, orientation: "landscape" }),
-    ]);
-    return {
-      photos: photos.photos.slice(0, 12),
-      videos: videos.videos.slice(0, 6),
-    };
+    const kind = data?.kind || "photos";
+    const source = data?.source || "all";
+    const page = data?.page || 1;
+    const orientation = data?.orientation || "landscape";
+    const perPage = data?.perPage || 24;
+
+    if (kind === "videos") {
+      const res = await searchStockVideosServer({ query, page, orientation });
+      return { photos: [], videos: res.videos.slice(0, perPage), page, kind };
+    }
+    const res = await searchStockPhotosServer({ query, source, page, orientation });
+    return { photos: res.photos.slice(0, perPage), videos: [], page, kind };
   });
