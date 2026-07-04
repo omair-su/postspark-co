@@ -62,7 +62,7 @@ export const getConnectedSocials = createServerFn({ method: "POST" })
 
 export const disconnectSocial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ platform: z.enum(["youtube", "tiktok"]) }).parse)
+  .inputValidator(z.object({ platform: z.enum(["youtube", "tiktok", "linkedin"]) }).parse)
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("social_accounts")
