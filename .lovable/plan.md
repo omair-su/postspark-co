@@ -1,78 +1,85 @@
+## LinkedIn Direct Publishing Integration
 
-## Goal
+Mirror the TikTok integration pattern to add LinkedIn OAuth (Sign In with LinkedIn using OpenID Connect) + direct post publishing (Share on LinkedIn), with a polished "million-dollar" UX — connected account card, rich composer modal, media support, and one-click publish from any generated output.
 
-Ship a compliant Unsplash + Pexels stock media integration so PostSpark users can search millions of premium photos and videos from inside the app, and so we can pass Unsplash's production API review.
-
-## 1. Secrets
-
+### Prerequisites (secrets)
 Request via `add_secret`:
-- `UNSPLASH_ACCESS_KEY` (server, required)
-- `PEXELS_API_KEY` (already present — reuse)
+- `LINKEDIN_CLIENT_ID`
+- `LINKEDIN_CLIENT_SECRET`
 
-Server-only. Never exposed to browser.
+Redirect URI to add in LinkedIn app: `https://postspark.co/api/public/oauth/linkedin/callback`
 
-## 2. Server functions — `src/lib/stockMedia.functions.ts` + `src/server/stockMedia.server.ts`
+Scopes: `openid profile email w_member_social`
 
-Auth-protected via `requireSupabaseAuth`. All three endpoints:
+### 1. Server functions — extend `src/lib/socialPublish.functions.ts`
+- `getLinkedInAuthUrl` — signed-state OAuth URL to `https://www.linkedin.com/oauth/v2/authorization`
+- `publishToLinkedIn` — posts via LinkedIn REST `/rest/posts` (LinkedIn-Version header):
+  - Text-only post
+  - Image post: register upload → PUT image bytes → attach `urn:li:image:...`
+  - Video post: same flow with `urn:li:video:...` (from Shorts Studio output)
+  - Article/link post: with URL preview
+  - Visibility: `PUBLIC` or `CONNECTIONS`
+- Reuse `signState` / `verifyOAuthState` helpers
+- Records to `scheduled_posts` (platform=`linkedin`, status=`published`, `platform_post_id`, `media_url`)
 
-- `searchStockPhotos({ query, source: 'unsplash' | 'pexels' | 'all', page, orientation })` — returns normalized `StockPhoto[]`:
-  ```
-  { id, source, thumbUrl, regularUrl, fullUrl, width, height,
-    photographerName, photographerUrl, // Unsplash: with utm_source=postspark&utm_medium=referral
-    sourceUrl,                          // link to photo page on provider
-    downloadLocation?                   // Unsplash only, server-side use
-  }
-  ```
-- `searchStockVideos({ query, source: 'pexels', page, orientation })` — Pexels videos only (Unsplash has no video API).
-- `trackUnsplashDownload({ downloadLocation })` — server-side GET to `photo.links.download_location` with `Client-ID` header. Called every time a user picks/inserts/downloads an Unsplash photo. Fire-and-forget, returns `{ ok: true }`.
+### 2. OAuth callback route
+Create `src/routes/api/public/oauth.linkedin.callback.ts`:
+- Verify state, exchange code at `https://www.linkedin.com/oauth/v2/accessToken`
+- Fetch profile from `https://api.linkedin.com/v2/userinfo` (OIDC) → `sub` = member URN suffix, name, email, picture
+- Upsert into `social_accounts` (platform=`linkedin`, `platform_user_id`=`urn:li:person:{sub}`, `platform_username`=name, tokens, expiry)
+- Redirect back to `/dashboard/settings?linkedin=connected`
 
-Photographer URL format: `https://unsplash.com/@{username}?utm_source=postspark&utm_medium=referral`. "Unsplash" brand link: `https://unsplash.com/?utm_source=postspark&utm_medium=referral`.
+### 3. Connected Accounts card
+Extend `src/components/ConnectedAccountsCard.tsx`:
+- Add LinkedIn row (logo, "Connected as {name}", token expiry, Connect/Disconnect)
+- Handle `?linkedin=connected` search param toast
+- Reuse existing `disconnectSocial` (extend enum to include `linkedin`)
 
-## 3. Reusable UI — `src/components/stock/`
+### 4. Reusable "Post to LinkedIn" component
+Create `src/components/PostToLinkedInButton.tsx` — premium composer modal:
+- Rich text area (3000-char counter, hashtag helper, emoji picker via existing UI)
+- Media preview: image / video / link card
+- Visibility toggle (Public / Connections only)
+- "Post now" / "Save as draft" (draft = scheduled_posts row, status=`draft`)
+- Optimistic success state with link to live post
+- Connect-first empty state if not linked
+- Loading / error states with retry
 
-- `StockMediaPicker.tsx` — dialog/panel with search input, source tabs (All / Unsplash / Pexels / Videos), orientation filter, infinite-scroll grid. Emits `onSelect(item)`. On select for Unsplash, calls `trackUnsplashDownload` before firing `onSelect`.
-- `StockPhotoCard.tsx` — renders hotlinked `regularUrl` (never re-hosted). Bottom-left overlay attribution with dark gradient:
-  - "Photo by [Name] on Unsplash" — 11px, `rgba(255,255,255,0.9)`, both links `target="_blank" rel="noopener noreferrer nofollow"`, always visible, never cropped.
-  - Pexels equivalent: "Photo by [Name] on Pexels" (best-practice parity).
-- `StockAttribution.tsx` — standalone attribution component reused wherever a selected stock photo is displayed inline (previews, published outputs).
+### 5. Wire the button into output surfaces
+Add `<PostToLinkedInButton>` alongside existing publish buttons in:
+- `src/routes/dashboard.repurpose.tsx` (per-output card)
+- `src/routes/dashboard.image-studio.tsx` (generated images)
+- `src/routes/dashboard.thumbnail.tsx`
+- Shorts Studio output (video posts)
+- Carousel output (multi-image post — LinkedIn document/carousel via multi-image share)
 
-## 4. Integration points
+### 6. Standalone LinkedIn Composer tool
+Create `src/routes/dashboard.linkedin.tsx`:
+- Full page composer: prompt → AI-draft (reuse Claude via `src/server/anthropic.server.ts`) → preview → publish
+- Templates (thought leadership, launch announcement, hiring, milestone, story)
+- Hook variants using existing `hookLab`
+- Character-count optimization, emoji density, hashtag suggestions
+- Schedule for later (integrates `scheduled_posts.scheduled_for`)
+- Add tool tile to Dashboard grid + tools catalog
 
-Hook `StockMediaPicker` into:
-- **AI Image Studio** (`src/routes/dashboard.image-studio.tsx` if present) — add "Stock" tab next to AI generate.
-- **Thumbnail & Cover Generator** — add "Use stock background" button.
-- **Shorts Studio** — extend existing Pexels video search to use the new normalized picker, and add Unsplash photos as still overlays.
-- **New page**: `src/routes/dashboard.stock-gallery.tsx` — full-screen browsable gallery, main entry point.
-- **Public marketing route**: `src/routes/tools.stock-photos.tsx` — SEO landing "Free stock photos & videos inside PostSpark".
+### 7. DB / no schema changes
+`social_accounts` already supports arbitrary `platform`; no migration needed. `scheduled_posts` already has all required columns.
 
-Wherever a picked Unsplash photo is later rendered (preview, exported post, thumbnail export), the attribution follows the image via `StockAttribution`. When Unsplash photo is inserted into a scheduled social post, prepend `Photo by {name} on Unsplash` to the caption automatically (per Unsplash guideline for social use).
+### Technical notes
+- LinkedIn REST API uses `LinkedIn-Version: 202405` + `X-Restli-Protocol-Version: 2.0.0` headers
+- Access tokens last 60 days; store `token_expires_at`, prompt reconnect (no refresh token for standard tier unless requested)
+- Attribution/author URN format: `urn:li:person:{sub}` from OIDC
+- Image/video upload = `/rest/images?action=initializeUpload` then PUT to returned uploadUrl
+- All calls server-side (secrets never leak to client)
 
-## 5. Storage rule
+### Files
+**Create:**
+- `src/routes/api/public/oauth.linkedin.callback.ts`
+- `src/components/PostToLinkedInButton.tsx`
+- `src/routes/dashboard.linkedin.tsx`
 
-Never re-upload Unsplash images to our bucket. Only store metadata in `stock_media_uses` (new table) for tracking:
-- `user_id, source, external_id, regular_url, photographer_name, photographer_url, download_location, used_in, created_at`
-- RLS: user reads/writes own rows; service_role all; GRANT to authenticated + service_role.
-
-For Pexels the same table applies (source='pexels'), attribution shown similarly.
-
-## 6. Compliance checklist (to satisfy Unsplash review email)
-
-- [x] Attribution visible on every displayed Unsplash photo (search results, previews, exports).
-- [x] Photographer name links to their Unsplash profile with UTM.
-- [x] "Unsplash" brand links to unsplash.com with UTM.
-- [x] `download_location` triggered on every "use" (select/insert/download/set-as-background).
-- [x] Hotlinked `urls.regular` / `urls.full`; no re-hosting.
-- [x] Social-post caption auto-prepends photographer credit.
-
-## 7. Screenshot for submission
-
-After deploy, open `postspark.co/dashboard/stock-gallery`, search, and screenshot with the URL bar visible showing attribution on cards.
-
-## Technical notes
-
-- Rate-limit search endpoints per user (in-memory Map): 30 req/min.
-- Cache search results in-memory 60s to reduce API calls.
-- Unsplash key stays server-only; `trackUnsplashDownload` runs on server so client never sees the key.
-- No database migration for stock_media_uses in v1 if we skip analytics — but recommended to include so we can report to Unsplash if asked.
-
-Ready to implement on approval.
+**Edit:**
+- `src/lib/socialPublish.functions.ts` (auth URL + publish + disconnect enum)
+- `src/components/ConnectedAccountsCard.tsx` (LinkedIn row)
+- `src/routes/dashboard.repurpose.tsx`, `dashboard.image-studio.tsx`, `dashboard.thumbnail.tsx`, Shorts + Carousel output surfaces
+- `src/components/DashboardLayout.tsx` + tools catalog (LinkedIn Composer entry)
