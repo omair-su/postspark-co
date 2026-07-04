@@ -1211,9 +1211,34 @@ function ImageStudioPage() {
                 <Upload className="h-6 w-6" />
                 {uploadedUrl ? "Replace image" : "Click to upload (max 8MB)"}
               </button>
+              <button
+                type="button"
+                onClick={() => setStockOpen("edit")}
+                className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium hover:bg-muted"
+              >
+                <Images className="h-3.5 w-3.5" /> Or pick a stock photo (Unsplash · Pexels)
+              </button>
               {uploadedUrl && (
                 <div className="mt-3 overflow-hidden rounded-lg border border-border">
                   <img src={uploadedUrl} alt="Original image uploaded by user for AI editing" className="max-h-64 w-full object-contain" />
+                  {stockAttribution && (
+                    <div className="border-t border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground">
+                      Photo by{" "}
+                      <a href={stockAttribution.profileUrl} target="_blank" rel="noopener noreferrer nofollow" className="underline">
+                        {stockAttribution.name}
+                      </a>{" "}
+                      on{" "}
+                      <a
+                        href={stockAttribution.source === "unsplash"
+                          ? "https://unsplash.com/?utm_source=postspark&utm_medium=referral"
+                          : "https://www.pexels.com"}
+                        target="_blank" rel="noopener noreferrer nofollow"
+                        className="underline"
+                      >
+                        {stockAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
