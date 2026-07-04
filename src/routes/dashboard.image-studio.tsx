@@ -873,6 +873,13 @@ function ImageStudioPage() {
                   {enhancing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} Enhance with AI
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => setStockOpen("generate")}
+                className="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted"
+              >
+                <Images className="h-3.5 w-3.5" /> Or pick a stock photo (Unsplash · Pexels)
+              </button>
               <textarea
                 value={prompt}
                 onChange={(e) => { setPrompt(e.target.value); setOriginalPrompt(null); }}
