@@ -50,14 +50,44 @@ export const Route = createFileRoute("/gallery/")({
   component: GalleryPage,
 });
 
+interface StockPhotoItem {
+  id: string;
+  source: "unsplash" | "pexels";
+  thumbUrl: string;
+  regularUrl: string;
+  photographerName: string;
+  photographerUrl: string;
+  sourceUrl: string;
+  alt?: string;
+}
+interface StockVideoItem {
+  id: string;
+  thumbUrl: string;
+  previewUrl: string;
+  photographerName: string;
+  photographerUrl: string;
+  sourceUrl: string;
+}
+
 function GalleryPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stockPhotos, setStockPhotos] = useState<StockPhotoItem[]>([]);
+  const [stockVideos, setStockVideos] = useState<StockVideoItem[]>([]);
+  const [stockLoading, setStockLoading] = useState(true);
 
   useEffect(() => {
     getGalleryFeed()
       .then((data) => setItems(data as Item[]))
       .finally(() => setLoading(false));
+
+    getPublicStockFeed({ data: { query: "creator content" } })
+      .then((res: any) => {
+        setStockPhotos((res?.photos as StockPhotoItem[]) || []);
+        setStockVideos((res?.videos as StockVideoItem[]) || []);
+      })
+      .catch(() => {})
+      .finally(() => setStockLoading(false));
   }, []);
 
   return (
