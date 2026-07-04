@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getGalleryFeed } from "@/lib/gallery.functions";
 import { getPublicStockFeed } from "@/lib/stockMedia.functions";
-import { Sparkles, Eye, ArrowRight, Loader2, Star, User, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
+import { Sparkles, Eye, ArrowRight, Loader2, Star, User, Image as ImageIcon, Video as VideoIcon, Info } from "lucide-react";
 import { StockAttribution } from "@/components/stock/StockAttribution";
+import { StockAttributionModal } from "@/components/stock/StockAttributionModal";
+import type { StockPhoto, StockVideo } from "@/server/stockMedia.server";
+
 
 
 interface Item {
