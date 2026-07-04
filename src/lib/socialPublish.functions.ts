@@ -62,7 +62,7 @@ export const getConnectedSocials = createServerFn({ method: "POST" })
 
 export const disconnectSocial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ platform: z.enum(["youtube", "tiktok"]) }).parse)
+  .inputValidator(z.object({ platform: z.enum(["youtube", "tiktok", "linkedin"]) }).parse)
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("social_accounts")
@@ -400,4 +400,175 @@ export const publishToTikTok = createServerFn({ method: "POST" })
       return { error: msg };
     }
     return { ok: true, publishId: json?.data?.publish_id };
+  });
+
+// ============================================================================
+// LinkedIn OAuth (Sign In with LinkedIn OIDC) + Share on LinkedIn
+// ============================================================================
+
+const LINKEDIN_SCOPES = ["openid", "profile", "email", "w_member_social"].join(" ");
+
+function getLinkedInRedirectUri() {
+  const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
+  return `${base.replace(/\/$/, "")}/api/public/oauth/linkedin/callback`;
+}
+
+export const getLinkedInAuthUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const clientId = process.env.LINKEDIN_CLIENT_ID;
+    if (!clientId) return { error: "LinkedIn integration not configured (missing LINKEDIN_CLIENT_ID)." };
+    const ts = Date.now();
+    const nonce = Math.random().toString(36).slice(2, 10);
+    const payload = `${context.userId}.${ts}.${nonce}`;
+    const sig = await signState(payload);
+    const state = `${payload}.${sig}`;
+    const url = new URL("https://www.linkedin.com/oauth/v2/authorization");
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", getLinkedInRedirectUri());
+    url.searchParams.set("scope", LINKEDIN_SCOPES);
+    url.searchParams.set("state", state);
+    return { url: url.toString() };
+  });
+
+/**
+ * Publish a native LinkedIn post using the /rest/posts API.
+ * - Text-only when no mediaUrl
+ * - Single image when mediaUrl points to an image (jpeg/png)
+ * - Article/link post when linkUrl is provided
+ */
+export const publishToLinkedIn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      commentary: z.string().min(1).max(3000),
+      visibility: z.enum(["PUBLIC", "CONNECTIONS"]).default("PUBLIC"),
+      mediaUrl: z.string().url().optional(),
+      mediaTitle: z.string().max(200).optional(),
+      mediaAltText: z.string().max(300).optional(),
+      linkUrl: z.string().url().optional(),
+      status: z.enum(["published", "draft"]).default("published"),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: acct } = await supabase
+      .from("social_accounts")
+      .select("access_token, token_expires_at, platform_user_id, platform_username")
+      .eq("user_id", userId)
+      .eq("platform", "linkedin")
+      .maybeSingle();
+    if (!acct?.access_token) return { error: "LinkedIn not connected. Connect in Settings first." };
+    if (acct.token_expires_at && new Date(acct.token_expires_at) < new Date()) {
+      return { error: "LinkedIn access expired. Please reconnect in Settings." };
+    }
+    if (!acct.platform_user_id) return { error: "LinkedIn member id missing. Please reconnect." };
+
+    // Draft: just record intent, no API call
+    if (data.status === "draft") {
+      await supabase.from("scheduled_posts").insert({
+        user_id: userId,
+        platform: "linkedin",
+        status: "draft",
+        content: data.commentary.slice(0, 3000),
+        media_url: data.mediaUrl || data.linkUrl || null,
+        scheduled_for: new Date().toISOString(),
+      } as any);
+      return { ok: true, draft: true };
+    }
+
+    const authorUrn = acct.platform_user_id.startsWith("urn:")
+      ? acct.platform_user_id
+      : `urn:li:person:${acct.platform_user_id}`;
+
+    const headers = {
+      Authorization: `Bearer ${acct.access_token}`,
+      "Content-Type": "application/json",
+      "LinkedIn-Version": "202405",
+      "X-Restli-Protocol-Version": "2.0.0",
+    } as Record<string, string>;
+
+    let content: any = undefined;
+
+    // Image upload flow
+    if (data.mediaUrl && /\.(jpe?g|png|gif|webp)(\?|$)/i.test(data.mediaUrl)) {
+      // 1. Initialize upload
+      const initRes = await fetch("https://api.linkedin.com/rest/images?action=initializeUpload", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ initializeUploadRequest: { owner: authorUrn } }),
+      });
+      if (!initRes.ok) {
+        const txt = await initRes.text();
+        console.error("LinkedIn image init failed", initRes.status, txt);
+        return { error: `LinkedIn image init failed: ${initRes.status}` };
+      }
+      const initJson = await initRes.json();
+      const uploadUrl = initJson?.value?.uploadUrl as string;
+      const imageUrn = initJson?.value?.image as string;
+      if (!uploadUrl || !imageUrn) return { error: "LinkedIn upload URL missing" };
+
+      // 2. Fetch image bytes and PUT them
+      const imgRes = await fetch(data.mediaUrl);
+      if (!imgRes.ok) return { error: "Could not fetch image bytes" };
+      const imgBuf = await imgRes.arrayBuffer();
+      const putRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${acct.access_token}` },
+        body: imgBuf,
+      });
+      if (!putRes.ok) {
+        const txt = await putRes.text();
+        console.error("LinkedIn image PUT failed", putRes.status, txt);
+        return { error: `LinkedIn image upload failed: ${putRes.status}` };
+      }
+      content = {
+        media: { id: imageUrn, altText: data.mediaAltText || data.mediaTitle || "" },
+      };
+    } else if (data.linkUrl) {
+      content = { article: { source: data.linkUrl, title: data.mediaTitle || "" } };
+    }
+
+    // 3. Create post
+    const postBody: any = {
+      author: authorUrn,
+      commentary: data.commentary,
+      visibility: data.visibility,
+      distribution: {
+        feedDistribution: "MAIN_FEED",
+        targetEntities: [],
+        thirdPartyDistributionChannels: [],
+      },
+      lifecycleState: "PUBLISHED",
+      isReshareDisabledByAuthor: false,
+    };
+    if (content) postBody.content = content;
+
+    const postRes = await fetch("https://api.linkedin.com/rest/posts", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(postBody),
+    });
+    if (!postRes.ok && postRes.status !== 201) {
+      const txt = await postRes.text();
+      console.error("LinkedIn post failed", postRes.status, txt);
+      return { error: `LinkedIn publish failed (${postRes.status}): ${txt.slice(0, 200)}` };
+    }
+    const postId = postRes.headers.get("x-restli-id") || postRes.headers.get("x-linkedin-id") || null;
+    const postUrl = postId ? `https://www.linkedin.com/feed/update/${encodeURIComponent(postId)}/` : null;
+
+    await supabase.from("scheduled_posts").insert({
+      user_id: userId,
+      platform: "linkedin",
+      status: "published",
+      published_at: new Date().toISOString(),
+      content: data.commentary.slice(0, 3000),
+      platform_post_id: postId,
+      media_url: postUrl || data.mediaUrl || data.linkUrl || null,
+      scheduled_for: new Date().toISOString(),
+    } as any);
+
+    return { ok: true, postId, url: postUrl };
   });
