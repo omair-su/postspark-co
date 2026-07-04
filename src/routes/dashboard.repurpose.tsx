@@ -12,6 +12,7 @@ import { repurposeOneFormat, getMonthlyUsage, saveToSwipeFile } from "@/lib/repu
 import { importFromUrl } from "@/lib/import.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
+import { PostToTikTokButton } from "@/components/PostToTikTokButton";
 import { createTemplate } from "@/lib/templates.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
