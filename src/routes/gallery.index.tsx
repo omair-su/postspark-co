@@ -53,45 +53,100 @@ export const Route = createFileRoute("/gallery/")({
   component: GalleryPage,
 });
 
-interface StockPhotoItem {
-  id: string;
-  source: "unsplash" | "pexels";
-  thumbUrl: string;
-  regularUrl: string;
-  photographerName: string;
-  photographerUrl: string;
-  sourceUrl: string;
-  alt?: string;
-}
-interface StockVideoItem {
-  id: string;
-  thumbUrl: string;
-  previewUrl: string;
-  photographerName: string;
-  photographerUrl: string;
-  sourceUrl: string;
-}
+type StockKind = "photos" | "videos";
+type StockSource = "all" | "unsplash" | "pexels";
 
 function GalleryPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stockPhotos, setStockPhotos] = useState<StockPhotoItem[]>([]);
-  const [stockVideos, setStockVideos] = useState<StockVideoItem[]>([]);
+
+  // Stock feed state
+  const [stockKind, setStockKind] = useState<StockKind>("photos");
+  const [stockSource, setStockSource] = useState<StockSource>("all");
+  const [stockQuery, setStockQuery] = useState("creator content");
+  const [queryInput, setQueryInput] = useState("creator content");
+  const [stockPhotos, setStockPhotos] = useState<StockPhoto[]>([]);
+  const [stockVideos, setStockVideos] = useState<StockVideo[]>([]);
+  const [stockPage, setStockPage] = useState(1);
   const [stockLoading, setStockLoading] = useState(true);
+  const [stockHasMore, setStockHasMore] = useState(true);
+  const [modalAsset, setModalAsset] = useState<
+    | { kind: "photo"; photo: StockPhoto }
+    | { kind: "video"; video: StockVideo }
+    | null
+  >(null);
+
+  const stockRequestKey = useRef(0);
+  const stockSentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     getGalleryFeed()
       .then((data) => setItems(data as Item[]))
       .finally(() => setLoading(false));
-
-    getPublicStockFeed({ data: { query: "creator content" } })
-      .then((res: any) => {
-        setStockPhotos((res?.photos as StockPhotoItem[]) || []);
-        setStockVideos((res?.videos as StockVideoItem[]) || []);
-      })
-      .catch(() => {})
-      .finally(() => setStockLoading(false));
   }, []);
+
+  const loadStock = useCallback(
+    async (nextPage: number, reset: boolean) => {
+      const key = ++stockRequestKey.current;
+      setStockLoading(true);
+      try {
+        const res: any = await getPublicStockFeed({
+          data: {
+            query: stockQuery,
+            kind: stockKind,
+            source: stockKind === "photos" ? stockSource : "all",
+            page: nextPage,
+            orientation: "landscape",
+            perPage: 24,
+          },
+        });
+        if (key !== stockRequestKey.current) return;
+        if (stockKind === "photos") {
+          const items = (res?.photos as StockPhoto[]) || [];
+          setStockPhotos((prev) => (reset ? items : [...prev, ...items]));
+          setStockVideos([]);
+          setStockHasMore(items.length > 0);
+        } else {
+          const items = (res?.videos as StockVideo[]) || [];
+          setStockVideos((prev) => (reset ? items : [...prev, ...items]));
+          setStockPhotos([]);
+          setStockHasMore(items.length > 0);
+        }
+        setStockPage(nextPage);
+      } catch {
+        if (key === stockRequestKey.current) setStockHasMore(false);
+      } finally {
+        if (key === stockRequestKey.current) setStockLoading(false);
+      }
+    },
+    [stockQuery, stockKind, stockSource],
+  );
+
+  // Reload when filters/query change
+  useEffect(() => {
+    setStockPage(1);
+    setStockHasMore(true);
+    loadStock(1, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stockQuery, stockKind, stockSource]);
+
+  // Infinite scroll sentinel
+  useEffect(() => {
+    const el = stockSentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !stockLoading && stockHasMore) {
+          loadStock(stockPage + 1, false);
+        }
+      },
+      { rootMargin: "800px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [stockLoading, stockHasMore, stockPage, loadStock]);
+
+
 
   return (
     <div className="min-h-screen bg-surface">
