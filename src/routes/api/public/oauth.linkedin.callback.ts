@@ -53,7 +53,6 @@ export const Route = createFileRoute("/api/public/oauth/linkedin/callback")({
         // Fetch OIDC userinfo for member urn + display name
         let sub: string | null = null;
         let name = "LinkedIn account";
-        let email: string | null = null;
         try {
           const infoRes = await fetch("https://api.linkedin.com/v2/userinfo", {
             headers: { Authorization: `Bearer ${accessToken}` },
@@ -62,7 +61,6 @@ export const Route = createFileRoute("/api/public/oauth/linkedin/callback")({
             const j = await infoRes.json();
             sub = j?.sub || null;
             name = j?.name || j?.given_name || name;
-            email = j?.email || null;
           }
         } catch {
           /* non-fatal */
