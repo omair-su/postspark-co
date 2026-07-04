@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { publishToTikTok } from "@/lib/socialPublish.functions";
-import { getConnectedSocials } from "@/lib/socialPublish.functions";
+import { publishToTikTok, getConnectedSocials } from "@/lib/socialPublish.functions";
 import { toast } from "sonner";
 import { Loader2, X, Music2 } from "lucide-react";
 
