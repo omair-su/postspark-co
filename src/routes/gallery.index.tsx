@@ -5,6 +5,8 @@ import { getPublicStockFeed } from "@/lib/stockMedia.functions";
 import { Sparkles, Eye, ArrowRight, Loader2, Star, User, Image as ImageIcon, Video as VideoIcon, Info } from "lucide-react";
 import { StockAttribution } from "@/components/stock/StockAttribution";
 import { StockAttributionModal } from "@/components/stock/StockAttributionModal";
+import { NavV3 } from "@/components/landing/v3/NavV3";
+import { FooterV3 } from "@/components/landing/v3/FooterV3";
 import type { StockPhoto, StockVideo } from "@/server/stockMedia.server";
 
 
