@@ -1,47 +1,34 @@
-import iconSrc from "@/assets/postspark-icon.png";
+import iconAsset from "@/assets/postspark-icon-v2.png.asset.json";
 
 interface Props {
   size?: number;
   className?: string;
+  /** Kept for API compatibility — the new mark ships without a halo. */
   glow?: boolean;
 }
 
 /**
- * The official PostSpark brand mark — luxury glass prism spark.
- * Renders the premium PNG asset with an optional halo glow.
- * Use everywhere in place of a "P" placeholder icon.
+ * Official PostSpark brand mark — v2 solid squircle style
+ * (Claude / Perplexity / Gemini / Apple family). No glass, no glow.
  */
-export function PostSparkMark({ size = 32, className = "", glow = true }: Props) {
+export function PostSparkMark({ size = 32, className = "" }: Props) {
   return (
-    <span
-      className={`relative inline-flex items-center justify-center ${className}`}
+    <img
+      src={iconAsset.url}
+      alt=""
+      width={size}
+      height={size}
+      className={`block shrink-0 select-none ${className}`}
       style={{ width: size, height: size }}
+      draggable={false}
+      decoding="async"
       aria-hidden
-    >
-      {glow && (
-        <span
-          className="absolute inset-0 rounded-full blur-md opacity-70"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(124,58,237,0.55) 0%, rgba(6,182,212,0.35) 45%, transparent 75%)",
-          }}
-        />
-      )}
-      <img
-        src={iconSrc}
-        alt=""
-        width={size}
-        height={size}
-        className="relative block h-full w-full object-contain"
-        style={{ filter: "drop-shadow(0 6px 14px rgba(124,58,237,0.45))" }}
-        decoding="async"
-      />
-    </span>
+    />
   );
 }
 
 /**
- * Wordmark: brand mark + "PostSpark" text using Instrument Serif display font.
+ * Wordmark: mark + "PostSpark" text using the display font.
  */
 export function PostSparkWordmark({
   size = 28,
@@ -57,12 +44,12 @@ export function PostSparkWordmark({
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <PostSparkMark size={size} />
       <span
-        className="font-display-lux"
+        className="font-display font-semibold"
         style={{
           color,
           fontSize: size * 0.78,
           lineHeight: 1,
-          letterSpacing: "-0.01em",
+          letterSpacing: "-0.025em",
         }}
       >
         PostSpark

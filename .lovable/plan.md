@@ -1,85 +1,78 @@
-## LinkedIn Direct Publishing Integration
+# Million-Dollar Redesign — Full App Sweep
 
-Mirror the TikTok integration pattern to add LinkedIn OAuth (Sign In with LinkedIn using OpenID Connect) + direct post publishing (Share on LinkedIn), with a polished "million-dollar" UX — connected account card, rich composer modal, media support, and one-click publish from any generated output.
+This is a large multi-phase redesign. I'll ship it in ordered waves so you can review as we go rather than one giant unreviewable dump.
 
-### Prerequisites (secrets)
-Request via `add_secret`:
-- `LINKEDIN_CLIENT_ID`
-- `LINKEDIN_CLIENT_SECRET`
+---
 
-Redirect URI to add in LinkedIn app: `https://postspark.co/api/public/oauth/linkedin/callback`
+## Wave 1 — Foundation (design system + logo + fonts)
 
-Scopes: `openid profile email w_member_social`
+**Goal:** every interior page instantly inherits the new look.
 
-### 1. Server functions — extend `src/lib/socialPublish.functions.ts`
-- `getLinkedInAuthUrl` — signed-state OAuth URL to `https://www.linkedin.com/oauth/v2/authorization`
-- `publishToLinkedIn` — posts via LinkedIn REST `/rest/posts` (LinkedIn-Version header):
-  - Text-only post
-  - Image post: register upload → PUT image bytes → attach `urn:li:image:...`
-  - Video post: same flow with `urn:li:video:...` (from Shorts Studio output)
-  - Article/link post: with URL preview
-  - Visibility: `PUBLIC` or `CONNECTIONS`
-- Reuse `signState` / `verifyOAuthState` helpers
-- Records to `scheduled_posts` (platform=`linkedin`, status=`published`, `platform_post_id`, `media_url`)
+1. **New Logo** — Replace the thin glassy spark with a solid, confident mark in the style of Claude / Perplexity / Gemini / Apple: a filled rounded-square (or soft-squircle) with a single bold spark glyph, no glow, no orbiting dots. Generate as a premium PNG + inline SVG. Update:
+   - `src/components/PostSparkLogo.tsx` (rewrite mark, keep API)
+   - `src/components/landing/v3/PostSparkMark.tsx` (point to new asset)
+   - `public/favicon.svg`, `src/assets/postspark-icon.png`
+2. **Typography** — Load **Geist** (headings) + **Inter** (body) via `<link>` in `src/routes/__root.tsx`; register `--font-display: Geist` and `--font-sans: Inter` in `src/styles.css` `@theme`. Remove old font-face declarations.
+3. **Color tokens** — Refine the interior surface palette to the soft off-white + subtle tint used by modern AI apps (`#FAFAF9` base, `#F5F5F4` panels, `#0F172A` ink, brand `#7C3AED` accent used sparingly). Keep landing v3 palette intact; update `--background`, `--card`, `--muted`, `--border` tokens.
+4. **Sidebar + Dashboard chrome** — Apply new tokens to `DashboardLayout.tsx`, sidebar, top bar, page headers. Tighter type scale, Geist headings.
 
-### 2. OAuth callback route
-Create `src/routes/api/public/oauth.linkedin.callback.ts`:
-- Verify state, exchange code at `https://www.linkedin.com/oauth/v2/accessToken`
-- Fetch profile from `https://api.linkedin.com/v2/userinfo` (OIDC) → `sub` = member URN suffix, name, email, picture
-- Upsert into `social_accounts` (platform=`linkedin`, `platform_user_id`=`urn:li:person:{sub}`, `platform_username`=name, tokens, expiry)
-- Redirect back to `/dashboard/settings?linkedin=connected`
+## Wave 2 — Auth pages (Ayrshare-style)
 
-### 3. Connected Accounts card
-Extend `src/components/ConnectedAccountsCard.tsx`:
-- Add LinkedIn row (logo, "Connected as {name}", token expiry, Connect/Disconnect)
-- Handle `?linkedin=connected` search param toast
-- Reuse existing `disconnectSocial` (extend enum to include `linkedin`)
+Rebuild `/auth` (sign-in) and sign-up in the centered card layout from your screenshot:
+- Centered white card on brand gradient background (our purple, not theirs)
+- New logo above card, "Sign in to your account" heading in Geist
+- Email + Password inputs, "Continue" primary button
+- OR divider, Google + (optional) Apple/GitHub buttons
+- Terms/Privacy/Docs footer links
+- Same for `/auth/signup`, `/auth/reset-password`
 
-### 4. Reusable "Post to LinkedIn" component
-Create `src/components/PostToLinkedInButton.tsx` — premium composer modal:
-- Rich text area (3000-char counter, hashtag helper, emoji picker via existing UI)
-- Media preview: image / video / link card
-- Visibility toggle (Public / Connections only)
-- "Post now" / "Save as draft" (draft = scheduled_posts row, status=`draft`)
-- Optimistic success state with link to live post
-- Connect-first empty state if not linked
-- Loading / error states with retry
+## Wave 3 — Unified pricing on every tool page
 
-### 5. Wire the button into output surfaces
-Add `<PostToLinkedInButton>` alongside existing publish buttons in:
-- `src/routes/dashboard.repurpose.tsx` (per-output card)
-- `src/routes/dashboard.image-studio.tsx` (generated images)
-- `src/routes/dashboard.thumbnail.tsx`
-- Shorts Studio output (video posts)
-- Carousel output (multi-image post — LinkedIn document/carousel via multi-image share)
+- Extract `PricingSection` from landing v3 into a shared `<PremiumPricing />`
+- Replace old pricing blocks in `SegmentPage.tsx` and every `src/routes/tools.*.tsx` landing
+- Keep Free / Pro $19 / Agency $49 / Founding $97 in sync
 
-### 6. Standalone LinkedIn Composer tool
-Create `src/routes/dashboard.linkedin.tsx`:
-- Full page composer: prompt → AI-draft (reuse Claude via `src/server/anthropic.server.ts`) → preview → publish
-- Templates (thought leadership, launch announcement, hiring, milestone, story)
-- Hook variants using existing `hookLab`
-- Character-count optimization, emoji density, hashtag suggestions
-- Schedule for later (integrates `scheduled_posts.scheduled_for`)
-- Add tool tile to Dashboard grid + tools catalog
+## Wave 4 — Premium per-tool landing pages
 
-### 7. DB / no schema changes
-`social_accounts` already supports arbitrary `platform`; no migration needed. `scheduled_posts` already has all required columns.
+For each tool, rebuild the marketing page in v3 style modeled on the top competitor:
+| Tool                | Modeled after           |
+|---------------------|-------------------------|
+| AI Image Studio     | OpenArt / Midjourney    |
+| Thumbnail Generator | Canva / Thumbnail.ai    |
+| Carousel Maker      | Taplio / AuthoredUp     |
+| Shorts Studio       | Opus Clip / Submagic    |
+| LinkedIn Composer   | Taplio                  |
+| Repurpose Studio    | Repurpose.io            |
+| AI Humanizer        | Undetectable.ai         |
+| Reply Generator     | MagicReply              |
+| Blog → Newsletter   | Beehiiv                 |
 
-### Technical notes
-- LinkedIn REST API uses `LinkedIn-Version: 202405` + `X-Restli-Protocol-Version: 2.0.0` headers
-- Access tokens last 60 days; store `token_expires_at`, prompt reconnect (no refresh token for standard tier unless requested)
-- Attribution/author URN format: `urn:li:person:{sub}` from OIDC
-- Image/video upload = `/rest/images?action=initializeUpload` then PUT to returned uploadUrl
-- All calls server-side (secrets never leak to client)
+Each gets: hero with product screenshot mock, feature bento, how-it-works, testimonials, FAQ, unified pricing, final CTA. Copy is premium, benefit-first, positions the model tier we use.
 
-### Files
-**Create:**
-- `src/routes/api/public/oauth.linkedin.callback.ts`
-- `src/components/PostToLinkedInButton.tsx`
-- `src/routes/dashboard.linkedin.tsx`
+## Wave 5 — Blog + Gallery + remaining surfaces
 
-**Edit:**
-- `src/lib/socialPublish.functions.ts` (auth URL + publish + disconnect enum)
-- `src/components/ConnectedAccountsCard.tsx` (LinkedIn row)
-- `src/routes/dashboard.repurpose.tsx`, `dashboard.image-studio.tsx`, `dashboard.thumbnail.tsx`, Shorts + Carousel output surfaces
-- `src/components/DashboardLayout.tsx` + tools catalog (LinkedIn Composer entry)
+- Blog list + post page: Geist headings, editorial layout, new author card
+- Gallery: card grid on soft surface, new filters styled with tokens
+- Settings, billing, onboarding: same token pass
+
+---
+
+## Technical notes
+
+- Zero business-logic changes — only visual/token/copy/layout
+- New logo art generated via `imagegen` (premium tier, transparent PNG)
+- Tailwind v4: all font/color changes go in `src/styles.css` `@theme`
+- Font loading via `<link rel="preconnect">` + stylesheet in root head (never `@import` a URL in styles.css)
+- Old fonts and old logo assets deleted only after all references migrated
+
+---
+
+## What I need from you before starting
+
+**Scope confirmation** — this is 5+ waves and ~40–60 files. Do you want me to:
+
+**A.** Ship all 5 waves back-to-back in one long run (fastest, biggest single diff)
+**B.** Ship Wave 1 + Wave 2 first (new logo + fonts + tokens + auth), you review, then continue
+**C.** Different order — tell me which wave matters most and I start there
+
+Reply "A", "B", or "C + your priority" and I'll begin immediately.
