@@ -1443,9 +1443,9 @@ h1, h2, h3, h4, h5, h6 {
    geometric look in PostSpark's brand screenshots.
 ============================================================ */
 .ps-display {
-  font-family: "Inter", system-ui, -apple-system, sans-serif !important;
-  font-weight: 800 !important;
-  letter-spacing: -0.025em;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em;
 }
 .ps-display-accent {
   background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
