@@ -493,6 +493,9 @@ function GalleryPage() {
             </p>
           )}
         </section>
+        </div>
+
+        <FooterV3 />
       </main>
 
       {modalAsset && (
