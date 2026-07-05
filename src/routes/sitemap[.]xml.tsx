@@ -3,9 +3,10 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const SITE = "https://postspark.co";
 
-// Note: /onboarding, /reset-password, /unsubscribe, and /auth/callback are
-// intentionally excluded — they are private user-flow pages disallowed in
-// robots.txt and should not be indexed.
+// Note: /onboarding, /reset-password, /unsubscribe, /auth/callback, /funnel,
+// and /mcp are intentionally excluded — /funnel and /mcp are admin/internal
+// endpoints, and the others are private user-flow pages disallowed in
+// robots.txt and marked noindex. They should not appear in the sitemap.
 const STATIC_ROUTES: Array<{ path: string; priority: string; changefreq: string }> = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
   { path: "/pricing", priority: "0.9", changefreq: "monthly" },
