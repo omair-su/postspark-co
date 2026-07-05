@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, X, Sparkles } from "lucide-react";
 import { NavV3 } from "@/components/landing/v3/NavV3";
 import { FooterV3 } from "@/components/landing/v3/FooterV3";
-import { PricingV2 } from "@/components/landing/v2/PricingV2";
+import { PricingV3 } from "@/components/landing/v3/PricingV3";
 import { FAQv2 } from "@/components/landing/v2/FAQv2";
 import { Breadcrumbs, breadcrumbJsonLd, type Crumb } from "@/components/marketing/Breadcrumbs";
 import { QuickAnswer } from "@/components/marketing/QuickAnswer";
