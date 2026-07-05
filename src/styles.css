@@ -52,6 +52,17 @@
   --color-electric-foreground: var(--electric-foreground);
   --color-surface: var(--surface);
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Geist', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Utility classes for the display font (Geist). */
+.font-display {
+  font-family: var(--font-display);
+  font-feature-settings: "ss01", "cv11";
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 :root {
