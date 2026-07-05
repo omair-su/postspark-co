@@ -190,9 +190,7 @@ export function SegmentPage(p: SegmentPageProps) {
           </section>
         )}
 
-        <div className="dark-pricing-wrap">
-          <PricingV2 />
-        </div>
+        <PricingV3 />
         <div className="dark-faq-wrap">
           <FAQv2 />
         </div>
