@@ -191,9 +191,7 @@ export function SegmentPage(p: SegmentPageProps) {
         )}
 
         <PricingV3 />
-        <div className="dark-faq-wrap">
-          <FAQv2 />
-        </div>
+        <FAQV3 />
         {p.path && (
           <div className="dark-related-wrap">
             <RelatedTools currentPath={p.path} />
