@@ -151,91 +151,148 @@ function GalleryPage() {
 
 
   return (
-    <div className="min-h-screen bg-surface">
-      <header className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg gradient-electric">
-              <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
-            </div>
-            <span className="text-sm font-bold text-foreground">PostSpark</span>
-          </Link>
-          <Link
-            to="/signup"
-            className="rounded-lg gradient-electric px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
-          >
-            Try free
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen lv3-aurora" style={{ color: "#FAFAF9" }}>
+      <NavV3 />
 
-      <main className="mx-auto max-w-5xl px-4 py-10">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Community Gallery</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Real posts repurposed by PostSpark users. Get inspired.
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="mt-12 flex justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : items.length === 0 ? (
-          <div className="mt-12 rounded-xl border border-border bg-card p-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              No public posts yet. Be the first to share!
+      <main>
+        {/* HERO */}
+        <section className="relative overflow-hidden lv3-grain">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 lv3-drift"
+            style={{
+              background:
+                "radial-gradient(40% 30% at 20% 20%, rgba(124,58,237,0.32), transparent 70%), radial-gradient(35% 25% at 80% 30%, rgba(6,182,212,0.24), transparent 70%)",
+            }}
+          />
+          <div className="relative mx-auto max-w-5xl px-5 sm:px-8 pt-32 sm:pt-40 pb-12 text-center">
+            <span className="lv3-chip lv3-fade-up">
+              <Sparkles className="h-3.5 w-3.5" style={{ color: "#A78BFA" }} />
+              Community Gallery
+            </span>
+            <h1
+              className="mt-6 font-display-lux text-balance lv3-fade-up"
+              style={{
+                fontSize: "clamp(40px, 6vw, 76px)",
+                lineHeight: 1.03,
+                color: "#FAFAF9",
+                maxWidth: "20ch",
+                marginInline: "auto",
+              }}
+            >
+              Real posts,{" "}
+              <em className="lv3-text-gradient not-italic" style={{ fontStyle: "italic" }}>
+                real creators.
+              </em>
+            </h1>
+            <p
+              className="mx-auto mt-6 max-w-2xl lv3-fade-up"
+              style={{ fontSize: "clamp(16px, 1.3vw, 19px)", lineHeight: 1.6, color: "rgba(250,250,249,0.7)" }}
+            >
+              Get inspired by content repurposed with PostSpark — then remix any of it into your own voice in a click.
             </p>
           </div>
-        ) : (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <Link
-                key={item.id}
-                to="/gallery/$slug"
-                params={{ slug: item.slug }}
-                className="group flex flex-col rounded-xl border border-border bg-card p-5 transition-all hover:border-primary hover:shadow-md"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="line-clamp-2 text-base font-semibold text-foreground group-hover:text-primary">
-                    {item.title}
-                  </h2>
-                  {item.featured && (
-                    <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">
-                      <Star className="h-3 w-3" /> Featured
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2 line-clamp-3 flex-1 text-sm text-muted-foreground">{item.preview}</p>
-                <div className="mt-4 flex flex-wrap gap-1">
-                  {item.formats.slice(0, 4).map((f) => (
-                    <span
-                      key={f}
-                      className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground"
+        </section>
+
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 pb-24">
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#A78BFA" }} />
+            </div>
+          ) : items.length === 0 ? (
+            <div className="rounded-3xl lv3-glass lv3-gradient-border p-16 text-center">
+              <p className="font-display-lux text-xl" style={{ color: "#FAFAF9" }}>
+                No public posts yet.
+              </p>
+              <p className="mt-2 text-sm" style={{ color: "rgba(250,250,249,0.65)" }}>
+                Be the first to share your work with the community.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {items.map((item) => (
+                <Link
+                  key={item.id}
+                  to="/gallery/$slug"
+                  params={{ slug: item.slug }}
+                  className="group flex flex-col rounded-3xl p-6 transition-all"
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(14px)",
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h2
+                      className="line-clamp-2 font-display-lux text-lg"
+                      style={{ color: "#FAFAF9", lineHeight: 1.2 }}
                     >
-                      {f}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    {item.author?.avatar ? (
-                      <img src={item.author.avatar} alt="" className="h-4 w-4 rounded-full object-cover" />
-                    ) : (
-                      <User className="h-3 w-3" />
+                      {item.title}
+                    </h2>
+                    {item.featured && (
+                      <span
+                        className="inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+                        style={{
+                          background: "rgba(201,168,124,0.15)",
+                          color: "#E2C18A",
+                          border: "1px solid rgba(201,168,124,0.3)",
+                        }}
+                      >
+                        <Star className="h-3 w-3" /> Featured
+                      </span>
                     )}
-                    <span className="truncate max-w-[100px]">{item.author?.name || "Anonymous"}</span>
-                    <span>·</span>
-                    <Eye className="h-3 w-3" /> {item.views}
-                  </span>
-                  <span className="flex items-center gap-1 text-primary">
-                    View <ArrowRight className="h-3 w-3" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+                  </div>
+                  <p
+                    className="mt-3 line-clamp-3 flex-1 text-sm"
+                    style={{ color: "rgba(250,250,249,0.65)", lineHeight: 1.6 }}
+                  >
+                    {item.preview}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {item.formats.slice(0, 4).map((f) => (
+                      <span
+                        key={f}
+                        className="rounded-full px-2 py-0.5 text-[10px] font-medium capitalize"
+                        style={{
+                          background: "rgba(124,58,237,0.12)",
+                          color: "#C4B5FD",
+                          border: "1px solid rgba(124,58,237,0.25)",
+                        }}
+                      >
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                  <div
+                    className="mt-4 flex items-center justify-between text-[11px]"
+                    style={{ color: "rgba(250,250,249,0.55)" }}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      {item.author?.avatar ? (
+                        <img
+                          src={item.author.avatar}
+                          alt=""
+                          className="h-4 w-4 rounded-full object-cover"
+                          style={{ border: "1px solid rgba(255,255,255,0.15)" }}
+                        />
+                      ) : (
+                        <User className="h-3 w-3" />
+                      )}
+                      <span className="truncate max-w-[100px]">{item.author?.name || "Anonymous"}</span>
+                      <span>·</span>
+                      <Eye className="h-3 w-3" /> {item.views}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-semibold" style={{ color: "#A78BFA" }}>
+                      View <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
 
         {/* Stock inspiration: Unsplash + Pexels photos and Pexels videos */}
         <section className="mt-16">
