@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, X, Sparkles } from "lucide-react";
 import { NavV3 } from "@/components/landing/v3/NavV3";
 import { FooterV3 } from "@/components/landing/v3/FooterV3";
-import { PricingV2 } from "@/components/landing/v2/PricingV2";
-import { FAQv2 } from "@/components/landing/v2/FAQv2";
+import { PricingV3 } from "@/components/landing/v3/PricingV3";
+import { FAQV3 } from "@/components/landing/v3/FAQV3";
 import { Breadcrumbs, breadcrumbJsonLd, type Crumb } from "@/components/marketing/Breadcrumbs";
 import { QuickAnswer } from "@/components/marketing/QuickAnswer";
 import { RelatedTools } from "@/components/marketing/RelatedTools";
@@ -115,6 +115,128 @@ export function SegmentPage(p: SegmentPageProps) {
                 </li>
               ))}
             </ul>
+
+            {/* Live preview mockup */}
+            <div className="relative mt-16 lv3-fade-up">
+              <div
+                aria-hidden
+                className="absolute inset-x-0 -top-10 mx-auto h-72 max-w-4xl blur-3xl opacity-60"
+                style={{
+                  background:
+                    "radial-gradient(60% 60% at 50% 40%, rgba(124,58,237,0.55) 0%, rgba(6,182,212,0.3) 50%, transparent 80%)",
+                }}
+              />
+              <div
+                className="relative mx-auto max-w-4xl rounded-3xl overflow-hidden"
+                style={{
+                  background: "linear-gradient(180deg, rgba(30,20,50,0.85), rgba(15,10,30,0.9))",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  boxShadow: "0 60px 120px -30px rgba(0,0,0,0.7), 0 0 0 1px rgba(167,139,250,0.12)",
+                }}
+              >
+                {/* window chrome */}
+                <div
+                  className="flex items-center gap-2 px-5 py-3 border-b"
+                  style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}
+                >
+                  <span className="h-3 w-3 rounded-full" style={{ background: "#FF5F57" }} />
+                  <span className="h-3 w-3 rounded-full" style={{ background: "#FEBC2E" }} />
+                  <span className="h-3 w-3 rounded-full" style={{ background: "#28C840" }} />
+                  <span
+                    className="ml-3 text-[11px] font-mono"
+                    style={{ color: "rgba(250,250,249,0.5)" }}
+                  >
+                    postspark.co · {p.path ?? "/"}
+                  </span>
+                </div>
+                <div className="grid gap-4 p-6 sm:p-8 sm:grid-cols-5">
+                  <div className="sm:col-span-2 space-y-3">
+                    <p className="text-[10px] uppercase tracking-widest" style={{ color: "#A78BFA" }}>
+                      Input
+                    </p>
+                    <div
+                      className="rounded-xl p-4 text-[13px] leading-relaxed"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        color: "rgba(250,250,249,0.72)",
+                        minHeight: 140,
+                      }}
+                    >
+                      <div className="h-2 w-3/4 rounded-full mb-2" style={{ background: "rgba(167,139,250,0.35)" }} />
+                      <div className="h-2 w-full rounded-full mb-2" style={{ background: "rgba(255,255,255,0.08)" }} />
+                      <div className="h-2 w-5/6 rounded-full mb-2" style={{ background: "rgba(255,255,255,0.08)" }} />
+                      <div className="h-2 w-2/3 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }} />
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px]" style={{ color: "rgba(250,250,249,0.5)" }}>
+                      <Sparkles className="h-3 w-3" style={{ color: "#A78BFA" }} />
+                      Powered by Claude Sonnet 4.5
+                    </div>
+                  </div>
+                  <div className="sm:col-span-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] uppercase tracking-widest" style={{ color: "#34D399" }}>
+                        Output — in your voice
+                      </p>
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: "rgba(52,211,153,0.12)",
+                          color: "#34D399",
+                          border: "1px solid rgba(52,211,153,0.3)",
+                        }}
+                      >
+                        ● Live
+                      </span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="rounded-xl p-4"
+                          style={{
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.07)",
+                          }}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <div
+                              className="h-5 w-5 rounded-md"
+                              style={{
+                                background:
+                                  i % 2 === 0
+                                    ? "linear-gradient(135deg,#7C3AED,#A78BFA)"
+                                    : "linear-gradient(135deg,#06B6D4,#67E8F9)",
+                              }}
+                            />
+                            <span className="text-[11px] font-semibold" style={{ color: "#FAFAF9" }}>
+                              {["LinkedIn", "X thread", "Newsletter", "Reel script"][i]}
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full mb-1.5" style={{ background: "rgba(255,255,255,0.09)" }} />
+                          <div className="h-1.5 w-11/12 rounded-full mb-1.5" style={{ background: "rgba(255,255,255,0.09)" }} />
+                          <div className="h-1.5 w-4/5 rounded-full" style={{ background: "rgba(255,255,255,0.09)" }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* trusted-by strip */}
+            <div className="mt-14 lv3-fade-up">
+              <p className="text-center text-[11px] uppercase tracking-widest" style={{ color: "rgba(250,250,249,0.4)" }}>
+                Trusted by 2,400+ creators & agencies shipping daily
+              </p>
+              <div className="mt-5 flex flex-wrap justify-center items-center gap-x-10 gap-y-3 opacity-60">
+                {["Loom", "Notion", "Riverside", "Descript", "Substack", "Beehiiv"].map((n) => (
+                  <span key={n} className="font-display-lux text-lg" style={{ color: "rgba(250,250,249,0.7)" }}>
+                    {n}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -190,12 +312,8 @@ export function SegmentPage(p: SegmentPageProps) {
           </section>
         )}
 
-        <div className="dark-pricing-wrap">
-          <PricingV2 />
-        </div>
-        <div className="dark-faq-wrap">
-          <FAQv2 />
-        </div>
+        <PricingV3 />
+        <FAQV3 />
         {p.path && (
           <div className="dark-related-wrap">
             <RelatedTools currentPath={p.path} />
