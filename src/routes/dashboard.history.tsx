@@ -392,27 +392,31 @@ function HistoryPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">My History</h1>
-          <p className="mt-1 text-sm text-muted-foreground">View all your past repurposes.</p>
+    <div className="mx-auto max-w-3xl space-y-5">
+      <section className="ds-page-hero">
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
+            <span className="ds-page-hero-eyebrow"><Clock className="h-3 w-3" /> Archive</span>
+            <h1 className="ds-page-hero-title">My <span className="grad">History</span></h1>
+            <p className="ds-page-hero-sub">Every past generation, searchable and one-click reusable.</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setBulkMode(!bulkMode)}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${bulkMode ? "border-[#a78bfa]/60 bg-[#7c3aed]/20 text-white" : "border-white/15 bg-white/[0.04] text-white/70 hover:text-white"}`}
+            >
+              {bulkMode ? "Cancel" : "Select"}
+            </button>
+            <button
+              onClick={() => setFilterFav(!filterFav)}
+              className={`flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${filterFav ? "border-yellow-400/60 bg-yellow-400/10 text-yellow-300" : "border-white/15 bg-white/[0.04] text-white/70 hover:text-white"}`}
+            >
+              <Star className={`h-3 w-3 ${filterFav ? "fill-yellow-400 text-yellow-400" : ""}`} /> Favorites
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setBulkMode(!bulkMode)}
-            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${bulkMode ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
-          >
-            {bulkMode ? "Cancel" : "Select"}
-          </button>
-          <button
-            onClick={() => setFilterFav(!filterFav)}
-            className={`flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${filterFav ? "border-yellow-400 bg-yellow-400/10 text-yellow-600" : "border-border text-muted-foreground hover:text-foreground"}`}
-          >
-            <Star className={`h-3 w-3 ${filterFav ? "fill-yellow-400 text-yellow-400" : ""}`} /> Favorites
-          </button>
-        </div>
-      </div>
+      </section>
+
 
       {/* Search */}
       <div className="mt-4 relative">

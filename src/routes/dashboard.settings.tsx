@@ -66,9 +66,13 @@ function SettingsPage() {
   const avatarUrl = user?.user_metadata?.avatar_url;
 
   return (
-    <div className="mx-auto max-w-xl animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Manage your account and subscription.</p>
+    <div className="mx-auto max-w-xl animate-fade-in space-y-5">
+      <section className="ds-page-hero">
+        <span className="ds-page-hero-eyebrow">⚙︎ Account</span>
+        <h1 className="ds-page-hero-title">Your <span className="grad">Settings</span></h1>
+        <p className="ds-page-hero-sub">Profile, plan, and preferences — all in one place.</p>
+      </section>
+
 
       {/* Profile card */}
       <div className="mt-6 rounded-xl border border-border bg-card p-5">
