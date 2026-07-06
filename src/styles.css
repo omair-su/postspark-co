@@ -2239,19 +2239,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Elevate default rounded-xl cards inside the dashboard canvas to a
-   soft glass surface so history/settings cards stop feeling flat. */
+   soft surface on the light canvas so cards, inputs, and borders stay visible. */
 .ds-canvas .rounded-xl.border.border-border.bg-card,
 .ds-canvas .rounded-lg.border.border-border.bg-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02));
-  border-color: rgba(255,255,255,0.08);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 20px 40px -30px rgba(0,0,0,0.6);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, #ffffff, #fafafb);
+  border-color: var(--ds-border);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 10px 30px -20px rgba(15,23,42,0.15);
   color: var(--ds-text);
 }
 .ds-canvas .text-foreground { color: var(--ds-text) !important; }
 .ds-canvas .text-muted-foreground { color: var(--ds-muted) !important; }
-.ds-canvas .bg-background { background: rgba(255,255,255,0.04) !important; }
-.ds-canvas .bg-muted { background: rgba(255,255,255,0.05) !important; }
-.ds-canvas .border-input { border-color: rgba(255,255,255,0.12) !important; }
-.ds-canvas .border-border { border-color: rgba(255,255,255,0.08) !important; }
+.ds-canvas .bg-background { background: #ffffff !important; }
+.ds-canvas .bg-muted { background: #f5f3ff !important; }
+.ds-canvas .border-input { border-color: var(--ds-border-strong, #e2e8f0) !important; }
+.ds-canvas .border-border { border-color: var(--ds-border, #e2e8f0) !important; }
 
