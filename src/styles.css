@@ -2254,3 +2254,216 @@ h1, h2, h3, h4, h5, h6 {
 .ds-canvas .border-input { border-color: var(--ds-border-strong, #e2e8f0) !important; }
 .ds-canvas .border-border { border-color: var(--ds-border, #e2e8f0) !important; }
 
+/* ════════════════════════════════════════════════════════════════════
+   PREMIUM DASHBOARD THEME — v3 aurora
+   Scoped to .dashboard-shell so landing / pricing / auth are untouched.
+   ════════════════════════════════════════════════════════════════════ */
+.dashboard-shell {
+  --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --ds-bg: #F8F7FC;
+  --ds-bg-elev: #FFFFFF;
+  --ds-card: #FFFFFF;
+  --ds-card-hover: #FAFAFB;
+  --ds-border: rgba(0,0,0,0.07);
+  --ds-border-strong: rgba(107,78,255,0.2);
+  --ds-text: #1A1A2E;
+  --ds-muted: #4B4B6B;
+  --ds-accent: #6B4EFF;
+  --ds-accent-soft: #8B6FFF;
+
+  font-family: var(--font-body);
+  color: var(--ds-text);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--ds-bg);
+}
+
+.dashboard-shell input,
+.dashboard-shell textarea,
+.dashboard-shell select,
+.dashboard-shell button {
+  font-family: var(--font-body);
+  color: var(--ds-text);
+}
+
+.dashboard-shell h1,
+.dashboard-shell h2,
+.dashboard-shell h3,
+.dashboard-shell h4,
+.dashboard-shell h5,
+.dashboard-shell h6,
+.dashboard-shell .ds-page-title,
+.dashboard-shell .ds-stat-num,
+.dashboard-shell .ds-hero-title {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  color: var(--ds-text);
+}
+.dashboard-shell .ds-page-title { font-size: 22px; font-weight: 700; }
+.dashboard-shell .ds-stat-num { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.dashboard-shell .ds-eyebrow,
+.dashboard-shell .section-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9090AA;
+}
+.dashboard-shell p { color: var(--ds-muted); }
+
+/* Main canvas — purple-tinted off-white with a barely-there grid */
+.dashboard-shell .ds-canvas {
+  background: var(--ds-bg);
+}
+.dashboard-shell .ds-canvas::before {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(107,78,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107,78,255,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: none;
+  opacity: 1;
+}
+
+/* Top navbar */
+.dashboard-shell .ds-header {
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(107,78,255,0.08);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Standard cards */
+.dashboard-shell .ds-card {
+  background: #FFFFFF;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+}
+.dashboard-shell .ds-card:focus-within {
+  border-color: rgba(107,78,255,0.2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 0 0 3px rgba(107,78,255,0.06);
+}
+.dashboard-shell .ds-card-hover:hover {
+  transform: translateY(-1px);
+  border-color: rgba(107,78,255,0.2);
+  box-shadow: 0 6px 20px rgba(107,78,255,0.10), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* Featured / dark hero card (dashboard welcome) */
+.dashboard-shell .ds-card-hero {
+  background: linear-gradient(135deg, #13112A 0%, #1A0F35 50%, #0D1628 100%);
+  border: 1px solid rgba(107,78,255,0.25);
+  box-shadow: 0 8px 32px rgba(107,78,255,0.15), 0 2px 8px rgba(0,0,0,0.3);
+  color: #FFFFFF;
+}
+.dashboard-shell .ds-card-hero *,
+.dashboard-shell .ds-card-hero .ds-page-title,
+.dashboard-shell .ds-card-hero h1,
+.dashboard-shell .ds-card-hero h2,
+.dashboard-shell .ds-card-hero h3 { color: #FFFFFF; }
+.dashboard-shell .ds-card-hero p,
+.dashboard-shell .ds-card-hero .ds-muted-text,
+.dashboard-shell .ds-card-hero .text-muted-foreground { color: rgba(255,255,255,0.55) !important; }
+
+/* Featured (soft violet) cards */
+.dashboard-shell .ds-card-feature {
+  background: linear-gradient(135deg, #FAFAF8 0%, #F0ECFF 100%);
+  border: 0.5px solid rgba(107,78,255,0.15);
+  box-shadow: 0 4px 16px rgba(107,78,255,0.08);
+  border-radius: 14px;
+}
+
+/* Primary CTA / pill button */
+.dashboard-shell .ds-cta-pill,
+.dashboard-shell .ds-btn-primary {
+  background: linear-gradient(135deg, #6B4EFF 0%, #8B6FFF 100%);
+  color: #FFFFFF;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(107,78,255,0.35);
+  transition: transform .18s ease, box-shadow .18s ease;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+}
+.dashboard-shell .ds-cta-pill:hover,
+.dashboard-shell .ds-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(107,78,255,0.42);
+}
+
+/* Search pill / chips */
+.dashboard-shell .ds-search-pill {
+  background: #FFFFFF;
+  border: 1px solid rgba(107,78,255,0.12);
+  color: var(--ds-muted);
+}
+.dashboard-shell .ds-chip {
+  background: #FFFFFF;
+  border: 1px solid rgba(107,78,255,0.12);
+  color: var(--ds-text);
+}
+.dashboard-shell .ds-chip-accent {
+  background: rgba(107,78,255,0.08);
+  border-color: rgba(107,78,255,0.2);
+  color: #6B4EFF;
+}
+
+/* Sidebar — deep navy with purple glow */
+.lux-sidebar {
+  background:
+    radial-gradient(ellipse 200px 300px at 0% 0%, rgba(107,78,255,0.06), transparent 70%),
+    linear-gradient(180deg, #13112A 0%, #0F0F1A 40%, #0A0A14 100%) !important;
+  border-right: 1px solid #1E1B2E;
+  font-family: var(--font-body);
+}
+.lux-sidebar .lux-group-label,
+.lux-sidebar [class*="uppercase"] {
+  font-family: var(--font-display);
+  color: rgba(255,255,255,0.25);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.lux-sidebar .lux-nav-item {
+  color: rgba(226,224,240,0.7);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  border-left: 2px solid transparent;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+.lux-sidebar .lux-nav-item:hover {
+  background: rgba(255,255,255,0.04);
+  border-left-color: rgba(107,78,255,0.3);
+  color: #FFFFFF;
+}
+.lux-sidebar .lux-nav-active {
+  background: linear-gradient(90deg, rgba(107,78,255,0.15), transparent) !important;
+  border-left: 2px solid #6B4EFF !important;
+  color: #FFFFFF !important;
+}
+.lux-sidebar .lux-nav-active .lux-nav-icon { color: #8B6FFF; }
+
+/* Status colors */
+.dashboard-shell .ds-status-success { color: #059669; background: rgba(5,150,105,0.08); }
+.dashboard-shell .ds-status-warning { color: #D97706; background: rgba(245,158,11,0.08); }
+.dashboard-shell .ds-status-error   { color: #DC2626; background: rgba(239,68,68,0.08); }
+.dashboard-shell .ds-status-info    { color: #2563EB; background: rgba(59,130,246,0.08); }
+.dashboard-shell .ds-status-dot { background: #059669; }
+
+/* Muted / helper text */
+.dashboard-shell .ds-muted-text,
+.dashboard-shell .text-muted-foreground { color: #9090AA !important; }
+
+/* Links / accent inline text */
+.dashboard-shell a { color: #6B4EFF; }
+.dashboard-shell a:hover { color: #8B6FFF; }
+
