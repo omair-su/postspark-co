@@ -1363,6 +1363,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      cleanup_cron_job_run_details: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
