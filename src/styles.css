@@ -2467,3 +2467,53 @@ h1, h2, h3, h4, h5, h6 {
 .dashboard-shell a { color: #6B4EFF; }
 .dashboard-shell a:hover { color: #8B6FFF; }
 
+
+/* ============================================================
+   VISIBILITY SAFETY NET — added 2026-07-09
+   Ensures text inside the two dark hero surfaces (.ps-hero and
+   .ds-card-hero) stays legible regardless of upstream tokens.
+   ============================================================ */
+
+/* Premium hero (dashboard welcome) — force readable text on dark bg */
+.dashboard-shell .ps-hero,
+.dashboard-shell .ps-hero * {
+  color: rgba(255,255,255,0.92);
+}
+.dashboard-shell .ps-hero p,
+.dashboard-shell .ps-hero .ds-muted-text,
+.dashboard-shell .ps-hero .text-muted-foreground {
+  color: rgba(255,255,255,0.72) !important;
+}
+.dashboard-shell .ps-hero h1,
+.dashboard-shell .ps-hero h2,
+.dashboard-shell .ps-hero h3,
+.dashboard-shell .ps-hero .ps-hero-username {
+  color: #FFFFFF !important;
+}
+.dashboard-shell .ps-hero .ds-eyebrow,
+.dashboard-shell .ps-hero .ps-hero-greeting {
+  color: rgba(196,181,253,0.95) !important;
+}
+.dashboard-shell .ps-hero .ds-chip,
+.dashboard-shell .ps-hero .ds-chip * {
+  color: rgba(255,255,255,0.92) !important;
+}
+
+/* Command Center / other .ds-card-hero surfaces — same fix */
+.dashboard-shell .ds-card-hero .ds-eyebrow {
+  color: rgba(196,181,253,0.95) !important;
+}
+.dashboard-shell .ds-card-hero .ds-muted-text,
+.dashboard-shell .ds-card-hero p.text-muted-foreground {
+  color: rgba(255,255,255,0.65) !important;
+}
+.dashboard-shell .ds-card-hero h1,
+.dashboard-shell .ds-card-hero h2,
+.dashboard-shell .ds-card-hero h3 {
+  color: #FFFFFF !important;
+}
+
+/* Recent-outputs pill labels (purple-tinted badge on dark card) */
+.dashboard-shell .ds-card-hero .bg-\[\#7c3aed\]\/20 {
+  color: #E9D5FF !important;
+}
