@@ -95,7 +95,7 @@ export function FooterV3() {
         </div>
         <div className="mt-14 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style={{ borderColor: "rgba(255,255,255,0.06)", color: "rgba(250,250,249,0.5)" }}>
           <div>© {new Date().getFullYear()} PostSpark. Built for creators.</div>
-          <div>Powered by Claude Sonnet 4.5 · GPT-Image-2 · Flux 1.1 Pro · Gemini 3</div>
+          <div>Powered by Claude Sonnet 5 · GPT-Image-2 · Flux 1.1 Pro · Gemini 3</div>
         </div>
       </div>
     </footer>

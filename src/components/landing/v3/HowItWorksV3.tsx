@@ -13,7 +13,7 @@ const STEPS = [
     icon: iconBrain,
     n: "02",
     title: "AI repurposes in your voice",
-    body: "Claude Sonnet 4.5 — tuned to your Brand Voice — spins 30+ platform-native pieces with hooks that actually work.",
+    body: "Claude Sonnet 5 — tuned to your Brand Voice — spins 30+ platform-native pieces with hooks that actually work.",
   },
   {
     icon: iconStack,

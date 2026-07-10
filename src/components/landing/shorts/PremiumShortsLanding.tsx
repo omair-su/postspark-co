@@ -164,7 +164,7 @@ export function PremiumShortsLanding(p: PremiumShortsLandingProps) {
               <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-[12px]" style={{ color: "#94A3B8" }}>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#10B981" }} />
-                  Powered by Claude Sonnet 4.5
+                  Powered by Claude Sonnet 5
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Star className="h-3.5 w-3.5" style={{ color: GOLD }} fill={GOLD} />

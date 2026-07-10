@@ -13,7 +13,7 @@ export function HeroV3() {
         <div className="flex flex-col items-center text-center">
           <span className="lv3-chip lv3-fade-up">
             <Sparkles className="h-3.5 w-3.5" style={{ color: "#A78BFA" }} />
-            New · Powered by Claude Sonnet 4.5
+            New · Powered by Claude Sonnet 5
           </span>
 
           <h1
