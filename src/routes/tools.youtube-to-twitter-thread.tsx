@@ -63,7 +63,7 @@ function YouTubeToTwitterThreadPage() {
         { platform: "X · 9 tweets", hook: "Everyone says 'follow your curiosity'. Nobody tells you the math that makes it work. So I built it:", cta: "Tools below ↓", tag: "Score 88" },
       ]}
       faq={[
-        { q: "How long does generation take?", a: "About 8 seconds for a 7-tweet thread. We use Claude Sonnet 4.5 with structured tool calls — no streaming hallucination, no fluff." },
+        { q: "How long does generation take?", a: "About 8 seconds for a 7-tweet thread. We use Claude Sonnet 5 with structured tool calls — no streaming hallucination, no fluff." },
         { q: "Will it match my X voice?", a: "On Pro, yes. Train PostSpark on 5 of your best-performing tweets and it copies your rhythm, vocabulary, and CTA style." },
         { q: "Can it pull the transcript itself?", a: "Yes — paste any YouTube URL and PostSpark fetches the transcript automatically. No copying or downloads needed." },
         { q: "Does it support Threads (Meta)?", a: "Yes. Same engine, retuned for the Threads format and voice." },

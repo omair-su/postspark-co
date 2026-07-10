@@ -170,7 +170,7 @@ export function SegmentPage(p: SegmentPageProps) {
                     </div>
                     <div className="flex items-center gap-2 text-[11px]" style={{ color: "rgba(250,250,249,0.5)" }}>
                       <Sparkles className="h-3 w-3" style={{ color: "#A78BFA" }} />
-                      Powered by Claude Sonnet 4.5
+                      Powered by Claude Sonnet 5
                     </div>
                   </div>
                   <div className="sm:col-span-3 space-y-3">

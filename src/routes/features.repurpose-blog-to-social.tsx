@@ -46,7 +46,7 @@ function Page() {
       ]}
       steps={[
         { title: "Paste your blog URL", description: "Or drop in raw markdown / text. PostSpark handles the rest." },
-        { title: "AI generates outputs", description: "Claude Sonnet 4.5 extracts key insights and rewrites for each format." },
+        { title: "AI generates outputs", description: "Claude Sonnet 5 extracts key insights and rewrites for each format." },
         { title: "Copy, edit, publish", description: "Every post is editable. Copy with one click or schedule via your favorite tool." },
       ]}
       outputs={["10 Tweets", "Twitter Thread", "3 LinkedIn Posts", "Email Newsletter", "YouTube Script", "Instagram Carousel"]}

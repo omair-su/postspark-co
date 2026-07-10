@@ -7,7 +7,7 @@
  */
 
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
-const DEFAULT_MODEL = "claude-sonnet-4-5";
+const DEFAULT_MODEL = "claude-sonnet-5";
 const ANTHROPIC_VERSION = "2023-06-01";
 
 export interface ClaudeError {

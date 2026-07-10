@@ -11,7 +11,7 @@ const ROWS: { feature: string; postspark: CellValue; repurpose: CellValue; hoots
   { feature: "Founding Lifetime plan", postspark: "yes", repurpose: "no", hootsuite: "no" },
   { feature: "Free plan with real AI access", postspark: "yes", repurpose: "no", hootsuite: "no" },
   { feature: "Built-in client approval flow", postspark: "yes", repurpose: "no", hootsuite: "limited" },
-  { feature: "Powered by Claude Sonnet 4.5", postspark: "yes", repurpose: "no", hootsuite: "no" },
+  { feature: "Powered by Claude Sonnet 5", postspark: "yes", repurpose: "no", hootsuite: "no" },
 ];
 
 function Cell({ v, highlight = false }: { v: CellValue; highlight?: boolean }) {

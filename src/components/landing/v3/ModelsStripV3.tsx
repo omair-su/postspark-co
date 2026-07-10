@@ -1,5 +1,5 @@
 const MODELS = [
-  { name: "Claude Sonnet 4.5", role: "Writing" },
+  { name: "Claude Sonnet 5", role: "Writing" },
   { name: "GPT-Image-2", role: "Images" },
   { name: "Flux 1.1 Pro", role: "Photorealism" },
   { name: "Gemini 3 Pro", role: "Multimodal" },

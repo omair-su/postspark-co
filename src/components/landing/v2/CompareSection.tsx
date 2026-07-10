@@ -45,7 +45,7 @@ export function CompareSection() {
       hootsuite: "limited",
     },
     {
-      feature: "Powered by Claude Sonnet 4.5",
+      feature: "Powered by Claude Sonnet 5",
       postspark: "yes",
       repurpose: "no",
       hootsuite: "no",

@@ -156,7 +156,7 @@ function DashboardHome() {
             <div className="ps-status-row">
               <span className="ps-status-pill ps-status-pill-ai">
                 <span className="ps-status-dot-green" />
-                Claude Sonnet 4.5 online
+                Claude Sonnet 5 online
               </span>
               {latencyMs && (
                 <>
