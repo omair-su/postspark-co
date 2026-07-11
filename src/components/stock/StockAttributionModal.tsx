@@ -74,11 +74,29 @@ export function StockAttributionModal({ open, onClose, asset }: Props) {
   }
 
   async function handleDownload() {
-    await fireUnsplashTracking();
-    // Open provider page in a new tab (required behavior for both platforms)
-    window.open(sourceUrl, "_blank", "noopener,noreferrer");
-    // Also open the direct file so the user can save it
-    setTimeout(() => window.open(downloadUrl, "_blank", "noopener,noreferrer"), 100);
+    // Fire Unsplash attribution ping (required by their API) but do NOT navigate away.
+    fireUnsplashTracking().catch(() => {});
+    try {
+      toast.loading("Preparing download…", { id: "stock-dl" });
+      const res = await fetch(downloadUrl, { mode: "cors" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const ext = isPhoto ? "jpg" : "mp4";
+      const safeName = photographerName.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "postspark";
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `postspark-${providerLabel.toLowerCase()}-${safeName}-${asset[isPhoto ? "photo" : "video"].id}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      toast.success(`${isPhoto ? "Photo" : "Video"} downloaded — remember to credit ${photographerName}.`, { id: "stock-dl" });
+    } catch (e) {
+      console.warn("Stock download failed, falling back to new tab", e);
+      toast.error("Direct download failed — opening the file in a new tab.", { id: "stock-dl" });
+      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    }
   }
 
   return (
