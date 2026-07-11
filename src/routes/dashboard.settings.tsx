@@ -271,7 +271,7 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
               {checkoutLoading && <Loader2 className="h-3 w-3 animate-spin" />}
               Start 14-day free trial
             </button>
-            <p className="mt-2 text-center text-[10px] text-muted-foreground">Then $19/mo · cancel anytime</p>
+            <p className="mt-2 text-center text-[10px] text-muted-foreground">Then $24/mo · cancel anytime</p>
           </div>
           <div className="rounded-lg border border-border p-4">
             <p className="text-sm font-semibold text-foreground">Agency</p>

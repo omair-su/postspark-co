@@ -491,7 +491,7 @@ function ShortsStudioPage() {
           <p className="text-[14px] font-bold text-[#92400E]">You've used all 3 free shorts this month</p>
           <p className="mt-1 text-[13px] text-[#B45309]">Upgrade to Pro for unlimited shorts, AI voiceover, hook virality scores, and B-roll search.</p>
           <Link to="/dashboard/billing" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#7C3AED] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#6D28D9]">
-            <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro — $19/mo
+            <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro — $24/mo
           </Link>
         </div>
       )}
