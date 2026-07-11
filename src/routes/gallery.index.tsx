@@ -298,10 +298,10 @@ function GalleryPage() {
         <section className="mt-16">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-                <ImageIcon className="h-5 w-5 text-primary" /> Stock inspiration
+              <h2 className="flex items-center gap-2 text-2xl font-bold" style={{ color: "#FAFAF9" }}>
+                <ImageIcon className="h-5 w-5" style={{ color: "#A78BFA" }} /> Stock inspiration
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm" style={{ color: "rgba(250,250,249,0.7)" }}>
                 Free premium {stockKind} from{" "}
                 {stockKind === "photos" ? "Unsplash & Pexels" : "Pexels"}. Fully attributed.
               </p>
