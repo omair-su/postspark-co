@@ -83,10 +83,11 @@ export function StockAttributionModal({ open, onClose, asset }: Props) {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const ext = isPhoto ? "jpg" : "mp4";
+      const assetId = asset.kind === "photo" ? asset.photo.id : asset.video.id;
       const safeName = photographerName.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "postspark";
       const a = document.createElement("a");
       a.href = url;
-      a.download = `postspark-${providerLabel.toLowerCase()}-${safeName}-${asset[isPhoto ? "photo" : "video"].id}.${ext}`;
+      a.download = `postspark-${providerLabel.toLowerCase()}-${safeName}-${assetId}.${ext}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
