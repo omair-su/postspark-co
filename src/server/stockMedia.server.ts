@@ -183,18 +183,26 @@ export async function searchStockPhotos(opts: {
   source: "unsplash" | "pexels" | "all";
   page: number;
   orientation: Orientation;
-}): Promise<{ photos: StockPhoto[] }> {
+}): Promise<{ photos: StockPhoto[]; error?: string }> {
   const { query, source, page, orientation } = opts;
+  const hasUnsplash = !!process.env.UNSPLASH_ACCESS_KEY;
+  const hasPexels = !!process.env.PEXELS_API_KEY;
+
   if (source === "unsplash") {
+    if (!hasUnsplash) return { photos: [], error: "Unsplash is not configured." };
     return { photos: await searchUnsplash(query, page, orientation) };
   }
   if (source === "pexels") {
+    if (!hasPexels) return { photos: [], error: "Pexels is not configured." };
     return { photos: await searchPexelsPhotos(query, page, orientation) };
+  }
+  if (!hasUnsplash && !hasPexels) {
+    return { photos: [], error: "Stock providers are not configured (missing UNSPLASH_ACCESS_KEY / PEXELS_API_KEY)." };
   }
   // "all" — interleave results from both providers
   const [u, p] = await Promise.all([
-    searchUnsplash(query, page, orientation),
-    searchPexelsPhotos(query, page, orientation),
+    hasUnsplash ? searchUnsplash(query, page, orientation) : Promise.resolve([] as StockPhoto[]),
+    hasPexels ? searchPexelsPhotos(query, page, orientation) : Promise.resolve([] as StockPhoto[]),
   ]);
   const merged: StockPhoto[] = [];
   const max = Math.max(u.length, p.length);
@@ -209,7 +217,10 @@ export async function searchStockVideos(opts: {
   query: string;
   page: number;
   orientation: Orientation;
-}): Promise<{ videos: StockVideo[] }> {
+}): Promise<{ videos: StockVideo[]; error?: string }> {
+  if (!process.env.PEXELS_API_KEY) {
+    return { videos: [], error: "Pexels video search is not configured (missing PEXELS_API_KEY)." };
+  }
   const videos = await searchPexelsVideos(opts.query, opts.page, opts.orientation);
   return { videos };
 }

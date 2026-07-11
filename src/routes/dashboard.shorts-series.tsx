@@ -210,9 +210,9 @@ function ShortsSeriesPage() {
             <Lock className="h-4 w-4 text-[#B45309]" />
             <p className="text-[14px] font-bold text-[#92400E]">Series Mode is a Pro feature</p>
           </div>
-          <p className="mt-1 text-[13px] text-[#B45309]">Generate 5 connected episode scripts per source, unlimited.</p>
+          <p className="mt-1 text-[13px] text-[#B45309]">Free plan includes 3 repurposes/month. Series Mode generates 5 connected episode scripts per source — Pro only, unlimited.</p>
           <Link to="/dashboard/billing" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#7C3AED] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#6D28D9]">
-            <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro — $19/mo
+            <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro — $24/mo
           </Link>
         </div>
       ) : (

@@ -260,7 +260,7 @@ export function SparkCopilot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="group fixed bottom-6 right-6 z-40 hidden md:flex items-center gap-2 rounded-full bg-white border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 hover:-translate-y-0.5 transition-all"
+          className="group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full bg-white border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 hover:-translate-y-0.5 transition-all"
           aria-label="Open Spark Copilot"
         >
           <SparkOrb size={32} />
@@ -292,7 +292,7 @@ export function SparkCopilot() {
                   <div className="flex items-center gap-2">
                     <span className="text-[15px] font-semibold text-white leading-tight">Spark</span>
                     <span className="text-[9.5px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(124,58,237,0.18)", color: "#c4b5fd", border: "0.5px solid rgba(124,58,237,0.3)" }}>
-                      Claude 4.5
+                      Claude 5
                     </span>
                   </div>
                   <div className="text-[11.5px] text-white/55 truncate">
