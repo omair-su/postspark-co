@@ -117,6 +117,7 @@ import { Route as DashboardGuidedCreatorPlaybookRouteImport } from './routes/das
 import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
+import { Route as ApiPublicStockDownloadRouteImport } from './routes/api/public/stock-download'
 import { Route as ApiPublicFunnelRouteImport } from './routes/api/public/funnel'
 import { Route as ApiPublicDemoStatusRouteImport } from './routes/api/public/demo-status'
 import { Route as ApiPublicDemoStatsRouteImport } from './routes/api/public/demo-stats'
@@ -704,6 +705,11 @@ const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   path: '/api/public/track',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicStockDownloadRoute = ApiPublicStockDownloadRouteImport.update({
+  id: '/api/public/stock-download',
+  path: '/api/public/stock-download',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicFunnelRoute = ApiPublicFunnelRouteImport.update({
   id: '/api/public/funnel',
   path: '/api/public/funnel',
@@ -906,6 +912,7 @@ export interface FileRoutesByFullPath {
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
+  '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1032,6 +1039,7 @@ export interface FileRoutesByTo {
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
+  '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1160,6 +1168,7 @@ export interface FileRoutesById {
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
+  '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1289,6 +1298,7 @@ export interface FileRouteTypes {
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
+    | '/api/public/stock-download'
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1415,6 +1425,7 @@ export interface FileRouteTypes {
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
+    | '/api/public/stock-download'
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1542,6 +1553,7 @@ export interface FileRouteTypes {
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
+    | '/api/public/stock-download'
     | '/api/public/track'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1638,6 +1650,7 @@ export interface RootRouteChildren {
   ApiPublicDemoStatsRoute: typeof ApiPublicDemoStatsRoute
   ApiPublicDemoStatusRoute: typeof ApiPublicDemoStatusRoute
   ApiPublicFunnelRoute: typeof ApiPublicFunnelRoute
+  ApiPublicStockDownloadRoute: typeof ApiPublicStockDownloadRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
@@ -2413,6 +2426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTrackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/stock-download': {
+      id: '/api/public/stock-download'
+      path: '/api/public/stock-download'
+      fullPath: '/api/public/stock-download'
+      preLoaderRoute: typeof ApiPublicStockDownloadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/funnel': {
       id: '/api/public/funnel'
       path: '/api/public/funnel'
@@ -2696,6 +2716,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDemoStatsRoute: ApiPublicDemoStatsRoute,
   ApiPublicDemoStatusRoute: ApiPublicDemoStatusRoute,
   ApiPublicFunnelRoute: ApiPublicFunnelRoute,
+  ApiPublicStockDownloadRoute: ApiPublicStockDownloadRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
