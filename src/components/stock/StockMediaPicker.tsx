@@ -207,22 +207,29 @@ export function StockMediaPicker({
               className="group relative overflow-hidden rounded-xl border border-border bg-black"
             >
               <div className="relative aspect-video w-full">
-                <video
-                  src={v.previewUrl}
-                  poster={v.thumbUrl}
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget as HTMLVideoElement;
-                    el.pause();
-                    el.currentTime = 0;
-                  }}
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-x-0 top-0 flex items-center justify-end gap-1 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => setVideoModal(v)}
+                  className="absolute inset-0 block h-full w-full text-left"
+                  aria-label={`Preview clip by ${v.photographerName}`}
+                >
+                  <video
+                    src={v.previewUrl}
+                    poster={v.thumbUrl}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLVideoElement;
+                      el.pause();
+                      el.currentTime = 0;
+                    }}
+                    className="pointer-events-none h-full w-full object-cover"
+                  />
+                </button>
+                <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-end gap-1 p-2 opacity-100 md:opacity-0 md:transition-opacity md:group-hover:opacity-100">
                   {onSelectVideo && (
                     <button
                       type="button"
@@ -251,6 +258,7 @@ export function StockMediaPicker({
                 />
               </div>
             </div>
+
           ))}
           {!loading && videos.length === 0 && (
             <div className="col-span-full py-12 text-center text-sm text-muted-foreground">

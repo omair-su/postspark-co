@@ -23,7 +23,6 @@ export function StockPhotoCard({ photo, onSelect, selectLabel = "Use photo" }: P
     try {
       await trackUse({ data: { downloadLocation: photo.downloadLocation } });
     } catch (e) {
-      // Not user-facing — this is a compliance ping.
       console.warn("Unsplash tracking failed", e);
     }
   }
@@ -49,16 +48,22 @@ export function StockPhotoCard({ photo, onSelect, selectLabel = "Use photo" }: P
     <>
       <div className="group relative overflow-hidden rounded-xl border border-border bg-muted/30">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
-          {/* Hotlinked provider URL — never re-hosted */}
-          <img
-            src={photo.thumbUrl}
-            alt={photo.alt || `Photo by ${photo.photographerName} on ${photo.source}`}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="absolute inset-0 block h-full w-full text-left"
+            aria-label={`Preview photo by ${photo.photographerName}`}
+          >
+            <img
+              src={photo.thumbUrl}
+              alt={photo.alt || `Photo by ${photo.photographerName} on ${photo.source}`}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          </button>
 
-          {/* Hover action bar */}
-          <div className="absolute inset-x-0 top-0 flex items-center justify-end gap-1 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+          {/* Action bar — visible on mobile, hover on desktop */}
+          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-end gap-1 p-2 opacity-100 md:opacity-0 md:transition-opacity md:group-hover:opacity-100">
             {onSelect && (
               <button
                 type="button"
@@ -95,7 +100,6 @@ export function StockPhotoCard({ photo, onSelect, selectLabel = "Use photo" }: P
             </button>
           </div>
 
-          {/* Always-on attribution overlay (never hidden, never cropped) */}
           <StockAttribution photo={photo} />
         </div>
       </div>
@@ -108,4 +112,3 @@ export function StockPhotoCard({ photo, onSelect, selectLabel = "Use photo" }: P
     </>
   );
 }
-
