@@ -76,27 +76,37 @@ export function StockAttributionModal({ open, onClose, asset }: Props) {
   async function handleDownload() {
     // Fire Unsplash attribution ping (required by their API) but do NOT navigate away.
     fireUnsplashTracking().catch(() => {});
+    const ext = isPhoto ? "jpg" : "mp4";
+    const assetId = asset.kind === "photo" ? asset.photo.id : asset.video.id;
+    const safeName = photographerName.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "postspark";
+    const filename = `postspark-${providerLabel.toLowerCase()}-${safeName}-${assetId}.${ext}`;
+    // Route through our same-origin proxy so the browser downloads in-app
+    // (attachment header) instead of navigating to Unsplash/Pexels.
+    const proxied = `/api/public/stock-download?url=${encodeURIComponent(downloadUrl)}&filename=${encodeURIComponent(filename)}`;
     try {
       toast.loading("Preparing download…", { id: "stock-dl" });
-      const res = await fetch(downloadUrl, { mode: "cors" });
+      const res = await fetch(proxied);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      const ext = isPhoto ? "jpg" : "mp4";
-      const assetId = asset.kind === "photo" ? asset.photo.id : asset.video.id;
-      const safeName = photographerName.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "postspark";
       const a = document.createElement("a");
       a.href = url;
-      a.download = `postspark-${providerLabel.toLowerCase()}-${safeName}-${assetId}.${ext}`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       toast.success(`${isPhoto ? "Photo" : "Video"} downloaded — remember to credit ${photographerName}.`, { id: "stock-dl" });
     } catch (e) {
-      console.warn("Stock download failed, falling back to new tab", e);
-      toast.error("Direct download failed — opening the file in a new tab.", { id: "stock-dl" });
-      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+      console.warn("Stock download proxy failed, falling back to direct anchor", e);
+      // Same-origin anchor with download attr — still keeps user in-app.
+      const a = document.createElement("a");
+      a.href = proxied;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast.success("Download started", { id: "stock-dl" });
     }
   }
 
