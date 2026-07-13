@@ -1130,20 +1130,12 @@ h1, h2, h3, h4, h5, h6 {
 /* — Dark hero card (replaces light hero variant on home) — */
 .ds-card-hero-dark {
   position: relative;
-  border-radius: 24px;
+  border-radius: 16px;
   overflow: hidden;
-  color: #FFFFFF;
-  background:
-    radial-gradient(1100px 460px at 100% 0%, rgba(167,139,250,0.30), transparent 60%),
-    radial-gradient(820px 420px at 0% 100%, rgba(236,72,153,0.22), transparent 65%),
-    radial-gradient(600px 300px at 50% 50%, rgba(56,189,248,0.10), transparent 70%),
-    linear-gradient(135deg, #1B1240 0%, #150F32 40%, #0B0820 100%);
-  border: 1px solid rgba(167,139,250,0.32);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.08) inset,
-    0 40px 90px -36px rgba(124,58,237,0.65),
-    0 12px 40px -16px rgba(236,72,153,0.18),
-    0 8px 30px -14px rgba(0,0,0,0.45);
+  color: var(--ds-text);
+  background: var(--ds-card);
+  border: 1px solid var(--ds-border);
+  box-shadow: none;
 }
 /* shimmering conic ring + subtle grid overlay */
 .ds-card-hero-dark::before {
