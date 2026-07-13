@@ -451,7 +451,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <CommandPaletteRoot />
       <SparkCopilot />
       <UpgradeNudgeModal />
-      <MobileBottomNav />
+      {/* Mobile bottom nav removed */}
     </div>
     </TooltipProvider>
   );
