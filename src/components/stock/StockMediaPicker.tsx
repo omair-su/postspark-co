@@ -210,6 +210,17 @@ export function StockMediaPicker({
                 <button
                   type="button"
                   onClick={() => setVideoModal(v)}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget.querySelector("video") as HTMLVideoElement | null;
+                    el?.play().catch(() => {});
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget.querySelector("video") as HTMLVideoElement | null;
+                    if (el) {
+                      el.pause();
+                      el.currentTime = 0;
+                    }
+                  }}
                   className="absolute inset-0 block h-full w-full text-left"
                   aria-label={`Preview clip by ${v.photographerName}`}
                 >
@@ -220,15 +231,10 @@ export function StockMediaPicker({
                     loop
                     playsInline
                     preload="metadata"
-                    onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
-                    onMouseLeave={(e) => {
-                      const el = e.currentTarget as HTMLVideoElement;
-                      el.pause();
-                      el.currentTime = 0;
-                    }}
                     className="pointer-events-none h-full w-full object-cover"
                   />
                 </button>
+
                 <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-end gap-1 p-2 opacity-100 md:opacity-0 md:transition-opacity md:group-hover:opacity-100">
                   {onSelectVideo && (
                     <button
