@@ -16,7 +16,7 @@ import { UpgradeNudgeModal } from "@/components/UpgradeNudgeModal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getMyWorkspace, setActiveBrandKit } from "@/lib/workspace.functions";
-import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
+// Mobile bottom nav removed per design update
 
 const navGroups = [
   {
@@ -451,7 +451,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <CommandPaletteRoot />
       <SparkCopilot />
       <UpgradeNudgeModal />
-      <MobileBottomNav />
+      {/* Mobile bottom nav removed */}
     </div>
     </TooltipProvider>
   );
