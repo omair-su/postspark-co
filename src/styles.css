@@ -1122,6 +1122,88 @@ h1, h2, h3, h4, h5, h6 {
 .ds-canvas .hover\:bg-white\/10:hover { background-color: rgba(124,58,237,0.10) !important; }
 .ds-canvas .hover\:border-\[\#a78bfa\]\/40:hover { border-color: rgba(124,58,237,0.45) !important; }
 
+/* ────────────────────────────────────────────────────────────────────
+   ENTERPRISE DARK NORMALIZATION
+   Tool routes hard-code light hex values (bg-white, #FAFAF8, #E5E7EB,
+   #1A1A2E text on white). Normalize them globally inside .ds-canvas
+   so every dashboard tool inherits the dark enterprise palette.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* Surfaces: plain white + off-white → dark card */
+.ds-canvas .bg-white,
+.ds-canvas .bg-\[\#FAFAF8\],
+.ds-canvas .bg-\[\#F9FAFB\],
+.ds-canvas .bg-\[\#F3F4F6\],
+.ds-canvas .bg-\[\#FFFFFF\],
+.ds-canvas .bg-\[\#F3F0FF\],
+.ds-canvas .bg-\[\#FEF3C7\],
+.ds-canvas .bg-\[\#FFFBEB\],
+.ds-canvas .bg-\[\#FEF2F2\] { background-color: var(--ds-card) !important; }
+
+.ds-canvas .hover\:bg-\[\#F3F0FF\]:hover,
+.ds-canvas .hover\:bg-\[\#F3F0FF\]\/40:hover,
+.ds-canvas .hover\:bg-\[\#E5E7EB\]:hover,
+.ds-canvas .hover\:bg-\[\#F3F4F6\]:hover { background-color: var(--ds-card-hover) !important; }
+
+/* Gradient bright pills → subtle accent surface, but keep primary CTAs vivid */
+.ds-canvas .bg-gradient-to-br.from-\[\#FFFBEB\],
+.ds-canvas .bg-gradient-to-br.from-\[\#FEF3C7\] {
+  background: linear-gradient(135deg, rgba(124,58,237,0.10), rgba(236,72,153,0.06)) !important;
+}
+
+/* Borders: light gray borders → dark border token */
+.ds-canvas .border-\[\#E5E7EB\],
+.ds-canvas .border-\[\#EEF0F4\],
+.ds-canvas .border-\[\#F3F4F6\],
+.ds-canvas .border-\[\#FCD34D\],
+.ds-canvas .border-\[\#FCA5A5\] { border-color: var(--ds-border) !important; }
+
+.ds-canvas .hover\:border-\[\#6B4EFF\]\/40:hover,
+.ds-canvas .hover\:border-\[\#7C3AED\]\/40:hover { border-color: rgba(124,58,237,0.55) !important; }
+
+/* Text: dark ink on light bg → light text on dark */
+.ds-canvas .text-\[\#1A1A2E\],
+.ds-canvas .text-\[\#111827\],
+.ds-canvas .text-\[\#0F172A\],
+.ds-canvas .text-black { color: var(--ds-text) !important; }
+
+.ds-canvas .text-\[\#6B7280\],
+.ds-canvas .text-\[\#9CA3AF\],
+.ds-canvas .text-\[\#4B5563\],
+.ds-canvas .text-\[\#374151\],
+.ds-canvas .text-slate-500,
+.ds-canvas .text-slate-600,
+.ds-canvas .text-slate-700,
+.ds-canvas .text-gray-500,
+.ds-canvas .text-gray-600,
+.ds-canvas .text-gray-700 { color: var(--ds-muted) !important; }
+
+.ds-canvas .hover\:text-\[\#1A1A2E\]:hover,
+.ds-canvas .hover\:text-\[\#6B4EFF\]:hover { color: var(--ds-text) !important; }
+
+/* Dark navy "primary" buttons kept as accent purple for consistency */
+.ds-canvas .bg-\[\#1A1A2E\] { background-color: var(--ds-accent) !important; color: #fff !important; }
+.ds-canvas .hover\:bg-black:hover { background-color: var(--ds-accent-soft) !important; }
+
+/* Purple brand tints stay but sit on dark */
+.ds-canvas .bg-\[\#6B4EFF\]\/\[0\.06\],
+.ds-canvas .bg-\[\#7C3AED\]\/10,
+.ds-canvas .bg-\[\#6B4EFF\]\/10 { background-color: rgba(124,58,237,0.14) !important; }
+
+/* Card headers / dividers */
+.ds-canvas .divide-\[\#E5E7EB\] > * + * { border-color: var(--ds-border) !important; }
+
+/* Inputs on white → dark input surface */
+.ds-canvas input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+.ds-canvas textarea,
+.ds-canvas select {
+  background-color: rgba(255,255,255,0.03);
+  border-color: var(--ds-border);
+  color: var(--ds-text);
+}
+.ds-canvas input::placeholder,
+.ds-canvas textarea::placeholder { color: var(--ds-muted); }
+
 /* ════════════════════════════════════════════════════════════════════
    PREMIUM DASHBOARD UPGRADES — hero dark, studio categories,
    mobile bottom nav, empty-state shimmer, gradient referral.
