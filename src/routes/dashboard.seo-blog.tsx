@@ -173,8 +173,8 @@ function SeoBlogPage() {
       <div
         className="rounded-2xl p-5"
         style={{
-          background: "linear-gradient(135deg, #FAFAF8 0%, #F3F0FF 100%)",
-          border: "0.5px solid rgba(107,78,255,0.12)",
+          background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)",
+          border: "1px solid #243047",
         }}
       >
         <div className="flex items-start gap-4">
