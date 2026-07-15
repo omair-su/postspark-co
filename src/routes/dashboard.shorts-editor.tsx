@@ -14,7 +14,7 @@ function ShortsEditorPage() {
       </Link>
 
       <div className="flex items-start gap-4 rounded-2xl p-5"
-        style={{ background: "linear-gradient(135deg, #FAFAF8 0%, #F3F0FF 100%)", border: "0.5px solid rgba(107,78,255,0.12)" }}>
+        style={{ background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)", border: "1px solid #243047" }}>
         <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]"
           style={{ background: "linear-gradient(135deg, #EC4899 0%, #7C3AED 100%)", boxShadow: "0 2px 8px rgba(124,58,237,0.25)" }}>
           <Film className="h-6 w-6 text-white" />
