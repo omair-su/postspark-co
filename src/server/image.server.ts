@@ -542,7 +542,7 @@ async function runReplicateModel(
 
   let prediction: any;
   try {
-    const res = await fetchWithTimeout(
+    let res = await fetchWithTimeout(
       `https://api.replicate.com/v1/models/${modelPath}/predictions`,
       {
         method: "POST",
@@ -551,16 +551,54 @@ async function runReplicateModel(
       },
       SUBREQUEST_TIMEOUT_MS,
     );
+    // Community (non-"official") models don't accept /v1/models/<slug>/predictions
+    // — Replicate responds 404. Look up the latest version and retry through
+    // the generic /v1/predictions endpoint.
+    if (res.status === 404) {
+      const meta = await fetchWithTimeout(
+        `https://api.replicate.com/v1/models/${modelPath}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+        SUBREQUEST_TIMEOUT_MS,
+      );
+      if (meta.ok) {
+        const info: any = await meta.json();
+        const version: string | undefined = info?.latest_version?.id;
+        if (version) {
+          res = await fetchWithTimeout(
+            "https://api.replicate.com/v1/predictions",
+            {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ version, input }),
+            },
+            SUBREQUEST_TIMEOUT_MS,
+          );
+        } else {
+          console.error(`Replicate ${modelPath}: no latest_version available`);
+          return { imageUrl: "", error: `Replicate model ${modelPath} has no available version` };
+        }
+      } else {
+        console.error(`Replicate ${modelPath} not found (404)`);
+        return { imageUrl: "", error: `Replicate error (404)` };
+      }
+    }
     if (!res.ok) {
       const text = await res.text();
       console.error(`Replicate ${modelPath} create error:`, res.status, text.slice(0, 300));
-      return { imageUrl: "", error: `Replicate error (${res.status})` };
+      let friendly = `Replicate error (${res.status})`;
+      if (res.status === 402) friendly = "AI image credits exhausted. Please top up Replicate billing.";
+      else if (res.status === 429) friendly = "AI image service is rate-limited. Please retry in a few seconds.";
+      else if (res.status === 401) friendly = "AI image service authentication failed.";
+      else if (res.status === 422) friendly = "AI image service rejected the input (invalid image or parameters).";
+      return { imageUrl: "", error: friendly };
     }
+
     prediction = await res.json();
   } catch (err: any) {
     console.error("Replicate create error:", err?.message || err);
     return { imageUrl: "", error: "Failed to reach Replicate" };
   }
+
 
   const getUrl: string | undefined = prediction?.urls?.get;
   if (!getUrl) return { imageUrl: "", error: "Replicate returned no poll URL" };
@@ -603,8 +641,35 @@ async function runReplicateModel(
 }
 
 export async function removeBackground(imageDataUrl: string): Promise<ImageGenResult> {
-  return runReplicateModel("851-labs/background-remover", { image: imageDataUrl });
+  // Primary + fallbacks in case a slug is retired or the account lacks access.
+  const candidates = [
+    "851-labs/background-remover",
+    "cjwbw/rembg",
+    "smoretalk/rembg-enhance",
+  ];
+  let lastError = "";
+  for (const slug of candidates) {
+    const result = await runReplicateModel(slug, { image: imageDataUrl });
+    if (!result.error && result.imageUrl) return result;
+    lastError = result.error || "";
+    // Only fall through on 404 (model missing / mis-slugged). Bail out on
+    // real failures (401, 402/billing, 422 validation, timeouts) so we don't
+    // burn credits retrying a request the user should see the real error for.
+    if (!/\(404\)/.test(lastError)) {
+      return {
+        imageUrl: "",
+        error: `Background removal failed: ${lastError || "unknown error"}`,
+      };
+    }
+    console.warn(`[removeBackground] ${slug} returned 404, trying next fallback`);
+  }
+  return {
+    imageUrl: "",
+    error:
+      "Background removal is temporarily unavailable — the AI model could not be reached. Please try again later.",
+  };
 }
+
 
 export async function upscaleImage(
   imageDataUrl: string,
