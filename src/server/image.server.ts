@@ -603,8 +603,35 @@ async function runReplicateModel(
 }
 
 export async function removeBackground(imageDataUrl: string): Promise<ImageGenResult> {
-  return runReplicateModel("851-labs/background-remover", { image: imageDataUrl });
+  // Primary + fallbacks in case a slug is retired or the account lacks access.
+  const candidates = [
+    "851-labs/background-remover",
+    "cjwbw/rembg",
+    "smoretalk/rembg-enhance",
+  ];
+  let lastError = "";
+  for (const slug of candidates) {
+    const result = await runReplicateModel(slug, { image: imageDataUrl });
+    if (!result.error && result.imageUrl) return result;
+    lastError = result.error || "";
+    // Only fall through on 404 (model missing / mis-slugged). Bail out on
+    // real failures (401, 402/billing, 422 validation, timeouts) so we don't
+    // burn credits retrying a request the user should see the real error for.
+    if (!/\(404\)/.test(lastError)) {
+      return {
+        imageUrl: "",
+        error: `Background removal failed: ${lastError || "unknown error"}`,
+      };
+    }
+    console.warn(`[removeBackground] ${slug} returned 404, trying next fallback`);
+  }
+  return {
+    imageUrl: "",
+    error:
+      "Background removal is temporarily unavailable — the AI model could not be reached. Please try again later.",
+  };
 }
+
 
 export async function upscaleImage(
   imageDataUrl: string,
