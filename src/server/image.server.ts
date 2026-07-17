@@ -603,7 +603,7 @@ async function runReplicateModel(
 }
 
 export async function removeBackground(imageDataUrl: string): Promise<ImageGenResult> {
-  return runReplicateModel("lucataco/remove-bg", { image: imageDataUrl });
+  return runReplicateModel("851-labs/background-remover", { image: imageDataUrl });
 }
 
 export async function upscaleImage(
