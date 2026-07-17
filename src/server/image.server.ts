@@ -542,7 +542,7 @@ async function runReplicateModel(
 
   let prediction: any;
   try {
-    const res = await fetchWithTimeout(
+    let res = await fetchWithTimeout(
       `https://api.replicate.com/v1/models/${modelPath}/predictions`,
       {
         method: "POST",
@@ -551,6 +551,37 @@ async function runReplicateModel(
       },
       SUBREQUEST_TIMEOUT_MS,
     );
+    // Community (non-"official") models don't accept /v1/models/<slug>/predictions
+    // — Replicate responds 404. Look up the latest version and retry through
+    // the generic /v1/predictions endpoint.
+    if (res.status === 404) {
+      const meta = await fetchWithTimeout(
+        `https://api.replicate.com/v1/models/${modelPath}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+        SUBREQUEST_TIMEOUT_MS,
+      );
+      if (meta.ok) {
+        const info: any = await meta.json();
+        const version: string | undefined = info?.latest_version?.id;
+        if (version) {
+          res = await fetchWithTimeout(
+            "https://api.replicate.com/v1/predictions",
+            {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ version, input }),
+            },
+            SUBREQUEST_TIMEOUT_MS,
+          );
+        } else {
+          console.error(`Replicate ${modelPath}: no latest_version available`);
+          return { imageUrl: "", error: `Replicate model ${modelPath} has no available version` };
+        }
+      } else {
+        console.error(`Replicate ${modelPath} not found (404)`);
+        return { imageUrl: "", error: `Replicate error (404)` };
+      }
+    }
     if (!res.ok) {
       const text = await res.text();
       console.error(`Replicate ${modelPath} create error:`, res.status, text.slice(0, 300));
@@ -561,6 +592,7 @@ async function runReplicateModel(
     console.error("Replicate create error:", err?.message || err);
     return { imageUrl: "", error: "Failed to reach Replicate" };
   }
+
 
   const getUrl: string | undefined = prediction?.urls?.get;
   if (!getUrl) return { imageUrl: "", error: "Replicate returned no poll URL" };
