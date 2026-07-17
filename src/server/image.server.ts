@@ -585,8 +585,14 @@ async function runReplicateModel(
     if (!res.ok) {
       const text = await res.text();
       console.error(`Replicate ${modelPath} create error:`, res.status, text.slice(0, 300));
-      return { imageUrl: "", error: `Replicate error (${res.status})` };
+      let friendly = `Replicate error (${res.status})`;
+      if (res.status === 402) friendly = "AI image credits exhausted. Please top up Replicate billing.";
+      else if (res.status === 429) friendly = "AI image service is rate-limited. Please retry in a few seconds.";
+      else if (res.status === 401) friendly = "AI image service authentication failed.";
+      else if (res.status === 422) friendly = "AI image service rejected the input (invalid image or parameters).";
+      return { imageUrl: "", error: friendly };
     }
+
     prediction = await res.json();
   } catch (err: any) {
     console.error("Replicate create error:", err?.message || err);
