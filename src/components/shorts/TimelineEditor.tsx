@@ -700,7 +700,25 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
   const timelineWidthPx = Math.max(600, totalDuration * pxs);
 
   return (
-    <div className="space-y-5">
+    <div className="shorts-editor-engine space-y-5">
+      <div className="shorts-engine-strip grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="shorts-engine-card">
+          <Upload className="h-4 w-4" />
+          <span>Upload / trim up to 8 vertical clips</span>
+        </div>
+        <div className="shorts-engine-card">
+          <Mic className="h-4 w-4" />
+          <span>Generate ElevenLabs voiceover to VO track</span>
+        </div>
+        <div className="shorts-engine-card">
+          <Captions className="h-4 w-4" />
+          <span>Auto-caption with timed word chunks</span>
+        </div>
+        <div className="shorts-engine-card">
+          <Film className="h-4 w-4" />
+          <span>Export WebM / burned-caption MP4</span>
+        </div>
+      </div>
       {!isPro && (
         <div className="rounded-2xl border border-[#FCD34D] bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] p-4">
           <div className="flex items-start gap-3">
