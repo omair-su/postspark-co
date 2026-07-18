@@ -387,6 +387,107 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
     setProject((p) => ({ ...p, [which]: { ...p[which], name: f.name, url } } as any));
   };
 
+  // ── ElevenLabs voiceover generation ──────────────────────────
+  const generateVoiceover = async () => {
+    const text = voText.trim();
+    if (!text) return toast.error("Type what to narrate");
+    if (text.length > 4000) return toast.error("Script too long (max 4000 chars)");
+    setVoGenerating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("Sign in required");
+      const res = await fetch("/api/narrate-short", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text, voice: voVoice }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `Error ${res.status}` }));
+        throw new Error(err.error || `Failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      setProject((p) => {
+        if (p.vo.url && p.vo.url.startsWith("blob:")) URL.revokeObjectURL(p.vo.url);
+        return { ...p, vo: { ...p.vo, name: `AI voice (${voVoice}).mp3`, url } };
+      });
+      toast.success("Voiceover ready");
+    } catch (e: any) {
+      toast.error(e?.message || "Voiceover failed");
+    } finally {
+      setVoGenerating(false);
+    }
+  };
+
+  // ── Deepgram auto-caption from VO or music track ─────────────
+  const autoCaption = async () => {
+    const src = project.vo.url || project.music.url;
+    if (!src) return toast.error("Add a voiceover or music first");
+    setCaptioning(true);
+    try {
+      const audio = await fetch(src).then((r) => r.blob());
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("Sign in required");
+      const res = await fetch("/api/deepgram-transcribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": audio.type || "audio/mpeg",
+          Authorization: `Bearer ${token}`,
+        },
+        body: audio,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `Error ${res.status}` }));
+        throw new Error(err.error || `Failed (${res.status})`);
+      }
+      const { words } = (await res.json()) as { words: Array<{ word: string; start: number; end: number }> };
+      if (!words?.length) throw new Error("No words detected");
+      // Group into ~3-word caption chunks for punchy vertical captions
+      const chunks: Caption[] = [];
+      const size = 3;
+      for (let i = 0; i < words.length; i += size) {
+        const group = words.slice(i, i + size);
+        chunks.push({
+          id: Math.random().toString(36).slice(2),
+          start: group[0].start,
+          end: group[group.length - 1].end,
+          text: group.map((g) => g.word).join(" "),
+        });
+      }
+      setProject((p) => ({ ...p, captions: chunks }));
+      toast.success(`Generated ${chunks.length} captions`);
+    } catch (e: any) {
+      toast.error(e?.message || "Auto-caption failed");
+    } finally {
+      setCaptioning(false);
+    }
+  };
+
+  // ── FFmpeg WebM → MP4 with burned captions ───────────────────
+  const exportMp4Ffmpeg = async () => {
+    if (!isPro) return toast.error("Pro feature — upgrade to export MP4");
+    if (!exportBlob) return toast.error("Export WebM first");
+    setFfmpegBusy(true); setFfmpegProgress(0); setFfmpegMp4Url(null);
+    try {
+      const srt = project.captions.length ? captionsToSrt(project.captions) : undefined;
+      const mp4 = await transcodeWebmToMp4(exportBlob, {
+        srt,
+        onProgress: (p) => setFfmpegProgress(p),
+      });
+      const url = URL.createObjectURL(mp4);
+      setFfmpegMp4Url(url);
+      toast.success("MP4 ready");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || "MP4 export failed");
+    } finally {
+      setFfmpegBusy(false);
+    }
+  };
+
+
   // ── draft ops ────────────────────────────────────────────────
   const saveDraft = async () => {
     if (!isPro) return toast.error("Pro feature — upgrade to save drafts");
