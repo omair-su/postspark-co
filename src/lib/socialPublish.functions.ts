@@ -53,11 +53,15 @@ export const getYouTubeAuthUrl = createServerFn({ method: "POST" })
 export const getConnectedSocials = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase
-      .from("social_accounts")
-      .select("platform, platform_username, token_expires_at")
-      .eq("user_id", context.userId);
-    return { accounts: data || [] };
+    try {
+      const { data } = await context.supabase
+        .from("social_accounts")
+        .select("platform, platform_username, token_expires_at")
+        .eq("user_id", context.userId);
+      return { accounts: data || [] };
+    } catch {
+      return { accounts: [] };
+    }
   });
 
 export const disconnectSocial = createServerFn({ method: "POST" })
