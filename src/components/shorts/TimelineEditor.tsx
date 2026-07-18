@@ -835,7 +835,7 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
           </div>
 
           {/* AI Voiceover + Auto-caption */}
-          <div className="rounded-2xl border border-[#7C3AED]/30 bg-gradient-to-br from-[#F5F3FF] to-white p-4 space-y-3">
+          <div className="shorts-ai-voice-card rounded-2xl border border-[#7C3AED]/30 p-4 space-y-3">
             <div className="flex items-center gap-2">
               <Wand2 className="h-4 w-4 text-[#7C3AED]" />
               <p className="text-[12px] font-bold text-[#1A1A2E]">AI Voiceover</p>
