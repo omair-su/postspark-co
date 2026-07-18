@@ -101,6 +101,7 @@ import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApiNarrateShortRouteImport } from './routes/api/narrate-short'
+import { Route as ApiDeepgramTranscribeRouteImport } from './routes/api/deepgram-transcribe'
 import { Route as AlternativesTypefullyVsPostsparkRouteImport } from './routes/alternatives.typefully-vs-postspark'
 import { Route as AlternativesRepurposeIoVsPostsparkRouteImport } from './routes/alternatives.repurpose-io-vs-postspark'
 import { Route as AlternativesJasperVsPostsparkRouteImport } from './routes/alternatives.jasper-vs-postspark'
@@ -613,6 +614,11 @@ const ApiNarrateShortRoute = ApiNarrateShortRouteImport.update({
   path: '/api/narrate-short',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeepgramTranscribeRoute = ApiDeepgramTranscribeRouteImport.update({
+  id: '/api/deepgram-transcribe',
+  path: '/api/deepgram-transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlternativesTypefullyVsPostsparkRoute =
   AlternativesTypefullyVsPostsparkRouteImport.update({
     id: '/alternatives/typefully-vs-postspark',
@@ -833,6 +839,7 @@ export interface FileRoutesByFullPath {
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/alternatives/repurpose-io-vs-postspark': typeof AlternativesRepurposeIoVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
+  '/api/deepgram-transcribe': typeof ApiDeepgramTranscribeRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -960,6 +967,7 @@ export interface FileRoutesByTo {
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/alternatives/repurpose-io-vs-postspark': typeof AlternativesRepurposeIoVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
+  '/api/deepgram-transcribe': typeof ApiDeepgramTranscribeRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -1089,6 +1097,7 @@ export interface FileRoutesById {
   '/alternatives/jasper-vs-postspark': typeof AlternativesJasperVsPostsparkRoute
   '/alternatives/repurpose-io-vs-postspark': typeof AlternativesRepurposeIoVsPostsparkRoute
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
+  '/api/deepgram-transcribe': typeof ApiDeepgramTranscribeRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -1219,6 +1228,7 @@ export interface FileRouteTypes {
     | '/alternatives/jasper-vs-postspark'
     | '/alternatives/repurpose-io-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
+    | '/api/deepgram-transcribe'
     | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
@@ -1346,6 +1356,7 @@ export interface FileRouteTypes {
     | '/alternatives/jasper-vs-postspark'
     | '/alternatives/repurpose-io-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
+    | '/api/deepgram-transcribe'
     | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
@@ -1474,6 +1485,7 @@ export interface FileRouteTypes {
     | '/alternatives/jasper-vs-postspark'
     | '/alternatives/repurpose-io-vs-postspark'
     | '/alternatives/typefully-vs-postspark'
+    | '/api/deepgram-transcribe'
     | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
@@ -1603,6 +1615,7 @@ export interface RootRouteChildren {
   AlternativesJasperVsPostsparkRoute: typeof AlternativesJasperVsPostsparkRoute
   AlternativesRepurposeIoVsPostsparkRoute: typeof AlternativesRepurposeIoVsPostsparkRoute
   AlternativesTypefullyVsPostsparkRoute: typeof AlternativesTypefullyVsPostsparkRoute
+  ApiDeepgramTranscribeRoute: typeof ApiDeepgramTranscribeRoute
   ApiNarrateShortRoute: typeof ApiNarrateShortRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -2314,6 +2327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiNarrateShortRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/deepgram-transcribe': {
+      id: '/api/deepgram-transcribe'
+      path: '/api/deepgram-transcribe'
+      fullPath: '/api/deepgram-transcribe'
+      preLoaderRoute: typeof ApiDeepgramTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alternatives/typefully-vs-postspark': {
       id: '/alternatives/typefully-vs-postspark'
       path: '/alternatives/typefully-vs-postspark'
@@ -2668,6 +2688,7 @@ const rootRouteChildren: RootRouteChildren = {
   AlternativesRepurposeIoVsPostsparkRoute:
     AlternativesRepurposeIoVsPostsparkRoute,
   AlternativesTypefullyVsPostsparkRoute: AlternativesTypefullyVsPostsparkRoute,
+  ApiDeepgramTranscribeRoute: ApiDeepgramTranscribeRoute,
   ApiNarrateShortRoute: ApiNarrateShortRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,

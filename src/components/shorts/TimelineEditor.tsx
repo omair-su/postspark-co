@@ -5,6 +5,7 @@ import {
   Upload, Film, X, Music2, Mic, Type, Download, Play, Pause,
   VolumeX, Volume2, Lock, Sparkles, Save, FolderOpen, Trash2,
   Loader2, Plus, ChevronLeft, ChevronRight, Scissors, Copy as CopyIcon,
+  Wand2, Captions,
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
@@ -13,6 +14,7 @@ import {
 import { startMp4Render, pollMp4Render } from "@/lib/cloudRender.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { captionsToSrt, transcodeWebmToMp4 } from "@/lib/ffmpegExport";
 
 // ── domain types ───────────────────────────────────────────────
 interface Clip {
@@ -76,6 +78,13 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
   const [saving, setSaving] = useState(false);
   const [editingCaptionId, setEditingCaptionId] = useState<string | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [voText, setVoText] = useState("");
+  const [voVoice, setVoVoice] = useState("sarah");
+  const [voGenerating, setVoGenerating] = useState(false);
+  const [captioning, setCaptioning] = useState(false);
+  const [ffmpegMp4Url, setFfmpegMp4Url] = useState<string | null>(null);
+  const [ffmpegBusy, setFfmpegBusy] = useState(false);
+  const [ffmpegProgress, setFfmpegProgress] = useState(0);
   const { user } = useAuth();
 
   const dragClipIdxRef = useRef<number | null>(null);
@@ -377,6 +386,107 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
     const url = URL.createObjectURL(f);
     setProject((p) => ({ ...p, [which]: { ...p[which], name: f.name, url } } as any));
   };
+
+  // ── ElevenLabs voiceover generation ──────────────────────────
+  const generateVoiceover = async () => {
+    const text = voText.trim();
+    if (!text) return toast.error("Type what to narrate");
+    if (text.length > 4000) return toast.error("Script too long (max 4000 chars)");
+    setVoGenerating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("Sign in required");
+      const res = await fetch("/api/narrate-short", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text, voice: voVoice }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `Error ${res.status}` }));
+        throw new Error(err.error || `Failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      setProject((p) => {
+        if (p.vo.url && p.vo.url.startsWith("blob:")) URL.revokeObjectURL(p.vo.url);
+        return { ...p, vo: { ...p.vo, name: `AI voice (${voVoice}).mp3`, url } };
+      });
+      toast.success("Voiceover ready");
+    } catch (e: any) {
+      toast.error(e?.message || "Voiceover failed");
+    } finally {
+      setVoGenerating(false);
+    }
+  };
+
+  // ── Deepgram auto-caption from VO or music track ─────────────
+  const autoCaption = async () => {
+    const src = project.vo.url || project.music.url;
+    if (!src) return toast.error("Add a voiceover or music first");
+    setCaptioning(true);
+    try {
+      const audio = await fetch(src).then((r) => r.blob());
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("Sign in required");
+      const res = await fetch("/api/deepgram-transcribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": audio.type || "audio/mpeg",
+          Authorization: `Bearer ${token}`,
+        },
+        body: audio,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `Error ${res.status}` }));
+        throw new Error(err.error || `Failed (${res.status})`);
+      }
+      const { words } = (await res.json()) as { words: Array<{ word: string; start: number; end: number }> };
+      if (!words?.length) throw new Error("No words detected");
+      // Group into ~3-word caption chunks for punchy vertical captions
+      const chunks: Caption[] = [];
+      const size = 3;
+      for (let i = 0; i < words.length; i += size) {
+        const group = words.slice(i, i + size);
+        chunks.push({
+          id: Math.random().toString(36).slice(2),
+          start: group[0].start,
+          end: group[group.length - 1].end,
+          text: group.map((g) => g.word).join(" "),
+        });
+      }
+      setProject((p) => ({ ...p, captions: chunks }));
+      toast.success(`Generated ${chunks.length} captions`);
+    } catch (e: any) {
+      toast.error(e?.message || "Auto-caption failed");
+    } finally {
+      setCaptioning(false);
+    }
+  };
+
+  // ── FFmpeg WebM → MP4 with burned captions ───────────────────
+  const exportMp4Ffmpeg = async () => {
+    if (!isPro) return toast.error("Pro feature — upgrade to export MP4");
+    if (!exportBlob) return toast.error("Export WebM first");
+    setFfmpegBusy(true); setFfmpegProgress(0); setFfmpegMp4Url(null);
+    try {
+      const srt = project.captions.length ? captionsToSrt(project.captions) : undefined;
+      const mp4 = await transcodeWebmToMp4(exportBlob, {
+        srt,
+        onProgress: (p) => setFfmpegProgress(p),
+      });
+      const url = URL.createObjectURL(mp4);
+      setFfmpegMp4Url(url);
+      toast.success("MP4 ready");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || "MP4 export failed");
+    } finally {
+      setFfmpegBusy(false);
+    }
+  };
+
 
   // ── draft ops ────────────────────────────────────────────────
   const saveDraft = async () => {
@@ -705,8 +815,56 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
               onVolume={(v) => setProject((p) => ({ ...p, vo: { ...p.vo, volume: v } }))}
               onClear={() => setProject((p) => ({ ...p, vo: { ...p.vo, name: "", url: null } }))} />
           </div>
+
+          {/* AI Voiceover + Auto-caption */}
+          <div className="rounded-2xl border border-[#7C3AED]/30 bg-gradient-to-br from-[#F5F3FF] to-white p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Wand2 className="h-4 w-4 text-[#7C3AED]" />
+              <p className="text-[12px] font-bold text-[#1A1A2E]">AI Voiceover</p>
+              <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide text-[#7C3AED]">ElevenLabs</span>
+            </div>
+            <textarea
+              rows={3}
+              value={voText}
+              onChange={(e) => setVoText(e.target.value)}
+              placeholder="Type the script to narrate…"
+              className="w-full rounded-lg border border-[#E5E7EB] bg-white p-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={voVoice}
+                onChange={(e) => setVoVoice(e.target.value)}
+                className="rounded-lg border border-[#E5E7EB] bg-white px-2 py-1.5 text-[12px] font-medium text-[#1A1A2E]"
+              >
+                <option value="sarah">Sarah (warm F)</option>
+                <option value="george">George (deep M)</option>
+                <option value="laura">Laura (bright F)</option>
+                <option value="charlie">Charlie (casual M)</option>
+                <option value="liam">Liam (young M)</option>
+                <option value="alice">Alice (soft F)</option>
+                <option value="brian">Brian (narrator M)</option>
+                <option value="lily">Lily (upbeat F)</option>
+              </select>
+              <button
+                onClick={generateVoiceover}
+                disabled={voGenerating || !voText.trim()}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#EC4899] px-3 py-1.5 text-[12px] font-bold text-white hover:opacity-90 disabled:opacity-40"
+              >
+                {voGenerating ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating…</> : <><Mic className="h-3.5 w-3.5" /> Generate voice</>}
+              </button>
+              <button
+                onClick={autoCaption}
+                disabled={captioning || (!project.vo.url && !project.music.url)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#7C3AED] bg-white px-3 py-1.5 text-[12px] font-bold text-[#7C3AED] hover:bg-[#7C3AED]/10 disabled:opacity-40"
+                title="Transcribe voiceover into synced captions"
+              >
+                {captioning ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Transcribing…</> : <><Captions className="h-3.5 w-3.5" /> Auto-caption</>}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
 
       {/* Timeline */}
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3">
@@ -869,6 +1027,19 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
             <button onClick={renderMp4Cloud} disabled={mp4Rendering || !isPro}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[#1A1A2E] bg-[#1A1A2E] px-3 py-2 text-[12px] font-bold text-white hover:bg-black disabled:opacity-50">
               {mp4Rendering ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> {mp4Status || "Rendering…"}</> : <><Film className="h-3.5 w-3.5" /> Render MP4 (cloud)</>}
+            </button>
+          )}
+          {ffmpegMp4Url && (
+            <a href={ffmpegMp4Url} download={`${projectName.replace(/\W+/g, "-")}-${Date.now()}.mp4`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-fuchsia-300 bg-fuchsia-50 px-3 py-2 text-[12px] font-bold text-fuchsia-700 hover:bg-fuchsia-100">
+              <Download className="h-3.5 w-3.5" /> Download .mp4 (burned)
+            </a>
+          )}
+          {exportBlob && !ffmpegMp4Url && (
+            <button onClick={exportMp4Ffmpeg} disabled={ffmpegBusy || !isPro}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#7C3AED] bg-white px-3 py-2 text-[12px] font-bold text-[#7C3AED] hover:bg-[#7C3AED]/10 disabled:opacity-50"
+              title="Transcode WebM → MP4 with captions burned in (in-browser)">
+              {ffmpegBusy ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> MP4 {Math.round(ffmpegProgress * 100)}%</> : <><Film className="h-3.5 w-3.5" /> Export MP4 (in-browser)</>}
             </button>
           )}
           <button onClick={exportVideo} disabled={exporting || !project.clips.length || !isPro}
