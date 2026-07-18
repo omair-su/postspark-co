@@ -40,12 +40,20 @@ interface ToolCallOptions<T> extends CallOptions {
 }
 
 function mapStatusError(status: number, body: string): string {
+  console.error("[claude] API error", status, body.slice(0, 500));
   if (status === 401) return "AI service authentication failed.";
   if (status === 429) return "Too many requests, wait 30 seconds and try again.";
   if (status === 402 || status === 403) return "AI credits exhausted. Please check your Anthropic account.";
   if (status === 529 || status === 503) return "AI service is overloaded. Try again shortly.";
-  console.error("Claude API error:", status, body);
-  return "Generation failed. Please try again.";
+  if (status === 404) return "AI model not available (check CLAUDE_MODEL config).";
+  // Surface Anthropic's own error message when possible so misconfigurations
+  // (bad model id, invalid schema, etc.) don't hide behind a generic string.
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string; type?: string } };
+    const msg = parsed?.error?.message;
+    if (msg) return `AI error (${status}): ${msg.slice(0, 180)}`;
+  } catch { /* not JSON */ }
+  return `Generation failed (${status}). Please try again.`;
 }
 
 /** Plain text completion. */
