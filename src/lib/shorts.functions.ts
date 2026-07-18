@@ -96,19 +96,24 @@ export const generateShorts = createServerFn({ method: "POST" })
 export const getShortsUsage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data: profile } = await supabase
-      .from("profiles").select("plan").eq("user_id", userId).single();
-    const plan = profile?.plan || "free";
-    if (plan === "pro" || plan === "agency") return { used: 0, limit: -1, plan };
-    const start = new Date();
-    start.setDate(1); start.setHours(0, 0, 0, 0);
-    const { count } = await supabase
-      .from("repurpose_jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .gte("created_at", start.toISOString());
-    return { used: count ?? 0, limit: FREE_MONTHLY_LIMIT, plan };
+    try {
+      const { supabase, userId } = context;
+      const { data: profile } = await supabase
+        .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+      const plan = profile?.plan || "free";
+      if (plan === "pro" || plan === "agency") return { used: 0, limit: -1, plan };
+      const start = new Date();
+      start.setDate(1); start.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from("repurpose_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", start.toISOString());
+      return { used: count ?? 0, limit: FREE_MONTHLY_LIMIT, plan };
+    } catch (e) {
+      console.error("[getShortsUsage] failed", e);
+      return { used: 0, limit: FREE_MONTHLY_LIMIT, plan: "free" as const };
+    }
   });
 
 export const generateShortsSeries = createServerFn({ method: "POST" })
