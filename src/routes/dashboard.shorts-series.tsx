@@ -137,10 +137,10 @@ function ShortsSeriesPage() {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">Series Mode</h1>
-            <span className="rounded-full bg-[#7C3AED]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#7C3AED] border border-[#7C3AED]/25">Pro</span>
+            <h1 className="m-0 text-[22px] font-bold tracking-tight text-white">Series Mode</h1>
+            <span className="rounded-full bg-[#7C3AED]/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C4B5FD] border border-[#7C3AED]/40">Pro</span>
           </div>
-          <p className="m-0 mt-1 text-[13px] leading-relaxed text-[#6B7280]">
+          <p className="m-0 mt-1 text-[13px] leading-relaxed text-white/70">
             One source → 5 episodic scripts with built-in cliffhangers. A week of content from a single paste.
           </p>
         </div>
