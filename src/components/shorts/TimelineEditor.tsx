@@ -1028,6 +1028,7 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
               className="inline-flex items-center gap-1.5 rounded-lg border border-[#1A1A2E] bg-[#1A1A2E] px-3 py-2 text-[12px] font-bold text-white hover:bg-black disabled:opacity-50">
               {mp4Rendering ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> {mp4Status || "Rendering…"}</> : <><Film className="h-3.5 w-3.5" /> Render MP4 (cloud)</>}
             </button>
+          )}
           {ffmpegMp4Url && (
             <a href={ffmpegMp4Url} download={`${projectName.replace(/\W+/g, "-")}-${Date.now()}.mp4`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-fuchsia-300 bg-fuchsia-50 px-3 py-2 text-[12px] font-bold text-fuchsia-700 hover:bg-fuchsia-100">
