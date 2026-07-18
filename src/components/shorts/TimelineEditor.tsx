@@ -78,6 +78,13 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
   const [saving, setSaving] = useState(false);
   const [editingCaptionId, setEditingCaptionId] = useState<string | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [voText, setVoText] = useState("");
+  const [voVoice, setVoVoice] = useState("sarah");
+  const [voGenerating, setVoGenerating] = useState(false);
+  const [captioning, setCaptioning] = useState(false);
+  const [ffmpegMp4Url, setFfmpegMp4Url] = useState<string | null>(null);
+  const [ffmpegBusy, setFfmpegBusy] = useState(false);
+  const [ffmpegProgress, setFfmpegProgress] = useState(0);
   const { user } = useAuth();
 
   const dragClipIdxRef = useRef<number | null>(null);
