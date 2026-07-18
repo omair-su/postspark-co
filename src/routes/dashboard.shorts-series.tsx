@@ -1,3 +1,4 @@
+import { useServerFn } from "@tanstack/react-start";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +22,11 @@ const DURATIONS = [30, 45, 60] as const;
 
 function ShortsSeriesPage() {
   const { session } = useAuth();
+  const generateShortsSeriesFn = useServerFn(generateShortsSeries);
+  const getShortsUsageFn = useServerFn(getShortsUsage);
+  const listShortsSeriesFn = useServerFn(listShortsSeries);
+  const loadShortsSeriesFn = useServerFn(loadShortsSeries);
+  const deleteShortsSeriesFn = useServerFn(deleteShortsSeries);
   const [input, setInput] = useState("");
   const [platform, setPlatform] = useState<"tiktok" | "shorts" | "reels">("tiktok");
   const [duration, setDuration] = useState<30 | 45 | 60>(45);
@@ -37,19 +43,19 @@ function ShortsSeriesPage() {
 
   const refreshDrafts = useCallback(() => {
     if (!session) return;
-    listShortsSeries().then((r: any) => setDrafts(r?.series || [])).catch(() => {});
-  }, [session]);
+    listShortsSeriesFn().then((r: any) => setDrafts(r?.series || [])).catch(() => {});
+  }, [session, listShortsSeriesFn]);
 
   useEffect(() => {
-    if (session) getShortsUsage().then((u: any) => setPlan(u?.plan || "free")).catch(() => {});
+    if (session) getShortsUsageFn().then((u: any) => setPlan(u?.plan || "free")).catch(() => {});
     refreshDrafts();
-  }, [session, refreshDrafts]);
+  }, [session, getShortsUsageFn, refreshDrafts]);
 
   const openDraft = async (seriesId: string) => {
     setActiveDraftId(seriesId);
     setLoading(true); setErr(null); setTab(0);
     try {
-      const res: any = await loadShortsSeries({ data: { seriesId } });
+      const res: any = await loadShortsSeriesFn({ data: { seriesId } });
       if (res?.scripts?.length) {
         setScripts(res.scripts);
         setInput(res.inputText || "");
@@ -61,7 +67,7 @@ function ShortsSeriesPage() {
 
   const removeDraft = async (seriesId: string) => {
     if (!confirm("Delete this series and all 5 episodes?")) return;
-    await deleteShortsSeries({ data: { seriesId } });
+    await deleteShortsSeriesFn({ data: { seriesId } });
     if (activeDraftId === seriesId) { setActiveDraftId(null); setScripts(null); }
     refreshDrafts();
     toast.success("Series deleted");
@@ -72,7 +78,7 @@ function ShortsSeriesPage() {
     if (input.trim().length < 20) return toast.error("Paste at least a paragraph of source content");
     setLoading(true); setScripts(null); setErr(null); setTab(0);
     try {
-      const res: any = await withAIProgress(generateShortsSeries({
+      const res: any = await withAIProgress(generateShortsSeriesFn({
         data: { inputText: input.trim(), platform, duration },
       }));
       if (res.error === "PRO_REQUIRED") {
