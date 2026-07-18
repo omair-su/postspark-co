@@ -2722,6 +2722,16 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(167,139,250,0.32) !important;
   color: #F8FAFC !important;
 }
+.dashboard-shell .shorts-ai-voice-card textarea,
+.dashboard-shell .shorts-ai-voice-card select,
+.dashboard-shell .shorts-ai-voice-card button:not(.bg-gradient-to-br) {
+  background: rgba(10,10,20,0.72) !important;
+  color: #F8FAFC !important;
+  border-color: rgba(167,139,250,0.22) !important;
+}
+.dashboard-shell .shorts-ai-voice-card textarea::placeholder {
+  color: rgba(148,163,184,0.75) !important;
+}
 .dashboard-shell .shorts-editor-engine .border-\[\#7C3AED\]\/30 {
   border-color: rgba(167,139,250,0.32) !important;
 }
