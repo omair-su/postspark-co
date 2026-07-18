@@ -302,6 +302,43 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
     if (playing) { v.play().catch(() => {}); } else { v.pause(); }
   }, [playhead, activeClipIdx, clipRanges, playing]);
 
+  // ── preview: music + voiceover audio synced to playhead ──────
+  useEffect(() => {
+    const ensure = (ref: React.MutableRefObject<HTMLAudioElement | null>, url: string | null, volume: number) => {
+      if (!url) {
+        if (ref.current) { ref.current.pause(); ref.current.src = ""; ref.current = null; }
+        return;
+      }
+      if (!ref.current || ref.current.src !== url) {
+        if (ref.current) ref.current.pause();
+        const a = new Audio(url);
+        a.preload = "auto";
+        a.crossOrigin = "anonymous";
+        ref.current = a;
+      }
+      ref.current.volume = Math.max(0, Math.min(1, volume));
+    };
+    ensure(musicAudioRef, project.music.url, project.music.volume);
+    ensure(voAudioRef, project.vo.url, project.vo.volume);
+  }, [project.music.url, project.music.volume, project.vo.url, project.vo.volume]);
+
+  useEffect(() => {
+    const sync = (a: HTMLAudioElement | null) => {
+      if (!a) return;
+      if (Math.abs(a.currentTime - playhead) > 0.25) {
+        try { a.currentTime = Math.min(playhead, Number.isFinite(a.duration) ? a.duration : playhead); } catch { /* ignore */ }
+      }
+      if (playing) a.play().catch(() => {}); else a.pause();
+    };
+    sync(musicAudioRef.current);
+    sync(voAudioRef.current);
+  }, [playing, playhead]);
+
+  useEffect(() => () => {
+    musicAudioRef.current?.pause();
+    voAudioRef.current?.pause();
+  }, []);
+
   // ── spacebar play/pause ──────────────────────────────────────
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
