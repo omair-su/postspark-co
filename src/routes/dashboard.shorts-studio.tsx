@@ -122,6 +122,22 @@ function ShortsStudioPage() {
         setScript(res.script);
         setJobId((res as any).jobId || null);
         toast.success("Script ready");
+        // Auto-fetch b-roll for every shot in parallel (best-effort)
+        void (async () => {
+          try {
+            const results = await Promise.all(
+              res.script!.shots.map((s) =>
+                findBroll({
+                  data: { query: s.broll_search_query || s.b_roll || "" },
+                  headers: { Authorization: `Bearer ${session.access_token}` },
+                } as any).catch(() => ({ clips: [] })),
+              ),
+            );
+            const map: Record<number, Array<{ id: number; image: string; video_url: string; duration: number }>> = {};
+            results.forEach((r: any, i) => { if (r?.clips?.length) map[i] = r.clips; });
+            if (Object.keys(map).length) setBrollClips(map);
+          } catch { /* ignore */ }
+        })();
       } else {
         setGenError("No script returned. Please try again.");
         toast.error("No script returned. Please try again.");
