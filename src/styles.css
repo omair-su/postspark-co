@@ -2717,6 +2717,11 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(167,139,250,0.28) !important;
   color: #F8FAFC !important;
 }
+.dashboard-shell .shorts-ai-voice-card {
+  background: linear-gradient(180deg, rgba(20,20,43,0.98), rgba(12,10,28,0.96)) !important;
+  border-color: rgba(167,139,250,0.32) !important;
+  color: #F8FAFC !important;
+}
 .dashboard-shell .shorts-editor-engine .border-\[\#7C3AED\]\/30 {
   border-color: rgba(167,139,250,0.32) !important;
 }
