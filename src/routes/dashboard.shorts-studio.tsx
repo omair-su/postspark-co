@@ -195,6 +195,7 @@ function ShortsStudioPage() {
 
   const publishYouTube = async () => {
     if (!script || !jobId || !videoPath) return;
+    if (!session) return toast.error("Please sign in");
     if (!connectedYT) return toast.error("Connect YouTube first");
     setYtPublishing(true);
     try {
