@@ -21,11 +21,11 @@ function ShortsEditorPage() {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">Shorts Editor</h1>
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 border border-emerald-200">Beta</span>
+            <h1 className="m-0 text-[22px] font-bold tracking-tight text-white">Shorts Editor</h1>
+            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-300 border border-emerald-400/30">Beta</span>
           </div>
-          <p className="m-0 mt-1 text-[13px] leading-relaxed text-[#6B7280]">
-            Multi-track timeline editor: up to 8 clips, drag-reorder, trim handles, captions, music + voiceover. Autosave drafts. Export WebM in-browser. Pure browser, no install.
+          <p className="m-0 mt-1 text-[13px] leading-relaxed text-white/70">
+            Multi-track timeline editor: up to 8 clips, drag-reorder, trim handles, captions, music + voiceover. Autosave drafts. Export WebM in-browser. Stock B-roll clips are silent — add music or a VO track for audio.
           </p>
         </div>
       </div>
