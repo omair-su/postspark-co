@@ -2287,15 +2287,15 @@ h1, h2, h3, h4, h5, h6 {
    soft surface on the light canvas so cards, inputs, and borders stay visible. */
 .ds-canvas .rounded-xl.border.border-border.bg-card,
 .ds-canvas .rounded-lg.border.border-border.bg-card {
-  background: linear-gradient(180deg, #ffffff, #fafafb);
+  background: linear-gradient(180deg, rgba(20,20,43,0.96), rgba(17,24,39,0.92));
   border-color: var(--ds-border);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 10px 30px -20px rgba(15,23,42,0.15);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 22px 55px -36px rgba(0,0,0,0.85);
   color: var(--ds-text);
 }
 .ds-canvas .text-foreground { color: var(--ds-text) !important; }
 .ds-canvas .text-muted-foreground { color: var(--ds-muted) !important; }
-.ds-canvas .bg-background { background: #ffffff !important; }
-.ds-canvas .bg-muted { background: #f5f3ff !important; }
+.ds-canvas .bg-background { background: #0A0A14 !important; }
+.ds-canvas .bg-muted { background: rgba(167,139,250,0.10) !important; }
 .ds-canvas .border-input { border-color: var(--ds-border-strong, #e2e8f0) !important; }
 .ds-canvas .border-border { border-color: var(--ds-border, #e2e8f0) !important; }
 
@@ -2307,16 +2307,16 @@ h1, h2, h3, h4, h5, h6 {
   --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
-  --ds-bg: #F8F7FC;
-  --ds-bg-elev: #FFFFFF;
-  --ds-card: #FFFFFF;
-  --ds-card-hover: #FAFAFB;
-  --ds-border: rgba(0,0,0,0.07);
-  --ds-border-strong: rgba(107,78,255,0.2);
-  --ds-text: #1A1A2E;
-  --ds-muted: #4B4B6B;
-  --ds-accent: #6B4EFF;
-  --ds-accent-soft: #8B6FFF;
+  --ds-bg: #0A0A14;
+  --ds-bg-elev: #0F172A;
+  --ds-card: #14142B;
+  --ds-card-hover: #17152A;
+  --ds-border: #2A2742;
+  --ds-border-strong: rgba(167,139,250,0.32);
+  --ds-text: #F8FAFC;
+  --ds-muted: #A5ADC2;
+  --ds-accent: #7C3AED;
+  --ds-accent-soft: #EC4899;
 
   font-family: var(--font-body);
   color: var(--ds-text);
@@ -2324,7 +2324,10 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--ds-bg);
+  background:
+    radial-gradient(circle at 24% 0%, rgba(124,58,237,0.14), transparent 36%),
+    radial-gradient(circle at 92% 18%, rgba(236,72,153,0.10), transparent 34%),
+    var(--ds-bg);
 }
 
 .dashboard-shell input,
@@ -2332,7 +2335,7 @@ h1, h2, h3, h4, h5, h6 {
 .dashboard-shell select,
 .dashboard-shell button {
   font-family: var(--font-body);
-  color: var(--ds-text);
+  color: inherit;
 }
 
 .dashboard-shell h1,
@@ -2361,45 +2364,50 @@ h1, h2, h3, h4, h5, h6 {
 }
 .dashboard-shell p { color: var(--ds-muted); }
 
-/* Main canvas — purple-tinted off-white with a barely-there grid */
+/* Main canvas — premium deep navy with a restrained production grid */
 .dashboard-shell .ds-canvas {
-  background: var(--ds-bg);
+  background:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.014) 1px, transparent 1px),
+    radial-gradient(circle at 18% 0%, rgba(124,58,237,0.12), transparent 28%),
+    var(--ds-bg) !important;
+  background-size: 34px 34px, 34px 34px, auto, auto;
+  color: var(--ds-text);
 }
 .dashboard-shell .ds-canvas::before {
   content: "";
   position: absolute; inset: 0; pointer-events: none;
   background-image:
-    linear-gradient(rgba(107,78,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(107,78,255,0.025) 1px, transparent 1px);
+    linear-gradient(rgba(167,139,250,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167,139,250,0.025) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: none;
-  opacity: 1;
+  opacity: 0.55;
 }
 
 /* Top navbar */
 .dashboard-shell .ds-header {
-  background: #FFFFFF;
-  border-bottom: 1px solid rgba(107,78,255,0.08);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: rgba(15,23,42,0.88);
+  border-bottom: 1px solid #243047;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 20px 55px -40px rgba(0,0,0,0.9);
+  backdrop-filter: blur(18px) saturate(130%);
 }
 
 /* Standard cards */
 .dashboard-shell .ds-card {
-  background: #FFFFFF;
-  border: 0.5px solid rgba(0,0,0,0.07);
+  background: linear-gradient(180deg, rgba(20,20,43,0.96), rgba(17,24,39,0.92));
+  border: 0.5px solid rgba(167,139,250,0.18);
   border-radius: 14px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 22px 55px -40px rgba(0,0,0,0.9);
 }
 .dashboard-shell .ds-card:focus-within {
-  border-color: rgba(107,78,255,0.2);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 0 0 3px rgba(107,78,255,0.06);
+  border-color: rgba(167,139,250,0.40);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 3px rgba(124,58,237,0.14);
 }
 .dashboard-shell .ds-card-hover:hover {
   transform: translateY(-1px);
-  border-color: rgba(107,78,255,0.2);
-  box-shadow: 0 6px 20px rgba(107,78,255,0.10), 0 1px 2px rgba(0,0,0,0.04);
+  border-color: rgba(236,72,153,0.34);
+  box-shadow: 0 18px 45px -30px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 /* Featured / dark hero card (dashboard welcome) */
@@ -2420,19 +2428,19 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Featured (soft violet) cards */
 .dashboard-shell .ds-card-feature {
-  background: linear-gradient(135deg, #FAFAF8 0%, #F0ECFF 100%);
-  border: 0.5px solid rgba(107,78,255,0.15);
-  box-shadow: 0 4px 16px rgba(107,78,255,0.08);
+  background: linear-gradient(135deg, rgba(20,20,43,0.98) 0%, rgba(124,58,237,0.13) 100%);
+  border: 0.5px solid rgba(167,139,250,0.22);
+  box-shadow: 0 18px 45px -34px rgba(124,58,237,0.55);
   border-radius: 14px;
 }
 
 /* Primary CTA / pill button */
 .dashboard-shell .ds-cta-pill,
 .dashboard-shell .ds-btn-primary {
-  background: linear-gradient(135deg, #6B4EFF 0%, #8B6FFF 100%);
+  background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
   color: #FFFFFF;
   border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(107,78,255,0.35);
+  box-shadow: 0 16px 38px -22px rgba(236,72,153,0.85);
   transition: transform .18s ease, box-shadow .18s ease;
   font-family: var(--font-body);
   font-weight: 600;
@@ -2442,24 +2450,24 @@ h1, h2, h3, h4, h5, h6 {
 .dashboard-shell .ds-cta-pill:hover,
 .dashboard-shell .ds-btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(107,78,255,0.42);
+  box-shadow: 0 20px 46px -22px rgba(236,72,153,0.95);
 }
 
 /* Search pill / chips */
 .dashboard-shell .ds-search-pill {
-  background: #FFFFFF;
-  border: 1px solid rgba(107,78,255,0.12);
+  background: rgba(10,10,20,0.62);
+  border: 1px solid rgba(167,139,250,0.20);
   color: var(--ds-muted);
 }
 .dashboard-shell .ds-chip {
-  background: #FFFFFF;
-  border: 1px solid rgba(107,78,255,0.12);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(167,139,250,0.18);
   color: var(--ds-text);
 }
 .dashboard-shell .ds-chip-accent {
-  background: rgba(107,78,255,0.08);
-  border-color: rgba(107,78,255,0.2);
-  color: #6B4EFF;
+  background: rgba(124,58,237,0.16);
+  border-color: rgba(167,139,250,0.34);
+  color: #DDD6FE;
 }
 
 /* Sidebar — deep navy with purple glow */
