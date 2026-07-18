@@ -369,19 +369,19 @@ function ShortsStudioPage() {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">Shorts Studio</h1>
+            <h1 className="m-0 text-[22px] font-bold tracking-tight text-white">Shorts Studio</h1>
             {usage && (
               usage.limit === -1 ? (
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 border border-emerald-200">Unlimited · Pro</span>
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-300 border border-emerald-400/30">Unlimited · Pro</span>
               ) : (
-                <Link to="/pricing" className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-[#E5E7EB] text-[#6B7280] hover:border-[#7C3AED] hover:text-[#7C3AED]">
+                <Link to="/pricing" className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-white/10 text-white/70 hover:border-[#7C3AED] hover:text-white">
                   {usage.used}/{usage.limit} free this month · Upgrade
                 </Link>
               )
             )}
           </div>
-          <p className="m-0 mt-1 text-[13px] leading-relaxed text-[#6B7280]">
-            Turn any source content into a ready-to-record vertical video script — hooks, shot list, on-screen captions, hashtags. Record in OBS or CapCut.
+          <p className="m-0 mt-1 text-[13px] leading-relaxed text-white/70">
+            Turn any source content into a ready-to-record vertical video script — hooks, shot list, on-screen captions, hashtags. Stock B-roll clips are silent by default — add music or a voiceover below.
           </p>
         </div>
       </div>
