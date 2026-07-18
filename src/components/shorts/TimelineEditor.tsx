@@ -815,8 +815,56 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
               onVolume={(v) => setProject((p) => ({ ...p, vo: { ...p.vo, volume: v } }))}
               onClear={() => setProject((p) => ({ ...p, vo: { ...p.vo, name: "", url: null } }))} />
           </div>
+
+          {/* AI Voiceover + Auto-caption */}
+          <div className="rounded-2xl border border-[#7C3AED]/30 bg-gradient-to-br from-[#F5F3FF] to-white p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Wand2 className="h-4 w-4 text-[#7C3AED]" />
+              <p className="text-[12px] font-bold text-[#1A1A2E]">AI Voiceover</p>
+              <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide text-[#7C3AED]">ElevenLabs</span>
+            </div>
+            <textarea
+              rows={3}
+              value={voText}
+              onChange={(e) => setVoText(e.target.value)}
+              placeholder="Type the script to narrate…"
+              className="w-full rounded-lg border border-[#E5E7EB] bg-white p-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={voVoice}
+                onChange={(e) => setVoVoice(e.target.value)}
+                className="rounded-lg border border-[#E5E7EB] bg-white px-2 py-1.5 text-[12px] font-medium text-[#1A1A2E]"
+              >
+                <option value="sarah">Sarah (warm F)</option>
+                <option value="george">George (deep M)</option>
+                <option value="laura">Laura (bright F)</option>
+                <option value="charlie">Charlie (casual M)</option>
+                <option value="liam">Liam (young M)</option>
+                <option value="alice">Alice (soft F)</option>
+                <option value="brian">Brian (narrator M)</option>
+                <option value="lily">Lily (upbeat F)</option>
+              </select>
+              <button
+                onClick={generateVoiceover}
+                disabled={voGenerating || !voText.trim()}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#EC4899] px-3 py-1.5 text-[12px] font-bold text-white hover:opacity-90 disabled:opacity-40"
+              >
+                {voGenerating ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating…</> : <><Mic className="h-3.5 w-3.5" /> Generate voice</>}
+              </button>
+              <button
+                onClick={autoCaption}
+                disabled={captioning || (!project.vo.url && !project.music.url)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#7C3AED] bg-white px-3 py-1.5 text-[12px] font-bold text-[#7C3AED] hover:bg-[#7C3AED]/10 disabled:opacity-40"
+                title="Transcribe voiceover into synced captions"
+              >
+                {captioning ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Transcribing…</> : <><Captions className="h-3.5 w-3.5" /> Auto-caption</>}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
 
       {/* Timeline */}
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-3">
