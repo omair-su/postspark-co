@@ -2704,6 +2704,34 @@ h1, h2, h3, h4, h5, h6 {
 .dashboard-shell .shorts-editor-engine .bg-\[\#F3F0FF\]\/60 {
   background: rgba(10,10,20,0.48) !important;
 }
+.dashboard-shell .shorts-editor-engine .bg-gradient-to-br.from-\[\#F5F3FF\],
+.dashboard-shell .shorts-editor-engine .bg-gradient-to-br.to-white,
+.dashboard-shell .shorts-editor-engine .from-\[\#F5F3FF\].to-white {
+  background: linear-gradient(180deg, rgba(20,20,43,0.98), rgba(12,10,28,0.96)) !important;
+  border-color: rgba(167,139,250,0.28) !important;
+  color: #F8FAFC !important;
+}
+.dashboard-shell .shorts-editor-engine .border-\[\#7C3AED\]\/30 {
+  border-color: rgba(167,139,250,0.32) !important;
+}
+.dashboard-shell .shorts-editor-engine .border-red-200,
+.dashboard-shell .shorts-editor-engine .border-emerald-300,
+.dashboard-shell .shorts-editor-engine .border-sky-300,
+.dashboard-shell .shorts-editor-engine .border-fuchsia-300 {
+  border-color: rgba(167,139,250,0.28) !important;
+}
+.dashboard-shell .shorts-editor-engine .bg-emerald-50,
+.dashboard-shell .shorts-editor-engine .bg-sky-50,
+.dashboard-shell .shorts-editor-engine .bg-fuchsia-50,
+.dashboard-shell .shorts-editor-engine .bg-red-50 {
+  background: rgba(255,255,255,0.06) !important;
+}
+.dashboard-shell .shorts-editor-engine .text-emerald-700,
+.dashboard-shell .shorts-editor-engine .text-sky-700,
+.dashboard-shell .shorts-editor-engine .text-fuchsia-700,
+.dashboard-shell .shorts-editor-engine .text-red-600 {
+  color: #DDD6FE !important;
+}
 .dashboard-shell .shorts-editor-engine .border-\[\#E5E7EB\] {
   border-color: rgba(167,139,250,0.18) !important;
 }
