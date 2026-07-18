@@ -1,3 +1,4 @@
+import { useServerFn } from "@tanstack/react-start";
 import { createFileRoute, useSearch, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,6 +43,15 @@ const VO_VOICES = [
 function ShortsStudioPage() {
   const { session } = useAuth();
   const search = useSearch({ from: "/dashboard/shorts-studio" });
+  const generateShortsFn = useServerFn(generateShorts);
+  const getShortsUsageFn = useServerFn(getShortsUsage);
+  const findBrollFn = useServerFn(findBroll);
+  const getYouTubeAuthUrlFn = useServerFn(getYouTubeAuthUrl);
+  const getConnectedSocialsFn = useServerFn(getConnectedSocials);
+  const disconnectSocialFn = useServerFn(disconnectSocial);
+  const attachShortVideoFn = useServerFn(attachShortVideo);
+  const publishToYouTubeFn = useServerFn(publishToYouTube);
+  const recordTikTokIntentFn = useServerFn(recordTikTokIntent);
   const [input, setInput] = useState("");
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]["id"]>("tiktok");
   const [duration, setDuration] = useState<30 | 45 | 60>(45);
@@ -81,7 +91,7 @@ function ShortsStudioPage() {
 
   const refreshSocials = async () => {
     try {
-      const r = await getConnectedSocials();
+      const r = await getConnectedSocialsFn();
       const yt = (r.accounts || []).find((a: any) => a.platform === "youtube");
       setConnectedYT(yt ? { name: (yt as any).platform_username || "YouTube" } : null);
     } catch { /* signed out */ }
@@ -90,7 +100,7 @@ function ShortsStudioPage() {
   useEffect(() => {
     if (session) {
       refreshSocials();
-      getShortsUsage().then((u: any) => setUserPlan(u?.plan || "free")).catch(() => {});
+      getShortsUsageFn().then((u: any) => setUserPlan(u?.plan || "free")).catch(() => {});
     }
   }, [session]);
 
@@ -105,7 +115,7 @@ function ShortsStudioPage() {
     setLoading(true); setScript(null); setJobId(null); setVideoFile(null); setVideoPath(null);
     setLimitHit(false); setGenError(null); setVoAudioUrl(null); setVoBlob(null); setBrollClips({}); setBrollShotIdx(null);
     try {
-      const res = await withAIProgress(generateShorts({
+      const res = await withAIProgress(generateShortsFn({
         data: { inputText: input.trim(), platform, duration, angle: angle.trim() || undefined },
       }));
       if (res.error === "LIMIT_REACHED") {
@@ -145,7 +155,7 @@ function ShortsStudioPage() {
         contentType: file.type, upsert: false,
       });
       if (upErr) throw upErr;
-      const att = await attachShortVideo({ data: { jobId, storagePath: path, mimeType: file.type, sizeBytes: file.size } });
+      const att = await attachShortVideoFn({ data: { jobId, storagePath: path, mimeType: file.type, sizeBytes: file.size } });
       if ((att as any).error) throw new Error((att as any).error);
       setVideoPath(path);
       toast.success("Video uploaded & saved to History");
@@ -159,14 +169,14 @@ function ShortsStudioPage() {
 
   const connectYouTube = async () => {
     try {
-      const r = await getYouTubeAuthUrl();
+      const r = await getYouTubeAuthUrlFn();
       if ((r as any).error) return toast.error((r as any).error);
       if ((r as any).url) window.location.href = (r as any).url;
     } catch (e: any) { toast.error(e?.message || "Failed"); }
   };
 
   const disconnectYouTube = async () => {
-    await disconnectSocial({ data: { platform: "youtube" } });
+    await disconnectSocialFn({ data: { platform: "youtube" } });
     setConnectedYT(null);
     toast.success("YouTube disconnected");
   };
@@ -176,7 +186,7 @@ function ShortsStudioPage() {
     if (!connectedYT) return toast.error("Connect YouTube first");
     setYtPublishing(true);
     try {
-      const r: any = await publishToYouTube({
+      const r: any = await publishToYouTubeFn({
         data: {
           jobId, storagePath: videoPath,
           title: script.title.slice(0, 100),
@@ -200,7 +210,7 @@ function ShortsStudioPage() {
       script.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" "),
     ].filter(Boolean).join("\n\n");
     await navigator.clipboard.writeText(desc).catch(() => {});
-    await recordTikTokIntent({ data: { jobId, storagePath: videoPath, title: script.title, description: desc } });
+    await recordTikTokIntentFn({ data: { jobId, storagePath: videoPath, title: script.title, description: desc } });
     toast.success("Caption copied. Opening TikTok upload…");
     window.open("https://www.tiktok.com/tiktokstudio/upload", "_blank");
   };
@@ -334,7 +344,7 @@ function ShortsStudioPage() {
     if (brollClips[idx]) return; // cached
     setBrollLoading(true);
     try {
-      const res: any = await findBroll({ data: { query } });
+      const res: any = await findBrollFn({ data: { query } });
       if (res.error) toast.error(res.error);
       setBrollClips((prev) => ({ ...prev, [idx]: res.clips || [] }));
     } catch (e: any) {
@@ -355,7 +365,7 @@ function ShortsStudioPage() {
   // ── usage counter for chip ────────────────────────────────────
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
   useEffect(() => {
-    if (session) getShortsUsage().then((u: any) => setUsage({ used: u?.used ?? 0, limit: u?.limit ?? 3 })).catch(() => {});
+    if (session) getShortsUsageFn().then((u: any) => setUsage({ used: u?.used ?? 0, limit: u?.limit ?? 3 })).catch(() => {});
   }, [session, script]);
 
   return (
