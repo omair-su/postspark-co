@@ -80,6 +80,8 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
 
   const dragClipIdxRef = useRef<number | null>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
+  const voAudioRef = useRef<HTMLAudioElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const playStartWallRef = useRef<number>(0);
   const playStartHeadRef = useRef<number>(0);
