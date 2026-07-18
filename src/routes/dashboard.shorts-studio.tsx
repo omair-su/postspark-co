@@ -399,17 +399,14 @@ function ShortsStudioPage() {
   }, [session, script]);
 
   return (
-    <div className="mx-auto max-w-[900px] px-6 pb-20 pt-6 space-y-6">
-      <div
-        className="flex items-start gap-4 rounded-2xl p-5"
-        style={{ background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)", border: "1px solid #243047" }}
-      >
-        <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]" style={{ background: "linear-gradient(135deg, #EC4899 0%, #7C3AED 100%)", boxShadow: "0 2px 8px rgba(124,58,237,0.25)" }}>
+    <div className="shorts-workbench shorts-studio-page mx-auto max-w-[1180px] px-4 pb-20 pt-4 sm:px-6 sm:pt-6 space-y-6">
+      <div className="shorts-hero flex items-start gap-4 rounded-2xl p-5 sm:p-6">
+        <div className="shorts-hero-icon flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]">
           <Video className="h-6 w-6 text-white" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="m-0 text-[22px] font-bold tracking-tight text-white">Shorts Studio</h1>
+            <h1 className="m-0 text-[26px] font-bold tracking-tight text-white sm:text-[32px]">Shorts Studio</h1>
             {usage && (
               usage.limit === -1 ? (
                 <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-300 border border-emerald-400/30">Unlimited · Pro</span>
@@ -421,14 +418,19 @@ function ShortsStudioPage() {
             )}
           </div>
           <p className="m-0 mt-1 text-[13px] leading-relaxed text-white/70">
-            Turn any source content into a ready-to-record vertical video script — hooks, shot list, on-screen captions, hashtags. Stock B-roll clips are silent by default — add music or a voiceover below.
+            Turn any source into a production-ready short: viral hooks, strict shot JSON, B-roll keywords, captions, voiceover, stock clips, and publish assets.
           </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-4">
+            {['Strict JSON script', 'Auto B-roll search', 'SRT captions', 'AI voiceover'].map((label) => (
+              <span key={label} className="shorts-signal-chip">{label}</span>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Link to="/dashboard/shorts-series" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg, #7C3AED, #4F46E5)" }}>
+        <Link to="/dashboard/shorts-series" className="shorts-feature-card group flex items-start gap-3 rounded-2xl p-4 transition">
+          <div className="shorts-feature-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white">
             <Sparkles className="h-5 w-5" />
           </div>
           <div className="flex-1">
@@ -439,8 +441,8 @@ function ShortsStudioPage() {
             <p className="mt-0.5 text-[12px] text-[#6B7280]">Turn one source into 5 episode scripts with cliffhangers — a week of content in one click.</p>
           </div>
         </Link>
-        <Link to="/dashboard/shorts-editor" className="group flex items-start gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 hover:border-[#7C3AED]/40 hover:bg-[#F3F0FF]/40 transition">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg, #EC4899, #7C3AED)" }}>
+        <Link to="/dashboard/shorts-editor" className="shorts-feature-card group flex items-start gap-3 rounded-2xl p-4 transition">
+          <div className="shorts-feature-icon shorts-feature-icon-pink flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white">
             <Film className="h-5 w-5" />
           </div>
           <div className="flex-1">
@@ -826,13 +828,13 @@ function ShortsStudioPage() {
 }
 
 function Card({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-[14px] border border-black/[0.08] bg-white p-5">{children}</div>;
+  return <div className="shorts-panel rounded-[14px] p-5">{children}</div>;
 }
 function Label({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mb-3.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#9CA3AF] ${className}`}>{children}</div>;
+  return <div className={`mb-3.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#A78BFA] ${className}`}>{children}</div>;
 }
 function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className={`rounded-lg border px-3 py-1.5 text-[13px] font-medium transition ${active ? "border-[#6B4EFF] bg-[#6B4EFF] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#6B4EFF]/40 hover:text-[#1A1A2E]"}`}>{children}</button>
+    <button onClick={onClick} className={`shorts-pill rounded-lg border px-3 py-1.5 text-[13px] font-medium transition ${active ? "is-active" : ""}`}>{children}</button>
   );
 }

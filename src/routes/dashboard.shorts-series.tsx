@@ -137,30 +137,33 @@ function ShortsSeriesPage() {
   const active = scripts?.[tab];
 
   return (
-    <div className="mx-auto max-w-[900px] px-6 pb-20 pt-6 space-y-6">
-      <Link to="/dashboard/shorts-studio" className="inline-flex items-center gap-1.5 text-[12px] text-[#6B7280] hover:text-[#7C3AED]">
+    <div className="shorts-workbench mx-auto max-w-[1100px] px-4 pb-20 pt-4 sm:px-6 sm:pt-6 space-y-6">
+      <Link to="/dashboard/shorts-studio" className="inline-flex items-center gap-1.5 text-[12px] text-[#A78BFA] hover:text-white">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to Shorts Studio
       </Link>
 
-      <div className="flex items-start gap-4 rounded-2xl p-5"
-        style={{ background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)", border: "1px solid #243047" }}>
-        <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]"
-          style={{ background: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)", boxShadow: "0 2px 8px rgba(124,58,237,0.25)" }}>
+      <div className="shorts-hero flex items-start gap-4 rounded-2xl p-5 sm:p-6">
+        <div className="shorts-hero-icon flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]">
           <Layers className="h-6 w-6 text-white" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="m-0 text-[22px] font-bold tracking-tight text-white">Series Mode</h1>
+            <h1 className="m-0 text-[26px] font-bold tracking-tight text-white sm:text-[32px]">Shorts Series</h1>
             <span className="rounded-full bg-[#7C3AED]/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C4B5FD] border border-[#7C3AED]/40">Pro</span>
           </div>
           <p className="m-0 mt-1 text-[13px] leading-relaxed text-white/70">
-            One source → 5 episodic scripts with built-in cliffhangers. A week of content from a single paste.
+            One source → 5 connected episodes with cliffhangers, CTAs, hooks, B-roll direction, and a ready-to-export weekly bundle.
           </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-5">
+            {['Episode arc', 'Cliffhangers', 'Shot lists', 'Hashtags', 'TXT export'].map((label) => (
+              <span key={label} className="shorts-signal-chip">{label}</span>
+            ))}
+          </div>
         </div>
       </div>
 
       {drafts.length > 0 && (
-        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-4">
+        <div className="shorts-panel rounded-2xl p-4">
           <div className="mb-2 flex items-center gap-2">
             <FolderOpen className="h-3.5 w-3.5 text-[#7C3AED]" />
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Saved series ({drafts.length})</p>
@@ -186,7 +189,7 @@ function ShortsSeriesPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5">
+      <div className="shorts-panel rounded-2xl p-5">
         <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Source content</label>
         <textarea value={input} onChange={(e) => setInput(e.target.value)} rows={6}
           placeholder="Paste a blog post, transcript, or detailed idea…"
@@ -218,12 +221,12 @@ function ShortsSeriesPage() {
       </div>
 
       {!isPro ? (
-        <div className="rounded-2xl border border-[#FCD34D] bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] p-5">
+        <div className="shorts-panel shorts-paywall rounded-2xl p-5">
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-[#B45309]" />
             <p className="text-[14px] font-bold text-[#92400E]">Series Mode is a Pro feature</p>
           </div>
-          <p className="mt-1 text-[13px] text-[#B45309]">Free plan includes 3 repurposes/month. Series Mode generates 5 connected episode scripts per source — Pro only, unlimited.</p>
+          <p className="mt-1 text-[13px] text-[#FDE68A]">Free plan includes 3 repurposes/month. Series Mode generates 5 connected episode scripts per source — Pro only, unlimited.</p>
           <Link to="/dashboard/billing" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#7C3AED] px-4 py-2 text-[13px] font-bold text-white hover:bg-[#6D28D9]">
             <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro — $24/mo
           </Link>
@@ -259,7 +262,7 @@ function ShortsSeriesPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 space-y-4">
+          <div className="shorts-panel rounded-2xl p-5 space-y-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#7C3AED]">Episode {tab + 1}</p>
               <h2 className="mt-1 text-[20px] font-bold text-[#1A1A2E]">{active.title}</h2>
