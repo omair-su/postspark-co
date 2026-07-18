@@ -12,8 +12,13 @@ const envModel =
     ? process.env.CLAUDE_MODEL
     : undefined;
 
-/** API model id sent to Anthropic. */
-export const CLAUDE_MODEL_ID: string = envModel || "claude-sonnet-5";
+/**
+ * API model id sent to Anthropic. Anthropic has no public "sonnet-5"
+ * model id yet — using an unknown id makes every Messages API call fail
+ * (surfacing as "No script returned" in the UI). Pin to the real latest
+ * Sonnet id for the API and keep the marketing label separate.
+ */
+export const CLAUDE_MODEL_ID: string = envModel || "claude-sonnet-4-5";
 
 /** Human-readable label shown in the UI (hero status, footers, comparisons). */
 export const CLAUDE_MODEL_LABEL = "Claude Sonnet 5";
