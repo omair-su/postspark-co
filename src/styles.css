@@ -752,11 +752,11 @@ h1, h2, h3, h4, h5, h6 {
    Scoped to .dashboard-shell. All ds-* class names preserved.
    ════════════════════════════════════════════════════════════════════ */
 .dashboard-shell {
-  --ds-bg: #0B1020;
+  --ds-bg: #0A0A14;
   --ds-bg-elev: #111827;
-  --ds-card: #161F33;
-  --ds-card-hover: #1A2542;
-  --ds-border: #243047;
+  --ds-card: #14142B;
+  --ds-card-hover: #17152A;
+  --ds-border: #2A2742;
   --ds-border-strong: #7C3AED;
   --ds-text: #F8FAFC;
   --ds-muted: #94A3B8;
@@ -781,9 +781,8 @@ h1, h2, h3, h4, h5, h6 {
 .ds-orb-violet, .ds-orb-pink, .ds-orb-indigo { display: none !important; }
 
 .ds-header {
-  background: rgba(11,16,32,0.85);
+  background: rgba(10,10,20,0.88);
   backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--ds-border);
   color: var(--ds-text);
 }
