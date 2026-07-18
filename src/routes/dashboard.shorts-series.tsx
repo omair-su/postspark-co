@@ -43,19 +43,27 @@ function ShortsSeriesPage() {
 
   const refreshDrafts = useCallback(() => {
     if (!session) return;
-    listShortsSeriesFn().then((r: any) => setDrafts(r?.series || [])).catch(() => {});
+    listShortsSeriesFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+      .then((r: any) => setDrafts(r?.series || []))
+      .catch(() => {});
   }, [session, listShortsSeriesFn]);
 
   useEffect(() => {
-    if (session) getShortsUsageFn().then((u: any) => setPlan(u?.plan || "free")).catch(() => {});
+    if (session) getShortsUsageFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+      .then((u: any) => setPlan(u?.plan || "free"))
+      .catch(() => {});
     refreshDrafts();
   }, [session, getShortsUsageFn, refreshDrafts]);
 
   const openDraft = async (seriesId: string) => {
+    if (!session) return toast.error("Please sign in");
     setActiveDraftId(seriesId);
     setLoading(true); setErr(null); setTab(0);
     try {
-      const res: any = await loadShortsSeriesFn({ data: { seriesId } });
+      const res: any = await loadShortsSeriesFn({
+        data: { seriesId },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      } as any);
       if (res?.scripts?.length) {
         setScripts(res.scripts);
         setInput(res.inputText || "");
@@ -66,8 +74,12 @@ function ShortsSeriesPage() {
   };
 
   const removeDraft = async (seriesId: string) => {
+    if (!session) return toast.error("Please sign in");
     if (!confirm("Delete this series and all 5 episodes?")) return;
-    await deleteShortsSeriesFn({ data: { seriesId } });
+    await deleteShortsSeriesFn({
+      data: { seriesId },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    } as any);
     if (activeDraftId === seriesId) { setActiveDraftId(null); setScripts(null); }
     refreshDrafts();
     toast.success("Series deleted");
@@ -80,7 +92,8 @@ function ShortsSeriesPage() {
     try {
       const res: any = await withAIProgress(generateShortsSeriesFn({
         data: { inputText: input.trim(), platform, duration },
-      }));
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      } as any));
       if (res.error === "PRO_REQUIRED") {
         setErr("Series Mode is a Pro feature.");
       } else if (res.error) {
