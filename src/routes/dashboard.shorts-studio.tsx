@@ -90,8 +90,9 @@ function ShortsStudioPage() {
   const isPro = userPlan === "pro" || userPlan === "agency";
 
   const refreshSocials = async () => {
+    if (!session) return;
     try {
-      const r = await getConnectedSocialsFn();
+      const r = await getConnectedSocialsFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any);
       const yt = (r.accounts || []).find((a: any) => a.platform === "youtube");
       setConnectedYT(yt ? { name: (yt as any).platform_username || "YouTube" } : null);
     } catch { /* signed out */ }
@@ -100,7 +101,9 @@ function ShortsStudioPage() {
   useEffect(() => {
     if (session) {
       refreshSocials();
-      getShortsUsageFn().then((u: any) => setUserPlan(u?.plan || "free")).catch(() => {});
+      getShortsUsageFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+        .then((u: any) => setUserPlan(u?.plan || "free"))
+        .catch(() => {});
     }
   }, [session]);
 
@@ -117,7 +120,8 @@ function ShortsStudioPage() {
     try {
       const res = await withAIProgress(generateShortsFn({
         data: { inputText: input.trim(), platform, duration, angle: angle.trim() || undefined },
-      }));
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      } as any));
       if (res.error === "LIMIT_REACHED") {
         setLimitHit(true);
         toast.error("Free plan limit reached — upgrade to Pro for unlimited shorts.");
@@ -155,7 +159,10 @@ function ShortsStudioPage() {
         contentType: file.type, upsert: false,
       });
       if (upErr) throw upErr;
-      const att = await attachShortVideoFn({ data: { jobId, storagePath: path, mimeType: file.type, sizeBytes: file.size } });
+      const att = await attachShortVideoFn({
+        data: { jobId, storagePath: path, mimeType: file.type, sizeBytes: file.size },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      } as any);
       if ((att as any).error) throw new Error((att as any).error);
       setVideoPath(path);
       toast.success("Video uploaded & saved to History");
@@ -169,14 +176,19 @@ function ShortsStudioPage() {
 
   const connectYouTube = async () => {
     try {
-      const r = await getYouTubeAuthUrlFn();
+      if (!session) return;
+      const r = await getYouTubeAuthUrlFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any);
       if ((r as any).error) return toast.error((r as any).error);
       if ((r as any).url) window.location.href = (r as any).url;
     } catch (e: any) { toast.error(e?.message || "Failed"); }
   };
 
   const disconnectYouTube = async () => {
-    await disconnectSocialFn({ data: { platform: "youtube" } });
+    if (!session) return;
+    await disconnectSocialFn({
+      data: { platform: "youtube" },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    } as any);
     setConnectedYT(null);
     toast.success("YouTube disconnected");
   };
@@ -194,7 +206,8 @@ function ShortsStudioPage() {
           hashtags: script.hashtags,
           privacy: ytPrivacy,
         },
-      });
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      } as any);
       if (r.error === "NOT_CONNECTED") { setConnectedYT(null); return toast.error("Re-connect YouTube"); }
       if (r.error) return toast.error(r.error);
       toast.success("Published to YouTube");
@@ -210,7 +223,11 @@ function ShortsStudioPage() {
       script.hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" "),
     ].filter(Boolean).join("\n\n");
     await navigator.clipboard.writeText(desc).catch(() => {});
-    await recordTikTokIntentFn({ data: { jobId, storagePath: videoPath, title: script.title, description: desc } });
+    if (!session) return;
+    await recordTikTokIntentFn({
+      data: { jobId, storagePath: videoPath, title: script.title, description: desc },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    } as any);
     toast.success("Caption copied. Opening TikTok upload…");
     window.open("https://www.tiktok.com/tiktokstudio/upload", "_blank");
   };
@@ -344,7 +361,11 @@ function ShortsStudioPage() {
     if (brollClips[idx]) return; // cached
     setBrollLoading(true);
     try {
-      const res: any = await findBrollFn({ data: { query } });
+      if (!session) return;
+      const res: any = await findBrollFn({
+        data: { query },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      } as any);
       if (res.error) toast.error(res.error);
       setBrollClips((prev) => ({ ...prev, [idx]: res.clips || [] }));
     } catch (e: any) {
@@ -365,7 +386,9 @@ function ShortsStudioPage() {
   // ── usage counter for chip ────────────────────────────────────
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
   useEffect(() => {
-    if (session) getShortsUsageFn().then((u: any) => setUsage({ used: u?.used ?? 0, limit: u?.limit ?? 3 })).catch(() => {});
+    if (session) getShortsUsageFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+      .then((u: any) => setUsage({ used: u?.used ?? 0, limit: u?.limit ?? 3 }))
+      .catch(() => {});
   }, [session, script]);
 
   return (
