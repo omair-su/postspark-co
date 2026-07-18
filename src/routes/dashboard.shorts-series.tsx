@@ -1,4 +1,3 @@
-import { useServerFn } from "@tanstack/react-start";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,11 +21,6 @@ const DURATIONS = [30, 45, 60] as const;
 
 function ShortsSeriesPage() {
   const { session } = useAuth();
-  const generateShortsSeriesFn = useServerFn(generateShortsSeries);
-  const getShortsUsageFn = useServerFn(getShortsUsage);
-  const listShortsSeriesFn = useServerFn(listShortsSeries);
-  const loadShortsSeriesFn = useServerFn(loadShortsSeries);
-  const deleteShortsSeriesFn = useServerFn(deleteShortsSeries);
   const [input, setInput] = useState("");
   const [platform, setPlatform] = useState<"tiktok" | "shorts" | "reels">("tiktok");
   const [duration, setDuration] = useState<30 | 45 | 60>(45);
@@ -43,24 +37,24 @@ function ShortsSeriesPage() {
 
   const refreshDrafts = useCallback(() => {
     if (!session) return;
-    listShortsSeriesFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+    listShortsSeries({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
       .then((r: any) => setDrafts(r?.series || []))
       .catch(() => {});
-  }, [session, listShortsSeriesFn]);
+  }, [session]);
 
   useEffect(() => {
-    if (session) getShortsUsageFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+    if (session) getShortsUsage({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
       .then((u: any) => setPlan(u?.plan || "free"))
       .catch(() => {});
     refreshDrafts();
-  }, [session, getShortsUsageFn, refreshDrafts]);
+  }, [session, refreshDrafts]);
 
   const openDraft = async (seriesId: string) => {
     if (!session) return toast.error("Please sign in");
     setActiveDraftId(seriesId);
     setLoading(true); setErr(null); setTab(0);
     try {
-      const res: any = await loadShortsSeriesFn({
+      const res: any = await loadShortsSeries({
         data: { seriesId },
         headers: { Authorization: `Bearer ${session.access_token}` },
       } as any);
@@ -76,7 +70,7 @@ function ShortsSeriesPage() {
   const removeDraft = async (seriesId: string) => {
     if (!session) return toast.error("Please sign in");
     if (!confirm("Delete this series and all 5 episodes?")) return;
-    await deleteShortsSeriesFn({
+    await deleteShortsSeries({
       data: { seriesId },
       headers: { Authorization: `Bearer ${session.access_token}` },
     } as any);
@@ -90,7 +84,7 @@ function ShortsSeriesPage() {
     if (input.trim().length < 20) return toast.error("Paste at least a paragraph of source content");
     setLoading(true); setScripts(null); setErr(null); setTab(0);
     try {
-      const res: any = await withAIProgress(generateShortsSeriesFn({
+      const res: any = await withAIProgress(generateShortsSeries({
         data: { inputText: input.trim(), platform, duration },
         headers: { Authorization: `Bearer ${session.access_token}` },
       } as any));
