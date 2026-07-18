@@ -1028,6 +1028,18 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
               className="inline-flex items-center gap-1.5 rounded-lg border border-[#1A1A2E] bg-[#1A1A2E] px-3 py-2 text-[12px] font-bold text-white hover:bg-black disabled:opacity-50">
               {mp4Rendering ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> {mp4Status || "Rendering…"}</> : <><Film className="h-3.5 w-3.5" /> Render MP4 (cloud)</>}
             </button>
+          {ffmpegMp4Url && (
+            <a href={ffmpegMp4Url} download={`${projectName.replace(/\W+/g, "-")}-${Date.now()}.mp4`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-fuchsia-300 bg-fuchsia-50 px-3 py-2 text-[12px] font-bold text-fuchsia-700 hover:bg-fuchsia-100">
+              <Download className="h-3.5 w-3.5" /> Download .mp4 (burned)
+            </a>
+          )}
+          {exportBlob && !ffmpegMp4Url && (
+            <button onClick={exportMp4Ffmpeg} disabled={ffmpegBusy || !isPro}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#7C3AED] bg-white px-3 py-2 text-[12px] font-bold text-[#7C3AED] hover:bg-[#7C3AED]/10 disabled:opacity-50"
+              title="Transcode WebM → MP4 with captions burned in (in-browser)">
+              {ffmpegBusy ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> MP4 {Math.round(ffmpegProgress * 100)}%</> : <><Film className="h-3.5 w-3.5" /> Export MP4 (in-browser)</>}
+            </button>
           )}
           <button onClick={exportVideo} disabled={exporting || !project.clips.length || !isPro}
             className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#EC4899] px-4 py-2 text-[12px] font-bold text-white hover:opacity-90 disabled:opacity-40">
