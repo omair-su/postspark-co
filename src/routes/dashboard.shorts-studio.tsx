@@ -1,4 +1,3 @@
-import { useServerFn } from "@tanstack/react-start";
 import { createFileRoute, useSearch, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,15 +42,6 @@ const VO_VOICES = [
 function ShortsStudioPage() {
   const { session } = useAuth();
   const search = useSearch({ from: "/dashboard/shorts-studio" });
-  const generateShortsFn = useServerFn(generateShorts);
-  const getShortsUsageFn = useServerFn(getShortsUsage);
-  const findBrollFn = useServerFn(findBroll);
-  const getYouTubeAuthUrlFn = useServerFn(getYouTubeAuthUrl);
-  const getConnectedSocialsFn = useServerFn(getConnectedSocials);
-  const disconnectSocialFn = useServerFn(disconnectSocial);
-  const attachShortVideoFn = useServerFn(attachShortVideo);
-  const publishToYouTubeFn = useServerFn(publishToYouTube);
-  const recordTikTokIntentFn = useServerFn(recordTikTokIntent);
   const [input, setInput] = useState("");
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]["id"]>("tiktok");
   const [duration, setDuration] = useState<30 | 45 | 60>(45);
@@ -92,7 +82,7 @@ function ShortsStudioPage() {
   const refreshSocials = async () => {
     if (!session) return;
     try {
-      const r = await getConnectedSocialsFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any);
+      const r = await getConnectedSocials({ headers: { Authorization: `Bearer ${session.access_token}` } } as any);
       const yt = (r.accounts || []).find((a: any) => a.platform === "youtube");
       setConnectedYT(yt ? { name: (yt as any).platform_username || "YouTube" } : null);
     } catch { /* signed out */ }
@@ -101,7 +91,7 @@ function ShortsStudioPage() {
   useEffect(() => {
     if (session) {
       refreshSocials();
-      getShortsUsageFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+      getShortsUsage({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
         .then((u: any) => setUserPlan(u?.plan || "free"))
         .catch(() => {});
     }
@@ -118,7 +108,7 @@ function ShortsStudioPage() {
     setLoading(true); setScript(null); setJobId(null); setVideoFile(null); setVideoPath(null);
     setLimitHit(false); setGenError(null); setVoAudioUrl(null); setVoBlob(null); setBrollClips({}); setBrollShotIdx(null);
     try {
-      const res = await withAIProgress(generateShortsFn({
+      const res = await withAIProgress(generateShorts({
         data: { inputText: input.trim(), platform, duration, angle: angle.trim() || undefined },
         headers: { Authorization: `Bearer ${session.access_token}` },
       } as any));
@@ -159,7 +149,7 @@ function ShortsStudioPage() {
         contentType: file.type, upsert: false,
       });
       if (upErr) throw upErr;
-      const att = await attachShortVideoFn({
+      const att = await attachShortVideo({
         data: { jobId, storagePath: path, mimeType: file.type, sizeBytes: file.size },
         headers: { Authorization: `Bearer ${session.access_token}` },
       } as any);
@@ -177,7 +167,7 @@ function ShortsStudioPage() {
   const connectYouTube = async () => {
     try {
       if (!session) return;
-      const r = await getYouTubeAuthUrlFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any);
+      const r = await getYouTubeAuthUrl({ headers: { Authorization: `Bearer ${session.access_token}` } } as any);
       if ((r as any).error) return toast.error((r as any).error);
       if ((r as any).url) window.location.href = (r as any).url;
     } catch (e: any) { toast.error(e?.message || "Failed"); }
@@ -185,7 +175,7 @@ function ShortsStudioPage() {
 
   const disconnectYouTube = async () => {
     if (!session) return;
-    await disconnectSocialFn({
+    await disconnectSocial({
       data: { platform: "youtube" },
       headers: { Authorization: `Bearer ${session.access_token}` },
     } as any);
@@ -199,7 +189,7 @@ function ShortsStudioPage() {
     if (!connectedYT) return toast.error("Connect YouTube first");
     setYtPublishing(true);
     try {
-      const r: any = await publishToYouTubeFn({
+      const r: any = await publishToYouTube({
         data: {
           jobId, storagePath: videoPath,
           title: script.title.slice(0, 100),
@@ -225,7 +215,7 @@ function ShortsStudioPage() {
     ].filter(Boolean).join("\n\n");
     await navigator.clipboard.writeText(desc).catch(() => {});
     if (!session) return;
-    await recordTikTokIntentFn({
+    await recordTikTokIntent({
       data: { jobId, storagePath: videoPath, title: script.title, description: desc },
       headers: { Authorization: `Bearer ${session.access_token}` },
     } as any);
@@ -363,7 +353,7 @@ function ShortsStudioPage() {
     setBrollLoading(true);
     try {
       if (!session) return;
-      const res: any = await findBrollFn({
+      const res: any = await findBroll({
         data: { query },
         headers: { Authorization: `Bearer ${session.access_token}` },
       } as any);
@@ -387,7 +377,7 @@ function ShortsStudioPage() {
   // ── usage counter for chip ────────────────────────────────────
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
   useEffect(() => {
-    if (session) getShortsUsageFn({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+    if (session) getShortsUsage({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
       .then((u: any) => setUsage({ used: u?.used ?? 0, limit: u?.limit ?? 3 }))
       .catch(() => {});
   }, [session, script]);
