@@ -5,6 +5,7 @@ import {
   Upload, Film, X, Music2, Mic, Type, Download, Play, Pause,
   VolumeX, Volume2, Lock, Sparkles, Save, FolderOpen, Trash2,
   Loader2, Plus, ChevronLeft, ChevronRight, Scissors, Copy as CopyIcon,
+  Wand2, Captions,
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
@@ -13,6 +14,7 @@ import {
 import { startMp4Render, pollMp4Render } from "@/lib/cloudRender.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { captionsToSrt, transcodeWebmToMp4 } from "@/lib/ffmpegExport";
 
 // ── domain types ───────────────────────────────────────────────
 interface Clip {
