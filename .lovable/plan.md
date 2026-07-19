@@ -1,63 +1,165 @@
-# Shorts Suite Overhaul — Phased Plan
 
-**Security note first:** You pasted your Deepgram API key in the chat. Treat it as compromised — rotate it now at deepgram.com → API Keys. I'll wire the new key through the secure `add_secret` flow, never hardcoded.
+# PostSpark Deep Audit & Stabilization Plan
 
-The full scope (FFmpeg.wasm renderer, Deepgram captions, ElevenLabs VO, multi-input ingestion incl. YouTube/podcast, 30/60/90-day calendar, new editor UX, dark redesign) is roughly 3–5 build sessions. I'll ship it in phases so each one is usable.
-
----
-
-## Phase 1 — Fix what's broken + premium dark UI (this session)
-
-**Goal:** Studio generates scripts reliably, Editor audio works, all three pages match the dark premium spec.
-
-1. **Fix Shorts Studio "No script returned"**
-   - Add raw-response logging in `anthropic.server.ts` for tool-call failures
-   - Tolerant parser: retry once with stricter reminder, then surface the actual Anthropic error string (401/404/429/overloaded) instead of the generic message
-   - Verify `CLAUDE_MODEL_ID` resolves to a real Anthropic id
-2. **Fix Editor audio not playing**
-   - Root cause: music `<audio>` element isn't started/synced with the master video clock
-   - Rewrite playback loop with a single `requestAnimationFrame` master clock driving both video and audio elements; add volume slider (default 30%)
-3. **Premium dark UI pass on all 3 pages**
-   - Background `#0A0A14`, cards `#14142B` with `backdrop-blur-md` + subtle border, gradient accent `#6366F1 → #A855F7`
-   - Lucide icons, glow hover states, sharper headline weight
-   - Pro paywall polish on Shorts Series
-4. **Auto Fetch B-roll wiring** — button on each shot row that calls existing Pexels function with the Claude-generated `broll_search_query` and shows thumbs inline
-
-## Phase 2 — Editor engine (FFmpeg.wasm + ElevenLabs + Deepgram)
-
-1. Add `@ffmpeg/ffmpeg` + `@ffmpeg/util`, load core from CDN, gate behind `<ClientOnly>` and dynamic import (Worker SSR compat)
-2. Multi-track timeline data model: `video[]`, `audio[]`, `caption[]` (already partly exists — extend)
-3. **ElevenLabs VO** — server route `/api/narrate-short` already exists; add "Generate Voice" button that drops the returned mp3 onto the Audio track
-4. **Deepgram Auto-Caption** — new server route `/api/public/deepgram-transcribe` (signature-verified), returns word-level timestamps → render as CSS-positioned overlays + burn on export
-5. **Export** — FFmpeg concat + audio mix + drawtext filter → WebM download
-
-## Phase 3 — New input types for Studio
-
-- YouTube URL → yt-dlp-style transcript fetch (via existing import pipeline or new server fn calling a transcript API)
-- Podcast URL (RSS/mp3) → Deepgram transcribe → feed as source text
-- Uploaded video/audio → Deepgram transcribe → source text
-- Text idea (already works)
-
-## Phase 4 — Shorts Series → 30/60/90-day Content Calendar
-
-- Rename route, replace 5-episode generator
-- New Claude prompt returns `days[]` with hook/script/CTA/thumbnail idea/caption/hashtags
-- Store as `content_calendars` table (new migration, RLS + grants)
-- Export: CSV (browser), Notion (user pastes their integration token via `add_secret`), Google Sheets (OAuth — deferred to a later phase)
+Goal: stop adding features. Make everything currently in the app actually work, feel premium, and convert visitors into paying users. This plan is structured as an audit (what I'll check), a findings framework (recurring problems I already know exist), and a prioritized fix roadmap grouped into 4 phases you can approve one at a time.
 
 ---
 
-## Technical notes
+## Phase 0 — Full audit sweep (I do this first, ~1 session)
 
-- Deepgram key: stored as `DEEPGRAM_API_KEY` via `add_secret` after you rotate
-- FFmpeg.wasm is ~30MB — lazy-loaded only when user hits Export
-- New `content_calendars` table needs `GRANT SELECT, INSERT, UPDATE, DELETE ... TO authenticated` + RLS scoped to `auth.uid()`
-- YouTube transcript fetching from Worker runtime is unreliable — will likely need a third-party transcript API (RapidAPI, Supadata) with its own key
+I'll go through every surface systematically and produce a written report with severity ratings (P0 blocker → P3 polish). No code changes in this phase — just findings.
+
+### Areas covered
+
+1. **Auth & onboarding**
+   - Sign up / login (email + Google), password reset, email confirmation
+   - First-run onboarding wizard completion rate blockers
+   - Session persistence, "invisible" logged-out states
+
+2. **Core repurpose flow** (your #1 revenue driver)
+   - Text → LinkedIn / X / Instagram / Thread outputs
+   - Import from URL / YouTube / podcast
+   - Brand Voice application
+   - Usage limit enforcement (free 3/month)
+   - Error surfaces when Claude fails
+
+3. **Shorts suite** (Studio, Series, Editor)
+   - Script generation reliability
+   - B-roll fetch
+   - Editor: timeline, VO (ElevenLabs), captions (Deepgram), MP4 export
+   - Known issues: heavy CSS overrides, mobile usability
+
+4. **Image Studio**
+   - Generation, enhance prompt, background removal fallback chain
+   - Stock photo/video picker + in-app download
+   - Usage meter accuracy
+
+5. **Publishing & integrations**
+   - LinkedIn post (recently patched to API 202506)
+   - TikTok Login Kit + Content Posting
+   - Approvals / client workflow
+   - Agency workspace members
+
+6. **Billing & subscription**
+   - Paddle checkout (test + live)
+   - Plan sync trigger to `profiles.plan`
+   - Founding Lifetime cap logic
+   - Cancel → keep-access-until-period-end
+   - Upgrade nudges, paywall placement
+
+7. **Landing & SEO**
+   - Landing v3, tool landing pages, blog, gallery
+   - Meta tags, og:image per route
+   - Core Web Vitals (LCP, CLS)
+   - Robots, sitemap, canonical
+
+8. **Design system consistency**
+   - Dark theme coverage across every route (still gaps)
+   - Contrast (WCAG AA minimum)
+   - Mobile 375px, tablet 768px, desktop 1440px pass
+
+9. **Emails**
+   - Auth emails, drip (day 0/2/5/7), usage warnings, receipts
+   - Deliverability + branding
+
+10. **Error handling & observability**
+    - Every server function: does it return `{ error }` cleanly or throw a raw Response?
+    - Console errors on load per route
+    - Server-function logs review
+
+### Audit deliverable
+A written findings doc saved to `.lovable/audit.md` with:
+- one row per issue: route/component, severity, symptom, root cause, fix effort
+- top 10 conversion killers (things blocking someone from paying)
+- top 10 trust killers (things that make the app feel broken)
 
 ---
 
-## Confirm before I start
+## Phase 1 — P0 blockers (fix immediately after audit, 1 session)
 
-1. **Rotate the Deepgram key now** and paste the new one when I open the secure form in Phase 2 (not before)
-2. **Start with Phase 1?** (fix Studio generation, fix Editor audio, premium dark UI, B-roll auto-fetch) — this is the biggest immediate quality win and unblocks everything else
-3. **Any phase you'd rather I skip or reorder?** (e.g., you may want YouTube ingestion before the calendar)
+Based on what I already know from recent tickets, this phase will include:
+
+1. **Stabilize server functions returning `Response` objects**
+   - Wrap remaining `.functions.ts` files in try/catch → return typed `{ data, error }` DTOs. We've hit this repeatedly (`getShortsUsage`, `getConnectedSocials`). Sweep the rest before users hit them.
+
+2. **Fix any generation flow that can silently fail**
+   - Claude: surface real Anthropic error, retry-once already exists in Shorts — extend to Repurpose, Hooks, Copilot, Carousel, SEO Blog.
+   - Replicate: model-fallback chain already in image.server.ts — audit other Replicate callers.
+
+3. **Kill remaining "invisible text" and light-mode leaks**
+   - One comprehensive pass across every route in dashboard (not spot fixes). Grep for hardcoded `text-[#...]`, `bg-white`, `from-[#F5F3FF]` and replace with tokens.
+
+4. **Paddle checkout end-to-end verification**
+   - Test-mode purchase → webhook → `subscriptions` row → `profiles.plan` = pro → paywalled feature unlocks. If any link breaks, that's a revenue P0.
+
+5. **Mobile blockers**
+   - 375px layout: sidebar, dashboard tiles, editor. No horizontal scroll, no overlapping controls.
+
+---
+
+## Phase 2 — Conversion & trust (1–2 sessions)
+
+Things that turn visitors into paying users.
+
+1. **Landing page honesty pass**
+   - Every claim on landing → verify feature actually works. Remove or defer any that don't.
+   - Add real product screenshots (not stock/generated) in hero + feature sections.
+   - Testimonials: only real ones. Empty state beats fake.
+
+2. **Pricing page clarity**
+   - Single source of truth for prices (constants file). No more `$19` vs `$24` mismatches.
+   - Feature matrix: what's in Free / Pro / Agency / Founding, unambiguously.
+
+3. **First-run experience**
+   - New user lands in dashboard → what happens in first 60s? Right now: cluttered. Fix: single "Try your first repurpose" CTA, then unlock the rest.
+   - Sample content preloaded so free tier feels valuable in 30 seconds.
+
+4. **Upgrade prompts**
+   - Trigger paywall at moment of value (right after 3rd free repurpose, not on page load).
+   - `UpgradeNudgeModal` copy pass — benefits, not features.
+
+5. **Empty states**
+   - Every list view (jobs, gallery, calendar, approvals) needs a real empty state with a next-action button, not a bare "No data".
+
+---
+
+## Phase 3 — Polish & perceived quality (1 session)
+
+1. **Loading states everywhere**
+   - No blank screens. Skeletons on every data-driven route.
+
+2. **Toast + error copy sweep**
+   - Standard tone, actionable next step, never raw provider error strings.
+
+3. **Micro-interactions**
+   - Hover, focus, active states audited. Keyboard nav works.
+
+4. **SEO fundamentals**
+   - Per-route title/description, og:image, JSON-LD where applicable.
+   - Blog seed indexed and linked from landing.
+
+5. **Performance**
+   - Lazy-load FFmpeg/ElevenLabs/Deepgram code (already partly done — verify).
+   - Route-level code splitting audit.
+
+---
+
+## Phase 4 — Growth foundations (optional, after 1–3 are done)
+
+Only meaningful once the product is solid.
+
+1. Referral flow end-to-end test + share kit polish
+2. Public Gallery: real examples, share to socials
+3. LTD landing page conversion
+4. Analytics: which pages convert, where users drop off (PostHog / Plausible via connector)
+5. Email drip copy pass
+
+---
+
+## What I need from you
+
+1. **Approve this plan** so I can start Phase 0 (the audit).
+2. **Confirm no new features** until Phases 1–3 are done. If you agree, I'll refuse feature requests and redirect them to the audit backlog.
+3. **Pick a target launch date** (2–3 weeks realistic for Phases 0–3). Everything gets prioritized against it.
+
+Once approved, I start Phase 0 immediately and deliver `.lovable/audit.md` in the next turn. No code changes until you see the findings and pick what to fix first.
