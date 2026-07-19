@@ -43,8 +43,11 @@ export const startMp4Render = createServerFn({ method: "POST" })
     return { predictionId: json.id as string, status: json.status as string };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -84,7 +87,10 @@ export const pollMp4Render = createServerFn({ method: "POST" })
     return { status, mp4Url: signed.signedUrl, mp4Path: path, error: null };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });

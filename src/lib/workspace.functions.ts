@@ -55,8 +55,11 @@ export const getMyWorkspace = createServerFn({ method: "POST" })
     };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -84,8 +87,11 @@ export const createWorkspace = createServerFn({ method: "POST" })
     return { success: true, workspace: ws };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -112,8 +118,11 @@ export const updateWorkspace = createServerFn({ method: "POST" })
     return { success: true };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -152,8 +161,11 @@ export const inviteMember = createServerFn({ method: "POST" })
     return { success: true, token };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -168,8 +180,11 @@ export const revokeInvite = createServerFn({ method: "POST" })
     return { success: true };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -188,8 +203,11 @@ export const removeMember = createServerFn({ method: "POST" })
     return { success: true };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -232,8 +250,11 @@ export const acceptInvite = createServerFn({ method: "POST" })
     return { success: true, workspaceId: invite.workspace_id };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -257,8 +278,11 @@ export const setActiveBrandKit = createServerFn({ method: "POST" })
     return { success: true };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -288,7 +312,10 @@ export const createWorkspaceBrandKit = createServerFn({ method: "POST" })
     return { success: true, kit };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });

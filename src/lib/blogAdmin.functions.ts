@@ -40,8 +40,11 @@ export const isCurrentUserAdmin = createServerFn({ method: "GET" })
     return { isAdmin: !!data };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -61,8 +64,11 @@ export const adminListPosts = createServerFn({ method: "GET" })
     return data || [];
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -78,8 +84,11 @@ export const adminListMeta = createServerFn({ method: "GET" })
     return { categories: cats.data || [], authors: authors.data || [] };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -98,8 +107,11 @@ export const adminGetPost = createServerFn({ method: "GET" })
     return post;
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -174,8 +186,11 @@ export const adminUpsertPost = createServerFn({ method: "POST" })
     return row;
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -190,7 +205,10 @@ export const adminDeletePost = createServerFn({ method: "POST" })
     return { ok: true };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });

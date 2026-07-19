@@ -51,8 +51,11 @@ export const createApprovalRequest = createServerFn({ method: "POST" })
     return { success: true, token, id: ar.id };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -70,8 +73,11 @@ export const listApprovalRequests = createServerFn({ method: "POST" })
     return { approvals: data || [] };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -91,8 +97,11 @@ export const listApprovalAuditLog = createServerFn({ method: "POST" })
     return { entries: rows ?? [], error: null };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -106,8 +115,11 @@ export const fetchApprovalByToken = createServerFn({ method: "POST" })
     return { approval: result, error: null };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -132,7 +144,10 @@ export const submitApprovalResponse = createServerFn({ method: "POST" })
     return { success: ok === true };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });

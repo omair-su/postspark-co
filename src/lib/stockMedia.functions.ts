@@ -40,8 +40,11 @@ export const searchStockPhotos = createServerFn({ method: "POST" })
     return searchStockPhotosServer(data);
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -60,8 +63,11 @@ export const searchStockVideos = createServerFn({ method: "POST" })
     return searchStockVideosServer(data);
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -79,8 +85,11 @@ export const trackUnsplashUse = createServerFn({ method: "POST" })
     return trackUnsplashDownloadServer(data.downloadLocation);
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
 
@@ -115,7 +124,10 @@ export const getPublicStockFeed = createServerFn({ method: "GET" })
     return { photos: res.photos.slice(0, perPage), videos: [], page, kind };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
     }
   });
