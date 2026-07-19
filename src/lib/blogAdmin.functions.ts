@@ -43,11 +43,6 @@ export const isCurrentUserAdmin = createServerFn({ method: "GET" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   });
 
 export const adminListPosts = createServerFn({ method: "GET" })
@@ -64,11 +59,6 @@ export const adminListPosts = createServerFn({ method: "GET" })
       .limit(200);
     if (error) throw new Error(error.message);
     return data || [];
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
@@ -91,11 +81,6 @@ export const adminListMeta = createServerFn({ method: "GET" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   });
 
 export const adminGetPost = createServerFn({ method: "GET" })
@@ -111,11 +96,6 @@ export const adminGetPost = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     return post;
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');

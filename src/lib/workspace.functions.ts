@@ -58,11 +58,6 @@ export const getMyWorkspace = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   });
 
 export const createWorkspace = createServerFn({ method: "POST" })
@@ -92,11 +87,6 @@ export const createWorkspace = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   });
 
 export const updateWorkspace = createServerFn({ method: "POST" })
@@ -120,11 +110,6 @@ export const updateWorkspace = createServerFn({ method: "POST" })
     const { error } = await supabase.from("workspaces").update(update as any).eq("id", data.workspaceId);
     if (error) return { success: false, error: error.message };
     return { success: true };
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
@@ -170,11 +155,6 @@ export const inviteMember = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   });
 
 export const revokeInvite = createServerFn({ method: "POST" })
@@ -186,11 +166,6 @@ export const revokeInvite = createServerFn({ method: "POST" })
     const { error } = await supabase.from("workspace_invites").delete().eq("id", data.inviteId);
     if (error) return { success: false, error: error.message };
     return { success: true };
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
@@ -211,11 +186,6 @@ export const removeMember = createServerFn({ method: "POST" })
       .eq("user_id", data.userId);
     if (error) return { success: false, error: error.message };
     return { success: true };
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');

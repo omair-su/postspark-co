@@ -31,11 +31,6 @@ export const listScheduledPosts = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   });
 
 export const createScheduledPost = createServerFn({ method: "POST" })
@@ -67,11 +62,6 @@ export const createScheduledPost = createServerFn({ method: "POST" })
       return { success: false, error: "Failed to schedule post." };
     }
     return { success: true, post: inserted };
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
@@ -110,11 +100,6 @@ export const updateScheduledPost = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   });
 
 export const deleteScheduledPost = createServerFn({ method: "POST" })
@@ -133,11 +118,6 @@ export const deleteScheduledPost = createServerFn({ method: "POST" })
       return { success: false };
     }
     return { success: true };
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
@@ -178,11 +158,6 @@ export const bulkImportScheduledPosts = createServerFn({ method: "POST" })
       return { success: false, error: error.message, inserted: 0 };
     }
     return { success: true, inserted: count ?? rows.length };
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
