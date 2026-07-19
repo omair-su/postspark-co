@@ -778,7 +778,7 @@ function RepurposePage() {
             const qty = def.quantities ? `${p?.count || def.defaultQty} ` : "";
             return (
               <span key={id} className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
-                <span>{def.emoji}</span>{qty}{def.name}
+                <BrandGlyph brand={def.id as BrandKey} size={12} />{qty}{def.name}
               </span>
             );
           })}
