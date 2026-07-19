@@ -359,7 +359,7 @@ export function SparkCopilot() {
                         </div>
                         <button
                           onClick={(e) => removeConversation(c.id, e)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded text-white/45 hover:text-red-500 hover:bg-red-50 transition"
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded text-white/45 hover:text-red-400 hover:bg-red-500/15 transition"
                           aria-label="Delete"
                         >
                           <X className="h-3.5 w-3.5" />
