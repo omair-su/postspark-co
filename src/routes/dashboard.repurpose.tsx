@@ -1087,7 +1087,7 @@ function FormatCard({ def, pick, onToggle, onUpdate }: {
         {selected && (
           <span className="absolute right-2 top-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">✓</span>
         )}
-        <div className="text-xl leading-none">{def.emoji}</div>
+        <BrandIcon brand={def.id as BrandKey} size={40} />
         <div className="mt-1.5 text-[13px] font-semibold text-foreground">{def.name}</div>
       </button>
 
