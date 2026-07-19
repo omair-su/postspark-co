@@ -908,12 +908,14 @@ function ImageStudioPage() {
                   <button
                     key={s.id}
                     onClick={() => setStyle(s.id)}
-                    className={`rounded-lg border px-2 py-2 text-center text-xs font-medium transition-colors ${
-                      style === s.id ? "border-primary bg-primary/10 text-primary" : "border-input bg-background hover:bg-accent"
+                    className={`group flex flex-col items-center gap-2 rounded-xl border px-2 py-3 text-center text-xs font-medium transition-all ${
+                      style === s.id
+                        ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10 scale-[1.02]"
+                        : "border-input bg-background hover:bg-accent hover:border-primary/30"
                     }`}
                   >
-                    <div className="text-base leading-none">{s.icon}</div>
-                    <div className="mt-1 leading-tight">{s.label}</div>
+                    <StyleIcon styleId={s.id as any} size={36} />
+                    <div className="leading-tight">{s.label}</div>
                   </button>
                 ))}
               </div>
