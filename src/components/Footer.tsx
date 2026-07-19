@@ -29,7 +29,7 @@ export function Footer() {
               <li><Link to="/pricing" className="text-muted-foreground hover:text-foreground">Pricing</Link></li>
               <li><Link to="/blog" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
               <li><Link to="/changelog" className="text-muted-foreground hover:text-foreground">Changelog</Link></li>
-              <li><Link to="/roadmap" className="text-muted-foreground hover:text-foreground">Roadmap</Link></li>
+              
             </ul>
           </div>
           <div>

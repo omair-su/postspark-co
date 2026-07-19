@@ -1,18 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Sparkles, ArrowLeft, Circle, Loader2, CheckCircle2 } from "lucide-react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/roadmap")({
   head: () => ({
     meta: [
-      { title: "Public Roadmap — PostSpark" },
-      { name: "description", content: "See what we're building next at PostSpark and vote on what matters most to you." },
-      { property: "og:title", content: "PostSpark Public Roadmap" },
-      { property: "og:description", content: "What's in progress, planned, and shipped at PostSpark." },
-      { property: "og:url", content: "https://postspark.co/roadmap" },
+      { title: "Not found" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
-    links: [{ rel: "canonical", href: "https://postspark.co/roadmap" }],
   }),
-  component: RoadmapPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/" });
+  },
+  component: () => null,
 });
 
 const columns = [
