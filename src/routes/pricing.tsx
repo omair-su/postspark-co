@@ -15,7 +15,7 @@ const PRICING_JSONLD = {
   image: "https://postspark.co/og-image.png",
   offers: [
     { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD", url: "https://postspark.co/pricing" },
-    { "@type": "Offer", name: "Pro", price: "19", priceCurrency: "USD", url: "https://postspark.co/pricing" },
+    { "@type": "Offer", name: "Pro", price: "24", priceCurrency: "USD", url: "https://postspark.co/pricing" },
     { "@type": "Offer", name: "Agency", price: "49", priceCurrency: "USD", url: "https://postspark.co/pricing" },
   ],
 };

@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getAnalyticsData } from "@/lib/repurpose.functions";
-import { BarChart3, PieChart, Type, Flame, TrendingUp } from "lucide-react";
+import { BarChart3, PieChart, Type, Flame, TrendingUp, Sparkles } from "lucide-react";
 
 interface JobData {
   id: string;
@@ -141,7 +141,16 @@ function AnalyticsPage() {
           <PieChart className="h-4 w-4 text-primary" /> Most Used Formats
         </h2>
         {topFormats.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">No data yet. Start repurposing content!</p>
+          <div className="mt-4 text-center">
+            <p className="text-sm font-medium text-foreground">No data yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">Run your first repurpose and this chart fills in automatically.</p>
+            <Link
+              to="/dashboard/repurpose"
+              className="mt-3 inline-flex items-center gap-2 rounded-lg gradient-electric px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Start repurposing
+            </Link>
+          </div>
         ) : (
           <div className="mt-4 space-y-3">
             {topFormats.map(([format, count]) => (

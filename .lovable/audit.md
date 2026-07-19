@@ -212,3 +212,18 @@ Tell me **"start Phase 1"** and I'll execute in this order:
 2. Server-fn try/catch sweep
 3. Paddle E2E verification
 4. Then pause and show you progress before continuing.
+
+---
+
+## Phase 2 — Shipped
+
+- **Claude/Replicate error surfacing:** verified `src/server/anthropic.server.ts` and `src/server/image.server.ts` already map every status (401/402/429/503/529/404) to a user-readable string and log the raw provider body server-side. No app-level generic "Generation failed" strings remain in those files.
+- **Pricing single source of truth:** `src/lib/pricing.ts` is now the SOT. Fixed the last leak — JSON-LD `Offer` for Pro on `src/routes/pricing.tsx` (was `19`, now `24`). Remaining `$19` mentions in code are all correct annual-billing context.
+- **UpgradeNudgeModal — moment-of-value:** rewrote to only fire after the free user has used ≥2 of their 3 monthly repurposes (real value moment), with benefit copy ("Publish daily — no monthly cap") instead of a feature list. Falls back to a 2-min delay if usage can't be read.
+- **Empty states:** replaced bare "No data" strings on `dashboard/history` and `dashboard/analytics` with a clear title + description + primary CTA into `/dashboard/repurpose`.
+
+## Phase 2 — Deferred (needs own session)
+
+- **Kill the `.ds-canvas` CSS override layer** (`src/styles.css` L1118–1200+): safest path is a per-route dark-native refactor of the 29 light-leak files, then delete the override layer once no route depends on it. Trying to strip it in a single edit will regress a lot of dashboard views — recommend one route per session.
+- **Landing honesty pass** (real screenshots, verified claims, real testimonials) needs product screenshots you own — I can wire the slots but not fabricate testimonials.
+- **First-run dashboard collapse to a single primary CTA** — the dashboard has 14 widgets/tools; recommend a `first_visit` gate that hides everything except Repurpose + a "Skip tour" link for new users. Needs a UX decision on what stays.
