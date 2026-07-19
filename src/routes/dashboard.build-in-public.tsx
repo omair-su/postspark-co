@@ -29,13 +29,30 @@ function BuildInPublicPage() {
 
   useEffect(() => {
     if (!session) return;
+    isCurrentUserAdmin({ headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then((ok: any) => {
+        const admin = !!ok;
+        setIsAdmin(admin);
+        if (!admin) {
+          navigate({ to: "/dashboard", replace: true });
+        }
+      })
+      .catch(() => {
+        setIsAdmin(false);
+        navigate({ to: "/dashboard", replace: true });
+      });
+  }, [session, navigate]);
+
+  useEffect(() => {
+    if (!session || !isAdmin) return;
     getMetricsSnapshot({ headers: { Authorization: `Bearer ${session.access_token}` } })
       .then((r: any) => {
         if (r.ok) setMetrics(r.metrics);
         else setProLocked(true);
       })
       .catch(() => {});
-  }, [session]);
+  }, [session, isAdmin]);
+
 
   const run = async () => {
     if (!session) return toast.error("Please sign in");
