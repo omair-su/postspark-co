@@ -818,7 +818,7 @@ function RepurposePage() {
                     {st === "waiting" && <Circle className="mx-auto h-3.5 w-3.5 text-muted-foreground" />}
                     {st === "error"   && <AlertTriangle className="mx-auto h-4 w-4 text-red-500" />}
                   </span>
-                  <span className="flex-1 text-foreground">{def.emoji} {def.name}</span>
+                  <span className="flex-1 text-foreground inline-flex items-center gap-1.5"><BrandGlyph brand={def.id as BrandKey} size={14} /> {def.name}</span>
                   <span className="text-xs text-muted-foreground">
                     {st === "done" ? `Done in ${timings[id] ?? "?"}s` : st === "generating" ? "Generating…" : st === "waiting" ? "Waiting" : "Error"}
                   </span>
