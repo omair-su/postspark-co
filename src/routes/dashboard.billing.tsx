@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { CreditCard, ExternalLink, Loader2, Crown, Calendar, RefreshCw, AlertTriangle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -82,7 +82,7 @@ function BillingPage() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <PageHeader
         eyebrow="Account"
         icon={<CreditCard className="h-3 w-3" />}
@@ -244,7 +244,7 @@ function BillingPage() {
       <p className="mt-6 text-center text-[11px] text-muted-foreground">
         Subscription status updates in real time. <Link to="/pricing" className="underline">Compare all plans →</Link>
       </p>
-    </DashboardLayout>
+    </>
   );
 }
 

@@ -1,165 +1,85 @@
+## Fixes: Real brand icons, Spark polish, Billing rebuild, Image Studio icons
 
-# PostSpark Deep Audit & Stabilization Plan
+### 1) Real platform/brand icons everywhere
+Replace emoji + generic Lucide icons with real brand SVGs from `react-icons/si` (Simple Icons — official brand marks) with brand colors:
 
-Goal: stop adding features. Make everything currently in the app actually work, feel premium, and convert visitors into paying users. This plan is structured as an audit (what I'll check), a findings framework (recurring problems I already know exist), and a prioritized fix roadmap grouped into 4 phases you can approve one at a time.
+- Twitter/X → `SiX` (#000/white)
+- LinkedIn → `SiLinkedin` (#0A66C2)
+- Instagram → `SiInstagram` (gradient pink/orange)
+- Facebook → `SiFacebook` (#1877F2)
+- TikTok → `SiTiktok` (black + cyan/pink accent)
+- Threads → `SiThreads`
+- YouTube → `SiYoutube` (#FF0000)
+- Email Newsletter → `Mail` (lucide, refined) or `SiGmail` where email service
+- Google SEO / SEO Summary → `SiGoogle` colored
+- Video Script → `Clapperboard` (lucide) with gradient wash
+- Podcast → `SiPodcastindex` or `Mic` premium
+- Carousel → `Images` (lucide) premium
 
----
+Create `src/components/BrandIcon.tsx` — single source that maps platform key → correct branded SVG with the right color + subtle rounded tile background. Replace usage in:
+- `src/routes/dashboard.repurpose.tsx` (format picker)
+- `src/components/PublishMenu.tsx`, `PostToLinkedInButton`, `PostToTikTokButton`
+- `src/components/ConnectedAccountsCard.tsx`
+- Any social pickers in Hook Lab, Shorts Studio, Reply generator, Landing v3 logo strip
 
-## Phase 0 — Full audit sweep (I do this first, ~1 session)
+Install `react-icons` (small, tree-shaken).
 
-I'll go through every surface systematically and produce a written report with severity ratings (P0 blocker → P3 polish). No code changes in this phase — just findings.
+### 2) Spark Copilot: fix invisible text + premium redesign
+Problem: chip labels in the quick-action grid are unreadable (dark violet on dark bg), and header contrast is off.
 
-### Areas covered
+- File: `src/components/SparkCopilot.tsx`
+- Fix quick-action chip: `text-white/90`, subtle violet glass bg (`bg-violet-500/10 border-violet-400/20 hover:bg-violet-500/20`), branded lucide icon left, one-line label right, no truncation.
+- Redesign shell:
+  - Glass panel: `bg-[#0F0B1F]/95 backdrop-blur-xl border border-violet-500/20`
+  - Gradient header with AssistantOrb + "Spark" + subtitle + Claude 5 pill (already correct)
+  - Message bubbles: assistant → soft violet glass; user → violet→magenta gradient with white text
+  - Input: taller, rounded-2xl, violet ring on focus, send button = gradient circle with paper-plane
+  - Add a subtle top-border glow, animated gradient underline on header
+  - Footer meta text `text-white/50`
+- Keep all existing logic (conversations, currentTool, contextContent) untouched.
 
-1. **Auth & onboarding**
-   - Sign up / login (email + Google), password reset, email confirmation
-   - First-run onboarding wizard completion rate blockers
-   - Session persistence, "invisible" logged-out states
+### 3) Billing page: kill nested-app look, rebuild premium
+Problem (screenshot 4): `dashboard.billing` route renders another sidebar+navbar inside the dashboard layout — looks like an iframe of the whole app.
 
-2. **Core repurpose flow** (your #1 revenue driver)
-   - Text → LinkedIn / X / Instagram / Thread outputs
-   - Import from URL / YouTube / podcast
-   - Brand Voice application
-   - Usage limit enforcement (free 3/month)
-   - Error surfaces when Claude fails
+Investigate `src/routes/dashboard.billing.tsx` — likely it imports `DashboardLayout` again or renders its own `<Navbar/><Sidebar/>`. Fix:
+- Ensure it renders raw content only (parent `_authenticated/dashboard.tsx` already provides the shell).
+- Remove any duplicate `<DashboardLayout>`, `<Navbar>`, `<Sidebar>` inside the page.
 
-3. **Shorts suite** (Studio, Series, Editor)
-   - Script generation reliability
-   - B-roll fetch
-   - Editor: timeline, VO (ElevenLabs), captions (Deepgram), MP4 export
-   - Known issues: heavy CSS overrides, mobile usability
+Redesign the billing page:
+- `PageHeader` with title "Billing & Subscription" + subtle description
+- Grid of premium cards (`bg-[#14142B]/80 border border-white/8 rounded-2xl shadow-[0_0_40px_-20px_rgba(124,58,237,0.5)]`):
+  1. **Current Plan** — big plan name, status badge (Active/Canceled with correct colors), renew date, "Manage in portal" ghost button, "Upgrade" gradient primary button
+  2. **Billing interval** — toggle Monthly / Annual (save 21%) with proper pill switch
+  3. **Usage this month** — progress bar (repurposes used / limit), reset date
+  4. **Plans** — 3 tier cards side-by-side (Free / Pro $24 / Agency $49), Founding Lifetime $97 highlighted, single source `src/lib/pricing.ts`, "Most popular" ribbon on Pro
+  5. **Invoices / Payment method** — link to Paddle customer portal (new tab)
+- Icons: `CreditCard`, `Sparkles`, `Crown`, `Receipt`, `Zap` (lucide) with gradient tiles
+- Fix all text contrast to `text-white` / `text-white/70`
+- Remove any $19/mo standalone label; use `PRICE_PRO_ANNUAL_LABEL` in annual context only
 
-4. **Image Studio**
-   - Generation, enhance prompt, background removal fallback chain
-   - Stock photo/video picker + in-app download
-   - Usage meter accuracy
+### 4) Image Studio style icons
+File: `src/routes/dashboard.image-studio.tsx` (or component rendering style grid in screenshot 5).
 
-5. **Publishing & integrations**
-   - LinkedIn post (recently patched to API 202506)
-   - TikTok Login Kit + Content Posting
-   - Approvals / client workflow
-   - Agency workspace members
+Replace emoji tile icons with premium branded lucide icons + gradient tile per style:
+- Photorealistic → `Camera` (amber gradient)
+- 3D Render → `Box` (cyan gradient)
+- Illustration → `Palette` (pink gradient)
+- Minimal → `Minus` inside square, or `Square` (slate)
+- Cinematic → `Clapperboard` (violet→magenta)
+- Cyberpunk → `Zap` (magenta→cyan neon)
+- Oil Painting → `Brush` (amber→rose)
+- Anime → `Sparkles` (pink)
+- Architectural → `Building2` (steel blue)
 
-6. **Billing & subscription**
-   - Paddle checkout (test + live)
-   - Plan sync trigger to `profiles.plan`
-   - Founding Lifetime cap logic
-   - Cancel → keep-access-until-period-end
-   - Upgrade nudges, paywall placement
+Each option: `rounded-xl` card, 40×40 gradient tile with icon, label below, selected state = violet ring + violet glow.
 
-7. **Landing & SEO**
-   - Landing v3, tool landing pages, blog, gallery
-   - Meta tags, og:image per route
-   - Core Web Vitals (LCP, CLS)
-   - Robots, sitemap, canonical
+### Technical notes
+- Add dep: `bun add react-icons`
+- No backend changes.
+- Keep all existing state, form logic, and server calls unchanged.
+- Only presentation edits + one new `BrandIcon.tsx` helper.
+- Verify billing route file for duplicated layout wrapper as the root cause of the "app-inside-app" bug before writing new UI.
 
-8. **Design system consistency**
-   - Dark theme coverage across every route (still gaps)
-   - Contrast (WCAG AA minimum)
-   - Mobile 375px, tablet 768px, desktop 1440px pass
-
-9. **Emails**
-   - Auth emails, drip (day 0/2/5/7), usage warnings, receipts
-   - Deliverability + branding
-
-10. **Error handling & observability**
-    - Every server function: does it return `{ error }` cleanly or throw a raw Response?
-    - Console errors on load per route
-    - Server-function logs review
-
-### Audit deliverable
-A written findings doc saved to `.lovable/audit.md` with:
-- one row per issue: route/component, severity, symptom, root cause, fix effort
-- top 10 conversion killers (things blocking someone from paying)
-- top 10 trust killers (things that make the app feel broken)
-
----
-
-## Phase 1 — P0 blockers (fix immediately after audit, 1 session)
-
-Based on what I already know from recent tickets, this phase will include:
-
-1. **Stabilize server functions returning `Response` objects**
-   - Wrap remaining `.functions.ts` files in try/catch → return typed `{ data, error }` DTOs. We've hit this repeatedly (`getShortsUsage`, `getConnectedSocials`). Sweep the rest before users hit them.
-
-2. **Fix any generation flow that can silently fail**
-   - Claude: surface real Anthropic error, retry-once already exists in Shorts — extend to Repurpose, Hooks, Copilot, Carousel, SEO Blog.
-   - Replicate: model-fallback chain already in image.server.ts — audit other Replicate callers.
-
-3. **Kill remaining "invisible text" and light-mode leaks**
-   - One comprehensive pass across every route in dashboard (not spot fixes). Grep for hardcoded `text-[#...]`, `bg-white`, `from-[#F5F3FF]` and replace with tokens.
-
-4. **Paddle checkout end-to-end verification**
-   - Test-mode purchase → webhook → `subscriptions` row → `profiles.plan` = pro → paywalled feature unlocks. If any link breaks, that's a revenue P0.
-
-5. **Mobile blockers**
-   - 375px layout: sidebar, dashboard tiles, editor. No horizontal scroll, no overlapping controls.
-
----
-
-## Phase 2 — Conversion & trust (1–2 sessions)
-
-Things that turn visitors into paying users.
-
-1. **Landing page honesty pass**
-   - Every claim on landing → verify feature actually works. Remove or defer any that don't.
-   - Add real product screenshots (not stock/generated) in hero + feature sections.
-   - Testimonials: only real ones. Empty state beats fake.
-
-2. **Pricing page clarity**
-   - Single source of truth for prices (constants file). No more `$19` vs `$24` mismatches.
-   - Feature matrix: what's in Free / Pro / Agency / Founding, unambiguously.
-
-3. **First-run experience**
-   - New user lands in dashboard → what happens in first 60s? Right now: cluttered. Fix: single "Try your first repurpose" CTA, then unlock the rest.
-   - Sample content preloaded so free tier feels valuable in 30 seconds.
-
-4. **Upgrade prompts**
-   - Trigger paywall at moment of value (right after 3rd free repurpose, not on page load).
-   - `UpgradeNudgeModal` copy pass — benefits, not features.
-
-5. **Empty states**
-   - Every list view (jobs, gallery, calendar, approvals) needs a real empty state with a next-action button, not a bare "No data".
-
----
-
-## Phase 3 — Polish & perceived quality (1 session)
-
-1. **Loading states everywhere**
-   - No blank screens. Skeletons on every data-driven route.
-
-2. **Toast + error copy sweep**
-   - Standard tone, actionable next step, never raw provider error strings.
-
-3. **Micro-interactions**
-   - Hover, focus, active states audited. Keyboard nav works.
-
-4. **SEO fundamentals**
-   - Per-route title/description, og:image, JSON-LD where applicable.
-   - Blog seed indexed and linked from landing.
-
-5. **Performance**
-   - Lazy-load FFmpeg/ElevenLabs/Deepgram code (already partly done — verify).
-   - Route-level code splitting audit.
-
----
-
-## Phase 4 — Growth foundations (optional, after 1–3 are done)
-
-Only meaningful once the product is solid.
-
-1. Referral flow end-to-end test + share kit polish
-2. Public Gallery: real examples, share to socials
-3. LTD landing page conversion
-4. Analytics: which pages convert, where users drop off (PostHog / Plausible via connector)
-5. Email drip copy pass
-
----
-
-## What I need from you
-
-1. **Approve this plan** so I can start Phase 0 (the audit).
-2. **Confirm no new features** until Phases 1–3 are done. If you agree, I'll refuse feature requests and redirect them to the audit backlog.
-3. **Pick a target launch date** (2–3 weeks realistic for Phases 0–3). Everything gets prioritized against it.
-
-Once approved, I start Phase 0 immediately and deliver `.lovable/audit.md` in the next turn. No code changes until you see the findings and pick what to fix first.
+### Files touched (est.)
+- new: `src/components/BrandIcon.tsx`
+- edit: `src/routes/dashboard.repurpose.tsx`, `src/routes/dashboard.billing.tsx`, `src/routes/dashboard.image-studio.tsx`, `src/components/SparkCopilot.tsx`, `src/components/PublishMenu.tsx`, `src/components/ConnectedAccountsCard.tsx`, `src/components/PostToLinkedInButton.tsx`, `src/components/PostToTikTokButton.tsx`

@@ -18,6 +18,7 @@ import { createTemplate } from "@/lib/templates.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
 import { VisualPreview } from "@/components/VisualPreview";
+import { BrandIcon, BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
 import { HookABTester } from "@/components/HookABTester";
@@ -777,7 +778,7 @@ function RepurposePage() {
             const qty = def.quantities ? `${p?.count || def.defaultQty} ` : "";
             return (
               <span key={id} className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
-                <span>{def.emoji}</span>{qty}{def.name}
+                <BrandGlyph brand={def.id as BrandKey} size={12} />{qty}{def.name}
               </span>
             );
           })}
@@ -817,7 +818,7 @@ function RepurposePage() {
                     {st === "waiting" && <Circle className="mx-auto h-3.5 w-3.5 text-muted-foreground" />}
                     {st === "error"   && <AlertTriangle className="mx-auto h-4 w-4 text-red-500" />}
                   </span>
-                  <span className="flex-1 text-foreground">{def.emoji} {def.name}</span>
+                  <span className="flex-1 text-foreground inline-flex items-center gap-1.5"><BrandGlyph brand={def.id as BrandKey} size={14} /> {def.name}</span>
                   <span className="text-xs text-muted-foreground">
                     {st === "done" ? `Done in ${timings[id] ?? "?"}s` : st === "generating" ? "Generating…" : st === "waiting" ? "Waiting" : "Error"}
                   </span>
@@ -865,7 +866,7 @@ function RepurposePage() {
                     active ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <span>{def.emoji}</span>{def.name}
+                  <BrandGlyph brand={def.id as BrandKey} size={14} />{def.name}
                 </button>
               );
             })}
@@ -1086,7 +1087,7 @@ function FormatCard({ def, pick, onToggle, onUpdate }: {
         {selected && (
           <span className="absolute right-2 top-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">✓</span>
         )}
-        <div className="text-xl leading-none">{def.emoji}</div>
+        <BrandIcon brand={def.id as BrandKey} size={40} />
         <div className="mt-1.5 text-[13px] font-semibold text-foreground">{def.name}</div>
       </button>
 
@@ -1157,7 +1158,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{def.emoji} {def.name}</h3>
+          <h3 className="text-sm font-semibold text-foreground inline-flex items-center gap-2"><BrandGlyph brand={def.id as BrandKey} size={16} /> {def.name}</h3>
           <p className="text-[11px] text-muted-foreground">{wordCount} words · {edited.length} chars</p>
         </div>
         <div className="flex flex-wrap gap-1.5">
