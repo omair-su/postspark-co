@@ -35,7 +35,7 @@ export type BrandKey =
   | "blog";
 
 interface Def {
-  Icon: ComponentType<{ className?: string; size?: number | string }>;
+  Icon: ComponentType<any>;
   color: string;   // solid brand color
   tile: string;   // tailwind gradient bg for tile wrapper
   ring: string;   // hover/selected accent
