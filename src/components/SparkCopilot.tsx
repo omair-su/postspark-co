@@ -71,7 +71,7 @@ function SparkOrb({ size = 36 }: { size?: number }) {
         }}
       />
       <div
-        className="absolute rounded-full bg-white/60 blur-[1px]"
+        className="absolute rounded-full bg-[#14142B]/60 blur-[1px]"
         style={{ width: size * 0.18, height: size * 0.18, top: size * 0.22, left: size * 0.26 }}
       />
     </div>
@@ -260,18 +260,18 @@ export function SparkCopilot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full bg-white border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 hover:-translate-y-0.5 transition-all"
+          className="group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full bg-[#14142B] border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 hover:-translate-y-0.5 transition-all"
           aria-label="Open Spark Copilot"
         >
           <SparkOrb size={32} />
           <span className="text-sm font-medium text-slate-900">Spark</span>
-          <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-slate-500">Ask AI</span>
+          <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-white/55">Ask AI</span>
         </button>
       )}
 
       {open && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden bg-white"
+          className="fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden bg-[#14142B]"
           style={{
             width: "min(380px, calc(100vw - 2rem))",
             height: "min(560px, calc(100vh - 3rem))",
@@ -301,17 +301,17 @@ export function SparkCopilot() {
                 </div>
               </div>
               <div className="flex items-center gap-0.5">
-                <button onClick={newChat} title="New chat" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors">
+                <button onClick={newChat} title="New chat" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/70 hover:bg-[#14142B]/10 hover:text-white transition-colors">
                   <Plus className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setShowHistory((v) => !v)}
                   title="History"
-                  className={`h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors ${showHistory ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"}`}
+                  className={`h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors ${showHistory ? "bg-[#14142B]/15 text-white" : "text-white/70 hover:bg-[#14142B]/10 hover:text-white"}`}
                 >
                   <HistoryIcon className="h-4 w-4" />
                 </button>
-                <button onClick={() => setOpen(false)} title="Close" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors">
+                <button onClick={() => setOpen(false)} title="Close" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/70 hover:bg-[#14142B]/10 hover:text-white transition-colors">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -324,18 +324,18 @@ export function SparkCopilot() {
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="px-3 pt-3 pb-2">
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/45" />
                   <input
                     value={historyQuery}
                     onChange={(e) => setHistoryQuery(e.target.value)}
                     placeholder="Search conversations"
-                    className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-[#7c3aed]/50 focus:ring-2 focus:ring-[#7c3aed]/10"
+                    className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-white/10 bg-[#14142B] focus:outline-none focus:border-[#7c3aed]/50 focus:ring-2 focus:ring-[#7c3aed]/10"
                   />
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-1">
                 {filteredConvs.length === 0 ? (
-                  <div className="text-xs text-slate-400 p-6 text-center">No saved conversations yet.</div>
+                  <div className="text-xs text-white/45 p-6 text-center">No saved conversations yet.</div>
                 ) : (
                   filteredConvs.map((c) => {
                     const tag = platformTag(c.title);
@@ -344,22 +344,22 @@ export function SparkCopilot() {
                       <div
                         key={c.id}
                         onClick={() => loadConversation(c.id)}
-                        className={`group flex items-start gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${convId === c.id ? "bg-[#f5f3ff]" : "hover:bg-slate-50"}`}
+                        className={`group flex items-start gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${convId === c.id ? "bg-[#7c3aed]/15" : "hover:bg-white/5"}`}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-medium text-slate-800 truncate">{title}</div>
+                          <div className="text-[13px] font-medium text-white/90 truncate">{title}</div>
                           <div className="flex items-center gap-2 mt-0.5">
                             {tag && (
                               <span className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-[#7c3aed]/10 text-[#7c3aed] font-medium">
                                 {tag}
                               </span>
                             )}
-                            <span className="text-[10px] text-slate-400">{new Date(c.updated_at).toLocaleDateString()}</span>
+                            <span className="text-[10px] text-white/45">{new Date(c.updated_at).toLocaleDateString()}</span>
                           </div>
                         </div>
                         <button
                           onClick={(e) => removeConversation(c.id, e)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition"
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded text-white/45 hover:text-red-500 hover:bg-red-50 transition"
                           aria-label="Delete"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -372,12 +372,12 @@ export function SparkCopilot() {
             </div>
           ) : (
             <>
-              <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-white">
+              <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-[#14142B]">
                 {messages.length === 0 && (
                   <div className="space-y-3 animate-spark-in">
                     <div className="flex gap-2.5">
                       <SparkOrb size={28} />
-                      <div className="flex-1 rounded-2xl rounded-tl-sm border border-slate-100 bg-white px-3.5 py-2.5 text-[13px] text-slate-700 leading-relaxed shadow-sm">
+                      <div className="flex-1 rounded-2xl rounded-tl-sm border border-white/8 bg-[#14142B] px-3.5 py-2.5 text-[13px] text-white/85 leading-relaxed shadow-sm">
                         {welcome}
                       </div>
                     </div>
@@ -386,7 +386,7 @@ export function SparkCopilot() {
                         <button
                           key={a.label}
                           onClick={() => applyQuickAction(a.prompt)}
-                          className="group flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-slate-200 bg-white text-left text-[11.5px] font-medium text-slate-700 hover:border-[#7c3aed]/40 hover:bg-[#faf8ff] hover:-translate-y-0.5 hover:shadow-md hover:shadow-[#7c3aed]/10 transition-all"
+                          className="group flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 bg-[#14142B] text-left text-[11.5px] font-medium text-white/85 hover:border-[#7c3aed]/40 hover:bg-[#7c3aed]/10 hover:-translate-y-0.5 hover:shadow-md hover:shadow-[#7c3aed]/10 transition-all"
                         >
                           <a.icon className="h-3.5 w-3.5 text-[#7c3aed] shrink-0" />
                           <span className="truncate">{a.label}</span>
@@ -397,7 +397,7 @@ export function SparkCopilot() {
                     <div className="pt-1">
                       <button
                         onClick={() => setShowContext((v) => !v)}
-                        className="text-[10.5px] uppercase tracking-wider font-semibold text-slate-400 hover:text-[#7c3aed] transition"
+                        className="text-[10.5px] uppercase tracking-wider font-semibold text-white/45 hover:text-[#7c3aed] transition"
                       >
                         {showContext ? "− Hide content context" : "+ Add content context (optional)"}
                       </button>
@@ -407,7 +407,7 @@ export function SparkCopilot() {
                           onChange={(e) => setContextContent(e.target.value.slice(0, 4000))}
                           placeholder="Paste any content here for Spark to work with…"
                           rows={3}
-                          className="mt-1.5 w-full text-[12px] rounded-lg border border-slate-200 bg-white px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:border-[#7c3aed]/50 focus:ring-2 focus:ring-[#7c3aed]/10 resize-y"
+                          className="mt-1.5 w-full text-[12px] rounded-lg border border-white/10 bg-[#14142B] px-3 py-2 placeholder:text-white/45 focus:outline-none focus:border-[#7c3aed]/50 focus:ring-2 focus:ring-[#7c3aed]/10 resize-y"
                         />
                       )}
                     </div>
@@ -420,8 +420,8 @@ export function SparkCopilot() {
                   return (
                     <div key={i} className={`flex gap-2 animate-spark-in ${isUser ? "flex-row-reverse" : ""}`}>
                       {isUser ? (
-                        <div className="h-7 w-7 rounded-full shrink-0 flex items-center justify-center bg-slate-100">
-                          <UserIcon className="h-3.5 w-3.5 text-slate-600" />
+                        <div className="h-7 w-7 rounded-full shrink-0 flex items-center justify-center bg-white/10">
+                          <UserIcon className="h-3.5 w-3.5 text-white/70" />
                         </div>
                       ) : (
                         <SparkOrb size={28} />
@@ -430,8 +430,8 @@ export function SparkCopilot() {
                         <div
                           className={
                             isUser
-                              ? "rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-[13px] text-slate-800 bg-[#f3f0ff] border border-[#7c3aed]/10"
-                              : "rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-[13px] text-slate-800 bg-white border border-slate-100 shadow-sm"
+                              ? "rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-[13px] text-white/90 bg-[#7c3aed]/20 border border-[#7c3aed]/10"
+                              : "rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-[13px] text-white/90 bg-[#14142B] border border-white/8 shadow-sm"
                           }
                         >
                           {isUser ? (
@@ -444,13 +444,13 @@ export function SparkCopilot() {
                         </div>
                         {isLastAssistant && (
                           <div className="flex items-center gap-1 pl-1">
-                            <button onClick={() => copyMessage(m.content)} className="inline-flex items-center gap-1 text-[10.5px] text-slate-500 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#f5f3ff] transition">
+                            <button onClick={() => copyMessage(m.content)} className="inline-flex items-center gap-1 text-[10.5px] text-white/55 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#7c3aed]/15 transition">
                               <Copy className="h-3 w-3" /> Copy
                             </button>
-                            <button onClick={() => insertIntoEditor(m.content)} className="inline-flex items-center gap-1 text-[10.5px] text-slate-500 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#f5f3ff] transition">
+                            <button onClick={() => insertIntoEditor(m.content)} className="inline-flex items-center gap-1 text-[10.5px] text-white/55 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#7c3aed]/15 transition">
                               <ArrowDownToLine className="h-3 w-3" /> Insert
                             </button>
-                            <button onClick={regenerate} className="inline-flex items-center gap-1 text-[10.5px] text-slate-500 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#f5f3ff] transition">
+                            <button onClick={regenerate} className="inline-flex items-center gap-1 text-[10.5px] text-white/55 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#7c3aed]/15 transition">
                               <RotateCcw className="h-3 w-3" /> Regenerate
                             </button>
                           </div>
@@ -463,7 +463,7 @@ export function SparkCopilot() {
                 {loading && (
                   <div className="flex gap-2 animate-spark-in">
                     <SparkOrb size={28} />
-                    <div className="rounded-2xl rounded-tl-sm bg-white border border-slate-100 shadow-sm">
+                    <div className="rounded-2xl rounded-tl-sm bg-[#14142B] border border-white/8 shadow-sm">
                       <TypingDots />
                     </div>
                   </div>
@@ -471,11 +471,11 @@ export function SparkCopilot() {
               </div>
 
               {/* Input */}
-              <div className="p-3 border-t border-slate-100 bg-white">
-                <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white px-2.5 py-1.5 focus-within:border-[#7c3aed]/50 focus-within:ring-2 focus-within:ring-[#7c3aed]/10 transition">
+              <div className="p-3 border-t border-white/8 bg-[#14142B]">
+                <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#14142B] px-2.5 py-1.5 focus-within:border-[#7c3aed]/50 focus-within:ring-2 focus-within:ring-[#7c3aed]/10 transition">
                   <button
                     title="Attach (coming soon)"
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-[#7c3aed] hover:bg-[#f5f3ff] transition shrink-0"
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/45 hover:text-[#7c3aed] hover:bg-[#7c3aed]/15 transition shrink-0"
                     disabled
                   >
                     <Paperclip className="h-4 w-4" />
@@ -489,7 +489,7 @@ export function SparkCopilot() {
                     }}
                     placeholder="Ask Spark anything…"
                     rows={1}
-                    className="flex-1 resize-none bg-transparent py-1.5 text-[13px] text-slate-800 placeholder:text-slate-400 focus:outline-none max-h-[96px]"
+                    className="flex-1 resize-none bg-transparent py-1.5 text-[13px] text-white/90 placeholder:text-white/45 focus:outline-none max-h-[96px]"
                     disabled={loading}
                   />
                   <button
@@ -501,7 +501,7 @@ export function SparkCopilot() {
                     {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                   </button>
                 </div>
-                <div className="mt-1.5 px-1 text-[10px] text-slate-400 flex items-center justify-between">
+                <div className="mt-1.5 px-1 text-[10px] text-white/45 flex items-center justify-between">
                   <span>Press Enter to send · Shift+Enter for new line</span>
                   {toolLabel && <span className="text-[#7c3aed]/70 font-medium">{toolLabel}</span>}
                 </div>
