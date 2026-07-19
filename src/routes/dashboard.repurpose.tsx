@@ -1158,7 +1158,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{def.emoji} {def.name}</h3>
+          <h3 className="text-sm font-semibold text-foreground inline-flex items-center gap-2"><BrandGlyph brand={def.id as BrandKey} size={16} /> {def.name}</h3>
           <p className="text-[11px] text-muted-foreground">{wordCount} words · {edited.length} chars</p>
         </div>
         <div className="flex flex-wrap gap-1.5">
