@@ -500,9 +500,23 @@ function HistoryPage() {
       {filteredJobs.length === 0 ? (
         <div className="ds-card mt-8 p-10 text-center">
           <Clock className="mx-auto h-10 w-10 text-muted-foreground" />
-          <p className="mt-4 text-sm text-muted-foreground">
-            {search || filterFav ? "No matching results found." : "No repurposes yet. Create your first one!"}
-          </p>
+          {search || filterFav ? (
+            <>
+              <p className="mt-4 text-sm font-semibold text-foreground">No matching results</p>
+              <p className="mt-1 text-xs text-muted-foreground">Try a different keyword or clear the favorites filter.</p>
+            </>
+          ) : (
+            <>
+              <p className="mt-4 text-sm font-semibold text-foreground">No repurposes yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">Paste a link, PDF, or block of text and PostSpark turns it into a week of content.</p>
+              <Link
+                to="/dashboard/repurpose"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg gradient-electric px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Create your first repurpose
+              </Link>
+            </>
+          )}
         </div>
       ) : (
         <div className="mt-4 grid gap-3">
