@@ -51,6 +51,7 @@ export const createCarousel = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     if (rateLimited(userId)) return { slides: [], hashtags: [], caption: "", error: "Rate limit reached. Wait a minute." };
 
@@ -89,6 +90,11 @@ export const createCarousel = createServerFn({ method: "POST" })
     } as any);
 
     return result;
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const rewriteSlide = createServerFn({ method: "POST" })
@@ -103,10 +109,16 @@ export const rewriteSlide = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     if (rateLimited(userId)) return { title: data.title, body: data.body, error: "Rate limit. Try again." };
     const usage = await checkPlan(supabase, userId);
     if (!usage.ok) return { title: data.title, body: data.body, error: "LIMIT_REACHED" };
     const r = await rewriteSlideClaude(data);
     return r;
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });

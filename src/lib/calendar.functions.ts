@@ -12,6 +12,7 @@ export const listScheduledPosts = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: posts, error } = await supabase
       .from("scheduled_posts")
@@ -30,6 +31,11 @@ export const listScheduledPosts = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const createScheduledPost = createServerFn({ method: "POST" })
@@ -43,6 +49,7 @@ export const createScheduledPost = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: inserted, error } = await supabase
       .from("scheduled_posts")
@@ -65,6 +72,11 @@ export const createScheduledPost = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const updateScheduledPost = createServerFn({ method: "POST" })
@@ -80,6 +92,7 @@ export const updateScheduledPost = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { id, ...updates } = data;
     const { error } = await supabase
@@ -97,12 +110,18 @@ export const updateScheduledPost = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const deleteScheduledPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("scheduled_posts")
@@ -114,6 +133,11 @@ export const deleteScheduledPost = createServerFn({ method: "POST" })
       return { success: false };
     }
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
@@ -136,6 +160,7 @@ export const bulkImportScheduledPosts = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Agency gate
@@ -158,6 +183,11 @@ export const bulkImportScheduledPosts = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const generateAIPlan = createServerFn({ method: "POST" })
@@ -172,6 +202,7 @@ export const generateAIPlan = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Free monthly cap: count toward repurpose_jobs (1 plan = 1 credit)
@@ -250,4 +281,9 @@ export const generateAIPlan = createServerFn({ method: "POST" })
     } as any);
 
     return { success: true, inserted: count ?? rows.length };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });

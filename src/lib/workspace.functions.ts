@@ -23,6 +23,7 @@ function genToken() {
 export const getMyWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Find any workspace where the user is a member
@@ -57,12 +58,18 @@ export const getMyWorkspace = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const createWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ name: z.string().min(1).max(80) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     await requireAgency(supabase, userId);
 
@@ -85,6 +92,11 @@ export const createWorkspace = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const updateWorkspace = createServerFn({ method: "POST" })
@@ -97,6 +109,7 @@ export const updateWorkspace = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     await requireAgency(supabase, userId);
 
@@ -107,6 +120,11 @@ export const updateWorkspace = createServerFn({ method: "POST" })
     const { error } = await supabase.from("workspaces").update(update as any).eq("id", data.workspaceId);
     if (error) return { success: false, error: error.message };
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
@@ -124,6 +142,7 @@ export const inviteMember = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     await requireAgency(supabase, userId);
 
@@ -151,16 +170,27 @@ export const inviteMember = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const revokeInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ inviteId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase } = context;
     const { error } = await supabase.from("workspace_invites").delete().eq("id", data.inviteId);
     if (error) return { success: false, error: error.message };
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
@@ -172,6 +202,7 @@ export const removeMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ workspaceId: z.string().uuid(), userId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase } = context;
     const { error } = await supabase
       .from("workspace_members")
@@ -185,12 +216,18 @@ export const removeMember = createServerFn({ method: "POST" })
       const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
       return { error: msg } as any;
     }
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const acceptInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ token: z.string().min(8).max(80) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId, claims } = context;
     const email = (claims?.email as string | undefined)?.toLowerCase();
 
@@ -223,6 +260,11 @@ export const acceptInvite = createServerFn({ method: "POST" })
       .eq("id", invite.id);
 
     return { success: true, workspaceId: invite.workspace_id };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const setActiveBrandKit = createServerFn({ method: "POST" })
@@ -234,6 +276,7 @@ export const setActiveBrandKit = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("workspace_members")
@@ -242,6 +285,11 @@ export const setActiveBrandKit = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     if (error) return { success: false, error: error.message };
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const createWorkspaceBrandKit = createServerFn({ method: "POST" })
@@ -253,6 +301,7 @@ export const createWorkspaceBrandKit = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     await requireAgency(supabase, userId);
 
@@ -267,4 +316,9 @@ export const createWorkspaceBrandKit = createServerFn({ method: "POST" })
       .single();
     if (error) return { success: false, error: error.message };
     return { success: true, kit };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });

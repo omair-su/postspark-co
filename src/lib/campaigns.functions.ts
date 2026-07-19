@@ -7,6 +7,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const sendTestimonialCampaign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
     if (!isAdmin) throw new Error("Forbidden");
@@ -38,4 +39,9 @@ export const sendTestimonialCampaign = createServerFn({ method: "POST" })
       else if (res.status === "error") errs++;
     }
     return { queued, duplicates: dup, errors: errs, total: freeProfiles.length };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
