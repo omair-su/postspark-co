@@ -48,7 +48,6 @@ const navGroups = [
   {
     label: "Distribution",
     items: [
-      { to: "/dashboard/build-in-public", icon: Megaphone, label: "Build-in-Public" },
       { to: "/dashboard/referrals", icon: Gift, label: "Refer & Earn" },
     ],
   },

@@ -50,7 +50,7 @@ const GROUPS: { title: string; links: [string, string][] }[] = [
       ["Pricing", "/pricing"],
       ["Blog", "/blog"],
       ["Changelog", "/changelog"],
-      ["Roadmap", "/roadmap"],
+      
       ["Founding lifetime", "/deals/lifetime"],
       ["Privacy", "/privacy"],
       ["Terms", "/terms"],

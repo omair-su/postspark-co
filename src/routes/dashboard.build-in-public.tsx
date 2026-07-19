@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Copy, Check, TrendingUp, Twitter, Linkedin, Megaphone } from "lucide-react";
 import { getMetricsSnapshot, generateBuildInPublicPosts } from "@/lib/buildInPublic.functions";
+import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import type { FounderPost } from "@/lib/buildInPublic.server";
 
@@ -11,11 +12,15 @@ export const Route = createFileRoute("/dashboard/build-in-public")({
   component: BuildInPublicPage,
 });
 
+
 const TONES = ["Honest founder", "Punchy/contrarian", "Storyteller", "Data-driven"];
 
 function BuildInPublicPage() {
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [metrics, setMetrics] = useState<any>(null);
+
   const [proLocked, setProLocked] = useState(false);
   const [tone, setTone] = useState(TONES[0]);
   const [loading, setLoading] = useState(false);
@@ -24,13 +29,30 @@ function BuildInPublicPage() {
 
   useEffect(() => {
     if (!session) return;
+    isCurrentUserAdmin({ headers: { Authorization: `Bearer ${session.access_token}` } })
+      .then((ok: any) => {
+        const admin = !!ok;
+        setIsAdmin(admin);
+        if (!admin) {
+          navigate({ to: "/dashboard", replace: true });
+        }
+      })
+      .catch(() => {
+        setIsAdmin(false);
+        navigate({ to: "/dashboard", replace: true });
+      });
+  }, [session, navigate]);
+
+  useEffect(() => {
+    if (!session || !isAdmin) return;
     getMetricsSnapshot({ headers: { Authorization: `Bearer ${session.access_token}` } })
       .then((r: any) => {
         if (r.ok) setMetrics(r.metrics);
         else setProLocked(true);
       })
       .catch(() => {});
-  }, [session]);
+  }, [session, isAdmin]);
+
 
   const run = async () => {
     if (!session) return toast.error("Please sign in");
@@ -53,6 +75,10 @@ function BuildInPublicPage() {
     setCopied(id);
     setTimeout(() => setCopied(null), 1500);
   };
+
+  if (authLoading || isAdmin === null || isAdmin === false) {
+    return <div className="p-10 text-center text-sm text-[#6B7280]"><Loader2 className="mx-auto h-5 w-5 animate-spin" /></div>;
+  }
 
   if (proLocked) {
     return (
