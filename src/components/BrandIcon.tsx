@@ -93,7 +93,8 @@ export function BrandIcon({ brand, size = 36, tile = true, className = "" }: Bra
 export function BrandGlyph({ brand, size = 16, className = "" }: { brand: BrandKey; size?: number; className?: string }) {
   const def = MAP[brand] || MAP.blog;
   const { Icon } = def;
-  return <Icon size={size} className={className} style={{ color: def.color === "#ffffff" ? undefined : def.color }} />;
+  const color = def.color === "#ffffff" ? "currentColor" : def.color;
+  return <Icon size={size} className={className} color={color as any} />;
 }
 
 // Style icon set for Image Studio.
