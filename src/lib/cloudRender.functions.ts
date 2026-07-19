@@ -21,6 +21,7 @@ export const startMp4Render = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ webmPath: z.string().min(1).max(512) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     if (!data.webmPath.startsWith(`${userId}/`)) {
       throw new Error("Forbidden path");
@@ -75,4 +76,9 @@ export const pollMp4Render = createServerFn({ method: "POST" })
       .storage.from(BUCKET).createSignedUrl(path, 60 * 60 * 24);
     if (sErr || !signed?.signedUrl) throw new Error(sErr?.message || "sign output failed");
     return { status, mp4Url: signed.signedUrl, mp4Path: path, error: null };
-  });
+  });} catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
+  }

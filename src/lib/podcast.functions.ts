@@ -24,6 +24,7 @@ export const generatePodcastContentPack = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Usage gate (free: 10/mo)
@@ -77,4 +78,9 @@ export const generatePodcastContentPack = createServerFn({ method: "POST" })
     }
 
     return result;
-  });
+  });} catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
+  }

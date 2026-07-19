@@ -38,6 +38,7 @@ async function countMonthly(supabase: any, userId: string): Promise<number> {
 export const getDownloaderUsage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: profile } = await supabase
       .from("profiles")
@@ -51,6 +52,11 @@ export const getDownloaderUsage = createServerFn({ method: "POST" })
 
     const used = await countMonthly(supabase, userId);
     return { used, limit: FREE_MONTHLY_LIMIT, plan };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const downloadLinkedInVideo = createServerFn({ method: "POST" })
@@ -66,6 +72,7 @@ export const downloadLinkedInVideo = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     if (rateLimited(userId)) {
@@ -110,4 +117,9 @@ export const downloadLinkedInVideo = createServerFn({ method: "POST" })
       posterUrl: result.posterUrl,
       title: result.title,
     };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });

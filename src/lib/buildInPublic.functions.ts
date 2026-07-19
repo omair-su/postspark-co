@@ -6,6 +6,7 @@ import { generateFounderPosts } from "@/server/buildInPublic.server";
 export const getMetricsSnapshot = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Pro gate
@@ -68,6 +69,11 @@ export const getMetricsSnapshot = createServerFn({ method: "POST" })
         topTool,
       },
     };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const generateBuildInPublicPosts = createServerFn({ method: "POST" })
@@ -78,6 +84,7 @@ export const generateBuildInPublicPosts = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     const { data: profile } = await supabase
@@ -121,4 +128,9 @@ export const generateBuildInPublicPosts = createServerFn({ method: "POST" })
       data.tone,
     );
     return result;
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });

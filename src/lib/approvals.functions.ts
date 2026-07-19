@@ -28,6 +28,7 @@ export const createApprovalRequest = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     await requireAgency(supabase, userId);
 
@@ -48,11 +49,17 @@ export const createApprovalRequest = createServerFn({ method: "POST" })
     // `token` column SELECT is revoked from authenticated; return the
     // value we just generated (already known to this server handler).
     return { success: true, token, id: ar.id };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const listApprovalRequests = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data } = await supabase
       .from("approval_requests")
@@ -61,12 +68,18 @@ export const listApprovalRequests = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(50);
     return { approvals: data || [] };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const listApprovalAuditLog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ approvalId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase } = context;
     const { data: rows, error } = await supabase
       .from("approval_audit_log")
@@ -76,15 +89,26 @@ export const listApprovalAuditLog = createServerFn({ method: "POST" })
       .limit(100);
     if (error) return { entries: [], error: error.message };
     return { entries: rows ?? [], error: null };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 // Public (no auth) — uses anon client + secure RPC
 export const fetchApprovalByToken = createServerFn({ method: "POST" })
   .inputValidator(z.object({ token: z.string().min(8).max(80) }).parse)
   .handler(async ({ data }) => {
+    try {
     const { data: result, error } = await supabaseAdmin.rpc("get_approval_by_token", { _token: data.token });
     if (error) return { approval: null, error: error.message };
     return { approval: result, error: null };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const submitApprovalResponse = createServerFn({ method: "POST" })
@@ -97,6 +121,7 @@ export const submitApprovalResponse = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data }) => {
+    try {
     const { data: ok, error } = await supabaseAdmin.rpc("respond_to_approval", {
       _token: data.token,
       _status: data.status,
@@ -105,4 +130,9 @@ export const submitApprovalResponse = createServerFn({ method: "POST" })
     });
     if (error) return { success: false, error: error.message };
     return { success: ok === true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });

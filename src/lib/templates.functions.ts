@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const getTemplates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
 
     const { data, error } = await supabase
@@ -18,6 +19,11 @@ export const getTemplates = createServerFn({ method: "POST" })
       return { templates: [] };
     }
     return { templates: data || [] };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const createTemplate = createServerFn({ method: "POST" })
@@ -31,6 +37,7 @@ export const createTemplate = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     const { error } = await supabase.from("templates").insert({
@@ -46,6 +53,11 @@ export const createTemplate = createServerFn({ method: "POST" })
       return { success: false, error: "Failed to save template" };
     }
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const deleteTemplate = createServerFn({ method: "POST" })
@@ -54,6 +66,7 @@ export const deleteTemplate = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid() }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     const { error } = await supabase
@@ -67,4 +80,9 @@ export const deleteTemplate = createServerFn({ method: "POST" })
       return { success: false };
     }
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });

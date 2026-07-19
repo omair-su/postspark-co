@@ -13,6 +13,7 @@ export const generateJobHookVariants = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     const { data: profile } = await supabase
@@ -48,6 +49,11 @@ export const generateJobHookVariants = createServerFn({ method: "POST" })
     }
 
     return { variants: result.variants };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
 
 export const setWinningHook = createServerFn({ method: "POST" })
@@ -59,6 +65,7 @@ export const setWinningHook = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("repurpose_jobs")
@@ -67,4 +74,9 @@ export const setWinningHook = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     if (error) return { ok: false, error: error.message };
     return { ok: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
+      return { error: msg } as any;
+    }
   });
