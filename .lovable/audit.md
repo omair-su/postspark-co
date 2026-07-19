@@ -227,3 +227,17 @@ Tell me **"start Phase 1"** and I'll execute in this order:
 - **Kill the `.ds-canvas` CSS override layer** (`src/styles.css` L1118–1200+): safest path is a per-route dark-native refactor of the 29 light-leak files, then delete the override layer once no route depends on it. Trying to strip it in a single edit will regress a lot of dashboard views — recommend one route per session.
 - **Landing honesty pass** (real screenshots, verified claims, real testimonials) needs product screenshots you own — I can wire the slots but not fabricate testimonials.
 - **First-run dashboard collapse to a single primary CTA** — the dashboard has 14 widgets/tools; recommend a `first_visit` gate that hides everything except Repurpose + a "Skip tour" link for new users. Needs a UX decision on what stays.
+
+## Phase 3 — Shipped
+
+- **Perf — FFmpeg lazy-loaded**: swapped the top-of-file `import { captionsToSrt, transcodeWebmToMp4 } from "@/lib/ffmpegExport"` in `src/components/shorts/TimelineEditor.tsx` for a dynamic `import()` inside `exportMp4Ffmpeg`. The @ffmpeg/ffmpeg CDN loader + ~30MB wasm now only load when the user clicks *Export MP4*, not on route entry. ElevenLabs and Deepgram already live behind server functions (`src/lib/shorts.functions.ts`) — no client-side bundle cost, verified.
+- **Micro-interactions**: added a global `:focus-visible` ring (violet, 2px, 2px offset) in `src/styles.css` for keyboard nav across links, buttons, inputs, selects and textareas. Mouse-focus outlines suppressed via `:focus:not(:focus-visible)` so nothing visually regresses for pointer users.
+- **SEO — templates page**: `src/routes/templates.$slug.tsx` now has route `head()` with title, description, self-referencing `og:url`/canonical, and `og:type: article`. Was the last public marketing route missing per-route metadata.
+- **Loading skeletons**: verified `dashboard.history`, `dashboard.analytics`, and other data-driven dashboard routes already render shaped skeletons (not blank screens) — no changes needed.
+- **Dashboard noindex**: verified the parent `dashboard.tsx` `head()` already sets `robots: noindex, nofollow`, which merges into every dashboard child route — no per-route noindex work needed.
+
+## Phase 3 — Deferred
+
+- **Toast copy sweep** across auth/settings pages: current strings come from Supabase (`error.message`) and are already user-readable ("Invalid login credentials", etc.) — a full rewrite is cosmetic, not P0.
+- **Route-level code-splitting audit** beyond FFmpeg: TanStack Start auto-splits per-route by default; no oversized shared chunks flagged in the current build.
+- **Blog seed indexing**: seed already exists and is linked from the footer; sitemap generation happens server-side. Requires a live Search Console pass to verify, not a code change.
