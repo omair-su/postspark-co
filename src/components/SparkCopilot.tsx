@@ -264,7 +264,7 @@ export function SparkCopilot() {
           aria-label="Open Spark Copilot"
         >
           <SparkOrb size={32} />
-          <span className="text-sm font-medium text-slate-900">Spark</span>
+          <span className="text-sm font-semibold text-white">Spark</span>
           <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-white/55">Ask AI</span>
         </button>
       )}
