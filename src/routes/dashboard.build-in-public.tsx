@@ -76,6 +76,10 @@ function BuildInPublicPage() {
     setTimeout(() => setCopied(null), 1500);
   };
 
+  if (authLoading || isAdmin === null || isAdmin === false) {
+    return <div className="p-10 text-center text-sm text-[#6B7280]"><Loader2 className="mx-auto h-5 w-5 animate-spin" /></div>;
+  }
+
   if (proLocked) {
     return (
       <div className="mx-auto max-w-md p-10 text-center">
