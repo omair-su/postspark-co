@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Copy, Check, TrendingUp, Twitter, Linkedin, Megaphone } from "lucide-react";
 import { getMetricsSnapshot, generateBuildInPublicPosts } from "@/lib/buildInPublic.functions";
+import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import type { FounderPost } from "@/lib/buildInPublic.server";
 
@@ -11,11 +12,15 @@ export const Route = createFileRoute("/dashboard/build-in-public")({
   component: BuildInPublicPage,
 });
 
+
 const TONES = ["Honest founder", "Punchy/contrarian", "Storyteller", "Data-driven"];
 
 function BuildInPublicPage() {
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [metrics, setMetrics] = useState<any>(null);
+
   const [proLocked, setProLocked] = useState(false);
   const [tone, setTone] = useState(TONES[0]);
   const [loading, setLoading] = useState(false);
