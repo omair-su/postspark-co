@@ -7,6 +7,17 @@ import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/templates/$slug")({
   component: TemplateDetailPage,
+  head: ({ params }) => ({
+    meta: [
+      { title: "Content template — PostSpark" },
+      { name: "description", content: "Clone this ready-to-use content repurposing template in PostSpark and start publishing in seconds." },
+      { property: "og:title", content: "Content template — PostSpark" },
+      { property: "og:description", content: "Clone this ready-to-use content repurposing template in PostSpark." },
+      { property: "og:url", content: `https://postspark.co/templates/${params.slug}` },
+      { property: "og:type", content: "article" },
+    ],
+    links: [{ rel: "canonical", href: `https://postspark.co/templates/${params.slug}` }],
+  }),
 });
 
 function TemplateDetailPage() {
