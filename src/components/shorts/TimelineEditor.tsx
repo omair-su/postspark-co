@@ -633,6 +633,7 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
       setExportUrl(url);
       setExportBlob(blob);
       setMp4Url(null);
+      setFfmpegMp4Url((prev) => { if (prev) { try { URL.revokeObjectURL(prev); } catch { /* ignore */ } } return null; });
       toast.success("Export ready");
     } catch (e: any) {
       toast.error(e?.message || "Export failed");
