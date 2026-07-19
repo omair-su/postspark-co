@@ -82,7 +82,7 @@ function BillingPage() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <PageHeader
         eyebrow="Account"
         icon={<CreditCard className="h-3 w-3" />}
