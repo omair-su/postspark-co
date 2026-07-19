@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getAdmin, getAnon, makeSlug } from "@/server/gallery.server";
+import { getAdmin, getAnon, makeSlug } from "@/lib/gallery.server";
 
 export const togglePublic = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

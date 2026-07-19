@@ -1,4 +1,4 @@
-import type { StockPhoto } from "@/server/stockMedia.server";
+import type { StockPhoto } from "@/lib/stockMedia.server";
 
 const UTM = "utm_source=postspark&utm_medium=referral";
 

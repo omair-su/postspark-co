@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateShortsScript, generateShortsSeriesScripts } from "@/server/shorts.server";
+import { generateShortsScript, generateShortsSeriesScripts } from "@/lib/shorts.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 const TOOL = "shorts_studio";

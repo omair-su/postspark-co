@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { createHash } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { callClaudeWithTool } from "@/server/anthropic.server";
-import { scrapeUrl, isBlockedHost } from "@/server/import.server";
+import { callClaudeWithTool } from "@/lib/anthropic.server";
+import { scrapeUrl, isBlockedHost } from "@/lib/import.server";
 
 const Schema = z.object({
   sourceType: z.enum(["text", "url"]).default("text"),

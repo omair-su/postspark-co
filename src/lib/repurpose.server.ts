@@ -1,4 +1,4 @@
-import { callClaude } from "@/server/anthropic.server";
+import { callClaude } from "@/lib/anthropic.server";
 
 export async function generateRepurposedContent(
   inputText: string,

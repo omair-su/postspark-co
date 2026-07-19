@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Copy, Check, ExternalLink, Download, X } from "lucide-react";
-import type { StockPhoto, StockVideo } from "@/server/stockMedia.server";
+import type { StockPhoto, StockVideo } from "@/lib/stockMedia.server";
 import { trackUnsplashUse } from "@/lib/stockMedia.functions";
 import { toast } from "sonner";
 

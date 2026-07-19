@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, Copy, Check, Plus, Info } from "lucide-react";
-import type { StockPhoto } from "@/server/stockMedia.server";
+import type { StockPhoto } from "@/lib/stockMedia.server";
 import { StockAttribution } from "./StockAttribution";
 import { StockAttributionModal } from "./StockAttributionModal";
 import { trackUnsplashUse } from "@/lib/stockMedia.functions";

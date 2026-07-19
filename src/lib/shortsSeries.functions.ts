@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { ShortsScript } from "@/server/shorts.server";
+import type { ShortsScript } from "@/lib/shorts.server";
 
 export const listShortsSeries = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

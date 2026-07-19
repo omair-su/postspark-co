@@ -6,7 +6,7 @@ import { Loader2, Sparkles, Layers, Copy, Check, Lock, Download, ArrowLeft, Fold
 import { generateShortsSeries, getShortsUsage } from "@/lib/shorts.functions";
 import { listShortsSeries, loadShortsSeries, deleteShortsSeries } from "@/lib/shortsSeries.functions";
 import { withAIProgress } from "@/lib/aiProgress";
-import type { ShortsScript } from "@/server/shorts.server";
+import type { ShortsScript } from "@/lib/shorts.server";
 
 export const Route = createFileRoute("/dashboard/shorts-series")({
   component: ShortsSeriesPage,

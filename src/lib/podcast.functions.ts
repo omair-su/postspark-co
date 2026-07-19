@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generatePodcastPack, type PodcastFormat } from "@/server/podcast.server";
+import { generatePodcastPack, type PodcastFormat } from "@/lib/podcast.server";
 
 const FORMATS = [
   "tweets", "thread", "linkedin", "instagram", "tiktok", "facebook",

@@ -46,7 +46,7 @@ import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
 import { StockPickerDialog } from "@/components/stock/StockPickerDialog";
 import { useServerFn } from "@tanstack/react-start";
 import { trackUnsplashUse } from "@/lib/stockMedia.functions";
-import type { StockPhoto } from "@/server/stockMedia.server";
+import type { StockPhoto } from "@/lib/stockMedia.server";
 import { Images } from "lucide-react";
 
 
