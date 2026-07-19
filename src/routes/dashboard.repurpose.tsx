@@ -18,6 +18,7 @@ import { createTemplate } from "@/lib/templates.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
 import { VisualPreview } from "@/components/VisualPreview";
+import { BrandIcon, BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
 import { HookABTester } from "@/components/HookABTester";
