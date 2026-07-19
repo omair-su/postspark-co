@@ -244,7 +244,7 @@ function BillingPage() {
       <p className="mt-6 text-center text-[11px] text-muted-foreground">
         Subscription status updates in real time. <Link to="/pricing" className="underline">Compare all plans →</Link>
       </p>
-    </DashboardLayout>
+    </>
   );
 }
 
