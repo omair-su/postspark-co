@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateFounderPosts } from "@/server/buildInPublic.server";
+import { generateFounderPosts } from "@/lib/buildInPublic.server";
 
 export const getMetricsSnapshot = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

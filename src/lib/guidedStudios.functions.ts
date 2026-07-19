@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   generateFounderHooks, generateFounderLesson, generateCreatorPlaybook,
   generateProductLaunch, generateMarketingTip, editStudioOutput,
-} from "@/server/guidedStudios.server";
+} from "@/lib/guidedStudios.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 

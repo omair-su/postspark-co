@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { humanizeText, generateReplies } from "@/server/copilot.server";
+import { humanizeText, generateReplies } from "@/lib/copilot.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 

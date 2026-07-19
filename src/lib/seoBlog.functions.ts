@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateSeoBlog, generateSeoOutline, refreshSeoBlog } from "@/server/seoBlog.server";
+import { generateSeoBlog, generateSeoOutline, refreshSeoBlog } from "@/lib/seoBlog.server";
 
 export const generateBlog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

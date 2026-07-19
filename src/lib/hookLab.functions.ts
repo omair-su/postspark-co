@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateViralHooks } from "@/server/hookLab.server";
+import { generateViralHooks } from "@/lib/hookLab.server";
 
 export const generateHooks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

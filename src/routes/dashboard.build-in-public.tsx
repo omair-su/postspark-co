@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Loader2, Sparkles, Copy, Check, TrendingUp, Twitter, Linkedin, Megaphone } from "lucide-react";
 import { getMetricsSnapshot, generateBuildInPublicPosts } from "@/lib/buildInPublic.functions";
 import { withAIProgress } from "@/lib/aiProgress";
-import type { FounderPost } from "@/server/buildInPublic.server";
+import type { FounderPost } from "@/lib/buildInPublic.server";
 
 export const Route = createFileRoute("/dashboard/build-in-public")({
   component: BuildInPublicPage,

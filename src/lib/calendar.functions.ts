@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateContentPlan } from "@/server/calendar.server";
+import { generateContentPlan } from "@/lib/calendar.server";
 
 export const listScheduledPosts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

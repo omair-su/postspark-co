@@ -5,7 +5,7 @@ import {
   searchStockPhotos as searchStockPhotosServer,
   searchStockVideos as searchStockVideosServer,
   trackUnsplashDownload as trackUnsplashDownloadServer,
-} from "@/server/stockMedia.server";
+} from "@/lib/stockMedia.server";
 
 const SOURCE = z.enum(["unsplash", "pexels", "all"]).default("all");
 const ORIENTATION = z.enum(["landscape", "portrait", "squarish", "any"]).default("any");

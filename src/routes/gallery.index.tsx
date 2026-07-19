@@ -7,7 +7,7 @@ import { StockAttribution } from "@/components/stock/StockAttribution";
 import { StockAttributionModal } from "@/components/stock/StockAttributionModal";
 import { NavV3 } from "@/components/landing/v3/NavV3";
 import { FooterV3 } from "@/components/landing/v3/FooterV3";
-import type { StockPhoto, StockVideo } from "@/server/stockMedia.server";
+import type { StockPhoto, StockVideo } from "@/lib/stockMedia.server";
 
 
 

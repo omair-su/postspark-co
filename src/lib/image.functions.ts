@@ -12,7 +12,7 @@ import {
   removeBackground as removeBackgroundServer,
   upscaleImage as upscaleImageServer,
   enhanceImagePrompt,
-} from "@/server/image.server";
+} from "@/lib/image.server";
 
 const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
 const QUALITY = z.enum(["standard", "hd"]).default("standard");

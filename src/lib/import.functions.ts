@@ -7,7 +7,7 @@ import {
   transcribeWithGemini,
   transcribeWithAssemblyAI,
   transcribeWithWhisper,
-} from "@/server/import.server";
+} from "@/lib/import.server";
 
 export const importFromUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

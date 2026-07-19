@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Search, Loader2, ImageIcon, Video as VideoIcon, Info } from "lucide-react";
-import type { StockPhoto, StockVideo } from "@/server/stockMedia.server";
+import type { StockPhoto, StockVideo } from "@/lib/stockMedia.server";
 import { searchStockPhotos, searchStockVideos } from "@/lib/stockMedia.functions";
 import { StockPhotoCard } from "./StockPhotoCard";
 import { StockAttribution } from "./StockAttribution";

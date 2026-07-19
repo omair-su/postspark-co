@@ -14,7 +14,7 @@ import {
 } from "@/lib/socialPublish.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { supabase } from "@/integrations/supabase/client";
-import type { ShortsScript } from "@/server/shorts.server";
+import type { ShortsScript } from "@/lib/shorts.server";
 import { TRENDING_AUDIO, NICHES, type Niche, type Platform } from "@/lib/trendingAudio";
 
 export const Route = createFileRoute("/dashboard/shorts-studio")({

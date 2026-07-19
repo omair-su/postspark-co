@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import type { StockPhoto, StockVideo } from "@/server/stockMedia.server";
+import type { StockPhoto, StockVideo } from "@/lib/stockMedia.server";
 import { StockMediaPicker } from "./StockMediaPicker";
 
 interface Props {

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { extractLinkedInVideo, isLinkedInUrl } from "@/server/linkedinDownloader.server";
+import { extractLinkedInVideo, isLinkedInUrl } from "@/lib/linkedinDownloader.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 const TOOL = "linkedin_downloader";
