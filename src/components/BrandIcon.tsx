@@ -47,7 +47,7 @@ const MAP: Record<BrandKey, Def> = {
   tweets:    { Icon: SiX, color: "#ffffff", tile: "bg-gradient-to-br from-slate-900 to-slate-700", ring: "ring-white/40", isSimple: true },
   thread:    { Icon: SiX, color: "#ffffff", tile: "bg-gradient-to-br from-slate-900 to-slate-700", ring: "ring-white/40", isSimple: true },
   x:         { Icon: SiX, color: "#ffffff", tile: "bg-gradient-to-br from-slate-900 to-slate-700", ring: "ring-white/40", isSimple: true },
-  linkedin:  { Icon: SiLinkedin, color: "#ffffff", tile: "bg-gradient-to-br from-[#0A66C2] to-[#004182]", ring: "ring-[#0A66C2]/50", isSimple: true },
+  linkedin:  { Icon: FaLinkedin, color: "#ffffff", tile: "bg-gradient-to-br from-[#0A66C2] to-[#004182]", ring: "ring-[#0A66C2]/50", isSimple: true },
   instagram: { Icon: SiInstagram, color: "#ffffff", tile: "bg-gradient-to-br from-[#f09433] via-[#e6683c] via-[#dc2743] via-[#cc2366] to-[#bc1888]", ring: "ring-pink-500/50", isSimple: true },
   facebook:  { Icon: SiFacebook, color: "#ffffff", tile: "bg-gradient-to-br from-[#1877F2] to-[#0b5fd6]", ring: "ring-[#1877F2]/50", isSimple: true },
   tiktok:    { Icon: SiTiktok, color: "#ffffff", tile: "bg-gradient-to-br from-black via-[#25F4EE]/20 to-[#FE2C55]/60", ring: "ring-[#FE2C55]/60", isSimple: true },
