@@ -472,10 +472,11 @@ export function TimelineEditor({ initialCaptions = "" }: { initialCaptions?: str
     if (!exportBlob) return toast.error("Export WebM first");
     setFfmpegBusy(true); setFfmpegProgress(0); setFfmpegMp4Url(null);
     try {
+      const { captionsToSrt, transcodeWebmToMp4 } = await import("@/lib/ffmpegExport");
       const srt = project.captions.length ? captionsToSrt(project.captions) : undefined;
       const mp4 = await transcodeWebmToMp4(exportBlob, {
         srt,
-        onProgress: (p) => setFfmpegProgress(p),
+        onProgress: (p: number) => setFfmpegProgress(p),
       });
       const url = URL.createObjectURL(mp4);
       setFfmpegMp4Url(url);
