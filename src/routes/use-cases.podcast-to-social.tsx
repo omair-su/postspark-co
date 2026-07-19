@@ -56,7 +56,7 @@ function PodcastToSocialPage() {
           { label: "AI voiceover for clips", postspark: true, others: [false, false, false] },
           { label: "Brand voice training", postspark: true, others: [true, true, false] },
           { label: "Series mode (5-ep drip)", postspark: true, others: [false, false, false] },
-          { label: "Pricing (entry plan)", postspark: "$19/mo", others: ["$23/mo", "$27/mo", "$29/mo"] },
+          { label: "Pricing (entry plan)", postspark: "$24/mo", others: ["$23/mo", "$27/mo", "$29/mo"] },
           { label: "Lifetime deal available", postspark: "$97", others: [false, false, false] },
         ],
       }}

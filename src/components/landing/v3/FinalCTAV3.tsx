@@ -32,7 +32,7 @@ export function FinalCTAV3() {
             </Link>
           </div>
           <p className="relative mt-5 text-xs" style={{ color: "rgba(250,250,249,0.5)" }}>
-            No card · 3 free repurposes / month · Pro from $19
+            No card · 3 free repurposes / month · Pro from $24
           </p>
         </div>
       </div>

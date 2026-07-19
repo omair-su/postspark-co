@@ -22,7 +22,7 @@ export const Route = createFileRoute("/alternatives/buffer-vs-postspark")({
       solutions={[
         "PostSpark generates platform-specific posts (X, LinkedIn, IG, TikTok) from one URL.",
         "Brand Voice AI trains on your past posts — outputs sound like you, not GPT.",
-        "Pro is $19/mo for unlimited + scheduler — replaces Buffer + your writing tool.",
+        "Pro is $24/mo for unlimited + scheduler — replaces Buffer + your writing tool.",
       ]}
       workflow={[
         { title: "Drop a blog/video/podcast", body: "PostSpark generates 30+ platform-ready posts in 60 seconds." },

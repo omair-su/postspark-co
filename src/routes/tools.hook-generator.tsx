@@ -64,7 +64,7 @@ function HookGeneratorPage() {
       ]}
       faq={[
         { q: "How is the virality score calculated?", a: "PostSpark scores each hook against a library of 10,000+ top-performing posts across TikTok, Reels, Shorts, X and LinkedIn. The score weighs pattern strength, curiosity gap, specificity, and platform fit." },
-        { q: "Is it really free?", a: "Yes — 3 generations per month on the free tier with full output. Pro is $19/mo for unlimited plus brand voice training and series mode." },
+        { q: "Is it really free?", a: "Yes — 3 generations per month on the free tier with full output. Pro is $24/mo for unlimited plus brand voice training and series mode." },
         { q: "Will it match my brand voice?", a: "On Pro, yes. Drop in 5 samples and PostSpark trains a voice profile that gets auto-applied to every hook." },
         { q: "How is this different from ChatGPT?", a: "ChatGPT writes generic hooks with no scoring and no platform-specific tuning. PostSpark generates 10 ranked variants with reasoning, tuned for the exact channel you're posting to." },
         { q: "Can I use these for paid ads?", a: "Yes. Hooks that win on TikTok organic almost always win on Meta paid social — that's where most agencies use this." },

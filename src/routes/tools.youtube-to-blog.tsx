@@ -22,7 +22,7 @@ export const Route = createFileRoute("/tools/youtube-to-blog")({
       solutions={[
         "Real SEO structure: H1, H2/H3 outline, meta, FAQ schema, internal link suggestions.",
         "Auto-pulls keyword from video title + adds secondary keywords from transcript.",
-        "Free for 3/month, Pro at $19/mo unlimited + brand-voice trained for your blog.",
+        "Free for 3/month, Pro at $24/mo unlimited + brand-voice trained for your blog.",
       ]}
       workflow={[
         { title: "Paste YouTube URL", body: "Public videos only. We pull transcript via Whisper if no captions exist." },

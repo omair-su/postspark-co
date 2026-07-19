@@ -22,7 +22,7 @@ export const Route = createFileRoute("/tools/ai-image-generator")({
       solutions={[
         "Pre-set aspect ratios for X, LinkedIn, IG, Stories, Reels covers, and YouTube thumbnails.",
         "Brand Kit auto-applies your palette and logo placement — every image stays on-brand.",
-        "Free plan: 3 images/month. Pro: unlimited, $19/mo. Switch from Midjourney and save.",
+        "Free plan: 3 images/month. Pro: unlimited, $24/mo. Switch from Midjourney and save.",
       ]}
       workflow={[
         { title: "Pick a platform", body: "X post, LinkedIn carousel slide, IG square, Reels cover, YouTube thumbnail." },

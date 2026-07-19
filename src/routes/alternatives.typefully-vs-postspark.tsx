@@ -21,7 +21,7 @@ export const Route = createFileRoute("/alternatives/typefully-vs-postspark")({
       ]}
       solutions={[
         "One PostSpark input → posts for X, LinkedIn, IG, TikTok, YouTube Shorts, and newsletter.",
-        "$19/mo Pro replaces Typefully + Hypefury + Shield + your newsletter tool.",
+        "$24/mo Pro replaces Typefully + Hypefury + Shield + your newsletter tool.",
         "Brand Voice AI keeps the same tone across every platform.",
       ]}
       workflow={[

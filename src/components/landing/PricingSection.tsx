@@ -279,7 +279,7 @@ export function PricingSection() {
               <span className="text-primary">+</span>
               <span className="line-through opacity-60">Descript $30</span>
               <span className="text-primary">=</span>
-              <span className="font-bold text-foreground">PostSpark from $19</span>
+              <span className="font-bold text-foreground">PostSpark from $24</span>
             </div>
           </div>
         </div>

@@ -55,7 +55,7 @@ function TikTokToShortsPage() {
           { label: "AI hook rewriter for YouTube", postspark: true, others: [false, false, false] },
           { label: "Burned-in captions in Shorts style", postspark: true, others: ["limited", true, true] },
           { label: "Batch URL import", postspark: true, others: [true, false, false] },
-          { label: "Pricing (entry plan)", postspark: "$19/mo", others: ["$15/mo", "$19/mo", "$49/mo"] },
+          { label: "Pricing (entry plan)", postspark: "$24/mo", others: ["$15/mo", "$24/mo", "$49/mo"] },
           { label: "Lifetime deal available", postspark: "$97", others: [false, false, false] },
         ],
       }}

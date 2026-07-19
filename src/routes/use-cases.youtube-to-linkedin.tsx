@@ -56,7 +56,7 @@ function YouTubeToLinkedInPage() {
           { label: "Carousel generation", postspark: true, others: [false, false, false] },
           { label: "Newsletter section bonus", postspark: true, others: [false, false, false] },
           { label: "Brand voice training", postspark: true, others: [false, true, true] },
-          { label: "Pricing", postspark: "$19/mo", others: ["$15/mo (limited)", "$39/mo", "$23/mo"] },
+          { label: "Pricing", postspark: "$24/mo", others: ["$15/mo (limited)", "$39/mo", "$23/mo"] },
           { label: "Lifetime deal available", postspark: "$97", others: [false, false, false] },
         ],
       }}
