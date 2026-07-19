@@ -48,6 +48,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { trackUnsplashUse } from "@/lib/stockMedia.functions";
 import type { StockPhoto } from "@/lib/stockMedia.server";
 import { Images } from "lucide-react";
+import { StyleIcon } from "@/components/BrandIcon";
 
 
 
