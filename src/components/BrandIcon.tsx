@@ -9,7 +9,6 @@
 import type { ComponentType } from "react";
 import {
   SiX,
-  SiLinkedin,
   SiInstagram,
   SiFacebook,
   SiTiktok,
@@ -17,6 +16,7 @@ import {
   SiYoutube,
   SiGoogle,
 } from "react-icons/si";
+import { FaLinkedin } from "react-icons/fa";
 import { Mail, Clapperboard, Mic, Images, FileText, Camera, Box, Palette, Square, Zap, Brush, Sparkles, Building2 } from "lucide-react";
 
 export type BrandKey =
