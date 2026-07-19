@@ -12,6 +12,7 @@ export const listScheduledPosts = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: posts, error } = await supabase
       .from("scheduled_posts")
@@ -25,6 +26,14 @@ export const listScheduledPosts = createServerFn({ method: "POST" })
       return { posts: [] };
     }
     return { posts: posts || [] };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const createScheduledPost = createServerFn({ method: "POST" })
@@ -38,6 +47,7 @@ export const createScheduledPost = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: inserted, error } = await supabase
       .from("scheduled_posts")
@@ -55,6 +65,14 @@ export const createScheduledPost = createServerFn({ method: "POST" })
       return { success: false, error: "Failed to schedule post." };
     }
     return { success: true, post: inserted };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const updateScheduledPost = createServerFn({ method: "POST" })
@@ -70,6 +88,7 @@ export const updateScheduledPost = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { id, ...updates } = data;
     const { error } = await supabase
@@ -82,12 +101,21 @@ export const updateScheduledPost = createServerFn({ method: "POST" })
       return { success: false };
     }
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const deleteScheduledPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("scheduled_posts")
@@ -99,6 +127,14 @@ export const deleteScheduledPost = createServerFn({ method: "POST" })
       return { success: false };
     }
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const bulkImportScheduledPosts = createServerFn({ method: "POST" })
@@ -116,6 +152,7 @@ export const bulkImportScheduledPosts = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Agency gate
@@ -133,6 +170,14 @@ export const bulkImportScheduledPosts = createServerFn({ method: "POST" })
       return { success: false, error: error.message, inserted: 0 };
     }
     return { success: true, inserted: count ?? rows.length };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const generateAIPlan = createServerFn({ method: "POST" })
@@ -147,6 +192,7 @@ export const generateAIPlan = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Free monthly cap: count toward repurpose_jobs (1 plan = 1 credit)
@@ -225,4 +271,12 @@ export const generateAIPlan = createServerFn({ method: "POST" })
     } as any);
 
     return { success: true, inserted: count ?? rows.length };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const getReferralStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
 
     const { data: profile } = await supabase
@@ -26,4 +27,12 @@ export const getReferralStats = createServerFn({ method: "GET" })
       pending: list.filter((r) => r.status === "pending").length,
       items: list,
     };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

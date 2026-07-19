@@ -15,6 +15,7 @@ async function assertAdmin(supabase: any, userId: string) {
 export const adminListTestimonials = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     await assertAdmin(context.supabase, context.userId);
     const { data, error } = await context.supabase
       .from("testimonials")
@@ -23,6 +24,14 @@ export const adminListTestimonials = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return { testimonials: data ?? [] };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 const upsertSchema = z.object({
@@ -42,6 +51,7 @@ export const adminUpsertTestimonial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => upsertSchema.parse(input))
   .handler(async ({ data, context }) => {
+    try {
     await assertAdmin(context.supabase, context.userId);
     const payload = { ...data, avatar_url: data.avatar_url || null };
     const { data: row, error } = await context.supabase
@@ -51,14 +61,31 @@ export const adminUpsertTestimonial = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     return { testimonial: row };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const adminDeleteTestimonial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    try {
     await assertAdmin(context.supabase, context.userId);
     const { error } = await context.supabase.from("testimonials").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

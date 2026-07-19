@@ -13,14 +13,14 @@ export const Route = createFileRoute("/alternatives/jasper-vs-postspark")({
       path="/alternatives/jasper-vs-postspark"
       eyebrow="PostSpark vs Jasper"
       h1="PostSpark vs Jasper: Which Is Right for You?"
-      sub="Jasper starts at $49/month and is built for enterprise marketing teams. PostSpark starts at $19/month and is built for creators and agencies who actually repurpose."
+      sub="Jasper starts at $49/month and is built for enterprise marketing teams. PostSpark starts at $24/month and is built for creators and agencies who actually repurpose."
       pains={[
         "Jasper's enterprise pricing assumes a marketing team budget you don't have.",
         "Its general writing focus means you still build your own repurposing pipelines.",
         "Brand voice on Jasper is a manual style guide — not a per-client trained model.",
       ]}
       solutions={[
-        "PostSpark Pro is $19/month — under half Jasper's entry price, with a real free tier.",
+        "PostSpark Pro is $24/month — under half Jasper's entry price, with a real free tier.",
         "Repurposing is the product, not a side feature. One input, every platform, zero prompts.",
         "Brand Voice AI trains on your samples and only sharpens with use.",
       ]}

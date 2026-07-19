@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const getAgencyAnalytics = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
 
     const { data: profile } = await supabase
@@ -57,4 +58,12 @@ export const getAgencyAnalytics = createServerFn({ method: "POST" })
         avgApprovalHours: Math.round(avgApprovalHours * 10) / 10,
       },
     };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

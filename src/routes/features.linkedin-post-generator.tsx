@@ -6,7 +6,7 @@ const DESC = "Generate scroll-stopping LinkedIn posts from any blog, video, or P
 const URL = "https://postspark.co/features/linkedin-post-generator";
 
 const FAQS = [
-  { q: "Is the LinkedIn post generator free?", a: "Yes — Free plan includes 3 generations per month. Pro is $19/mo for unlimited posts with brand voice training." },
+  { q: "Is the LinkedIn post generator free?", a: "Yes — Free plan includes 3 generations per month. Pro is $24/mo for unlimited posts with brand voice training." },
   { q: "Will my posts sound generic?", a: "No. PostSpark trains on your past LinkedIn writing samples (Pro feature) so every post matches your tone, vocabulary, and rhythm." },
   { q: "What hooks does PostSpark use?", a: "Our Hook Lab tests 50+ proven LinkedIn opening patterns and auto-picks the strongest match for your topic." },
   { q: "Can I schedule posts directly to LinkedIn?", a: "Posts copy cleanly into Buffer, Hypefury, Typefully, or LinkedIn's native composer with one click." },

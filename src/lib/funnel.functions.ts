@@ -17,6 +17,7 @@ export const getFunnelSummary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ days: z.number().int().min(1).max(90).default(7) }).parse)
   .handler(async ({ context, data }) => {
+    try {
     await assertAdmin(context.supabase, context.userId);
     const since = new Date(Date.now() - data.days * 24 * 60 * 60 * 1000).toISOString();
 
@@ -64,4 +65,12 @@ export const getFunnelSummary = createServerFn({ method: "POST" })
       topSources,
       recent: rows.slice(0, 50),
     };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

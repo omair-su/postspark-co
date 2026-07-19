@@ -17,7 +17,16 @@ export const importFromUrl = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
+    try {
     return scrapeUrl(data.url);
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const transcribeAudio = createServerFn({ method: "POST" })
@@ -30,6 +39,7 @@ export const transcribeAudio = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
+    try {
     const p = data.preferProvider || "auto";
 
     if (p === "assemblyai" && process.env.ASSEMBLYAI_API_KEY) {
@@ -59,15 +69,32 @@ export const transcribeAudio = createServerFn({ method: "POST" })
       if (r.text) return r;
     }
     return transcribeWithGemini(data.audioBase64, data.mimeType);
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const checkProviders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
+    try {
     return {
       elevenlabs: !!process.env.ELEVENLABS_API_KEY,
       gemini: !!process.env.LOVABLE_API_KEY,
       assemblyai: !!process.env.ASSEMBLYAI_API_KEY,
       whisper: !!(process.env.Openai_api || process.env.OPENAI_API_KEY),
     };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

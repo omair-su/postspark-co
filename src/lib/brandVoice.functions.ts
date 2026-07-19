@@ -6,6 +6,7 @@ import { summarizeBrandVoice } from "@/server/brandVoice.server";
 export const listBrandVoices = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("brand_voices")
@@ -17,11 +18,20 @@ export const listBrandVoices = createServerFn({ method: "POST" })
       return { voices: [] };
     }
     return { voices: data || [] };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const getActiveBrandVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data } = await supabase
       .from("brand_voices")
@@ -30,6 +40,14 @@ export const getActiveBrandVoice = createServerFn({ method: "POST" })
       .eq("is_active", true)
       .maybeSingle();
     return { voice: data || null };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const trainBrandVoice = createServerFn({ method: "POST" })
@@ -41,6 +59,7 @@ export const trainBrandVoice = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Pro/Agency gate
@@ -77,6 +96,14 @@ export const trainBrandVoice = createServerFn({ method: "POST" })
       return { success: false, error: "Failed to save voice." };
     }
     return { success: true, voice: inserted };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const setActiveBrandVoice = createServerFn({ method: "POST" })
@@ -85,6 +112,7 @@ export const setActiveBrandVoice = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid().nullable() }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     // Deactivate all first
@@ -109,12 +137,21 @@ export const setActiveBrandVoice = createServerFn({ method: "POST" })
       }
     }
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const deleteBrandVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("brand_voices")
@@ -126,4 +163,12 @@ export const deleteBrandVoice = createServerFn({ method: "POST" })
       return { success: false };
     }
     return { success: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

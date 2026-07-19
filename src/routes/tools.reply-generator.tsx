@@ -22,7 +22,7 @@ export const Route = createFileRoute("/tools/reply-generator")({
       solutions={[
         "Brand Voice AI keeps replies in your tone — Pro users see this auto-applied.",
         "5 reply angles per comment so you pick the one that fits.",
-        "Free for 3 replies/month, Pro at $19/mo unlimited.",
+        "Free for 3 replies/month, Pro at $24/mo unlimited.",
       ]}
       workflow={[
         { title: "Paste the comment", body: "Optional: paste the original post for context." },

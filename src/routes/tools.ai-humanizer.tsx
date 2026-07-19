@@ -22,7 +22,7 @@ export const Route = createFileRoute("/tools/ai-humanizer")({
       solutions={[
         "Brand Voice AI keeps every rewrite in your tone (Pro users auto-apply).",
         "Real handwritten cadence — contractions, rhythm shifts, casual pivots.",
-        "Free for 3 humanizations/month, Pro unlimited at $19/mo.",
+        "Free for 3 humanizations/month, Pro unlimited at $24/mo.",
       ]}
       workflow={[
         { title: "Paste AI text", body: "Any output from ChatGPT, Claude, Gemini or Jasper." },

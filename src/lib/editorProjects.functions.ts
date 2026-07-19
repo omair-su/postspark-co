@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const listEditorProjects = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("shorts_editor_projects")
@@ -14,12 +15,21 @@ export const listEditorProjects = createServerFn({ method: "POST" })
       .limit(50);
     if (error) return { projects: [] as Array<{ id: string; name: string; updated_at: string }> };
     return { projects: (data || []) as any };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const loadEditorProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
       .from("shorts_editor_projects")
@@ -29,6 +39,14 @@ export const loadEditorProject = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error || !row) return { project: null };
     return { project: row as any };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const saveEditorProject = createServerFn({ method: "POST" })
@@ -41,6 +59,7 @@ export const saveEditorProject = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     if (data.id) {
       const { data: row, error } = await supabase
@@ -60,13 +79,30 @@ export const saveEditorProject = createServerFn({ method: "POST" })
       .single();
     if (error) return { id: null, error: error.message };
     return { id: row.id, error: null };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const deleteEditorProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     await supabase.from("shorts_editor_projects").delete().eq("id", data.id).eq("user_id", userId);
     return { ok: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

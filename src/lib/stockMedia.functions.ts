@@ -35,8 +35,17 @@ export const searchStockPhotos = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     if (rateLimited(context.userId)) return { photos: [], error: "Rate limit reached." };
     return searchStockPhotosServer(data);
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const searchStockVideos = createServerFn({ method: "POST" })
@@ -49,8 +58,17 @@ export const searchStockVideos = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     if (rateLimited(context.userId)) return { videos: [], error: "Rate limit reached." };
     return searchStockVideosServer(data);
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 // Called every time a user "uses" an Unsplash photo (insert, set as background,
@@ -63,7 +81,16 @@ export const trackUnsplashUse = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
+    try {
     return trackUnsplashDownloadServer(data.downloadLocation);
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 // Public (unauthenticated) stock feed for the Community Gallery.
@@ -81,6 +108,7 @@ export const getPublicStockFeed = createServerFn({ method: "GET" })
     }).partial().parse,
   )
   .handler(async ({ data }) => {
+    try {
     const query = data?.query || "creator content";
     const kind = data?.kind || "photos";
     const source = data?.source || "all";
@@ -94,4 +122,12 @@ export const getPublicStockFeed = createServerFn({ method: "GET" })
     }
     const res = await searchStockPhotosServer({ query, source, page, orientation });
     return { photos: res.photos.slice(0, perPage), videos: [], page, kind };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

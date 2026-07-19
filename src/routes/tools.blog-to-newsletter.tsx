@@ -22,7 +22,7 @@ export const Route = createFileRoute("/tools/blog-to-newsletter")({
       solutions={[
         "Brand Voice AI keeps the email in your tone, not GPT default.",
         "5 subject line variants per email with predicted open-rate scoring.",
-        "Free for 3 newsletters/month, Pro at $19/mo unlimited.",
+        "Free for 3 newsletters/month, Pro at $24/mo unlimited.",
       ]}
       workflow={[
         { title: "Paste blog URL", body: "Or upload a markdown file." },

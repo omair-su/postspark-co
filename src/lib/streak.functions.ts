@@ -14,6 +14,7 @@ function daysBetween(a: string, b: string): number {
 export const pingStreak = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: profile } = await supabase
       .from("profiles")
@@ -51,11 +52,20 @@ export const pingStreak = createServerFn({ method: "POST" })
       .eq("user_id", userId);
 
     return { streak, longest, alreadyPinged: false };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const getStreak = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data } = await supabase
       .from("profiles")
@@ -76,4 +86,12 @@ export const getStreak = createServerFn({ method: "POST" })
       lastActive: last,
       activeToday: last === today,
     };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

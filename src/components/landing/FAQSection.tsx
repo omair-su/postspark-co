@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 const faqs = [
   {
     q: "Is there really a free plan? What's the catch?",
-    a: "Yes — 10 free repurposes every month, no credit card required. The catch is fair: heavy users on Pro fund the free tier. If 10 isn't enough, upgrade to Pro ($19/mo) for unlimited.",
+    a: "Yes — 10 free repurposes every month, no credit card required. The catch is fair: heavy users on Pro fund the free tier. If 10 isn't enough, upgrade to Pro ($24/mo) for unlimited.",
   },
   {
     q: "Can I cancel anytime? What if I'm not satisfied?",

@@ -6,6 +6,7 @@ import type { ShortsScript } from "@/server/shorts.server";
 export const listShortsSeries = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("repurpose_jobs")
@@ -33,12 +34,21 @@ export const listShortsSeries = createServerFn({ method: "POST" })
       }
     }
     return { series: Array.from(groups.values()).sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at)) };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const loadShortsSeries = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ seriesId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: rows, error } = await supabase
       .from("repurpose_jobs")
@@ -51,13 +61,30 @@ export const loadShortsSeries = createServerFn({ method: "POST" })
       scripts: (rows as any[]).map((r) => r.outputs as ShortsScript),
       inputText: (rows[0] as any).input_text as string,
     };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });
 
 export const deleteShortsSeries = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ seriesId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     await supabase.from("repurpose_jobs").delete().eq("user_id", userId).eq("series_id", data.seriesId);
     return { ok: true };
+  } catch (e: any) {
+      console.error('[server-fn] error:', e);
+      if (e instanceof Response) {
+        const txt = await e.text().catch(() => e.statusText || 'Request failed');
+        throw new Error(txt || 'Request failed');
+      }
+      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
+    }
   });

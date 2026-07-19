@@ -21,7 +21,7 @@ export const Route = createFileRoute("/tools/youtube-thumbnail-maker")({
       ]}
       solutions={[
         "Built specifically for the 1280×720 thumbnail spec — text stays readable at small sizes.",
-        "Free for 3 thumbnails/month, Pro is $19/mo unlimited. Cheaper than one designer gig.",
+        "Free for 3 thumbnails/month, Pro is $24/mo unlimited. Cheaper than one designer gig.",
         "Iterate variants in seconds — A/B test what gets clicks, not what looks pretty.",
       ]}
       workflow={[
