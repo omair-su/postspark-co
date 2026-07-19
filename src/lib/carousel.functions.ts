@@ -51,7 +51,6 @@ export const createCarousel = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
-    try {
     const { supabase, userId } = context;
     if (rateLimited(userId)) return { slides: [], hashtags: [], caption: "", error: "Rate limit reached. Wait a minute." };
 
@@ -110,9 +109,4 @@ export const rewriteSlide = createServerFn({ method: "POST" })
     if (!usage.ok) return { title: data.title, body: data.body, error: "LIMIT_REACHED" };
     const r = await rewriteSlideClaude(data);
     return r;
-  });} catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
-  }
+  });

@@ -30,7 +30,6 @@ function readingTime(md: string) {
 export const isCurrentUserAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    try {
     const { data } = await context.supabase
       .from("user_roles")
       .select("role")
@@ -48,7 +47,6 @@ export const isCurrentUserAdmin = createServerFn({ method: "GET" })
 export const adminListPosts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    try {
     await assertAdmin(context.supabase, context.userId);
     const { data, error } = await context.supabase
       .from("blog_posts")
@@ -69,7 +67,6 @@ export const adminListPosts = createServerFn({ method: "GET" })
 export const adminListMeta = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    try {
     await assertAdmin(context.supabase, context.userId);
     const [cats, authors] = await Promise.all([
       context.supabase.from("blog_categories").select("id, slug, name").order("name"),
@@ -87,7 +84,6 @@ export const adminGetPost = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v) => z.object({ id: z.string().uuid() }).parse(v))
   .handler(async ({ context, data }) => {
-    try {
     await assertAdmin(context.supabase, context.userId);
     const { data: post, error } = await context.supabase
       .from("blog_posts")
@@ -122,7 +118,6 @@ export const adminUpsertPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v) => PostInput.parse(v))
   .handler(async ({ context, data }) => {
-    try {
     await assertAdmin(context.supabase, context.userId);
 
     let slug = (data.slug || slugify(data.title)).toLowerCase();
@@ -182,9 +177,4 @@ export const adminDeletePost = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("blog_posts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
-  });} catch (e: any) {
-      console.error('[server-fn] error:', e);
-      const msg = e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.');
-      return { error: msg } as any;
-    }
-  }
+  });
