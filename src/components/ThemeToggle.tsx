@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
 
 export function ThemeToggle() {
-  const [dark, setDark] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("theme") === "dark";
-  });
+  const [dark, setDark] = useState(true);
+
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    // Default to dark unless the user has explicitly chosen light.
+    const isDark = saved !== "light";
+    setDark(isDark);
+  }, []);
 
   useEffect(() => {
     if (dark) {
@@ -17,18 +21,10 @@ export function ThemeToggle() {
     }
   }, [dark]);
 
-  // Initialize on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      setDark(true);
-    }
-  }, []);
-
   return (
     <button
       onClick={() => setDark(!dark)}
-      className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 transition-colors hover:text-white hover:bg-white/10"
       aria-label="Toggle theme"
     >
       {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
