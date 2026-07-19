@@ -866,7 +866,7 @@ function RepurposePage() {
                     active ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  <span>{def.emoji}</span>{def.name}
+                  <BrandGlyph brand={def.id as BrandKey} size={14} />{def.name}
                 </button>
               );
             })}
