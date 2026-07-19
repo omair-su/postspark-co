@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { CreditCard, ExternalLink, Loader2, Crown, Calendar, RefreshCw, AlertTriangle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
