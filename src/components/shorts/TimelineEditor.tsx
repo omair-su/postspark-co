@@ -14,7 +14,8 @@ import {
 import { startMp4Render, pollMp4Render } from "@/lib/cloudRender.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { captionsToSrt, transcodeWebmToMp4 } from "@/lib/ffmpegExport";
+// FFmpeg is dynamically imported inside exportMp4Ffmpeg to keep the
+// ~30MB wasm loader out of the initial route chunk.
 
 // ── domain types ───────────────────────────────────────────────
 interface Clip {
