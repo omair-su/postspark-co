@@ -1,0 +1,2 @@
+REVOKE UPDATE ON TABLE public.profiles FROM authenticated, anon;
+GRANT UPDATE (avatar_url, display_name, handle, last_active_date, longest_streak, onboarding_completed, primary_platforms, primary_role, streak_days, tagline, updated_at, weekly_digest_enabled) ON TABLE public.profiles TO authenticated;
