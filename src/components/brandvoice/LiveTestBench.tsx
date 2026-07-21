@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Beaker, Loader2, RefreshCw, Copy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { repurposeContent, type RepurposeResult } from "@/lib/repurpose.functions";
+import { repurposeContent } from "@/lib/repurpose.functions";
 import { scoreContentAgainstVoice } from "@/lib/brandVoice.functions";
 
 interface Props {
@@ -31,7 +31,7 @@ export function LiveTestBench({ activeVoiceId }: Props) {
     setOutput("");
     setScore(null);
     try {
-      const res: RepurposeResult = await repurposeContent({
+      const res = await repurposeContent({
         data: {
           inputText: `Topic: ${topic.trim()}. Write a short, high-quality sample post in my voice.`,
           selectedTypes: [format],
