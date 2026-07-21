@@ -133,14 +133,26 @@ export const repurposeContent = createServerFn({ method: "POST" })
 
     // Fetch active brand voice (Pro feature) to personalize output
     let brandVoiceSummary = "";
+    let voiceProfile: any = undefined;
     if (isPro) {
       const { data: activeVoice } = await supabase
         .from("brand_voices")
-        .select("style_summary")
+        .select("style_summary, style_override, tone_sliders, dos, donts, emoji_density, sentence_length, cta_style")
         .eq("user_id", userId)
         .eq("is_active", true)
         .maybeSingle();
-      brandVoiceSummary = activeVoice?.style_summary || "";
+      const v: any = activeVoice;
+      brandVoiceSummary = (v?.style_override as string) || (v?.style_summary as string) || "";
+      if (v) {
+        voiceProfile = {
+          tone_sliders: v.tone_sliders || undefined,
+          dos: Array.isArray(v.dos) ? v.dos : undefined,
+          donts: Array.isArray(v.donts) ? v.donts : undefined,
+          emoji_density: v.emoji_density || undefined,
+          sentence_length: v.sentence_length || undefined,
+          cta_style: v.cta_style || undefined,
+        };
+      }
     }
 
     // Auto-apply Brand Kit preferred tone if user didn't explicitly choose one
@@ -182,7 +194,8 @@ export const repurposeContent = createServerFn({ method: "POST" })
       effectiveTone,
       mergedInstructions,
       brandVoiceSummary,
-      data.language || "English"
+      data.language || "English",
+      voiceProfile,
     );
 
     let jobId: string | null = null;
@@ -323,11 +336,24 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
 
     // Brand Voice (Pro)
     let brandVoiceSummary = "";
+    let voiceProfile: any = undefined;
     if (isPro) {
       const { data: voice } = await supabase
-        .from("brand_voices").select("style_summary")
+        .from("brand_voices")
+        .select("style_summary, style_override, tone_sliders, dos, donts, emoji_density, sentence_length, cta_style")
         .eq("user_id", userId).eq("is_active", true).maybeSingle();
-      brandVoiceSummary = voice?.style_summary || "";
+      const v: any = voice;
+      brandVoiceSummary = (v?.style_override as string) || (v?.style_summary as string) || "";
+      if (v) {
+        voiceProfile = {
+          tone_sliders: v.tone_sliders || undefined,
+          dos: Array.isArray(v.dos) ? v.dos : undefined,
+          donts: Array.isArray(v.donts) ? v.donts : undefined,
+          emoji_density: v.emoji_density || undefined,
+          sentence_length: v.sentence_length || undefined,
+          cta_style: v.cta_style || undefined,
+        };
+      }
     }
 
     // Brand Kit (auto tone + context)
@@ -363,6 +389,7 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
       customInstructions: mergedInstructions,
       brandVoiceSummary,
       language: data.language || "English",
+      voiceProfile,
     });
 
     if (result.error || !result.output) {

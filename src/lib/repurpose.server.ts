@@ -1,12 +1,61 @@
 import { callClaude } from "@/lib/anthropic.server";
 
+export interface VoiceProfile {
+  tone_sliders?: { formality?: number; humor?: number; enthusiasm?: number; complexity?: number };
+  dos?: string[];
+  donts?: string[];
+  emoji_density?: "none" | "minimal" | "heavy";
+  sentence_length?: "short" | "balanced" | "long";
+  cta_style?: "soft" | "direct";
+}
+
+function describeSlider(name: string, low: string, high: string, v: number): string {
+  if (v <= 20) return `very ${low}`;
+  if (v <= 40) return `${low}`;
+  if (v <= 60) return `balanced ${name}`;
+  if (v <= 80) return `${high}`;
+  return `very ${high}`;
+}
+
+export function buildVoiceProfileBlock(vp?: VoiceProfile): string {
+  if (!vp) return "";
+  const bits: string[] = [];
+  if (vp.tone_sliders) {
+    const t = vp.tone_sliders;
+    const parts: string[] = [];
+    if (typeof t.formality === "number") parts.push(describeSlider("formality", "casual", "formal", t.formality));
+    if (typeof t.humor === "number") parts.push(describeSlider("humor", "serious", "playful", t.humor));
+    if (typeof t.enthusiasm === "number") parts.push(describeSlider("energy", "reserved", "high-energy", t.enthusiasm));
+    if (typeof t.complexity === "number") parts.push(describeSlider("complexity", "simple", "nuanced", t.complexity));
+    if (parts.length) bits.push(`Tone dial: ${parts.join(", ")}.`);
+  }
+  if (vp.dos?.length) bits.push(`ALWAYS use these words/phrases when natural: ${vp.dos.slice(0, 30).join(", ")}.`);
+  if (vp.donts?.length) bits.push(`NEVER use these words/phrases: ${vp.donts.slice(0, 30).join(", ")}.`);
+  if (vp.emoji_density) {
+    const map = { none: "No emojis at all.", minimal: "Use emojis very sparingly (0-1 max).", heavy: "Use emojis liberally where they fit." };
+    bits.push(map[vp.emoji_density]);
+  }
+  if (vp.sentence_length) {
+    const map = { short: "Prefer short, punchy sentences.", balanced: "Mix sentence lengths naturally.", long: "Use longer, more nuanced sentences." };
+    bits.push(map[vp.sentence_length]);
+  }
+  if (vp.cta_style) {
+    const map = { soft: "CTAs should feel like invitations, not commands.", direct: "CTAs must be direct and imperative." };
+    bits.push(map[vp.cta_style]);
+  }
+  if (!bits.length) return "";
+  return `\n\nVOICE GUARDRAILS (must follow):\n- ${bits.join("\n- ")}`;
+}
+
+
 export async function generateRepurposedContent(
   inputText: string,
   selectedTypes: string[],
   tone: string = "professional",
   customInstructions: string = "",
   brandVoiceSummary: string = "",
-  language: string = "English"
+  language: string = "English",
+  voiceProfile?: VoiceProfile,
 ): Promise<{ output: string; error?: string }> {
   const typeInstructions = selectedTypes
     .map((t) => {
@@ -49,9 +98,10 @@ export async function generateRepurposedContent(
     ? ` Write ALL output in ${language}. Use native idioms and natural phrasing for that language.`
     : "";
 
+  const guardrails = buildVoiceProfileBlock(voiceProfile);
   const systemPrompt = `You are PostSpark's AI content engine. You are an expert content strategist and copywriter who specializes in repurposing content for maximum reach across multiple platforms. Always produce high-quality, platform-native content that sounds human and engaging — never robotic or generic.
 
-For this request, generate: ${typeInstructions}. Format each section with a clear markdown header (e.g. "## Tweets"). Be engaging, value-driven, and platform-appropriate.${toneInstruction}${languageBlock}${customBlock}${voiceBlock}`;
+For this request, generate: ${typeInstructions}. Format each section with a clear markdown header (e.g. "## Tweets"). Be engaging, value-driven, and platform-appropriate.${toneInstruction}${languageBlock}${customBlock}${voiceBlock}${guardrails}`;
 
   const result = await callClaude({
     systemPrompt,
@@ -81,6 +131,7 @@ function buildSharedSuffix(
   customInstructions: string,
   brandVoiceSummary: string,
   language: string,
+  voiceProfile?: VoiceProfile,
 ): string {
   const lang = language && language !== "English"
     ? `\n\nLANGUAGE: Write ALL output in ${language} using native idioms and natural phrasing.`
@@ -94,7 +145,8 @@ function buildSharedSuffix(
   const voice = brandVoiceSummary.trim()
     ? `\n\nCRITICAL — Match this brand voice EXACTLY (rhythm, vocabulary, punctuation, formatting habits):\n${brandVoiceSummary.trim()}`
     : "";
-  return `\n\nTONE: ${tone}.${mods}${custom}${voice}${lang}`;
+  const guardrails = buildVoiceProfileBlock(voiceProfile);
+  return `\n\nTONE: ${tone}.${mods}${custom}${voice}${guardrails}${lang}`;
 }
 
 function buildFormatPrompt(
@@ -104,8 +156,9 @@ function buildFormatPrompt(
   customInstructions: string,
   brandVoiceSummary: string,
   language: string,
+  voiceProfile?: VoiceProfile,
 ): { system: string; maxTokens: number } {
-  const suffix = buildSharedSuffix(tone, styleModifiers, customInstructions, brandVoiceSummary, language);
+  const suffix = buildSharedSuffix(tone, styleModifiers, customInstructions, brandVoiceSummary, language, voiceProfile);
   const style = cfg.style || "";
   const count = cfg.count || 1;
 
@@ -360,6 +413,7 @@ export async function generateOneFormat(opts: {
   customInstructions: string;
   brandVoiceSummary: string;
   language: string;
+  voiceProfile?: VoiceProfile;
 }): Promise<{ output: string; error?: string }> {
   const { system, maxTokens } = buildFormatPrompt(
     { format: opts.format, count: opts.count, style: opts.style, length: opts.length },
@@ -368,6 +422,7 @@ export async function generateOneFormat(opts: {
     opts.customInstructions,
     opts.brandVoiceSummary,
     opts.language,
+    opts.voiceProfile,
   );
 
   const result = await callClaude({
