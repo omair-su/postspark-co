@@ -413,6 +413,7 @@ export async function generateOneFormat(opts: {
   customInstructions: string;
   brandVoiceSummary: string;
   language: string;
+  voiceProfile?: VoiceProfile;
 }): Promise<{ output: string; error?: string }> {
   const { system, maxTokens } = buildFormatPrompt(
     { format: opts.format, count: opts.count, style: opts.style, length: opts.length },
@@ -421,6 +422,7 @@ export async function generateOneFormat(opts: {
     opts.customInstructions,
     opts.brandVoiceSummary,
     opts.language,
+    opts.voiceProfile,
   );
 
   const result = await callClaude({
