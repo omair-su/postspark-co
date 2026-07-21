@@ -194,7 +194,8 @@ export const repurposeContent = createServerFn({ method: "POST" })
       effectiveTone,
       mergedInstructions,
       brandVoiceSummary,
-      data.language || "English"
+      data.language || "English",
+      voiceProfile,
     );
 
     let jobId: string | null = null;
