@@ -115,11 +115,11 @@ function BrandVoicePage() {
 
   const tone = (selected?.tone_sliders as ToneSliderValues | null) || DEFAULT_TONE_SLIDERS;
   const guardrails: GuardrailValues = {
-    dos: selected?.dos || DEFAULT_GUARDRAILS.dos,
-    donts: selected?.donts || DEFAULT_GUARDRAILS.donts,
-    emoji_density: selected?.emoji_density || DEFAULT_GUARDRAILS.emoji_density,
-    sentence_length: selected?.sentence_length || DEFAULT_GUARDRAILS.sentence_length,
-    cta_style: selected?.cta_style || DEFAULT_GUARDRAILS.cta_style,
+    dos: Array.isArray(selected?.dos) ? (selected!.dos as string[]) : DEFAULT_GUARDRAILS.dos,
+    donts: Array.isArray(selected?.donts) ? (selected!.donts as string[]) : DEFAULT_GUARDRAILS.donts,
+    emoji_density: (selected?.emoji_density as GuardrailValues["emoji_density"]) || DEFAULT_GUARDRAILS.emoji_density,
+    sentence_length: (selected?.sentence_length as GuardrailValues["sentence_length"]) || DEFAULT_GUARDRAILS.sentence_length,
+    cta_style: (selected?.cta_style as GuardrailValues["cta_style"]) || DEFAULT_GUARDRAILS.cta_style,
   };
 
   return (
