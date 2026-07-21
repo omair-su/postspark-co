@@ -180,21 +180,19 @@ export const deleteBrandLogo = createServerFn({ method: "POST" })
   .inputValidator((raw: unknown) => z.object({ id: z.string().uuid().optional(), slot: z.string().max(30).optional() }).parse(raw ?? {}))
   .handler(async ({ data, context }) => wrap(async () => {
     const { supabase, userId } = context;
-    const { data: kit } = await supabase
+    let query = supabase
       .from("brand_kits")
       .select("id, logo_url, logo_variants")
-      .eq("user_id", userId)
-      .eq(data.id ? "id" : "is_active", data.id || (true as any))
-      .maybeSingle();
+      .eq("user_id", userId);
+    query = data.id ? query.eq("id", data.id) : query.eq("is_active", true);
+    const { data: kit } = await query.maybeSingle();
     if (!kit) return { success: true };
 
     const slot = data.slot;
     const patch: Record<string, unknown> = {};
-    if (!slot || slot === "primary") {
-      patch.logo_url = null;
-    }
+    if (!slot || slot === "primary") patch.logo_url = null;
     if (slot) {
-      const variants = { ...(kit.logo_variants as Record<string, string> || {}) };
+      const variants = { ...((kit.logo_variants as Record<string, string>) || {}) };
       delete variants[slot];
       patch.logo_variants = variants;
     }
