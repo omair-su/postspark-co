@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Upload, Palette, Type, Sparkles, ArrowLeft, Trash2, RefreshCw, Check, AlertTriangle } from "lucide-react";
 import { getBrandKit, upsertBrandKit, deleteBrandLogo } from "@/lib/brandKit.functions";
 import { gradeContrast } from "@/lib/contrast";
+import { BrandProfileSwitcher } from "@/components/BrandProfileSwitcher";
 
 export const Route = createFileRoute("/dashboard/brand-kit")({
   component: BrandKitPage,
@@ -27,6 +28,7 @@ function BrandKitPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [brandName, setBrandName] = useState("");
   const [brandHandle, setBrandHandle] = useState("");
@@ -41,6 +43,7 @@ function BrandKitPage() {
 
   useEffect(() => {
     if (!session) return;
+    setLoading(true);
     getBrandKit({ headers: { Authorization: `Bearer ${session.access_token}` } })
       .then(({ kit }) => {
         if (kit) {
@@ -54,10 +57,15 @@ function BrandKitPage() {
           setFontHeading(kit.font_heading || "Inter");
           setFontBody(kit.font_body || "Inter");
           setTone((kit as any).preferred_tone || "professional");
+        } else {
+          // reset to defaults when switched to a fresh profile
+          setBrandName(""); setBrandHandle(""); setTagline(""); setLogoUrl("");
+          setPrimary("#7c3aed"); setSecondary("#1a1a2e"); setAccent("#f59e0b");
+          setFontHeading("Inter"); setFontBody("Inter"); setTone("professional");
         }
       })
       .finally(() => setLoading(false));
-  }, [session]);
+  }, [session, reloadKey]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,16 +131,19 @@ function BrandKitPage() {
       >
         <ArrowLeft className="h-3 w-3" /> Back to settings
       </Link>
-      <div className="mt-2 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-electric">
-          <Sparkles className="h-5 w-5 text-primary-foreground" />
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-electric">
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Brand Kit</h1>
+            <p className="text-sm text-muted-foreground">
+              Your logo, colors, fonts, and tone — auto-applied to every generation.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Brand Kit</h1>
-          <p className="text-sm text-muted-foreground">
-            Your logo, colors, fonts, and tone — auto-applied to every generation.
-          </p>
-        </div>
+        <BrandProfileSwitcher onActiveChange={() => setReloadKey((k) => k + 1)} />
       </div>
 
       {/* Identity */}

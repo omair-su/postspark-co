@@ -1,141 +1,81 @@
+# Brand Kit + Brand Voice — Pro Enterprise Overhaul
 
-# PostSpark — Deep Audit & Stabilization Plan
-
-Goal: make every existing feature reliable enough that a stranger can sign up, hit "Repurpose", and pay — without hitting a broken thing. No new features.
-
----
-
-## What I found (audit summary)
-
-I walked the app across 4 surfaces: **landing/SEO → auth → dashboard tools → billing**. Findings grouped by severity.
-
-### 🔴 P0 — Blocks money or trust from message 1
-
-1. **Payments end-to-end not verified this cycle.** Paddle checkout → webhook → `profiles.plan` update → paywalled feature unlock. If any link is broken today, nobody can actually pay. Highest-risk unknown.
-2. **`[object Response]` errors still possible in ~25 server functions.** We patched a bunch, but files like `agencyAnalytics`, `campaigns`, `funnel`, `templates`, `workspace`, `shortsSeries`, `stockMedia`, `blogAdmin`, `testimonialsAdmin`, `onboarding`, `referrals` still throw raw `Response` on any failure → UI crashes.
-3. **Claude / Replicate generic errors.** When an AI provider is overloaded or a model 404s, user sees "Generation failed" and blames PostSpark. Only `image.server.ts` has proper fallback + error surfacing today.
-4. **Publishing flows unverified.** LinkedIn (API 202506) — need one real post. TikTok Content Posting — never tested end-to-end. Approvals email — deliverability unverified.
-5. **No production observability.** No PostHog / Plausible, no error tracker. We are flying blind on where users drop off and what breaks in the wild.
-
-### 🟠 P1 — Feels broken / kills activation
-
-6. **Mobile (360–414px) untested.** User is literally on 360×647 right now. Dashboard tiles, sidebar sheet, Shorts Editor timeline, Image Studio grid, pricing table — all likely awkward or broken. Bottom nav was removed and never replaced.
-7. **First-run dashboard has no obvious first action.** New user lands on `/dashboard`, sees 20+ tools, no guided path → bounces. Activation is the #1 revenue lever we haven't pulled.
-8. **Light-mode leaks in ~29 components.** Hardcoded `bg-white`, `text-[#1A1A2E]`, `from-[#F5F3FF]` inside a dark-forced app → invisible text pockets. Currently masked by a fragile `!important` CSS override layer that keeps regressing icon colors and hover states.
-9. **Empty states are bare.** Gallery, History, Analytics, Calendar, Approvals show "No data" instead of "Do X to get started" CTA. Feels dead.
-10. **Loading states missing on data-heavy routes.** Blank screens for 500–1500ms reads as "app is frozen" on slow networks.
-
-### 🟡 P2 — Polish gap
-
-11. Toasts use inconsistent copy (some technical, some friendly).
-12. Error boundaries not on every route — one broken route can white-screen.
-13. Upgrade nudge copy is feature-list, not benefit → low conversion.
-14. Free-tier value not obvious in first 30s — no preloaded sample.
-15. Landing v3 claims features that need each verified.
+This is a large scope (~3 phases, several new tables, ~15–20 new components). To ship it safely without regressing the dark theme or breaking existing users, I'll deliver in **3 phases** and stop between each so you can verify. Everything reuses the existing dark tokens, Lucide icons, and Claude backend — no new paid APIs.
 
 ---
 
-## Root-cause patterns (why bugs keep coming back)
+## Phase 1 — Data model + Multi-Profile foundation (backend + core UX)
 
-- **No error-shape contract.** Server fns sometimes throw, sometimes return, sometimes leak Response. UI can't handle it uniformly.
-- **CSS override layer instead of fixing components.** Every fix regresses something else.
-- **No end-to-end tests for revenue paths** (signup → generate → paywall → checkout → unlock). We only catch breakage when a user complains.
-- **No observability.** We patch the loudest bug, not the most-hit one.
+**Highest leverage first: without this, nothing else scales to agencies.**
 
----
+### Schema changes (migration)
+- `brand_kits`: add `name`, `is_active`, `logo_variants jsonb` (primary/icon/light/dark), `colors jsonb` (5 roles + saved swatches array), `neutral_color`, `background_color`, `custom_fonts jsonb` (uploaded TTF/OTF URLs). Drop `UNIQUE(user_id)` — allow multiple kits per user.
+- `brand_voices`: add `dos jsonb` (always-use phrases), `donts jsonb` (banned words), `tone_sliders jsonb` (formality/humor/enthusiasm/complexity 0–100), `emoji_density`, `sentence_length`, `cta_style`, `source_url text`.
+- Bucket `brand-assets` — extend for 4 logo slots + custom font uploads.
 
-## Plan — 5 phases, ordered by revenue impact
+### Backend server functions (`brandKit.functions.ts`, `brandVoice.functions.ts`)
+- `listBrandKits`, `createBrandKit`, `setActiveBrandKit`, `deleteBrandKit`
+- Same set for voices (list/create/activate/delete already partly exist — extend)
+- `analyzeVoiceFromUrl` — server-side fetch + Claude summary (reuses `anthropic.server.ts`)
+- `scoreVoiceMatch` — Claude self-eval, returns 0–100
+- `generateVoicePreviews` — 3 short samples (tweet/LinkedIn/hook) after training
+- `exportBrandGuide` — returns PDF via existing `jspdf` (client-side)
 
-### Phase A — Money can flow (must ship first)
-```text
-Day 1
-├─ A1  Paddle E2E test: sandbox card → webhook → plan flips → Pro
-│      feature unlocks. Log every step. Fix whatever breaks.
-├─ A2  Add DB check: profiles.plan trigger + subscriptions.environment
-│      filter present on every read path (already patched, re-verify).
-└─ A3  Billing page audit: cancel, resume, portal link all work.
-```
-
-### Phase B — Kill the "broken app" perception
-```text
-Day 2
-├─ B1  Wrap remaining ~11 server fns in the standard
-│      try/catch → { data, error } contract.
-├─ B2  Anthropic error surfacer: map 429/529/5xx to friendly
-│      "AI is busy, retry in Xs" across Repurpose, Copilot, Carousel,
-│      SEO Blog, Hook Lab (Shorts already done).
-├─ B3  Replicate fallback chain: extend the pattern from image.server.ts
-│      to thumbnail + image-gen callers.
-└─ B4  Add root error boundary + per-route errorComponent audit.
-```
-
-### Phase C — Kill the CSS override layer
-```text
-Day 3
-├─ C1  Sweep 29 files: swap hardcoded colors → design tokens
-│      (bg-card, text-foreground, text-muted-foreground, border-border).
-├─ C2  Remove the !important override block in src/styles.css.
-└─ C3  Visual regression check on top 10 routes.
-```
-
-### Phase D — Mobile + activation
-```text
-Day 4
-├─ D1  360px pass on: landing, pricing, dashboard, repurpose,
-│      shorts-studio, image-studio, billing.
-├─ D2  First-run dashboard: single "Try your first repurpose" CTA
-│      with a preloaded sample source. Everything else collapses.
-├─ D3  Empty states with next-action CTA on Gallery, History,
-│      Analytics, Calendar, Approvals.
-└─ D4  Loading skeletons wherever a fetch gates render.
-```
-
-### Phase E — See what's happening
-```text
-Day 5
-├─ E1  Wire PostHog (or Plausible) — free tier, one script tag.
-│      Track: signup, first-generation, upgrade-click, checkout-open,
-│      checkout-success, cancel.
-├─ E2  Client error tracker: window.onerror + unhandledrejection →
-│      log to a public API route (already have /api/public/).
-├─ E3  Simple funnel dashboard in admin view.
-└─ E4  Verify LinkedIn + TikTok publishing with one real post each.
-```
+### UX
+- Profile switcher dropdown at top of both pages ("Acme Corp ▾ / + New profile")
+- Active kit/voice is auto-applied to Repurpose (already wired via `is_active`)
 
 ---
 
-## What we are explicitly NOT doing
+## Phase 2 — Brand Kit premium controls
 
-- No new tools, no new landing pages, no new blog posts.
-- No design overhaul beyond token cleanup.
-- No new integrations.
-- No new AI models.
+- **Logo Vault**: 2×2 grid, 4 slots (primary/icon/light-bg/dark-bg), each with light+dark preview swatch beside it
+- **Color System**:
+  - 5 role slots + preset palettes (Electric SaaS, Neon Cyber, Warm Luxury, Minimalist)
+  - Image-to-palette extractor (client-side canvas k-means, no API)
+  - Auto tint/shade ramp (5 lighter + 5 darker per color)
+  - "My Swatches" saved bank
+  - Advanced picker with Hex/RGB/HSL tabs + copy buttons
+- **Contrast Auto-Fix**: extends existing `contrast.ts` — when Fail, compute nearest AA-passing shade, "Apply suggested" button
+- **Typography**:
+  - Google Fonts search (categories: Sans/Serif/Display/Mono) via Google Fonts CSS API
+  - Custom font upload (TTF/OTF/WOFF)
+  - Suggested pairings row
+  - Live preview card
+- **Export Brand Guide**: single-click PDF summary
+- **Watermark controls**: opacity + placement (already have brand watermark logic in `imageWatermark.ts`)
 
-Any of those can start after Phase E is green.
-
----
-
-## Success criteria
-
-| Metric | Today | After Phase E |
-|---|---|---|
-| Payment E2E verified | ❌ | ✅ |
-| Server fns with error contract | 60% | 100% |
-| Hardcoded light colors | 29 files | 0 |
-| Mobile-tested revenue routes | 0 | 7 |
-| Observability | none | funnel + error tracker |
-| Time-to-first-value (new user → 1 output) | unknown | <60s tracked |
+All styled with existing `bg-slate-900/60 backdrop-blur-xl border-slate-800/80` glass cards, Lucide icons at matching stroke.
 
 ---
 
-## Technical notes (for me, on execution)
+## Phase 3 — Brand Voice premium controls
 
-- Error contract: every `.handler()` returns `{ data: T | null, error: string | null }`. UI handles both without a Suspense error boundary.
-- CSS cleanup rule: no new `!important`. If a component needs a color, it uses a token — no exceptions.
-- Mobile pass done at 360×640 (min supported) and 390×844.
-- PostHog/Plausible: script only, no server SDK (Worker-safe).
-- Paddle E2E: use the existing sandbox banner + `PaymentTestModeBanner` component to confirm environment on each step.
+- **AI Extraction Hub** — tabs: Paste / Analyze URL / Upload doc
+- **Visible Voice Profile card** — human-readable summary from Claude, user-editable (stored override)
+- **Dimensional Tone Sliders** — 4 sliders with live % labels
+- **Vocabulary Guardrails** — tag-chip inputs for Do's / Don'ts + formatting toggles (emoji density, sentence length, CTA style)
+- **Live Test Bench** — sticky right-side panel, "topic → generate sample" using active kit + voice
+- **Voice Match Score** — badge on generated content in Repurpose ("94% match"), regenerate button when <75%
+- **Live sample previews** post-training (3 short samples auto-generated)
+
+Repurpose integration: server-side prompt builder consumes tone sliders + dos/donts + custom instructions when active voice is set.
 
 ---
 
-Approve and I'll start with **Phase A** (Paddle end-to-end verification) since that's the only thing standing between the current app and real revenue.
+## Technical notes (for you, not required reading)
+
+- No new paid APIs: Google Fonts is free CSS, Claude does voice analysis/scoring, color extraction is client-side canvas.
+- Multiple profiles = schema change + drop unique constraint; existing single kits/voices auto-migrate as the user's first profile with `is_active=true`.
+- Font uploads land in the existing `brand-assets` bucket under `<user_id>/fonts/`.
+- All new server functions follow the existing `.middleware([requireSupabaseAuth])` + try/catch pattern.
+
+---
+
+## Delivery plan
+
+- **This turn (if approved):** Phase 1 — schema migration, extended server functions, profile switcher on both pages. Nothing user-visible breaks; existing kit/voice becomes profile #1.
+- **Next turn:** Phase 2 — full Brand Kit UI (logo vault, palette engine, contrast auto-fix, Google Fonts, export).
+- **Turn after:** Phase 3 — full Brand Voice UI (extraction hub, sliders, guardrails, test bench, match score) + Repurpose wiring.
+
+Each phase is independently shippable and testable. Approve to start Phase 1.

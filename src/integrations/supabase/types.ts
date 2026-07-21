@@ -302,56 +302,80 @@ export type Database = {
       brand_kits: {
         Row: {
           accent_color: string | null
+          background_color: string | null
           brand_handle: string | null
           brand_name: string | null
+          colors: Json
           created_at: string
+          custom_fonts: Json
           font_body: string | null
           font_heading: string | null
           id: string
           is_active: boolean
           logo_url: string | null
+          logo_variants: Json
+          name: string
+          neutral_color: string | null
           preferred_tone: string | null
           primary_color: string | null
+          saved_swatches: Json
           secondary_color: string | null
           tagline: string | null
           updated_at: string
           user_id: string
+          watermark_settings: Json
           workspace_id: string | null
         }
         Insert: {
           accent_color?: string | null
+          background_color?: string | null
           brand_handle?: string | null
           brand_name?: string | null
+          colors?: Json
           created_at?: string
+          custom_fonts?: Json
           font_body?: string | null
           font_heading?: string | null
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          logo_variants?: Json
+          name?: string
+          neutral_color?: string | null
           preferred_tone?: string | null
           primary_color?: string | null
+          saved_swatches?: Json
           secondary_color?: string | null
           tagline?: string | null
           updated_at?: string
           user_id: string
+          watermark_settings?: Json
           workspace_id?: string | null
         }
         Update: {
           accent_color?: string | null
+          background_color?: string | null
           brand_handle?: string | null
           brand_name?: string | null
+          colors?: Json
           created_at?: string
+          custom_fonts?: Json
           font_body?: string | null
           font_heading?: string | null
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          logo_variants?: Json
+          name?: string
+          neutral_color?: string | null
           preferred_tone?: string | null
           primary_color?: string | null
+          saved_swatches?: Json
           secondary_color?: string | null
           tagline?: string | null
           updated_at?: string
           user_id?: string
+          watermark_settings?: Json
           workspace_id?: string | null
         }
         Relationships: [
@@ -367,36 +391,60 @@ export type Database = {
       brand_voices: {
         Row: {
           created_at: string
+          cta_style: string
+          donts: Json
+          dos: Json
+          emoji_density: string
           id: string
           is_active: boolean
           name: string
           quality_score: number | null
           samples: Json
+          sentence_length: string
+          source_url: string | null
+          style_override: string | null
           style_summary: string | null
+          tone_sliders: Json
           updated_at: string
           user_id: string
           workspace_id: string | null
         }
         Insert: {
           created_at?: string
+          cta_style?: string
+          donts?: Json
+          dos?: Json
+          emoji_density?: string
           id?: string
           is_active?: boolean
           name: string
           quality_score?: number | null
           samples?: Json
+          sentence_length?: string
+          source_url?: string | null
+          style_override?: string | null
           style_summary?: string | null
+          tone_sliders?: Json
           updated_at?: string
           user_id: string
           workspace_id?: string | null
         }
         Update: {
           created_at?: string
+          cta_style?: string
+          donts?: Json
+          dos?: Json
+          emoji_density?: string
           id?: string
           is_active?: boolean
           name?: string
           quality_score?: number | null
           samples?: Json
+          sentence_length?: string
+          source_url?: string | null
+          style_override?: string | null
           style_summary?: string | null
+          tone_sliders?: Json
           updated_at?: string
           user_id?: string
           workspace_id?: string | null
