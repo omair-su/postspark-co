@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Type, Check, ChevronDown, Upload, Loader2 } from "lucide-react";
-import { GOOGLE_FONTS, loadGoogleFont, type FontCategory, type GoogleFont, registerCustomFont, detectFontFormat } from "@/lib/googleFonts";
+import { GOOGLE_FONTS, loadGoogleFont, FONT_PAIRINGS, type FontCategory, registerCustomFont, detectFontFormat } from "@/lib/googleFonts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -227,8 +227,7 @@ export function FontPairingSuggestions({
   heading,
   onPick,
 }: { heading: string; onPick: (family: string) => void }) {
-  const pairings = require("@/lib/googleFonts").FONT_PAIRINGS as Record<string, string[]>;
-  const suggestions = pairings[heading] || ["Inter", "DM Sans", "Manrope"];
+  const suggestions = FONT_PAIRINGS[heading] || ["Inter", "DM Sans", "Manrope"];
 
   useEffect(() => {
     suggestions.forEach((s: string) => {
