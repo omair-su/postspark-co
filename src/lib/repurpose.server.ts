@@ -54,7 +54,8 @@ export async function generateRepurposedContent(
   tone: string = "professional",
   customInstructions: string = "",
   brandVoiceSummary: string = "",
-  language: string = "English"
+  language: string = "English",
+  voiceProfile?: VoiceProfile,
 ): Promise<{ output: string; error?: string }> {
   const typeInstructions = selectedTypes
     .map((t) => {
@@ -97,9 +98,10 @@ export async function generateRepurposedContent(
     ? ` Write ALL output in ${language}. Use native idioms and natural phrasing for that language.`
     : "";
 
+  const guardrails = buildVoiceProfileBlock(voiceProfile);
   const systemPrompt = `You are PostSpark's AI content engine. You are an expert content strategist and copywriter who specializes in repurposing content for maximum reach across multiple platforms. Always produce high-quality, platform-native content that sounds human and engaging — never robotic or generic.
 
-For this request, generate: ${typeInstructions}. Format each section with a clear markdown header (e.g. "## Tweets"). Be engaging, value-driven, and platform-appropriate.${toneInstruction}${languageBlock}${customBlock}${voiceBlock}`;
+For this request, generate: ${typeInstructions}. Format each section with a clear markdown header (e.g. "## Tweets"). Be engaging, value-driven, and platform-appropriate.${toneInstruction}${languageBlock}${customBlock}${voiceBlock}${guardrails}`;
 
   const result = await callClaude({
     systemPrompt,
@@ -129,6 +131,7 @@ function buildSharedSuffix(
   customInstructions: string,
   brandVoiceSummary: string,
   language: string,
+  voiceProfile?: VoiceProfile,
 ): string {
   const lang = language && language !== "English"
     ? `\n\nLANGUAGE: Write ALL output in ${language} using native idioms and natural phrasing.`
@@ -142,7 +145,8 @@ function buildSharedSuffix(
   const voice = brandVoiceSummary.trim()
     ? `\n\nCRITICAL — Match this brand voice EXACTLY (rhythm, vocabulary, punctuation, formatting habits):\n${brandVoiceSummary.trim()}`
     : "";
-  return `\n\nTONE: ${tone}.${mods}${custom}${voice}${lang}`;
+  const guardrails = buildVoiceProfileBlock(voiceProfile);
+  return `\n\nTONE: ${tone}.${mods}${custom}${voice}${guardrails}${lang}`;
 }
 
 function buildFormatPrompt(
@@ -152,8 +156,9 @@ function buildFormatPrompt(
   customInstructions: string,
   brandVoiceSummary: string,
   language: string,
+  voiceProfile?: VoiceProfile,
 ): { system: string; maxTokens: number } {
-  const suffix = buildSharedSuffix(tone, styleModifiers, customInstructions, brandVoiceSummary, language);
+  const suffix = buildSharedSuffix(tone, styleModifiers, customInstructions, brandVoiceSummary, language, voiceProfile);
   const style = cfg.style || "";
   const count = cfg.count || 1;
 
