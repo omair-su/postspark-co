@@ -18,9 +18,23 @@ export function setWatermarkState(on: boolean, text: string) {
 }
 
 // Stamp a watermark badge in the bottom-right of a canvas in-place.
-export function drawWatermarkOnCanvas(canvas: HTMLCanvasElement, text: string) {
+export type WatermarkPlacement =
+  | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "center";
+
+export interface WatermarkOptions {
+  opacity?: number;         // 0..1 (default 0.9 for text, background 0.5)
+  placement?: WatermarkPlacement; // default bottom-right
+}
+
+export function drawWatermarkOnCanvas(
+  canvas: HTMLCanvasElement,
+  text: string,
+  opts: WatermarkOptions = {},
+) {
   const ctx = canvas.getContext("2d");
   if (!ctx || !text) return;
+  const opacity = Math.max(0, Math.min(1, opts.opacity ?? 0.9));
+  const placement = opts.placement || "bottom-right";
   const fontSize = Math.max(14, Math.round(canvas.width * 0.022));
   ctx.save();
   ctx.font = `600 ${fontSize}px Inter, system-ui, sans-serif`;
@@ -28,11 +42,14 @@ export function drawWatermarkOnCanvas(canvas: HTMLCanvasElement, text: string) {
   const metrics = ctx.measureText(text);
   const w = Math.ceil(metrics.width + padding * 2);
   const h = Math.ceil(fontSize * 1.6);
-  const x = canvas.width - w - padding;
-  const y = canvas.height - h - padding;
-  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  let x = canvas.width - w - padding;
+  let y = canvas.height - h - padding;
+  if (placement === "bottom-left") { x = padding; }
+  else if (placement === "top-right") { y = padding; }
+  else if (placement === "top-left") { x = padding; y = padding; }
+  else if (placement === "center") { x = (canvas.width - w) / 2; y = (canvas.height - h) / 2; }
+  ctx.fillStyle = `rgba(0,0,0,${opacity * 0.55})`;
   ctx.beginPath();
-  // rounded rect
   const r = h / 4;
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
@@ -41,7 +58,7 @@ export function drawWatermarkOnCanvas(canvas: HTMLCanvasElement, text: string) {
   ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,0.95)";
+  ctx.fillStyle = `rgba(255,255,255,${opacity})`;
   ctx.textBaseline = "middle";
   ctx.fillText(text, x + padding, y + h / 2);
   ctx.restore();
