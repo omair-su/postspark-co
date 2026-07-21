@@ -177,7 +177,7 @@ export const upsertBrandKit = createServerFn({ method: "POST" })
 
 export const deleteBrandLogo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ id: z.string().uuid().optional(), slot: z.string().max(30).optional() }).parse)
+  .inputValidator((raw: unknown) => z.object({ id: z.string().uuid().optional(), slot: z.string().max(30).optional() }).parse(raw ?? {}))
   .handler(async ({ data, context }) => wrap(async () => {
     const { supabase, userId } = context;
     const { data: kit } = await supabase
