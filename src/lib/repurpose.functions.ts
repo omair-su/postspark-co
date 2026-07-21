@@ -389,6 +389,7 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
       customInstructions: mergedInstructions,
       brandVoiceSummary,
       language: data.language || "English",
+      voiceProfile,
     });
 
     if (result.error || !result.output) {
