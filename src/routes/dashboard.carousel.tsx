@@ -64,7 +64,9 @@ function CarouselPage() {
   const initialWm = getWatermarkState();
   const [watermarkOn, setWatermarkOn] = useState<boolean>(initialWm.on);
   const [watermarkText, setWatermarkText] = useState<string>(initialWm.text);
-  useEffect(() => setWatermarkState(watermarkOn, watermarkText), [watermarkOn, watermarkText]);
+  const [watermarkOpacity] = useState<number>(initialWm.opacity);
+  const [watermarkPlacement] = useState(initialWm.placement);
+  useEffect(() => setWatermarkState(watermarkOn, watermarkText, watermarkOpacity, watermarkPlacement), [watermarkOn, watermarkText, watermarkOpacity, watermarkPlacement]);
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   useEffect(() => {
