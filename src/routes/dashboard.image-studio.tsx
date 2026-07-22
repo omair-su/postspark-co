@@ -564,7 +564,7 @@ function ImageStudioPage() {
     let finalUrl = url;
     if (watermarkOn && watermarkText.trim()) {
       try {
-        finalUrl = await applyWatermark(url, watermarkText.trim());
+        finalUrl = await applyWatermark(url, watermarkText.trim(), { opacity: watermarkOpacity / 100, placement: watermarkPlacement });
       } catch {
         // fall back to original
       }
