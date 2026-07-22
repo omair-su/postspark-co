@@ -139,7 +139,13 @@ type LibImage = {
 };
 
 // Apply a watermark to an image data URL via canvas. Returns a new data URL.
-async function applyWatermark(dataUrl: string, text: string): Promise<string> {
+import { drawWatermarkOnCanvas, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
+
+async function applyWatermark(
+  dataUrl: string,
+  text: string,
+  opts?: { opacity?: number; placement?: WatermarkPlacement },
+): Promise<string> {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.crossOrigin = "anonymous";
@@ -150,19 +156,7 @@ async function applyWatermark(dataUrl: string, text: string): Promise<string> {
       const ctx = canvas.getContext("2d");
       if (!ctx) return resolve(dataUrl);
       ctx.drawImage(img, 0, 0);
-      const fontSize = Math.max(14, Math.round(canvas.width * 0.025));
-      ctx.font = `600 ${fontSize}px Inter, system-ui, sans-serif`;
-      const padding = Math.round(fontSize * 0.6);
-      const metrics = ctx.measureText(text);
-      const w = metrics.width + padding * 2;
-      const h = fontSize + padding;
-      const x = canvas.width - w - padding;
-      const y = canvas.height - h - padding;
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
-      ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "rgba(255,255,255,0.95)";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, x + padding, y + h / 2);
+      drawWatermarkOnCanvas(canvas, text, opts);
       try {
         resolve(canvas.toDataURL("image/png"));
       } catch {
