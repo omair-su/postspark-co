@@ -281,14 +281,10 @@ function ImageStudioPage() {
   );
 
   // settings (persisted)
-  const [watermarkOn, setWatermarkOn] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("ps_watermark_on") === "1";
-  });
-  const [watermarkText, setWatermarkText] = useState<string>(() => {
-    if (typeof window === "undefined") return "@yourbrand";
-    return localStorage.getItem("ps_watermark_text") || "@yourbrand";
-  });
+  const [watermarkOn, setWatermarkOn] = useState<boolean>(() => getWatermarkState().on);
+  const [watermarkText, setWatermarkText] = useState<string>(() => getWatermarkState().text);
+  const [watermarkOpacity] = useState<number>(() => getWatermarkState().opacity);
+  const [watermarkPlacement] = useState<WatermarkPlacement>(() => getWatermarkState().placement);
   const [safetyOn, setSafetyOn] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     return localStorage.getItem("ps_safety_on") !== "0";
