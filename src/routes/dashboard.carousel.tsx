@@ -628,8 +628,14 @@ const SlideCanvas = forwardRef<HTMLDivElement, {
       )}
       {watermark ? (
         <div
-          className="absolute bottom-3 right-3 rounded-md px-2 py-1 text-[10px] font-semibold"
-          style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
+          className={`absolute rounded-md px-2 py-1 text-[10px] font-semibold ${
+            watermarkPlacement === "bottom-left" ? "bottom-3 left-3" :
+            watermarkPlacement === "top-right" ? "top-3 right-3" :
+            watermarkPlacement === "top-left" ? "top-3 left-3" :
+            watermarkPlacement === "center" ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" :
+            "bottom-3 right-3"
+          }`}
+          style={{ background: `rgba(0,0,0,${watermarkOpacity * 0.55})`, color: "#fff", opacity: watermarkOpacity }}
         >
           {watermark}
         </div>
