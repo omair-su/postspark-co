@@ -242,7 +242,19 @@ function CarouselPage() {
       doc.setFillColor(accent); doc.rect(0, SIZE - 8, SIZE, 8, "F");
       if (watermarkOn && watermarkText.trim()) {
         doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(textColor);
-        doc.text(watermarkText.trim(), SIZE - 30, SIZE - 28, { align: "right" });
+        const wm = watermarkText.trim();
+        const pad = 30;
+        const yTop = 40, yBot = SIZE - 28;
+        const pos = watermarkPlacement;
+        let x = SIZE - pad, y = yBot;
+        let align: "left" | "right" | "center" = "right";
+        if (pos === "bottom-left") { x = pad; align = "left"; }
+        else if (pos === "top-right") { y = yTop; }
+        else if (pos === "top-left") { x = pad; y = yTop; align = "left"; }
+        else if (pos === "center") { x = SIZE / 2; y = SIZE / 2; align = "center"; }
+        try { (doc as any).setGState?.(new (doc as any).GState({ opacity: watermarkOpacity / 100 })); } catch {}
+        doc.text(wm, x, y, { align });
+        try { (doc as any).setGState?.(new (doc as any).GState({ opacity: 1 })); } catch {}
       }
     });
     doc.save(`carousel-${Date.now()}.pdf`);
