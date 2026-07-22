@@ -14,6 +14,7 @@ import { SavedSwatches } from "@/components/brandkit/SavedSwatches";
 import { ContrastAutoFixer } from "@/components/brandkit/ContrastAutoFixer";
 import { GoogleFontSelector, FontPairingSuggestions, type CustomFontEntry } from "@/components/brandkit/GoogleFontSelector";
 import { WatermarkControls, type WatermarkSettings } from "@/components/brandkit/WatermarkControls";
+import { setWatermarkState } from "@/lib/imageWatermark";
 import { exportBrandGuide } from "@/lib/exportBrandGuide";
 
 export const Route = createFileRoute("/dashboard/brand-kit")({
