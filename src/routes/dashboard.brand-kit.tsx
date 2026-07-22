@@ -97,7 +97,9 @@ function BrandKitPage() {
           setFontBody(k.font_body || "Inter");
           setCustomFonts(Array.isArray(k.custom_fonts) ? k.custom_fonts : []);
           setTone(k.preferred_tone || "professional");
-          setWatermark({ ...DEFAULT_WATERMARK, ...(k.watermark_settings || {}) });
+          const wm = { ...DEFAULT_WATERMARK, ...(k.watermark_settings || {}) };
+          setWatermark(wm);
+          setWatermarkState(wm.enabled, wm.text || k.brand_handle || "@yourbrand", wm.opacity, wm.placement);
         } else {
           // reset to defaults for a fresh profile
           setBrandName(""); setBrandHandle(""); setTagline("");
