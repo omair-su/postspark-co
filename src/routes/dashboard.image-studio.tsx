@@ -139,7 +139,7 @@ type LibImage = {
 };
 
 // Apply a watermark to an image data URL via canvas. Returns a new data URL.
-import { drawWatermarkOnCanvas, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
+
 
 async function applyWatermark(
   dataUrl: string,
