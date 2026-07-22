@@ -145,8 +145,16 @@ function BrandKitPage() {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
     setSaving(false);
-    if (res.success) toast.success("Brand Kit saved");
-    else toast.error(res.error || "Save failed");
+    if (res.success) {
+      // Mirror watermark into localStorage so Image Studio / Thumbnail / Carousel pick it up.
+      setWatermarkState(
+        watermark.enabled,
+        watermark.text || brandHandle || "@yourbrand",
+        watermark.opacity,
+        watermark.placement,
+      );
+      toast.success("Brand Kit saved");
+    } else toast.error(res.error || "Save failed");
   };
 
   const handleExport = async () => {
