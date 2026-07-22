@@ -436,6 +436,8 @@ function CarouselPage() {
                       handle={handle}
                       logoUrl={kit?.logo_url || null}
                       watermark={watermarkOn ? watermarkText.trim() : ""}
+                      watermarkOpacity={watermarkOpacity / 100}
+                      watermarkPlacement={watermarkPlacement}
                     />
                   </div>
                 ))}
