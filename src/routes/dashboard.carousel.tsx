@@ -585,7 +585,9 @@ const SlideCanvas = forwardRef<HTMLDivElement, {
   handle: string;
   logoUrl: string | null;
   watermark?: string;
-}>(function SlideCanvas({ slide, index, total, primary, accent, textColor, subtleColor, brandName, handle, logoUrl, watermark }, ref) {
+  watermarkOpacity?: number;
+  watermarkPlacement?: "bottom-right" | "bottom-left" | "top-right" | "top-left" | "center";
+}>(function SlideCanvas({ slide, index, total, primary, accent, textColor, subtleColor, brandName, handle, logoUrl, watermark, watermarkOpacity = 0.9, watermarkPlacement = "bottom-right" }, ref) {
   return (
     <div
       ref={ref}
