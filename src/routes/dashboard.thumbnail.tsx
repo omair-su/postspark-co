@@ -182,7 +182,9 @@ function ThumbnailPage() {
   const initialWm = getWatermarkState();
   const [watermarkOn, setWatermarkOn] = useState<boolean>(initialWm.on);
   const [watermarkText, setWatermarkText] = useState<string>(initialWm.text);
-  useEffect(() => setWatermarkState(watermarkOn, watermarkText), [watermarkOn, watermarkText]);
+  const [watermarkOpacity] = useState<number>(initialWm.opacity);
+  const [watermarkPlacement] = useState(initialWm.placement);
+  useEffect(() => setWatermarkState(watermarkOn, watermarkText, watermarkOpacity, watermarkPlacement), [watermarkOn, watermarkText, watermarkOpacity, watermarkPlacement]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const authHeaders = useMemo(
