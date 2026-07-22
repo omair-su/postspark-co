@@ -24,6 +24,7 @@ import {
   Droplet,
   Package as PackageIcon,
 } from "lucide-react";
+import { drawWatermarkOnCanvas, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
 import {
   generateImage,
   generateImageVariations,
