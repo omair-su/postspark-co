@@ -289,7 +289,7 @@ function ThumbnailPage() {
     // Pure GPT mode: the AI image IS the final design. Skip overlay + text.
     if (pureGptMode && model === "gpt" && bgUrl) {
       if (watermarkOn && watermarkText.trim()) {
-        drawWatermarkOnCanvas(canvas, watermarkText.trim());
+        drawWatermarkOnCanvas(canvas, watermarkText.trim(), { opacity: watermarkOpacity / 100, placement: watermarkPlacement });
       }
       return;
     }
@@ -393,7 +393,7 @@ function ThumbnailPage() {
     try { (ctx as any).letterSpacing = "0px"; } catch {}
 
     if (watermarkOn && watermarkText.trim()) {
-      drawWatermarkOnCanvas(canvas, watermarkText.trim());
+      drawWatermarkOnCanvas(canvas, watermarkText.trim(), { opacity: watermarkOpacity / 100, placement: watermarkPlacement });
     }
   };
 
