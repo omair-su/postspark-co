@@ -1,29 +1,50 @@
 // Shared watermark helpers used by Image Studio, Thumbnail, and Carousel.
+// Brand Kit mirrors watermark_settings into localStorage on save so generators
+// can read the current settings synchronously.
 
 const WM_ON_KEY = "ps_watermark_on";
 const WM_TEXT_KEY = "ps_watermark_text";
+const WM_OPACITY_KEY = "ps_watermark_opacity"; // 10..100 (percent)
+const WM_PLACEMENT_KEY = "ps_watermark_placement";
 
-export function getWatermarkState(): { on: boolean; text: string } {
-  if (typeof window === "undefined") return { on: false, text: "@yourbrand" };
-  return {
-    on: localStorage.getItem(WM_ON_KEY) === "1",
-    text: localStorage.getItem(WM_TEXT_KEY) || "@yourbrand",
-  };
-}
-
-export function setWatermarkState(on: boolean, text: string) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(WM_ON_KEY, on ? "1" : "0");
-  localStorage.setItem(WM_TEXT_KEY, text);
-}
-
-// Stamp a watermark badge in the bottom-right of a canvas in-place.
 export type WatermarkPlacement =
   | "bottom-right" | "bottom-left" | "top-right" | "top-left" | "center";
 
 export interface WatermarkOptions {
   opacity?: number;         // 0..1 (default 0.9 for text, background 0.5)
   placement?: WatermarkPlacement; // default bottom-right
+}
+
+export function getWatermarkState(): {
+  on: boolean; text: string; opacity: number; placement: WatermarkPlacement;
+} {
+  if (typeof window === "undefined") {
+    return { on: false, text: "@yourbrand", opacity: 90, placement: "bottom-right" };
+  }
+  const opacityRaw = Number(localStorage.getItem(WM_OPACITY_KEY) || "90");
+  const opacity = Number.isFinite(opacityRaw) ? Math.max(10, Math.min(100, opacityRaw)) : 90;
+  const placement = (localStorage.getItem(WM_PLACEMENT_KEY) as WatermarkPlacement) || "bottom-right";
+  return {
+    on: localStorage.getItem(WM_ON_KEY) === "1",
+    text: localStorage.getItem(WM_TEXT_KEY) || "@yourbrand",
+    opacity,
+    placement,
+  };
+}
+
+export function setWatermarkState(
+  on: boolean,
+  text: string,
+  opacity?: number,
+  placement?: WatermarkPlacement,
+) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(WM_ON_KEY, on ? "1" : "0");
+  localStorage.setItem(WM_TEXT_KEY, text);
+  if (typeof opacity === "number") {
+    localStorage.setItem(WM_OPACITY_KEY, String(Math.max(10, Math.min(100, Math.round(opacity)))));
+  }
+  if (placement) localStorage.setItem(WM_PLACEMENT_KEY, placement);
 }
 
 export function drawWatermarkOnCanvas(

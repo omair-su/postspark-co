@@ -14,6 +14,7 @@ import { SavedSwatches } from "@/components/brandkit/SavedSwatches";
 import { ContrastAutoFixer } from "@/components/brandkit/ContrastAutoFixer";
 import { GoogleFontSelector, FontPairingSuggestions, type CustomFontEntry } from "@/components/brandkit/GoogleFontSelector";
 import { WatermarkControls, type WatermarkSettings } from "@/components/brandkit/WatermarkControls";
+import { setWatermarkState } from "@/lib/imageWatermark";
 import { exportBrandGuide } from "@/lib/exportBrandGuide";
 
 export const Route = createFileRoute("/dashboard/brand-kit")({
@@ -96,7 +97,9 @@ function BrandKitPage() {
           setFontBody(k.font_body || "Inter");
           setCustomFonts(Array.isArray(k.custom_fonts) ? k.custom_fonts : []);
           setTone(k.preferred_tone || "professional");
-          setWatermark({ ...DEFAULT_WATERMARK, ...(k.watermark_settings || {}) });
+          const wm = { ...DEFAULT_WATERMARK, ...(k.watermark_settings || {}) };
+          setWatermark(wm);
+          setWatermarkState(wm.enabled, wm.text || k.brand_handle || "@yourbrand", wm.opacity, wm.placement);
         } else {
           // reset to defaults for a fresh profile
           setBrandName(""); setBrandHandle(""); setTagline("");
@@ -142,8 +145,16 @@ function BrandKitPage() {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
     setSaving(false);
-    if (res.success) toast.success("Brand Kit saved");
-    else toast.error(res.error || "Save failed");
+    if (res.success) {
+      // Mirror watermark into localStorage so Image Studio / Thumbnail / Carousel pick it up.
+      setWatermarkState(
+        watermark.enabled,
+        watermark.text || brandHandle || "@yourbrand",
+        watermark.opacity,
+        watermark.placement,
+      );
+      toast.success("Brand Kit saved");
+    } else toast.error(res.error || "Save failed");
   };
 
   const handleExport = async () => {

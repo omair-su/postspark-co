@@ -24,6 +24,7 @@ import {
   Droplet,
   Package as PackageIcon,
 } from "lucide-react";
+import { drawWatermarkOnCanvas, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
 import {
   generateImage,
   generateImageVariations,
@@ -139,7 +140,13 @@ type LibImage = {
 };
 
 // Apply a watermark to an image data URL via canvas. Returns a new data URL.
-async function applyWatermark(dataUrl: string, text: string): Promise<string> {
+
+
+async function applyWatermark(
+  dataUrl: string,
+  text: string,
+  opts?: { opacity?: number; placement?: WatermarkPlacement },
+): Promise<string> {
   return new Promise((resolve) => {
     const img = new window.Image();
     img.crossOrigin = "anonymous";
@@ -150,19 +157,7 @@ async function applyWatermark(dataUrl: string, text: string): Promise<string> {
       const ctx = canvas.getContext("2d");
       if (!ctx) return resolve(dataUrl);
       ctx.drawImage(img, 0, 0);
-      const fontSize = Math.max(14, Math.round(canvas.width * 0.025));
-      ctx.font = `600 ${fontSize}px Inter, system-ui, sans-serif`;
-      const padding = Math.round(fontSize * 0.6);
-      const metrics = ctx.measureText(text);
-      const w = metrics.width + padding * 2;
-      const h = fontSize + padding;
-      const x = canvas.width - w - padding;
-      const y = canvas.height - h - padding;
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
-      ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "rgba(255,255,255,0.95)";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, x + padding, y + h / 2);
+      drawWatermarkOnCanvas(canvas, text, opts);
       try {
         resolve(canvas.toDataURL("image/png"));
       } catch {
@@ -286,14 +281,10 @@ function ImageStudioPage() {
   );
 
   // settings (persisted)
-  const [watermarkOn, setWatermarkOn] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("ps_watermark_on") === "1";
-  });
-  const [watermarkText, setWatermarkText] = useState<string>(() => {
-    if (typeof window === "undefined") return "@yourbrand";
-    return localStorage.getItem("ps_watermark_text") || "@yourbrand";
-  });
+  const [watermarkOn, setWatermarkOn] = useState<boolean>(() => getWatermarkState().on);
+  const [watermarkText, setWatermarkText] = useState<string>(() => getWatermarkState().text);
+  const [watermarkOpacity] = useState<number>(() => getWatermarkState().opacity);
+  const [watermarkPlacement] = useState<WatermarkPlacement>(() => getWatermarkState().placement);
   const [safetyOn, setSafetyOn] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     return localStorage.getItem("ps_safety_on") !== "0";
@@ -573,7 +564,7 @@ function ImageStudioPage() {
     let finalUrl = url;
     if (watermarkOn && watermarkText.trim()) {
       try {
-        finalUrl = await applyWatermark(url, watermarkText.trim());
+        finalUrl = await applyWatermark(url, watermarkText.trim(), { opacity: watermarkOpacity / 100, placement: watermarkPlacement });
       } catch {
         // fall back to original
       }

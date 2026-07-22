@@ -64,7 +64,9 @@ function CarouselPage() {
   const initialWm = getWatermarkState();
   const [watermarkOn, setWatermarkOn] = useState<boolean>(initialWm.on);
   const [watermarkText, setWatermarkText] = useState<string>(initialWm.text);
-  useEffect(() => setWatermarkState(watermarkOn, watermarkText), [watermarkOn, watermarkText]);
+  const [watermarkOpacity] = useState<number>(initialWm.opacity);
+  const [watermarkPlacement] = useState(initialWm.placement);
+  useEffect(() => setWatermarkState(watermarkOn, watermarkText, watermarkOpacity, watermarkPlacement), [watermarkOn, watermarkText, watermarkOpacity, watermarkPlacement]);
   const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   useEffect(() => {
@@ -240,7 +242,19 @@ function CarouselPage() {
       doc.setFillColor(accent); doc.rect(0, SIZE - 8, SIZE, 8, "F");
       if (watermarkOn && watermarkText.trim()) {
         doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(textColor);
-        doc.text(watermarkText.trim(), SIZE - 30, SIZE - 28, { align: "right" });
+        const wm = watermarkText.trim();
+        const pad = 30;
+        const yTop = 40, yBot = SIZE - 28;
+        const pos = watermarkPlacement;
+        let x = SIZE - pad, y = yBot;
+        let align: "left" | "right" | "center" = "right";
+        if (pos === "bottom-left") { x = pad; align = "left"; }
+        else if (pos === "top-right") { y = yTop; }
+        else if (pos === "top-left") { x = pad; y = yTop; align = "left"; }
+        else if (pos === "center") { x = SIZE / 2; y = SIZE / 2; align = "center"; }
+        try { (doc as any).setGState?.(new (doc as any).GState({ opacity: watermarkOpacity / 100 })); } catch {}
+        doc.text(wm, x, y, { align });
+        try { (doc as any).setGState?.(new (doc as any).GState({ opacity: 1 })); } catch {}
       }
     });
     doc.save(`carousel-${Date.now()}.pdf`);
@@ -422,6 +436,8 @@ function CarouselPage() {
                       handle={handle}
                       logoUrl={kit?.logo_url || null}
                       watermark={watermarkOn ? watermarkText.trim() : ""}
+                      watermarkOpacity={watermarkOpacity / 100}
+                      watermarkPlacement={watermarkPlacement}
                     />
                   </div>
                 ))}
@@ -569,7 +585,9 @@ const SlideCanvas = forwardRef<HTMLDivElement, {
   handle: string;
   logoUrl: string | null;
   watermark?: string;
-}>(function SlideCanvas({ slide, index, total, primary, accent, textColor, subtleColor, brandName, handle, logoUrl, watermark }, ref) {
+  watermarkOpacity?: number;
+  watermarkPlacement?: "bottom-right" | "bottom-left" | "top-right" | "top-left" | "center";
+}>(function SlideCanvas({ slide, index, total, primary, accent, textColor, subtleColor, brandName, handle, logoUrl, watermark, watermarkOpacity = 0.9, watermarkPlacement = "bottom-right" }, ref) {
   return (
     <div
       ref={ref}
@@ -610,8 +628,14 @@ const SlideCanvas = forwardRef<HTMLDivElement, {
       )}
       {watermark ? (
         <div
-          className="absolute bottom-3 right-3 rounded-md px-2 py-1 text-[10px] font-semibold"
-          style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
+          className={`absolute rounded-md px-2 py-1 text-[10px] font-semibold ${
+            watermarkPlacement === "bottom-left" ? "bottom-3 left-3" :
+            watermarkPlacement === "top-right" ? "top-3 right-3" :
+            watermarkPlacement === "top-left" ? "top-3 left-3" :
+            watermarkPlacement === "center" ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" :
+            "bottom-3 right-3"
+          }`}
+          style={{ background: `rgba(0,0,0,${watermarkOpacity * 0.55})`, color: "#fff", opacity: watermarkOpacity }}
         >
           {watermark}
         </div>
