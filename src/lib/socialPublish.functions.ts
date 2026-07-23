@@ -814,8 +814,15 @@ export const publishToX = createServerFn({ method: "POST" })
     z.object({
       text: z.string().min(1).max(4000),
       mediaUrls: z.array(z.string().url()).max(4).default([]),
+      altTexts: z.array(z.string().max(1000)).max(4).default([]),
       inReplyToTweetId: z.string().max(40).optional(),
       repurposeJobId: z.string().uuid().optional(),
+      poll: z
+        .object({
+          options: z.array(z.string().min(1).max(25)).min(2).max(4),
+          durationMinutes: z.number().int().min(5).max(10080),
+        })
+        .optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
