@@ -48,6 +48,7 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
   const [replyText, setReplyText] = useState("");
   const [threadMode, setThreadMode] = useState(false);
   const [mediaUrls, setMediaUrls] = useState<string[]>(initialMedia);
+  const [altTexts, setAltTexts] = useState<string[]>([]);
   const [scheduleFor, setScheduleFor] = useState<string>(""); // ISO local
   const [busy, setBusy] = useState(false);
   const [connection, setConnection] = useState<{
@@ -58,11 +59,26 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
   const [tier, setTier] = useState<"free" | "pro" | "agency">("pro");
   const [monthlyUsed, setMonthlyUsed] = useState(0);
 
+  // Poll state
+  const [pollEnabled, setPollEnabled] = useState(false);
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
+  const [pollHours, setPollHours] = useState(24);
+
+  // Auto-thread state
+  const [autoThread, setAutoThread] = useState<string[] | null>(null);
+  const [threadBusy, setThreadBusy] = useState(false);
+
+  // Best-time suggestions
+  const [bestTimes, setBestTimes] = useState<Array<{ day: number; hour: number; label: string; source: string }>>([]);
+
   const doPublish = useServerFn(publishToX);
   const doSchedule = useServerFn(scheduleXPost);
   const doConnected = useServerFn(getConnectedSocials);
   const doAuthUrl = useServerFn(getXAuthUrl);
   const doStats = useServerFn(getXPublishStats);
+  const doGenThread = useServerFn(generateXThread);
+  const doPublishThread = useServerFn(publishXThread);
+  const doBestTimes = useServerFn(getBestPostingTimes);
 
   // Load connection state
   useEffect(() => {
