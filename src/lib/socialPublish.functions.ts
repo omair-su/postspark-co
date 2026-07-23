@@ -859,25 +859,59 @@ export const publishToX = createServerFn({ method: "POST" })
 
 
 
-      // Upload each media URL to X
+      // Polls can't be combined with media on X.
+      if (data.poll && data.mediaUrls.length > 0) {
+        return { error: "X does not allow polls with media attachments." };
+      }
+
+      // Upload each media URL to X (and set alt text if provided)
       const mediaIds: string[] = [];
-      for (const url of data.mediaUrls) {
-        const r = await fetch(url);
-        if (!r.ok) return { error: `Could not fetch media at ${url.slice(0, 80)}` };
-        const buf = await r.arrayBuffer();
-        const mimeType = r.headers.get("content-type") || "image/jpeg";
-        if (buf.byteLength > 15 * 1024 * 1024) {
-          return { error: "Media exceeds 15MB limit" };
+      if (!data.poll) {
+        for (let i = 0; i < data.mediaUrls.length; i++) {
+          const url = data.mediaUrls[i];
+          const r = await fetch(url);
+          if (!r.ok) return { error: `Could not fetch media at ${url.slice(0, 80)}` };
+          const buf = await r.arrayBuffer();
+          const mimeType = r.headers.get("content-type") || "image/jpeg";
+          if (buf.byteLength > 15 * 1024 * 1024) {
+            return { error: "Media exceeds 15MB limit" };
+          }
+          const up = await uploadMediaToX(accessToken, buf, mimeType);
+          if (up.error || !up.mediaId) return { error: up.error || "X media upload failed" };
+          mediaIds.push(up.mediaId);
+
+          // Best-effort alt text (a11y). Non-fatal if it fails.
+          const alt = (data.altTexts?.[i] || "").trim();
+          if (alt) {
+            try {
+              await fetch("https://api.x.com/2/media/metadata", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  id: up.mediaId,
+                  metadata: { alt_text: { text: alt.slice(0, 1000) } },
+                }),
+              });
+            } catch (e) {
+              console.warn("[publishToX] alt-text metadata failed", e);
+            }
+          }
         }
-        const up = await uploadMediaToX(accessToken, buf, mimeType);
-        if (up.error || !up.mediaId) return { error: up.error || "X media upload failed" };
-        mediaIds.push(up.mediaId);
       }
 
       // Post tweet
       const body: any = { text: data.text.slice(0, 4000) };
       if (mediaIds.length) body.media = { media_ids: mediaIds };
       if (data.inReplyToTweetId) body.reply = { in_reply_to_tweet_id: data.inReplyToTweetId };
+      if (data.poll) {
+        body.poll = {
+          options: data.poll.options.map((o) => o.slice(0, 25)),
+          duration_minutes: data.poll.durationMinutes,
+        };
+      }
 
       const postRes = await fetch("https://api.x.com/2/tweets", {
         method: "POST",
