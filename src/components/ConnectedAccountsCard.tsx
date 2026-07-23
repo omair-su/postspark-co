@@ -7,8 +7,9 @@ import {
   getXAuthUrl,
   disconnectSocial,
 } from "@/lib/socialPublish.functions";
+import { getMetaAuthUrl, disconnectMeta } from "@/lib/metaPublish.functions";
 import { toast } from "sonner";
-import { Loader2, Link2Off, CheckCircle2, Linkedin, Twitter } from "lucide-react";
+import { Loader2, Link2Off, CheckCircle2, Linkedin, Twitter, Facebook } from "lucide-react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
 
 type Account = {
