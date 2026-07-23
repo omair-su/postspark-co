@@ -56,7 +56,7 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     let alive = true;
     (async () => {
       try {
-        const r: any = await doConnected({});
+        const [r, s]: any = await Promise.all([doConnected({}), doStats({})]);
         if (!alive) return;
         const tw = (r?.accounts || []).find((a: any) => a.platform === "twitter");
         setConnection({
@@ -64,6 +64,8 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
           username: tw?.platform_username,
           loading: false,
         });
+        if (s?.tier) setTier(s.tier);
+        if (typeof s?.monthlyPublished === "number") setMonthlyUsed(s.monthlyPublished);
       } catch {
         if (alive) setConnection({ connected: false, loading: false });
       }
@@ -71,7 +73,11 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     return () => {
       alive = false;
     };
-  }, [doConnected]);
+  }, [doConnected, doStats]);
+
+  const isFree = tier === "free";
+  const monthlyRemaining = isFree ? Math.max(0, 5 - monthlyUsed) : null;
+  const outOfFreeQuota = isFree && monthlyRemaining !== null && monthlyRemaining <= 0;
 
   // Detect URLs, offer link-in-reply if a URL exists in main text.
   const detectedUrls = useMemo(() => text.match(URL_REGEX) || [], [text]);
