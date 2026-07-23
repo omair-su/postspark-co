@@ -122,6 +122,7 @@ function SettingsPage() {
 
       <PublicShowcaseSettings />
       <ConnectedAccountsCard />
+      <XAnalyticsCard />
       <WeeklyDigestToggle />
 
       {/* Password */}
