@@ -80,12 +80,16 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
   const doPublishThread = useServerFn(publishXThread);
   const doBestTimes = useServerFn(getBestPostingTimes);
 
-  // Load connection state
+  // Load connection state + best times
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const [r, s]: any = await Promise.all([doConnected({}), doStats({})]);
+        const [r, s, b]: any = await Promise.all([
+          doConnected({}),
+          doStats({}),
+          doBestTimes({ data: { platform: "twitter" } }),
+        ]);
         if (!alive) return;
         const tw = (r?.accounts || []).find((a: any) => a.platform === "twitter");
         setConnection({
@@ -95,6 +99,7 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
         });
         if (s?.tier) setTier(s.tier);
         if (typeof s?.monthlyPublished === "number") setMonthlyUsed(s.monthlyPublished);
+        if (Array.isArray(b?.suggestions)) setBestTimes(b.suggestions);
       } catch {
         if (alive) setConnection({ connected: false, loading: false });
       }
@@ -102,7 +107,7 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     return () => {
       alive = false;
     };
-  }, [doConnected, doStats]);
+  }, [doConnected, doStats, doBestTimes]);
 
   const isFree = tier === "free";
   const monthlyRemaining = isFree ? Math.max(0, 5 - monthlyUsed) : null;
