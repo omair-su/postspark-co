@@ -2,6 +2,7 @@ import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
 import { Twitter } from "lucide-react";
 import { XComposer } from "@/components/publish/XComposer";
+import { XAnalyticsCard } from "@/components/publish/XAnalyticsCard";
 
 const searchSchema = z.object({
   text: z.string().optional(),
