@@ -241,7 +241,7 @@ function StockTab({ onPick }: { onPick: (url: string) => void }) {
   const doTrack = useServerFn(trackUnsplashUse);
 
   const onSelectPhoto = (p: StockPhoto) => {
-    onPick(p.regular || p.full || p.small);
+    onPick(p.regularUrl || p.fullUrl || p.thumbUrl);
     if (p.source === "unsplash" && p.downloadLocation) {
       doTrack({ data: { downloadLocation: p.downloadLocation } }).catch(() => {});
     }

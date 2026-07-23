@@ -32,8 +32,8 @@ function PublishPage() {
   const search = useSearch({ from: "/dashboard/publish" });
   const initialMedia = (search.media || "")
     .split(",")
-    .map((s) => s.trim())
-    .filter((s) => /^https?:\/\//.test(s));
+    .map((s: string) => s.trim())
+    .filter((s: string) => /^https?:\/\//.test(s));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
