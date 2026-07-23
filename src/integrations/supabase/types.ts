@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_permissions: {
+        Row: {
+          granted: boolean
+          id: string
+          permission: string
+          platform: string
+          requested_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          granted?: boolean
+          id?: string
+          permission: string
+          platform: string
+          requested_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          granted?: boolean
+          id?: string
+          permission?: string
+          platform?: string
+          requested_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      analytics_cache: {
+        Row: {
+          date: string
+          id: string
+          metadata: Json
+          metric: string
+          platform: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          date?: string
+          id?: string
+          metadata?: Json
+          metric: string
+          platform: string
+          updated_at?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          date?: string
+          id?: string
+          metadata?: Json
+          metric?: string
+          platform?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -783,6 +846,53 @@ export type Database = {
         }
         Relationships: []
       }
+      publishing_logs: {
+        Row: {
+          action: string
+          created_at: string
+          error_message: string | null
+          id: string
+          platform: string
+          request_payload: Json | null
+          response_payload: Json | null
+          scheduled_post_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          platform: string
+          request_payload?: Json | null
+          response_payload?: Json | null
+          scheduled_post_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          platform?: string
+          request_payload?: Json | null
+          response_payload?: Json | null
+          scheduled_post_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publishing_logs_scheduled_post_id_fkey"
+            columns: ["scheduled_post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           created_at: string
@@ -1015,6 +1125,7 @@ export type Database = {
           access_token: string
           created_at: string
           id: string
+          metadata: Json
           platform: string
           platform_user_id: string
           platform_username: string | null
@@ -1028,6 +1139,7 @@ export type Database = {
           access_token: string
           created_at?: string
           id?: string
+          metadata?: Json
           platform: string
           platform_user_id: string
           platform_username?: string | null
@@ -1041,6 +1153,7 @@ export type Database = {
           access_token?: string
           created_at?: string
           id?: string
+          metadata?: Json
           platform?: string
           platform_user_id?: string
           platform_username?: string | null
@@ -1051,6 +1164,65 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      social_pages: {
+        Row: {
+          created_at: string
+          id: string
+          instagram_business_account_id: string | null
+          is_default: boolean
+          page_access_token: string | null
+          page_category: string | null
+          page_followers_count: number | null
+          page_id: string
+          page_name: string | null
+          page_picture_url: string | null
+          platform: string
+          social_account_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instagram_business_account_id?: string | null
+          is_default?: boolean
+          page_access_token?: string | null
+          page_category?: string | null
+          page_followers_count?: number | null
+          page_id: string
+          page_name?: string | null
+          page_picture_url?: string | null
+          platform?: string
+          social_account_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instagram_business_account_id?: string | null
+          is_default?: boolean
+          page_access_token?: string | null
+          page_category?: string | null
+          page_followers_count?: number | null
+          page_id?: string
+          page_name?: string | null
+          page_picture_url?: string | null
+          platform?: string
+          social_account_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_pages_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -1318,6 +1490,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          platform: string
+          processed: boolean
+          signature: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          platform: string
+          processed?: boolean
+          signature?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          platform?: string
+          processed?: boolean
+          signature?: string | null
         }
         Relationships: []
       }
