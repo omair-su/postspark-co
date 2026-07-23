@@ -4,10 +4,11 @@ import {
   getConnectedSocials,
   getTikTokAuthUrl,
   getLinkedInAuthUrl,
+  getXAuthUrl,
   disconnectSocial,
 } from "@/lib/socialPublish.functions";
 import { toast } from "sonner";
-import { Loader2, Link2Off, CheckCircle2, Linkedin } from "lucide-react";
+import { Loader2, Link2Off, CheckCircle2, Linkedin, Twitter } from "lucide-react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
 
 type Account = {
@@ -16,7 +17,7 @@ type Account = {
   token_expires_at: string | null;
 };
 
-type Platform = "tiktok" | "linkedin";
+type Platform = "tiktok" | "linkedin" | "twitter";
 
 export function ConnectedAccountsCard() {
   const { session } = useAuth();
@@ -25,7 +26,7 @@ export function ConnectedAccountsCard() {
   const [connecting, setConnecting] = useState<Platform | null>(null);
   const [disconnecting, setDisconnecting] = useState<Platform | null>(null);
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { tiktok?: string; linkedin?: string };
+  const search = useSearch({ strict: false }) as { tiktok?: string; linkedin?: string; x?: string };
 
   const refresh = async () => {
     if (!session) return;
@@ -59,21 +60,26 @@ export function ConnectedAccountsCard() {
     let hit = false;
     hit = handle("TikTok", search?.tiktok) || hit;
     hit = handle("LinkedIn", search?.linkedin) || hit;
+    hit = handle("X (Twitter)", search?.x) || hit;
     if (hit) {
       refresh();
       navigate({ to: "/dashboard/settings", replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search?.tiktok, search?.linkedin]);
+  }, [search?.tiktok, search?.linkedin, search?.x]);
 
   const tiktok = accounts.find((a) => a.platform === "tiktok");
   const linkedin = accounts.find((a) => a.platform === "linkedin");
+  const twitter = accounts.find((a) => a.platform === "twitter");
 
   const handleConnect = async (platform: Platform) => {
     if (!session) return;
     setConnecting(platform);
     try {
-      const fn = platform === "tiktok" ? getTikTokAuthUrl : getLinkedInAuthUrl;
+      const fn =
+        platform === "tiktok" ? getTikTokAuthUrl :
+        platform === "linkedin" ? getLinkedInAuthUrl :
+        getXAuthUrl;
       const res = await fn({
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
@@ -217,6 +223,14 @@ export function ConnectedAccountsCard() {
         tagline="Publish posts, images, and articles directly to your LinkedIn feed."
         account={linkedin}
         accentClass="bg-[#0A66C2] hover:bg-[#0956a8]"
+      />
+      <Row
+        platform="twitter"
+        label="X (Twitter)"
+        icon={<Twitter className="h-4 w-4 text-foreground" />}
+        tagline="Publish tweets, threads, images, and videos directly to your X account."
+        account={twitter}
+        accentClass="bg-black hover:bg-neutral-800"
       />
     </div>
   );
