@@ -393,7 +393,162 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
           ) : null}
         </div>
 
-        <XMediaPicker selected={mediaUrls} onChange={setMediaUrls} max={4} />
+        {!pollEnabled ? (
+          <>
+            <XMediaPicker selected={mediaUrls} onChange={setMediaUrls} max={4} />
+            {mediaUrls.length > 0 ? (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+                  <ListOrdered className="h-4 w-4" /> Alt text (accessibility)
+                </div>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Describe each image for screen readers. Improves reach and is required for WCAG.
+                </p>
+                <div className="space-y-2">
+                  {mediaUrls.map((url, i) => (
+                    <div key={url + i} className="flex items-start gap-2">
+                      <img src={url} alt="" className="h-12 w-12 shrink-0 rounded object-cover" />
+                      <Input
+                        value={altTexts[i] || ""}
+                        maxLength={1000}
+                        onChange={(e) => {
+                          const next = [...altTexts];
+                          next[i] = e.target.value;
+                          setAltTexts(next);
+                        }}
+                        placeholder={`Describe image ${i + 1}…`}
+                        className="flex-1"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
+        {/* Poll composer */}
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Vote className="h-4 w-4" /> Poll {pollEnabled ? "" : "(optional)"}
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch id="poll" checked={pollEnabled} onCheckedChange={setPollEnabled} />
+              <Label htmlFor="poll" className="cursor-pointer text-xs">
+                Enable
+              </Label>
+            </div>
+          </div>
+          {pollEnabled ? (
+            <div className="space-y-2">
+              {pollOptions.map((o, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    value={o}
+                    maxLength={25}
+                    placeholder={`Option ${i + 1}`}
+                    onChange={(e) => {
+                      const next = [...pollOptions];
+                      next[i] = e.target.value;
+                      setPollOptions(next);
+                    }}
+                  />
+                  {pollOptions.length > 2 ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Remove option ${i + 1}`}
+                      onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </Button>
+                  ) : null}
+                </div>
+              ))}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                {pollOptions.length < 4 ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPollOptions([...pollOptions, ""])}
+                  >
+                    + Add option
+                  </Button>
+                ) : (
+                  <span className="text-[11px] text-muted-foreground">Max 4 options</span>
+                )}
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">Duration</span>
+                  <select
+                    value={pollHours}
+                    onChange={(e) => setPollHours(Number(e.target.value))}
+                    className="rounded-md border border-input bg-background px-2 py-1"
+                  >
+                    <option value={1}>1 hour</option>
+                    <option value={6}>6 hours</option>
+                    <option value={24}>1 day</option>
+                    <option value={72}>3 days</option>
+                    <option value={168}>7 days</option>
+                  </select>
+                </div>
+              </div>
+              <p className="pt-1 text-[11px] text-muted-foreground">Polls can't be combined with media.</p>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Auto-thread generator */}
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <ListOrdered className="h-4 w-4" /> Auto-thread from long content
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={doGenerateThread}
+              disabled={threadBusy || text.trim().length < 50}
+            >
+              {threadBusy ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Sparkles className="mr-2 h-3 w-3" />}
+              {autoThread ? "Regenerate" : "Split into thread"}
+            </Button>
+          </div>
+          {!autoThread ? (
+            <p className="text-xs text-muted-foreground">
+              Paste a blog post or long note above (50+ chars) and we'll split it into a numbered X thread.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {autoThread.map((t, i) => (
+                <div key={i} className="rounded-lg border border-border bg-muted/30 p-2 text-xs">
+                  <div className="mb-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>Tweet {i + 1}/{autoThread.length}</span>
+                    <span>{t.length}/280</span>
+                  </div>
+                  <Textarea
+                    value={t}
+                    rows={2}
+                    onChange={(e) => {
+                      const next = [...autoThread];
+                      next[i] = e.target.value.slice(0, 280);
+                      setAutoThread(next);
+                    }}
+                    className="resize-none border-none bg-transparent p-0 text-[13px] focus-visible:ring-0"
+                  />
+                </div>
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAutoThread(null)}
+                className="text-xs text-muted-foreground"
+              >
+                Cancel thread mode
+              </Button>
+            </div>
+          )}
+        </div>
 
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-medium">
@@ -405,6 +560,29 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
             onChange={(e) => setScheduleFor(e.target.value)}
             min={new Date(Date.now() + 60_000).toISOString().slice(0, 16)}
           />
+          {bestTimes.length ? (
+            <div className="mt-3">
+              <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                <BarChart3 className="h-3 w-3" />
+                Best times{" "}
+                <span className="text-[10px] opacity-70">
+                  ({bestTimes[0]?.source === "personal" ? "based on your posts" : "platform defaults"})
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {bestTimes.map((b, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => applyBestTime(b.day, b.hour)}
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] hover:border-primary hover:text-primary"
+                  >
+                    <Clock className="h-3 w-3" /> {b.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
