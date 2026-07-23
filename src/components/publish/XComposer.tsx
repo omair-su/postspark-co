@@ -211,6 +211,29 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
           </div>
         ) : null}
 
+        {isFree ? (
+          <div className={`rounded-xl border p-3 text-sm ${outOfFreeQuota ? "border-red-500/40 bg-red-500/10" : "border-amber-500/30 bg-amber-500/5"}`}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="font-medium">
+                  Free plan · {monthlyUsed}/5 X posts this month
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {outOfFreeQuota
+                    ? "Monthly limit reached. Upgrade to Pro for unlimited posts."
+                    : "Text-only posts on Free. Media attachments and scheduling require Pro."}
+                </p>
+              </div>
+              <a
+                href="/pricing"
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
+              >
+                Upgrade
+              </a>
+            </div>
+          </div>
+        ) : null}
+
         <div className="rounded-2xl border border-border bg-card p-4">
           <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
             <span>Posting as {connection.username ? `@${connection.username}` : "your X account"}</span>
