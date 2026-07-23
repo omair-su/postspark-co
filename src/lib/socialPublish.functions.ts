@@ -584,6 +584,11 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
 const X_SCOPES = ["tweet.read", "users.read", "tweet.write", "offline.access", "media.write"].join(" ");
 
 function getXRedirectUri() {
+  // Allow an explicit override so it EXACTLY matches whatever is registered in
+  // the X developer portal ("Callback URI / Redirect URL"). If not set, derive
+  // from PUBLIC_BASE_URL.
+  const explicit = process.env.X_REDIRECT_URI;
+  if (explicit) return explicit.trim();
   const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
   return `${base.replace(/\/$/, "")}/api/public/oauth/x/callback`;
 }
