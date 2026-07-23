@@ -32,7 +32,10 @@ import {
   bulkImportScheduledPosts,
   generateAIPlan,
 } from "@/lib/calendar.functions";
+import { cancelScheduledXPost, retryScheduledXPost } from "@/lib/socialPublish.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { withAIProgress } from "@/lib/aiProgress";
+import { AlertTriangle, RotateCcw, Ban, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/calendar")({
   component: CalendarPage,
@@ -45,6 +48,8 @@ interface Post {
   platform: string;
   scheduled_for: string;
   status: string;
+  publish_error?: string | null;
+  platform_post_id?: string | null;
 }
 
 type PlatformId =
