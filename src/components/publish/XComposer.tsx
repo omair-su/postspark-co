@@ -42,11 +42,14 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     connected: boolean;
     loading: boolean;
   }>({ connected: false, loading: true });
+  const [tier, setTier] = useState<"free" | "pro" | "agency">("pro");
+  const [monthlyUsed, setMonthlyUsed] = useState(0);
 
   const doPublish = useServerFn(publishToX);
   const doSchedule = useServerFn(scheduleXPost);
   const doConnected = useServerFn(getConnectedSocials);
   const doAuthUrl = useServerFn(getXAuthUrl);
+  const doStats = useServerFn(getXPublishStats);
 
   // Load connection state
   useEffect(() => {
