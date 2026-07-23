@@ -822,6 +822,17 @@ export const publishToX = createServerFn({ method: "POST" })
     try {
       const { supabase, userId } = context;
 
+      // Skip gating for reply tweets in a thread (already counted the parent).
+      if (!data.inReplyToTweetId) {
+        const gate = await checkFreeTierXLimit(supabase, userId);
+        if (gate.blocked) {
+          return {
+            error: `Free plan limit reached (${gate.used}/${gate.limit} X posts this month). Upgrade to Pro for unlimited posting.`,
+            code: "LIMIT_REACHED",
+          };
+        }
+      }
+
       const { accessToken, error: refreshErr } = await refreshXTokenIfNeeded(supabase, userId);
       if (refreshErr || !accessToken) {
         return { error: refreshErr === "NOT_CONNECTED" ? "X not connected. Connect in Settings." : refreshErr };
