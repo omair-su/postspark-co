@@ -56,6 +56,11 @@ function PublishPage() {
         initialMedia={initialMedia}
         repurposeJobId={search.repurposeJobId}
       />
+
+      <section className="mt-10">
+        <h2 className="mb-3 text-lg font-semibold tracking-tight">X analytics & queue</h2>
+        <XAnalyticsCard />
+      </section>
     </div>
   );
 }
