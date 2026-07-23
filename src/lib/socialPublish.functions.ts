@@ -576,3 +576,390 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
 
     return { ok: true, postId, url: postUrl };
   });
+
+// ============================================================================
+// X (Twitter) OAuth 2.0 with PKCE + Direct posting
+// ============================================================================
+
+const X_SCOPES = ["tweet.read", "users.read", "tweet.write", "offline.access", "media.write"].join(" ");
+
+function getXRedirectUri() {
+  const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
+  return `${base.replace(/\/$/, "")}/api/public/oauth/x/callback`;
+}
+
+function b64url(bytes: Uint8Array): string {
+  let s = "";
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+
+async function sha256b64url(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return b64url(new Uint8Array(buf));
+}
+
+// State format for X (carries PKCE verifier): "x.<uid>.<ts>.<verifier>.<sig>"
+async function signXState(userId: string, ts: number, verifier: string): Promise<string> {
+  const payload = `x.${userId}.${ts}.${verifier}`;
+  const sig = await signState(payload);
+  return `${payload}.${sig}`;
+}
+
+export async function verifyXOAuthState(
+  state: string,
+): Promise<{ userId: string; codeVerifier: string } | null> {
+  const parts = state.split(".");
+  if (parts.length !== 5 || parts[0] !== "x") return null;
+  const [, uid, ts, verifier, sig] = parts;
+  const payload = `x.${uid}.${ts}.${verifier}`;
+  const expected = await signState(payload);
+  if (sig !== expected) return null;
+  if (Date.now() - parseInt(ts, 10) > 10 * 60 * 1000) return null;
+  return { userId: uid, codeVerifier: verifier };
+}
+
+export const getXAuthUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    try {
+      const clientId = process.env.X_CLIENT_ID;
+      if (!clientId) return { error: "X integration not configured (missing X_CLIENT_ID)." };
+
+      // PKCE
+      const verifierBytes = new Uint8Array(48);
+      crypto.getRandomValues(verifierBytes);
+      const codeVerifier = b64url(verifierBytes);
+      const codeChallenge = await sha256b64url(codeVerifier);
+
+      const ts = Date.now();
+      const state = await signXState(context.userId, ts, codeVerifier);
+
+      const url = new URL("https://twitter.com/i/oauth2/authorize");
+      url.searchParams.set("response_type", "code");
+      url.searchParams.set("client_id", clientId);
+      url.searchParams.set("redirect_uri", getXRedirectUri());
+      url.searchParams.set("scope", X_SCOPES);
+      url.searchParams.set("state", state);
+      url.searchParams.set("code_challenge", codeChallenge);
+      url.searchParams.set("code_challenge_method", "S256");
+      return { url: url.toString() };
+    } catch (e: any) {
+      console.error("getXAuthUrl error:", e);
+      return { error: e?.message || "Failed to build X auth URL" };
+    }
+  });
+
+/**
+ * Refresh the X access token if it's expired.
+ * Uses HTTP Basic auth (X requires client_id:client_secret) for confidential clients.
+ */
+async function refreshXTokenIfNeeded(
+  supabase: any,
+  userId: string,
+): Promise<{ accessToken: string | null; error?: string }> {
+  const { data: acct } = await supabase
+    .from("social_accounts")
+    .select("access_token, refresh_token, token_expires_at")
+    .eq("user_id", userId)
+    .eq("platform", "twitter")
+    .maybeSingle();
+  if (!acct?.access_token) return { accessToken: null, error: "NOT_CONNECTED" };
+
+  const needsRefresh =
+    !acct.token_expires_at ||
+    new Date(acct.token_expires_at).getTime() < Date.now() + 60_000;
+  if (!needsRefresh) return { accessToken: acct.access_token };
+  if (!acct.refresh_token) return { accessToken: null, error: "Reconnect X (no refresh token)" };
+
+  const clientId = process.env.X_CLIENT_ID!;
+  const clientSecret = process.env.X_CLIENT_SECRET!;
+  const basic = btoa(`${clientId}:${clientSecret}`);
+  const r = await fetch("https://api.x.com/2/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${basic}`,
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: acct.refresh_token,
+      client_id: clientId,
+    }),
+  });
+  if (!r.ok) {
+    const txt = await r.text();
+    console.error("X refresh failed", r.status, txt);
+    return { accessToken: null, error: "Reconnect X (refresh failed)" };
+  }
+  const j: any = await r.json();
+  const newAccess = j.access_token as string;
+  const newRefresh = (j.refresh_token as string) || acct.refresh_token;
+  const expiresIn = j.expires_in || 7200;
+  await supabase
+    .from("social_accounts")
+    .update({
+      access_token: newAccess,
+      refresh_token: newRefresh,
+      token_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
+    })
+    .eq("user_id", userId)
+    .eq("platform", "twitter");
+  return { accessToken: newAccess };
+}
+
+/**
+ * Upload a single media file (image or video) to X via the v1.1 chunked
+ * upload endpoint (INIT/APPEND/FINALIZE + STATUS polling). X's v2 media
+ * upload uses the same INIT/APPEND/FINALIZE flow at /2/media/upload.
+ * Returns the media_id_string.
+ */
+async function uploadMediaToX(
+  accessToken: string,
+  fileBuf: ArrayBuffer,
+  mimeType: string,
+): Promise<{ mediaId?: string; error?: string }> {
+  const isVideo = mimeType.startsWith("video/");
+  const mediaCategory = isVideo ? "tweet_video" : "tweet_image";
+  const base = "https://api.x.com/2/media/upload";
+
+  // INIT
+  const initBody = new URLSearchParams({
+    command: "INIT",
+    total_bytes: String(fileBuf.byteLength),
+    media_type: mimeType,
+    media_category: mediaCategory,
+  });
+  const initRes = await fetch(base, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: initBody,
+  });
+  if (!initRes.ok) {
+    const txt = await initRes.text();
+    return { error: `X media INIT failed (${initRes.status}): ${txt.slice(0, 200)}` };
+  }
+  const initJson: any = await initRes.json();
+  const mediaId = initJson?.data?.id || initJson?.media_id_string;
+  if (!mediaId) return { error: "X media INIT: no media_id" };
+
+  // APPEND (single chunk; small enough for this app's usage)
+  const form = new FormData();
+  form.set("command", "APPEND");
+  form.set("media_id", mediaId);
+  form.set("segment_index", "0");
+  form.set("media", new Blob([fileBuf], { type: mimeType }));
+  const appendRes = await fetch(base, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: form,
+  });
+  if (!appendRes.ok) {
+    const txt = await appendRes.text();
+    return { error: `X media APPEND failed (${appendRes.status}): ${txt.slice(0, 200)}` };
+  }
+
+  // FINALIZE
+  const finRes = await fetch(base, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ command: "FINALIZE", media_id: mediaId }),
+  });
+  if (!finRes.ok) {
+    const txt = await finRes.text();
+    return { error: `X media FINALIZE failed (${finRes.status}): ${txt.slice(0, 200)}` };
+  }
+  const finJson: any = await finRes.json();
+
+  // Poll processing_info for video
+  let info = finJson?.data?.processing_info || finJson?.processing_info;
+  let tries = 0;
+  while (info && info.state && info.state !== "succeeded" && tries < 20) {
+    if (info.state === "failed") {
+      return { error: `X media processing failed: ${info?.error?.message || "unknown"}` };
+    }
+    const wait = Math.min(info.check_after_secs || 2, 10) * 1000;
+    await new Promise((r) => setTimeout(r, wait));
+    const sRes = await fetch(
+      `${base}?command=STATUS&media_id=${encodeURIComponent(mediaId)}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    if (!sRes.ok) break;
+    const sJson: any = await sRes.json();
+    info = sJson?.data?.processing_info || sJson?.processing_info;
+    tries++;
+  }
+
+  return { mediaId };
+}
+
+/**
+ * Publish a single tweet (text + optional media). Media URLs are fetched
+ * server-side, uploaded to X, and attached to the tweet.
+ */
+export const publishToX = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      text: z.string().min(1).max(4000),
+      mediaUrls: z.array(z.string().url()).max(4).default([]),
+      inReplyToTweetId: z.string().max(40).optional(),
+      repurposeJobId: z.string().uuid().optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+
+      const { accessToken, error: refreshErr } = await refreshXTokenIfNeeded(supabase, userId);
+      if (refreshErr || !accessToken) {
+        return { error: refreshErr === "NOT_CONNECTED" ? "X not connected. Connect in Settings." : refreshErr };
+      }
+
+      // Upload each media URL to X
+      const mediaIds: string[] = [];
+      for (const url of data.mediaUrls) {
+        const r = await fetch(url);
+        if (!r.ok) return { error: `Could not fetch media at ${url.slice(0, 80)}` };
+        const buf = await r.arrayBuffer();
+        const mimeType = r.headers.get("content-type") || "image/jpeg";
+        if (buf.byteLength > 15 * 1024 * 1024) {
+          return { error: "Media exceeds 15MB limit" };
+        }
+        const up = await uploadMediaToX(accessToken, buf, mimeType);
+        if (up.error || !up.mediaId) return { error: up.error || "X media upload failed" };
+        mediaIds.push(up.mediaId);
+      }
+
+      // Post tweet
+      const body: any = { text: data.text.slice(0, 4000) };
+      if (mediaIds.length) body.media = { media_ids: mediaIds };
+      if (data.inReplyToTweetId) body.reply = { in_reply_to_tweet_id: data.inReplyToTweetId };
+
+      const postRes = await fetch("https://api.x.com/2/tweets", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      const postJson: any = await postRes.json().catch(() => ({}));
+      if (!postRes.ok) {
+        const msg = postJson?.detail || postJson?.title || `X publish failed (${postRes.status})`;
+        console.error("X publish error", postRes.status, postJson);
+        return { error: msg };
+      }
+      const tweetId = postJson?.data?.id as string | undefined;
+
+      // Get username for the tweet URL
+      const { data: acctRow } = await supabase
+        .from("social_accounts")
+        .select("platform_username")
+        .eq("user_id", userId)
+        .eq("platform", "twitter")
+        .maybeSingle();
+      const uname = (acctRow?.platform_username || "i").replace(/^@/, "");
+      const tweetUrl = tweetId ? `https://x.com/${uname}/status/${tweetId}` : null;
+
+      await supabase.from("scheduled_posts").insert({
+        user_id: userId,
+        platform: "twitter",
+        status: "published",
+        published_at: new Date().toISOString(),
+        content: data.text.slice(0, 3000),
+        title: data.text.slice(0, 80),
+        platform_post_id: tweetId,
+        media_url: tweetUrl || data.mediaUrls[0] || null,
+        media_type: data.mediaUrls[0] ? "image" : null,
+        repurpose_job_id: data.repurposeJobId,
+        scheduled_for: new Date().toISOString(),
+      } as any);
+
+      return { ok: true, tweetId, url: tweetUrl };
+    } catch (e: any) {
+      console.error("[publishToX] error:", e);
+      return { error: e?.message || "Failed to publish to X" };
+    }
+  });
+
+/**
+ * Schedule an X post. Stored in scheduled_posts; the cron worker will
+ * pick it up and call publishToX at the scheduled time.
+ */
+export const scheduleXPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      text: z.string().min(1).max(4000),
+      mediaUrls: z.array(z.string().url()).max(4).default([]),
+      scheduledFor: z.string().datetime(),
+      repurposeJobId: z.string().uuid().optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+      const { data: inserted, error } = await supabase
+        .from("scheduled_posts")
+        .insert({
+          user_id: userId,
+          platform: "twitter",
+          status: "scheduled",
+          content: data.text.slice(0, 3000),
+          title: data.text.slice(0, 80),
+          media_url: data.mediaUrls[0] || null,
+          media_type: data.mediaUrls[0] ? "image" : null,
+          scheduled_for: data.scheduledFor,
+          repurpose_job_id: data.repurposeJobId,
+          tool: "x_publish",
+        } as any)
+        .select()
+        .single();
+      if (error) {
+        console.error("Schedule X post error:", error);
+        return { error: error.message };
+      }
+      return { ok: true, post: inserted };
+    } catch (e: any) {
+      console.error("[scheduleXPost] error:", e);
+      return { error: e?.message || "Failed to schedule X post" };
+    }
+  });
+
+/**
+ * Delete a tweet that was already published via PostSpark.
+ */
+export const deleteXPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ tweetId: z.string().min(1).max(40) }).parse)
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+      const { accessToken, error: refreshErr } = await refreshXTokenIfNeeded(supabase, userId);
+      if (refreshErr || !accessToken) return { error: refreshErr || "Not connected" };
+      const r = await fetch(`https://api.x.com/2/tweets/${encodeURIComponent(data.tweetId)}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!r.ok) {
+        const txt = await r.text();
+        return { error: `Delete failed (${r.status}): ${txt.slice(0, 200)}` };
+      }
+      await supabase
+        .from("scheduled_posts")
+        .update({ status: "deleted" })
+        .eq("user_id", userId)
+        .eq("platform_post_id", data.tweetId);
+      return { ok: true };
+    } catch (e: any) {
+      console.error("[deleteXPost] error:", e);
+      return { error: e?.message || "Failed to delete tweet" };
+    }
+  });
