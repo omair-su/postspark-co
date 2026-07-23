@@ -27,7 +27,9 @@ export const Route = createFileRoute("/api/public/oauth/x/callback")({
         const clientSecret = process.env.X_CLIENT_SECRET;
         if (!clientId || !clientSecret) return redirect("error:not_configured");
 
-        const redirectUri = `${(process.env.PUBLIC_BASE_URL || "https://postspark.co").replace(/\/$/, "")}/api/public/oauth/x/callback`;
+        const redirectUri =
+          process.env.X_REDIRECT_URI?.trim() ||
+          `${(process.env.PUBLIC_BASE_URL || "https://postspark.co").replace(/\/$/, "")}/api/public/oauth/x/callback`;
 
         // Exchange code -> tokens. X requires HTTP Basic auth for confidential clients.
         const basic = btoa(`${clientId}:${clientSecret}`);

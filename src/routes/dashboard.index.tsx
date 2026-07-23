@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Repeat, Sparkles, Clock, TrendingUp, Zap, Flame, Image as ImageIcon, FileText,
-  ArrowUpRight, Activity, Layers, Wand2, MessageSquare, Mic, Calendar, Bookmark, Cpu,
+  ArrowUpRight, Activity, Layers, Wand2, MessageSquare, Mic, Calendar, Bookmark, Cpu, Send,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,7 @@ const WIDGETS: Array<{ to: string; title: string; emoji: string; description: st
 
 const TOOLS: ToolTileItem[] = [
   { to: "/dashboard/repurpose", label: "Repurpose Studio", icon: Repeat, description: "One source → every platform, on-brand.", category: "#7C3AED", popular: true },
+  { to: "/dashboard/publish", label: "Publish to X", icon: Send, description: "Compose, thread & schedule tweets with live preview.", category: "#0EA5E9" },
   { to: "/dashboard/hook-lab", label: "Hook Lab", icon: Flame, description: "10 hooks per idea, scored & A/B ready.", category: "#F97316" },
   { to: "/dashboard/shorts-studio", label: "Shorts Studio", icon: Cpu, description: "Idea → 60s TikTok/Reels/Shorts script.", category: "#EC4899" },
   { to: "/dashboard/image-studio", label: "Image Studio", icon: ImageIcon, description: "Brand-aware visuals & post graphics.", category: "#0891B2" },

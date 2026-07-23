@@ -54,6 +54,7 @@ const navGroups = [
   {
     label: "Plan & Publish",
     items: [
+      { to: "/dashboard/publish", icon: Megaphone, label: "Publish to X" },
       { to: "/dashboard/calendar", icon: Calendar, label: "Calendar" },
       { to: "/dashboard/history", icon: History, label: "History" },
     ],
