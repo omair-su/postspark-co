@@ -1273,6 +1273,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tiktok_webhook_logs: {
+        Row: {
+          error_message: string | null
+          event_type: string | null
+          id: string
+          payload: Json | null
+          processed: boolean
+          received_at: string
+        }
+        Insert: {
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          processed?: boolean
+          received_at?: string
+        }
+        Update: {
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          processed?: boolean
+          received_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
