@@ -32,7 +32,10 @@ import {
   bulkImportScheduledPosts,
   generateAIPlan,
 } from "@/lib/calendar.functions";
+import { cancelScheduledXPost, retryScheduledXPost } from "@/lib/socialPublish.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { withAIProgress } from "@/lib/aiProgress";
+import { AlertTriangle, RotateCcw, Ban, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/calendar")({
   component: CalendarPage,
@@ -45,6 +48,8 @@ interface Post {
   platform: string;
   scheduled_for: string;
   status: string;
+  publish_error?: string | null;
+  platform_post_id?: string | null;
 }
 
 type PlatformId =
@@ -890,6 +895,10 @@ function PostModal({
           )}
         </div>
 
+        {editing && editing.platform === "twitter" && (editing.status === "failed" || editing.status === "scheduled") && (
+          <XPostActions post={editing} onDone={onSaved} />
+        )}
+
         <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
           {editing ? (
             <button
@@ -917,6 +926,83 @@ function PostModal({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function XPostActions({ post, onDone }: { post: Post; onDone: () => void }) {
+  const { session } = useAuth();
+  const [busy, setBusy] = useState<"cancel" | "retry" | null>(null);
+  const doCancel = useServerFn(cancelScheduledXPost);
+  const doRetry = useServerFn(retryScheduledXPost);
+
+  const cancel = async () => {
+    if (!session) return;
+    setBusy("cancel");
+    try {
+      const r: any = await doCancel({ data: { id: post.id } });
+      if (r?.error) toast.error(r.error);
+      else {
+        toast.success("Cancelled");
+        onDone();
+      }
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const retry = async () => {
+    if (!session) return;
+    setBusy("retry");
+    try {
+      const r: any = await doRetry({ data: { id: post.id } });
+      if (r?.error) toast.error(r.error);
+      else {
+        toast.success("Requeued");
+        onDone();
+      }
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-muted/40 p-3">
+      {post.status === "failed" ? (
+        <div className="flex items-start gap-2 text-xs">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+          <div className="flex-1">
+            <div className="font-semibold text-destructive">X publish failed</div>
+            {post.publish_error && (
+              <p className="mt-0.5 text-muted-foreground">{post.publish_error}</p>
+            )}
+          </div>
+          <button
+            onClick={retry}
+            disabled={busy !== null}
+            className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 disabled:opacity-60"
+          >
+            {busy === "retry" ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+            Retry
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-start gap-2 text-xs">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
+          <div className="flex-1">
+            <div className="font-semibold">Queued for auto-publish</div>
+            <p className="mt-0.5 text-muted-foreground">Cancel to stop the cron worker from posting this.</p>
+          </div>
+          <button
+            onClick={cancel}
+            disabled={busy !== null}
+            className="inline-flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-60"
+          >
+            {busy === "cancel" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Ban className="h-3 w-3" />}
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   );
 }
