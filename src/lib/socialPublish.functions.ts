@@ -898,6 +898,42 @@ export const publishToX = createServerFn({ method: "POST" })
  * Schedule an X post. Stored in scheduled_posts; the cron worker will
  * pick it up and call publishToX at the scheduled time.
  */
+// Free-tier limit on total X posts scheduled/published per calendar month.
+const FREE_X_MONTHLY_LIMIT = 5;
+
+async function checkFreeTierXLimit(
+  supabase: any,
+  userId: string,
+): Promise<{ blocked: boolean; used: number; limit: number; plan: string }> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const plan = profile?.plan || "free";
+  if (plan === "pro" || plan === "agency") {
+    return { blocked: false, used: 0, limit: -1, plan };
+  }
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+  const { count } = await supabase
+    .from("scheduled_posts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("platform", "twitter")
+    .in("status", ["scheduled", "publishing", "published"])
+    .gte("created_at", startOfMonth.toISOString());
+  const used = count ?? 0;
+  return { blocked: used >= FREE_X_MONTHLY_LIMIT, used, limit: FREE_X_MONTHLY_LIMIT, plan };
+}
+
+export const getXUsage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    return await checkFreeTierXLimit(context.supabase, context.userId);
+  });
+
 export const scheduleXPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -911,6 +947,15 @@ export const scheduleXPost = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
       const { supabase, userId } = context;
+
+      const gate = await checkFreeTierXLimit(supabase, userId);
+      if (gate.blocked) {
+        return {
+          error: `Free plan limit reached (${gate.used}/${gate.limit} X posts this month). Upgrade to Pro for unlimited scheduling.`,
+          code: "LIMIT_REACHED",
+        };
+      }
+
       const { data: inserted, error } = await supabase
         .from("scheduled_posts")
         .insert({
