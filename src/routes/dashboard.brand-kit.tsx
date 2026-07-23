@@ -99,7 +99,11 @@ function BrandKitPage() {
           setTone(k.preferred_tone || "professional");
           const wm = { ...DEFAULT_WATERMARK, ...(k.watermark_settings || {}) };
           setWatermark(wm);
-          setWatermarkState(wm.enabled, wm.text || k.brand_handle || "@yourbrand", wm.opacity, wm.placement);
+          // Only mirror into localStorage if this kit actually has saved watermark_settings.
+          // Otherwise we'd clobber preferences the user set directly in Image Studio / Thumbnail / Carousel.
+          if (k.watermark_settings) {
+            setWatermarkState(wm.enabled, wm.text || k.brand_handle || "@yourbrand", wm.opacity, wm.placement);
+          }
         } else {
           // reset to defaults for a fresh profile
           setBrandName(""); setBrandHandle(""); setTagline("");
