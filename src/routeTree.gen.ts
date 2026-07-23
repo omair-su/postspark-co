@@ -99,6 +99,7 @@ import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as DashboardAgencyAnalyticsRouteImport } from './routes/dashboard.agency-analytics'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
+import { Route as CallbacksXRouteImport } from './routes/callbacks.x'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApiNarrateShortRouteImport } from './routes/api/narrate-short'
@@ -607,6 +608,11 @@ const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
   path: '/checkout/success',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CallbacksXRoute = CallbacksXRouteImport.update({
+  id: '/callbacks/x',
+  path: '/callbacks/x',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
@@ -861,6 +867,7 @@ export interface FileRoutesByFullPath {
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/callbacks/x': typeof CallbacksXRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -992,6 +999,7 @@ export interface FileRoutesByTo {
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/callbacks/x': typeof CallbacksXRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -1125,6 +1133,7 @@ export interface FileRoutesById {
   '/api/narrate-short': typeof ApiNarrateShortRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/callbacks/x': typeof CallbacksXRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/agency-analytics': typeof DashboardAgencyAnalyticsRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
@@ -1259,6 +1268,7 @@ export interface FileRouteTypes {
     | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
+    | '/callbacks/x'
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
@@ -1390,6 +1400,7 @@ export interface FileRouteTypes {
     | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
+    | '/callbacks/x'
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
@@ -1522,6 +1533,7 @@ export interface FileRouteTypes {
     | '/api/narrate-short'
     | '/auth/callback'
     | '/blog/$slug'
+    | '/callbacks/x'
     | '/checkout/success'
     | '/dashboard/agency-analytics'
     | '/dashboard/analytics'
@@ -1655,6 +1667,7 @@ export interface RootRouteChildren {
   ApiNarrateShortRoute: typeof ApiNarrateShortRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  CallbacksXRoute: typeof CallbacksXRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   DealsLifetimeRoute: typeof DealsLifetimeRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
@@ -2351,6 +2364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutSuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/callbacks/x': {
+      id: '/callbacks/x'
+      path: '/callbacks/x'
+      fullPath: '/callbacks/x'
+      preLoaderRoute: typeof CallbacksXRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/$slug': {
       id: '/blog/$slug'
       path: '/blog/$slug'
@@ -2753,6 +2773,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiNarrateShortRoute: ApiNarrateShortRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,
+  CallbacksXRoute: CallbacksXRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
   DealsLifetimeRoute: DealsLifetimeRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
