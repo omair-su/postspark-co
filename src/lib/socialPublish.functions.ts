@@ -968,3 +968,59 @@ export const deleteXPost = createServerFn({ method: "POST" })
       return { error: e?.message || "Failed to delete tweet" };
     }
   });
+
+/**
+ * Cancel a scheduled (not-yet-published) X post. Removes it from the queue.
+ */
+export const cancelScheduledXPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ id: z.string().uuid() }).parse)
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+      const { error } = await supabase
+        .from("scheduled_posts")
+        .delete()
+        .eq("id", data.id)
+        .eq("user_id", userId)
+        .eq("platform", "twitter")
+        .in("status", ["scheduled", "failed"]);
+      if (error) return { error: error.message };
+      return { ok: true };
+    } catch (e: any) {
+      return { error: e?.message || "Failed to cancel" };
+    }
+  });
+
+/**
+ * Re-queue a failed X post so the cron worker will retry it.
+ */
+export const retryScheduledXPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      id: z.string().uuid(),
+      scheduledFor: z.string().datetime().optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+      const when = data.scheduledFor || new Date(Date.now() + 60_000).toISOString();
+      const { error } = await supabase
+        .from("scheduled_posts")
+        .update({
+          status: "scheduled",
+          scheduled_for: when,
+          publish_error: null,
+        })
+        .eq("id", data.id)
+        .eq("user_id", userId)
+        .eq("platform", "twitter")
+        .in("status", ["failed", "publishing"]);
+      if (error) return { error: error.message };
+      return { ok: true };
+    } catch (e: any) {
+      return { error: e?.message || "Failed to retry" };
+    }
+  });

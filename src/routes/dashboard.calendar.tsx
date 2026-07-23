@@ -383,12 +383,13 @@ function CalendarPage() {
       </div>
 
       {/* Publishing note */}
-      <div className="flex items-start gap-2 rounded-lg border border-amber-300/40 bg-amber-50/60 px-3 py-2 text-[12px] text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+      <div className="flex items-start gap-2 rounded-lg border border-sky-300/40 bg-sky-50/60 px-3 py-2 text-[12px] text-sky-900 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <span>
-          <strong>Planning mode:</strong> Copy your post content to publish on each platform. Direct publishing (LinkedIn, X, Instagram) is coming in v2.
+          <strong>Auto-publishing:</strong> X (Twitter) posts publish automatically at their scheduled time via our cron worker (runs every minute). LinkedIn, Instagram &amp; TikTok scheduling coming soon — for now, copy the content and post manually.
         </span>
       </div>
+
 
       {/* Calendar view */}
       {view === "month" ? (

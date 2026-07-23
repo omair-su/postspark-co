@@ -135,6 +135,7 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicWebhooksTiktokRouteImport } from './routes/api/public/webhooks/tiktok'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
+import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/api/public/hooks/publish-scheduled-x'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
 import { Route as ApiPublicOauthYoutubeCallbackRouteImport } from './routes/api/public/oauth.youtube.callback'
 import { Route as ApiPublicOauthXCallbackRouteImport } from './routes/api/public/oauth.x.callback'
@@ -806,6 +807,12 @@ const ApiPublicHooksWeeklyDigestRoute =
     path: '/api/public/hooks/weekly-digest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPublishScheduledXRoute =
+  ApiPublicHooksPublishScheduledXRouteImport.update({
+    id: '/api/public/hooks/publish-scheduled-x',
+    path: '/api/public/hooks/publish-scheduled-x',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksEmailDripRoute = ApiPublicHooksEmailDripRouteImport.update({
   id: '/api/public/hooks/email-drip',
   path: '/api/public/hooks/email-drip',
@@ -955,6 +962,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1087,6 +1095,7 @@ export interface FileRoutesByTo {
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1221,6 +1230,7 @@ export interface FileRoutesById {
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1356,6 +1366,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/tiktok'
@@ -1488,6 +1499,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/tiktok'
@@ -1621,6 +1633,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/product-launch'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
     | '/api/public/webhooks/tiktok'
@@ -1718,6 +1731,7 @@ export interface RootRouteChildren {
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksEmailDripRoute: typeof ApiPublicHooksEmailDripRoute
+  ApiPublicHooksPublishScheduledXRoute: typeof ApiPublicHooksPublishScheduledXRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksTiktokRoute: typeof ApiPublicWebhooksTiktokRoute
@@ -2616,6 +2630,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksWeeklyDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/publish-scheduled-x': {
+      id: '/api/public/hooks/publish-scheduled-x'
+      path: '/api/public/hooks/publish-scheduled-x'
+      fullPath: '/api/public/hooks/publish-scheduled-x'
+      preLoaderRoute: typeof ApiPublicHooksPublishScheduledXRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/email-drip': {
       id: '/api/public/hooks/email-drip'
       path: '/api/public/hooks/email-drip'
@@ -2825,6 +2846,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksEmailDripRoute: ApiPublicHooksEmailDripRoute,
+  ApiPublicHooksPublishScheduledXRoute: ApiPublicHooksPublishScheduledXRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksTiktokRoute: ApiPublicWebhooksTiktokRoute,
