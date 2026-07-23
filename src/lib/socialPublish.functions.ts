@@ -936,6 +936,15 @@ export const scheduleXPost = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
       const { supabase, userId } = context;
+
+      // Plan gating: scheduling is a Pro feature.
+      const { data: prof } = await supabase.from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+      const plan = (prof?.plan || "free") as string;
+      if (plan !== "pro" && plan !== "agency") {
+        return { error: "Scheduling posts is a Pro feature. Upgrade to schedule to X." };
+      }
+
+
       const { data: inserted, error } = await supabase
         .from("scheduled_posts")
         .insert({
