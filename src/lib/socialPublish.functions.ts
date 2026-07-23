@@ -814,8 +814,15 @@ export const publishToX = createServerFn({ method: "POST" })
     z.object({
       text: z.string().min(1).max(4000),
       mediaUrls: z.array(z.string().url()).max(4).default([]),
+      altTexts: z.array(z.string().max(1000)).max(4).default([]),
       inReplyToTweetId: z.string().max(40).optional(),
       repurposeJobId: z.string().uuid().optional(),
+      poll: z
+        .object({
+          options: z.array(z.string().min(1).max(25)).min(2).max(4),
+          durationMinutes: z.number().int().min(5).max(10080),
+        })
+        .optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -852,25 +859,59 @@ export const publishToX = createServerFn({ method: "POST" })
 
 
 
-      // Upload each media URL to X
+      // Polls can't be combined with media on X.
+      if (data.poll && data.mediaUrls.length > 0) {
+        return { error: "X does not allow polls with media attachments." };
+      }
+
+      // Upload each media URL to X (and set alt text if provided)
       const mediaIds: string[] = [];
-      for (const url of data.mediaUrls) {
-        const r = await fetch(url);
-        if (!r.ok) return { error: `Could not fetch media at ${url.slice(0, 80)}` };
-        const buf = await r.arrayBuffer();
-        const mimeType = r.headers.get("content-type") || "image/jpeg";
-        if (buf.byteLength > 15 * 1024 * 1024) {
-          return { error: "Media exceeds 15MB limit" };
+      if (!data.poll) {
+        for (let i = 0; i < data.mediaUrls.length; i++) {
+          const url = data.mediaUrls[i];
+          const r = await fetch(url);
+          if (!r.ok) return { error: `Could not fetch media at ${url.slice(0, 80)}` };
+          const buf = await r.arrayBuffer();
+          const mimeType = r.headers.get("content-type") || "image/jpeg";
+          if (buf.byteLength > 15 * 1024 * 1024) {
+            return { error: "Media exceeds 15MB limit" };
+          }
+          const up = await uploadMediaToX(accessToken, buf, mimeType);
+          if (up.error || !up.mediaId) return { error: up.error || "X media upload failed" };
+          mediaIds.push(up.mediaId);
+
+          // Best-effort alt text (a11y). Non-fatal if it fails.
+          const alt = (data.altTexts?.[i] || "").trim();
+          if (alt) {
+            try {
+              await fetch("https://api.x.com/2/media/metadata", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  id: up.mediaId,
+                  metadata: { alt_text: { text: alt.slice(0, 1000) } },
+                }),
+              });
+            } catch (e) {
+              console.warn("[publishToX] alt-text metadata failed", e);
+            }
+          }
         }
-        const up = await uploadMediaToX(accessToken, buf, mimeType);
-        if (up.error || !up.mediaId) return { error: up.error || "X media upload failed" };
-        mediaIds.push(up.mediaId);
       }
 
       // Post tweet
       const body: any = { text: data.text.slice(0, 4000) };
       if (mediaIds.length) body.media = { media_ids: mediaIds };
       if (data.inReplyToTweetId) body.reply = { in_reply_to_tweet_id: data.inReplyToTweetId };
+      if (data.poll) {
+        body.poll = {
+          options: data.poll.options.map((o) => o.slice(0, 25)),
+          duration_minutes: data.poll.durationMinutes,
+        };
+      }
 
       const postRes = await fetch("https://api.x.com/2/tweets", {
         method: "POST",
@@ -1154,5 +1195,270 @@ export const getXPublishStats = createServerFn({ method: "POST" })
         recent: [] as any[],
         estimatedSpend: 0,
       };
+    }
+  });
+
+/**
+ * Split long-form content into a numbered X thread using Claude.
+ * Returns an array of ≤280-char tweet segments.
+ */
+export const generateXThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      text: z.string().min(50).max(20000),
+      maxTweets: z.number().int().min(2).max(25).default(10),
+    }).parse,
+  )
+  .handler(async ({ data }) => {
+    try {
+      const { callClaude } = await import("@/lib/anthropic.server");
+      const system =
+        "You split long-form content into an engaging X (Twitter) thread. Rules: each tweet <= 270 chars (leave room for numbering). Preserve the author's voice. Never truncate mid-sentence. Return ONLY a JSON array of strings, no prose.";
+      const user = `Split this into at most ${data.maxTweets} tweets. First tweet must be a strong hook. Do NOT add numbering yourself — plain tweet text only.\n\n---\n${data.text}\n---`;
+      const res = await callClaude({ systemPrompt: system, userPrompt: user, maxTokens: 2000 });
+      if (res.error) return { error: res.error };
+      // Extract JSON array
+      const match = res.text.match(/\[[\s\S]*\]/);
+      let tweets: string[] = [];
+      if (match) {
+        try {
+          tweets = JSON.parse(match[0]);
+        } catch {
+          /* fall through */
+        }
+      }
+      if (!Array.isArray(tweets) || tweets.length === 0) {
+        // Naive fallback: split on paragraphs and hard-cap 270 chars.
+        tweets = data.text
+          .split(/\n{2,}/)
+          .flatMap((p) => p.match(/[\s\S]{1,270}(\s|$)/g) || [])
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .slice(0, data.maxTweets);
+      }
+      // Clamp + number
+      const total = tweets.length;
+      const numbered = tweets.map((t, i) => {
+        const suffix = ` ${i + 1}/${total}`;
+        const room = 280 - suffix.length;
+        const base = String(t).trim().slice(0, room);
+        return `${base}${suffix}`;
+      });
+      return { tweets: numbered };
+    } catch (e: any) {
+      console.error("[generateXThread] error:", e);
+      return { error: e?.message || "Could not generate thread" };
+    }
+  });
+
+/**
+ * Publish a full thread by chaining publishToX calls.
+ * Each subsequent tweet replies to the previous one.
+ */
+export const publishXThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      tweets: z.array(z.string().min(1).max(280)).min(2).max(25),
+      mediaUrls: z.array(z.string().url()).max(4).default([]),
+      altTexts: z.array(z.string().max(1000)).max(4).default([]),
+      repurposeJobId: z.string().uuid().optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+
+      // Plan gating: threads are a Pro feature (chain of paid API calls).
+      const { data: prof } = await supabase.from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+      const plan = (prof?.plan || "free") as string;
+      if (plan !== "pro" && plan !== "agency") {
+        return { error: "Auto-thread publishing is a Pro feature. Upgrade to post threads." };
+      }
+
+      const { accessToken, error: refreshErr } = await refreshXTokenIfNeeded(supabase, userId);
+      if (!accessToken) return { error: refreshErr || "X not connected" };
+
+      const { data: acctRow } = await supabase
+        .from("social_accounts")
+        .select("platform_username")
+        .eq("user_id", userId)
+        .eq("platform", "twitter")
+        .maybeSingle();
+      const uname = (acctRow?.platform_username || "i").replace(/^@/, "");
+
+      // Upload media (attached to the FIRST tweet only).
+      const mediaIds: string[] = [];
+      for (let i = 0; i < data.mediaUrls.length; i++) {
+        const r = await fetch(data.mediaUrls[i]);
+        if (!r.ok) return { error: `Could not fetch media ${i + 1}` };
+        const buf = await r.arrayBuffer();
+        const mimeType = r.headers.get("content-type") || "image/jpeg";
+        const up = await uploadMediaToX(accessToken, buf, mimeType);
+        if (up.error || !up.mediaId) return { error: up.error || "X media upload failed" };
+        mediaIds.push(up.mediaId);
+        const alt = (data.altTexts?.[i] || "").trim();
+        if (alt) {
+          try {
+            await fetch("https://api.x.com/2/media/metadata", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ id: up.mediaId, metadata: { alt_text: { text: alt.slice(0, 1000) } } }),
+            });
+          } catch {
+            /* non-fatal */
+          }
+        }
+      }
+
+      const postedIds: string[] = [];
+      let replyTo: string | undefined;
+      for (let i = 0; i < data.tweets.length; i++) {
+        const body: any = { text: data.tweets[i].slice(0, 280) };
+        if (i === 0 && mediaIds.length) body.media = { media_ids: mediaIds };
+        if (replyTo) body.reply = { in_reply_to_tweet_id: replyTo };
+        const r = await fetch("https://api.x.com/2/tweets", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const j: any = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          return {
+            error: `Tweet ${i + 1}/${data.tweets.length} failed: ${j?.detail || j?.title || r.status}`,
+            postedIds,
+          };
+        }
+        const id = j?.data?.id as string;
+        postedIds.push(id);
+        replyTo = id;
+      }
+
+      // Log the head tweet only (thread head is what users share).
+      const headUrl = postedIds[0] ? `https://x.com/${uname}/status/${postedIds[0]}` : null;
+      await supabase.from("scheduled_posts").insert({
+        user_id: userId,
+        platform: "twitter",
+        status: "published",
+        published_at: new Date().toISOString(),
+        content: data.tweets.join("\n\n"),
+        title: `Thread · ${data.tweets.length} tweets`,
+        platform_post_id: postedIds[0],
+        media_url: headUrl,
+        media_type: mediaIds.length ? "image" : null,
+        repurpose_job_id: data.repurposeJobId,
+        scheduled_for: new Date().toISOString(),
+        tool: "x_thread",
+      } as any);
+
+      return { ok: true, postedIds, url: headUrl };
+    } catch (e: any) {
+      console.error("[publishXThread] error:", e);
+      return { error: e?.message || "Failed to publish thread" };
+    }
+  });
+
+/**
+ * Best-time-to-post suggestions. Uses the user's own post_metrics when
+ * available (top-performing weekday × hour slots), otherwise falls back
+ * to platform-wide defaults.
+ */
+export const getBestPostingTimes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      platform: z.enum(["twitter", "linkedin", "tiktok", "youtube"]).default("twitter"),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+      // Pull last 90 days of published posts on this platform + their metrics.
+      const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: posts } = await supabase
+        .from("scheduled_posts")
+        .select("id, published_at, platform_post_id")
+        .eq("user_id", userId)
+        .eq("platform", data.platform)
+        .eq("status", "published")
+        .gte("published_at", since);
+
+      const ids = (posts || []).map((p: any) => p.platform_post_id).filter(Boolean);
+      let metrics: any[] = [];
+      if (ids.length) {
+        const { data: m } = await supabase
+          .from("post_metrics")
+          .select("platform_post_id, engagement_score, likes, replies, reposts")
+          .in("platform_post_id", ids);
+        metrics = m || [];
+      }
+      const scoreById = new Map<string, number>(
+        metrics.map((m: any) => [
+          m.platform_post_id,
+          Number(m.engagement_score) ||
+            (Number(m.likes) || 0) + 2 * (Number(m.replies) || 0) + 3 * (Number(m.reposts) || 0),
+        ]),
+      );
+
+      // Bucket by (weekday, hour) → sum of scores.
+      const buckets = new Map<string, { day: number; hour: number; score: number; count: number }>();
+      for (const p of posts || []) {
+        if (!p.published_at) continue;
+        const d = new Date(p.published_at as string);
+        const day = d.getUTCDay();
+        const hour = d.getUTCHours();
+        const key = `${day}-${hour}`;
+        const s = scoreById.get(p.platform_post_id as string) ?? 1;
+        const cur = buckets.get(key) || { day, hour, score: 0, count: 0 };
+        cur.score += s;
+        cur.count += 1;
+        buckets.set(key, cur);
+      }
+
+      const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const defaults: Record<string, Array<{ day: number; hour: number; label: string }>> = {
+        twitter: [
+          { day: 2, hour: 13, label: "Tue 1pm — peak engagement on X" },
+          { day: 3, hour: 9, label: "Wed 9am — commute reading window" },
+          { day: 4, hour: 17, label: "Thu 5pm — end-of-day scroll" },
+        ],
+        linkedin: [
+          { day: 2, hour: 8, label: "Tue 8am — before the workday" },
+          { day: 3, hour: 12, label: "Wed 12pm — lunch scroll" },
+          { day: 4, hour: 16, label: "Thu 4pm — pre-close of day" },
+        ],
+        tiktok: [
+          { day: 2, hour: 20, label: "Tue 8pm — prime evening scroll" },
+          { day: 4, hour: 21, label: "Thu 9pm — algorithm sweet spot" },
+          { day: 5, hour: 19, label: "Fri 7pm — weekend build-up" },
+        ],
+        youtube: [
+          { day: 4, hour: 15, label: "Thu 3pm — pre-weekend upload" },
+          { day: 6, hour: 10, label: "Sat 10am — weekend watch time" },
+          { day: 0, hour: 11, label: "Sun 11am — leisure viewing" },
+        ],
+      };
+
+      const top = [...buckets.values()]
+        .filter((b) => b.count >= 2)
+        .sort((a, b) => b.score / b.count - a.score / a.count)
+        .slice(0, 3)
+        .map((b) => ({
+          day: b.day,
+          hour: b.hour,
+          label: `${DAYS[b.day]} ${b.hour % 12 || 12}${b.hour < 12 ? "am" : "pm"} — your best slot (${b.count} posts)`,
+          source: "personal" as const,
+        }));
+
+      const source: "personal" | "default" = top.length ? "personal" : "default";
+      const suggestions = top.length
+        ? top
+        : (defaults[data.platform] || defaults.twitter).map((s) => ({ ...s, source: "default" as const }));
+
+      return { source, suggestions };
+    } catch (e: any) {
+      console.error("[getBestPostingTimes] error:", e);
+      return { source: "default" as const, suggestions: [] as any[] };
     }
   });
