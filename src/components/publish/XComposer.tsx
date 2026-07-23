@@ -4,11 +4,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  BarChart3,
   Calendar as CalendarIcon,
+  Clock,
   Link2,
   Loader2,
+  ListOrdered,
   Send,
   Sparkles,
+  Vote,
   X as XIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +20,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { publishToX, scheduleXPost, getConnectedSocials, getXAuthUrl, getXPublishStats } from "@/lib/socialPublish.functions";
+import {
+  publishToX,
+  scheduleXPost,
+  getConnectedSocials,
+  getXAuthUrl,
+  getXPublishStats,
+  generateXThread,
+  publishXThread,
+  getBestPostingTimes,
+} from "@/lib/socialPublish.functions";
 import { XMediaPicker } from "./XMediaPicker";
 import { XPostPreview } from "./XPostPreview";
 
