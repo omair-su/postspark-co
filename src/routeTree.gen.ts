@@ -130,6 +130,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicWebhooksTiktokRouteImport } from './routes/api/public/webhooks/tiktok'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
@@ -775,6 +776,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksTiktokRoute = ApiPublicWebhooksTiktokRouteImport.update({
+  id: '/api/public/webhooks/tiktok',
+  path: '/api/public/webhooks/tiktok',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -931,6 +937,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1059,6 +1066,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1189,6 +1197,7 @@ export interface FileRoutesById {
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -1320,6 +1329,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/tiktok'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1448,6 +1458,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/tiktok'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1577,6 +1588,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/tiktok'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -1671,6 +1683,7 @@ export interface RootRouteChildren {
   ApiPublicHooksEmailDripRoute: typeof ApiPublicHooksEmailDripRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicWebhooksTiktokRoute: typeof ApiPublicWebhooksTiktokRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -2530,6 +2543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/tiktok': {
+      id: '/api/public/webhooks/tiktok'
+      path: '/api/public/webhooks/tiktok'
+      fullPath: '/api/public/webhooks/tiktok'
+      preLoaderRoute: typeof ApiPublicWebhooksTiktokRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -2745,6 +2765,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksEmailDripRoute: ApiPublicHooksEmailDripRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicWebhooksTiktokRoute: ApiPublicWebhooksTiktokRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
