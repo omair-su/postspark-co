@@ -119,6 +119,7 @@ import { Route as DashboardGuidedFounderLessonRouteImport } from './routes/dashb
 import { Route as DashboardGuidedCreatorPlaybookRouteImport } from './routes/dashboard.guided.creator-playbook'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
+import { Route as AuthFacebookCallbackRouteImport } from './routes/auth.facebook.callback'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicStockDownloadRouteImport } from './routes/api/public/stock-download'
 import { Route as ApiPublicFunnelRouteImport } from './routes/api/public/funnel'
@@ -134,10 +135,12 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicWebhooksXRouteImport } from './routes/api/public/webhooks/x'
 import { Route as ApiPublicWebhooksTiktokRouteImport } from './routes/api/public/webhooks/tiktok'
+import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/api/public/hooks/publish-scheduled-x'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
+import { Route as ApiPublicWebhooksMetaDeauthorizeRouteImport } from './routes/api/public/webhooks/meta.deauthorize'
 import { Route as ApiPublicOauthYoutubeCallbackRouteImport } from './routes/api/public/oauth.youtube.callback'
 import { Route as ApiPublicOauthXCallbackRouteImport } from './routes/api/public/oauth.x.callback'
 import { Route as ApiPublicOauthTiktokCallbackRouteImport } from './routes/api/public/oauth.tiktok.callback'
@@ -722,6 +725,11 @@ const BlogAuthorSlugRoute = BlogAuthorSlugRouteImport.update({
   path: '/blog/author/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthFacebookCallbackRoute = AuthFacebookCallbackRouteImport.update({
+  id: '/auth/facebook/callback',
+  path: '/auth/facebook/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   id: '/api/public/track',
   path: '/api/public/track',
@@ -801,6 +809,11 @@ const ApiPublicWebhooksTiktokRoute = ApiPublicWebhooksTiktokRouteImport.update({
   path: '/api/public/webhooks/tiktok',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
+  id: '/api/public/webhooks/meta',
+  path: '/api/public/webhooks/meta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -824,6 +837,12 @@ const ApiPublicHooksEmailDripRoute = ApiPublicHooksEmailDripRouteImport.update({
   path: '/api/public/hooks/email-drip',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksMetaDeauthorizeRoute =
+  ApiPublicWebhooksMetaDeauthorizeRouteImport.update({
+    id: '/deauthorize',
+    path: '/deauthorize',
+    getParentRoute: () => ApiPublicWebhooksMetaRoute,
+  } as any)
 const ApiPublicOauthYoutubeCallbackRoute =
   ApiPublicOauthYoutubeCallbackRouteImport.update({
     id: '/api/public/oauth/youtube/callback',
@@ -960,6 +979,7 @@ export interface FileRoutesByFullPath {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/dashboard/guided/creator-playbook': typeof DashboardGuidedCreatorPlaybookRoute
@@ -971,6 +991,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/api/public/webhooks/x': typeof ApiPublicWebhooksXRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -982,6 +1003,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1094,6 +1116,7 @@ export interface FileRoutesByTo {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/dashboard/guided/creator-playbook': typeof DashboardGuidedCreatorPlaybookRoute
@@ -1105,6 +1128,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/api/public/webhooks/x': typeof ApiPublicWebhooksXRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1116,6 +1140,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1230,6 +1255,7 @@ export interface FileRoutesById {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/dashboard/guided/creator-playbook': typeof DashboardGuidedCreatorPlaybookRoute
@@ -1241,6 +1267,7 @@ export interface FileRoutesById {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/api/public/webhooks/x': typeof ApiPublicWebhooksXRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1252,6 +1279,7 @@ export interface FileRoutesById {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1367,6 +1395,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/facebook/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/dashboard/guided/creator-playbook'
@@ -1378,6 +1407,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/meta'
     | '/api/public/webhooks/tiktok'
     | '/api/public/webhooks/x'
     | '/lovable/email/auth/preview'
@@ -1389,6 +1419,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/meta/deauthorize'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1501,6 +1532,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/facebook/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/dashboard/guided/creator-playbook'
@@ -1512,6 +1544,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/meta'
     | '/api/public/webhooks/tiktok'
     | '/api/public/webhooks/x'
     | '/lovable/email/auth/preview'
@@ -1523,6 +1556,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/meta/deauthorize'
   id:
     | '__root__'
     | '/'
@@ -1636,6 +1670,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/facebook/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
     | '/dashboard/guided/creator-playbook'
@@ -1647,6 +1682,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/meta'
     | '/api/public/webhooks/tiktok'
     | '/api/public/webhooks/x'
     | '/lovable/email/auth/preview'
@@ -1658,6 +1694,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/meta/deauthorize'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1739,6 +1776,7 @@ export interface RootRouteChildren {
   ApiPublicFunnelRoute: typeof ApiPublicFunnelRoute
   ApiPublicStockDownloadRoute: typeof ApiPublicStockDownloadRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
+  AuthFacebookCallbackRoute: typeof AuthFacebookCallbackRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -1746,6 +1784,7 @@ export interface RootRouteChildren {
   ApiPublicHooksPublishScheduledXRoute: typeof ApiPublicHooksPublishScheduledXRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRouteWithChildren
   ApiPublicWebhooksTiktokRoute: typeof ApiPublicWebhooksTiktokRoute
   ApiPublicWebhooksXRoute: typeof ApiPublicWebhooksXRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -2531,6 +2570,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogAuthorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/facebook/callback': {
+      id: '/auth/facebook/callback'
+      path: '/auth/facebook/callback'
+      fullPath: '/auth/facebook/callback'
+      preLoaderRoute: typeof AuthFacebookCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/track': {
       id: '/api/public/track'
       path: '/api/public/track'
@@ -2636,6 +2682,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksTiktokRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/meta': {
+      id: '/api/public/webhooks/meta'
+      path: '/api/public/webhooks/meta'
+      fullPath: '/api/public/webhooks/meta'
+      preLoaderRoute: typeof ApiPublicWebhooksMetaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -2663,6 +2716,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/hooks/email-drip'
       preLoaderRoute: typeof ApiPublicHooksEmailDripRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webhooks/meta/deauthorize': {
+      id: '/api/public/webhooks/meta/deauthorize'
+      path: '/deauthorize'
+      fullPath: '/api/public/webhooks/meta/deauthorize'
+      preLoaderRoute: typeof ApiPublicWebhooksMetaDeauthorizeRouteImport
+      parentRoute: typeof ApiPublicWebhooksMetaRoute
     }
     '/api/public/oauth/youtube/callback': {
       id: '/api/public/oauth/youtube/callback'
@@ -2779,6 +2839,19 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface ApiPublicWebhooksMetaRouteChildren {
+  ApiPublicWebhooksMetaDeauthorizeRoute: typeof ApiPublicWebhooksMetaDeauthorizeRoute
+}
+
+const ApiPublicWebhooksMetaRouteChildren: ApiPublicWebhooksMetaRouteChildren = {
+  ApiPublicWebhooksMetaDeauthorizeRoute: ApiPublicWebhooksMetaDeauthorizeRoute,
+}
+
+const ApiPublicWebhooksMetaRouteWithChildren =
+  ApiPublicWebhooksMetaRoute._addFileChildren(
+    ApiPublicWebhooksMetaRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChangelogRoute: ChangelogRoute,
@@ -2862,6 +2935,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicFunnelRoute: ApiPublicFunnelRoute,
   ApiPublicStockDownloadRoute: ApiPublicStockDownloadRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
+  AuthFacebookCallbackRoute: AuthFacebookCallbackRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
@@ -2869,6 +2943,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPublishScheduledXRoute: ApiPublicHooksPublishScheduledXRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRouteWithChildren,
   ApiPublicWebhooksTiktokRoute: ApiPublicWebhooksTiktokRoute,
   ApiPublicWebhooksXRoute: ApiPublicWebhooksXRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

@@ -7,8 +7,9 @@ import {
   getXAuthUrl,
   disconnectSocial,
 } from "@/lib/socialPublish.functions";
+import { getMetaAuthUrl, disconnectMeta } from "@/lib/metaPublish.functions";
 import { toast } from "sonner";
-import { Loader2, Link2Off, CheckCircle2, Linkedin, Twitter } from "lucide-react";
+import { Loader2, Link2Off, CheckCircle2, Linkedin, Twitter, Facebook } from "lucide-react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
 
 type Account = {
@@ -17,7 +18,7 @@ type Account = {
   token_expires_at: string | null;
 };
 
-type Platform = "tiktok" | "linkedin" | "twitter";
+type Platform = "tiktok" | "linkedin" | "twitter" | "facebook";
 
 export function ConnectedAccountsCard() {
   const { session } = useAuth();
@@ -26,7 +27,7 @@ export function ConnectedAccountsCard() {
   const [connecting, setConnecting] = useState<Platform | null>(null);
   const [disconnecting, setDisconnecting] = useState<Platform | null>(null);
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { tiktok?: string; linkedin?: string; x?: string };
+  const search = useSearch({ strict: false }) as { tiktok?: string; linkedin?: string; x?: string; facebook?: string };
 
   const refresh = async () => {
     if (!session) return;
@@ -61,16 +62,18 @@ export function ConnectedAccountsCard() {
     hit = handle("TikTok", search?.tiktok) || hit;
     hit = handle("LinkedIn", search?.linkedin) || hit;
     hit = handle("X (Twitter)", search?.x) || hit;
+    hit = handle("Facebook", search?.facebook) || hit;
     if (hit) {
       refresh();
       navigate({ to: "/dashboard/settings", replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search?.tiktok, search?.linkedin, search?.x]);
+  }, [search?.tiktok, search?.linkedin, search?.x, search?.facebook]);
 
   const tiktok = accounts.find((a) => a.platform === "tiktok");
   const linkedin = accounts.find((a) => a.platform === "linkedin");
   const twitter = accounts.find((a) => a.platform === "twitter");
+  const facebook = accounts.find((a) => a.platform === "facebook");
 
   const handleConnect = async (platform: Platform) => {
     if (!session) return;
@@ -79,15 +82,16 @@ export function ConnectedAccountsCard() {
       const fn =
         platform === "tiktok" ? getTikTokAuthUrl :
         platform === "linkedin" ? getLinkedInAuthUrl :
+        platform === "facebook" ? getMetaAuthUrl :
         getXAuthUrl;
-      const res = await fn({
+      const res: any = await fn({
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if ("error" in res && res.error) {
+      if (res?.error) {
         toast.error(res.error);
         return;
       }
-      if ("url" in res && res.url) {
+      if (res?.url) {
         window.location.href = res.url;
       }
     } finally {
@@ -100,10 +104,16 @@ export function ConnectedAccountsCard() {
     if (!confirm(`Disconnect ${label}? You can reconnect anytime.`)) return;
     setDisconnecting(platform);
     try {
-      await disconnectSocial({
-        data: { platform },
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      if (platform === "facebook") {
+        await disconnectMeta({
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+      } else {
+        await disconnectSocial({
+          data: { platform },
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+      }
       toast.success(`${label} disconnected`);
       refresh();
     } catch (e: any) {
@@ -231,6 +241,14 @@ export function ConnectedAccountsCard() {
         tagline="Publish tweets, threads, images, and videos directly to your X account."
         account={twitter}
         accentClass="bg-black hover:bg-neutral-800"
+      />
+      <Row
+        platform="facebook"
+        label="Facebook & Instagram"
+        icon={<Facebook className="h-4 w-4 text-[#1877F2]" />}
+        tagline="Publish to your Facebook Pages and linked Instagram Business accounts."
+        account={facebook}
+        accentClass="bg-[#1877F2] hover:bg-[#1466d6]"
       />
     </div>
   );
