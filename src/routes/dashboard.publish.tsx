@@ -2,6 +2,7 @@ import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
 import { Twitter } from "lucide-react";
 import { XComposer } from "@/components/publish/XComposer";
+import { XAnalyticsCard } from "@/components/publish/XAnalyticsCard";
 
 const searchSchema = z.object({
   text: z.string().optional(),
@@ -55,6 +56,11 @@ function PublishPage() {
         initialMedia={initialMedia}
         repurposeJobId={search.repurposeJobId}
       />
+
+      <section className="mt-10">
+        <h2 className="mb-3 text-lg font-semibold tracking-tight">X analytics & queue</h2>
+        <XAnalyticsCard />
+      </section>
     </div>
   );
 }

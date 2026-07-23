@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { publishToX, scheduleXPost, getConnectedSocials, getXAuthUrl } from "@/lib/socialPublish.functions";
+import { publishToX, scheduleXPost, getConnectedSocials, getXAuthUrl, getXPublishStats } from "@/lib/socialPublish.functions";
 import { XMediaPicker } from "./XMediaPicker";
 import { XPostPreview } from "./XPostPreview";
 
@@ -42,18 +42,21 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     connected: boolean;
     loading: boolean;
   }>({ connected: false, loading: true });
+  const [tier, setTier] = useState<"free" | "pro" | "agency">("pro");
+  const [monthlyUsed, setMonthlyUsed] = useState(0);
 
   const doPublish = useServerFn(publishToX);
   const doSchedule = useServerFn(scheduleXPost);
   const doConnected = useServerFn(getConnectedSocials);
   const doAuthUrl = useServerFn(getXAuthUrl);
+  const doStats = useServerFn(getXPublishStats);
 
   // Load connection state
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const r: any = await doConnected({});
+        const [r, s]: any = await Promise.all([doConnected({}), doStats({})]);
         if (!alive) return;
         const tw = (r?.accounts || []).find((a: any) => a.platform === "twitter");
         setConnection({
@@ -61,6 +64,8 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
           username: tw?.platform_username,
           loading: false,
         });
+        if (s?.tier) setTier(s.tier);
+        if (typeof s?.monthlyPublished === "number") setMonthlyUsed(s.monthlyPublished);
       } catch {
         if (alive) setConnection({ connected: false, loading: false });
       }
@@ -68,7 +73,11 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     return () => {
       alive = false;
     };
-  }, [doConnected]);
+  }, [doConnected, doStats]);
+
+  const isFree = tier === "free";
+  const monthlyRemaining = isFree ? Math.max(0, 5 - monthlyUsed) : null;
+  const outOfFreeQuota = isFree && monthlyRemaining !== null && monthlyRemaining <= 0;
 
   // Detect URLs, offer link-in-reply if a URL exists in main text.
   const detectedUrls = useMemo(() => text.match(URL_REGEX) || [], [text]);
@@ -87,11 +96,14 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
   const charCount = firstText.length;
   const overLimit = charCount > X_LIMIT_STANDARD;
   const nearLimit = charCount > X_LIMIT_STANDARD - 20 && !overLimit;
+  const freeBlocksMedia = isFree && mediaUrls.length > 0;
   const canSubmit =
     !busy &&
     connection.connected &&
     firstText.trim().length > 0 &&
     !overLimit &&
+    !outOfFreeQuota &&
+    !freeBlocksMedia &&
     (!threadReply || threadReply.length <= 280);
 
   const handleConnect = async () => {
@@ -196,6 +208,29 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
             <Button onClick={handleConnect} size="sm">
               Connect X (Twitter) →
             </Button>
+          </div>
+        ) : null}
+
+        {isFree ? (
+          <div className={`rounded-xl border p-3 text-sm ${outOfFreeQuota ? "border-red-500/40 bg-red-500/10" : "border-amber-500/30 bg-amber-500/5"}`}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="font-medium">
+                  Free plan · {monthlyUsed}/5 X posts this month
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {outOfFreeQuota
+                    ? "Monthly limit reached. Upgrade to Pro for unlimited posts."
+                    : "Text-only posts on Free. Media attachments and scheduling require Pro."}
+                </p>
+              </div>
+              <a
+                href="/pricing"
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90"
+              >
+                Upgrade
+              </a>
+            </div>
           </div>
         ) : null}
 

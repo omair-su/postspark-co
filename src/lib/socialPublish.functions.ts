@@ -822,10 +822,35 @@ export const publishToX = createServerFn({ method: "POST" })
     try {
       const { supabase, userId } = context;
 
+      // Plan gating: Free tier caps X publishing (text only, 5/month, no scheduling).
+      const { data: prof } = await supabase.from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+      const plan = (prof?.plan || "free") as string;
+      const isPaid = plan === "pro" || plan === "agency";
+      if (!isPaid) {
+        if (data.mediaUrls.length > 0) {
+          return { error: "Attaching images to X posts is a Pro feature. Upgrade to publish with media." };
+        }
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const { count } = await supabase
+          .from("scheduled_posts")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("platform", "twitter")
+          .eq("status", "published")
+          .gte("published_at", startOfMonth.toISOString());
+        if ((count ?? 0) >= 5) {
+          return { error: "Free plan limit reached: 5 X posts / month. Upgrade to Pro for unlimited." };
+        }
+      }
+
       const { accessToken, error: refreshErr } = await refreshXTokenIfNeeded(supabase, userId);
       if (refreshErr || !accessToken) {
         return { error: refreshErr === "NOT_CONNECTED" ? "X not connected. Connect in Settings." : refreshErr };
       }
+
+
 
       // Upload each media URL to X
       const mediaIds: string[] = [];
@@ -911,6 +936,15 @@ export const scheduleXPost = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
       const { supabase, userId } = context;
+
+      // Plan gating: scheduling is a Pro feature.
+      const { data: prof } = await supabase.from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+      const plan = (prof?.plan || "free") as string;
+      if (plan !== "pro" && plan !== "agency") {
+        return { error: "Scheduling posts is a Pro feature. Upgrade to schedule to X." };
+      }
+
+
       const { data: inserted, error } = await supabase
         .from("scheduled_posts")
         .insert({
@@ -1022,5 +1056,103 @@ export const retryScheduledXPost = createServerFn({ method: "POST" })
       return { ok: true };
     } catch (e: any) {
       return { error: e?.message || "Failed to retry" };
+    }
+  });
+
+/**
+ * Aggregate X publishing stats: recent posts, monthly counts, tier limits.
+ * Used by XAnalyticsCard on the Publishing Center.
+ */
+export const getXPublishStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    try {
+      const { supabase, userId } = context;
+
+      const [profRes, acctRes] = await Promise.all([
+        supabase.from("profiles").select("plan").eq("user_id", userId).maybeSingle(),
+        supabase
+          .from("social_accounts")
+          .select("platform_username, token_expires_at")
+          .eq("user_id", userId)
+          .eq("platform", "twitter")
+          .maybeSingle(),
+      ]);
+
+      const plan = (profRes.data?.plan || "free") as "free" | "pro" | "agency";
+      const isPaid = plan === "pro" || plan === "agency";
+
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const [publishedRes, scheduledRes, failedRes, recentRes] = await Promise.all([
+        supabase
+          .from("scheduled_posts")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("platform", "twitter")
+          .eq("status", "published")
+          .gte("published_at", startOfMonth.toISOString()),
+        supabase
+          .from("scheduled_posts")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("platform", "twitter")
+          .eq("status", "scheduled"),
+        supabase
+          .from("scheduled_posts")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("platform", "twitter")
+          .eq("status", "failed"),
+        supabase
+          .from("scheduled_posts")
+          .select("id, title, content, status, scheduled_for, published_at, platform_post_id, media_url, publish_error")
+          .eq("user_id", userId)
+          .eq("platform", "twitter")
+          .order("scheduled_for", { ascending: false })
+          .limit(10),
+      ]);
+
+      const monthlyPublished = publishedRes.count ?? 0;
+      const monthlyLimit = isPaid ? null : 5;
+      const remaining = monthlyLimit == null ? null : Math.max(0, monthlyLimit - monthlyPublished);
+
+      // Rough spend estimate: $0.015/post + $0.20 per post that contains a URL.
+      const urlRe = /https?:\/\//i;
+      const recent = recentRes.data || [];
+      let estimatedSpend = 0;
+      for (const r of recent as any[]) {
+        if (r.status !== "published") continue;
+        estimatedSpend += urlRe.test(r.content || "") ? 0.2 : 0.015;
+      }
+
+      return {
+        connected: !!acctRes.data,
+        username: acctRes.data?.platform_username || null,
+        tier: plan,
+        monthlyPublished,
+        monthlyLimit,
+        remaining,
+        scheduledCount: scheduledRes.count ?? 0,
+        failedCount: failedRes.count ?? 0,
+        recent,
+        estimatedSpend: Math.round(estimatedSpend * 100) / 100,
+      };
+    } catch (e: any) {
+      console.error("[getXPublishStats] error:", e);
+      return {
+        connected: false,
+        username: null,
+        tier: "free" as const,
+        monthlyPublished: 0,
+        monthlyLimit: 5,
+        remaining: 5,
+        scheduledCount: 0,
+        failedCount: 0,
+        recent: [] as any[],
+        estimatedSpend: 0,
+      };
     }
   });
