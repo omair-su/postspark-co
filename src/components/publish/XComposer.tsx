@@ -96,11 +96,14 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
   const charCount = firstText.length;
   const overLimit = charCount > X_LIMIT_STANDARD;
   const nearLimit = charCount > X_LIMIT_STANDARD - 20 && !overLimit;
+  const freeBlocksMedia = isFree && mediaUrls.length > 0;
   const canSubmit =
     !busy &&
     connection.connected &&
     firstText.trim().length > 0 &&
     !overLimit &&
+    !outOfFreeQuota &&
+    !freeBlocksMedia &&
     (!threadReply || threadReply.length <= 280);
 
   const handleConnect = async () => {
