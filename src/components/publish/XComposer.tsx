@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { publishToX, scheduleXPost, getConnectedSocials, getXAuthUrl } from "@/lib/socialPublish.functions";
+import { publishToX, scheduleXPost, getConnectedSocials, getXAuthUrl, getXPublishStats } from "@/lib/socialPublish.functions";
 import { XMediaPicker } from "./XMediaPicker";
 import { XPostPreview } from "./XPostPreview";
 
