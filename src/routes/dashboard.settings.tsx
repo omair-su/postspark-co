@@ -11,6 +11,7 @@ import { createPortalSession, previewPlanChange, applyPlanChange, deleteAccount 
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { PublicShowcaseSettings } from "@/components/PublicShowcaseSettings";
 import { ConnectedAccountsCard } from "@/components/ConnectedAccountsCard";
+import { XAnalyticsCard } from "@/components/publish/XAnalyticsCard";
 
 export const Route = createFileRoute("/dashboard/settings")({
   component: SettingsPage,
@@ -121,6 +122,7 @@ function SettingsPage() {
 
       <PublicShowcaseSettings />
       <ConnectedAccountsCard />
+      <XAnalyticsCard />
       <WeeklyDigestToggle />
 
       {/* Password */}
