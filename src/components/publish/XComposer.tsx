@@ -150,14 +150,47 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     }
   };
 
+  const buildPoll = () => {
+    if (!pollEnabled) return undefined;
+    const opts = pollOptions.map((o) => o.trim()).filter(Boolean);
+    if (opts.length < 2) return undefined;
+    return { options: opts.slice(0, 4), durationMinutes: Math.max(5, Math.min(10080, pollHours * 60)) };
+  };
+
   const doPostNow = async () => {
     setBusy(true);
     try {
+      // Thread mode overrides — publishes the whole chain in one shot.
+      if (autoThread && autoThread.length >= 2) {
+        const t: any = await doPublishThread({
+          data: {
+            tweets: autoThread,
+            mediaUrls: pollEnabled ? [] : mediaUrls,
+            altTexts,
+            repurposeJobId,
+          },
+        });
+        if (t?.error) {
+          toast.error(t.error);
+          return;
+        }
+        toast.success(`Thread posted (${autoThread.length} tweets)`);
+        if (t?.url) window.open(t.url, "_blank", "noopener");
+        setText("");
+        setAutoThread(null);
+        setMediaUrls([]);
+        setAltTexts([]);
+        nav({ to: "/dashboard/calendar" }).catch(() => {});
+        return;
+      }
+
       const first: any = await doPublish({
         data: {
           text: firstText,
-          mediaUrls,
+          mediaUrls: pollEnabled ? [] : mediaUrls,
+          altTexts: pollEnabled ? [] : altTexts,
           repurposeJobId,
+          poll: buildPoll(),
         },
       });
       if (first?.error) {
@@ -183,12 +216,52 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
       setText("");
       setReplyText("");
       setMediaUrls([]);
+      setAltTexts([]);
+      setPollEnabled(false);
+      setPollOptions(["", ""]);
       nav({ to: "/dashboard/calendar" }).catch(() => {});
     } catch (e: any) {
       toast.error(e?.message || "Failed to post");
     } finally {
       setBusy(false);
     }
+  };
+
+  const doGenerateThread = async () => {
+    if (text.trim().length < 50) {
+      toast.error("Add at least 50 characters of text to generate a thread.");
+      return;
+    }
+    setThreadBusy(true);
+    try {
+      const r: any = await doGenThread({ data: { text, maxTweets: 10 } });
+      if (r?.error) {
+        toast.error(r.error);
+        return;
+      }
+      if (Array.isArray(r?.tweets) && r.tweets.length >= 2) {
+        setAutoThread(r.tweets);
+        toast.success(`Generated ${r.tweets.length}-tweet thread`);
+      } else {
+        toast.error("Could not split text into a thread.");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Thread generation failed");
+    } finally {
+      setThreadBusy(false);
+    }
+  };
+
+  const applyBestTime = (day: number, hour: number) => {
+    // Set schedule to the next matching weekday+hour in local time.
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(hour, 0, 0, 0);
+    const diff = (day - now.getDay() + 7) % 7;
+    target.setDate(now.getDate() + (diff === 0 && target.getTime() < now.getTime() ? 7 : diff));
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const local = `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(target.getDate())}T${pad(target.getHours())}:${pad(target.getMinutes())}`;
+    setScheduleFor(local);
   };
 
   const doScheduleSubmit = async () => {
