@@ -822,10 +822,35 @@ export const publishToX = createServerFn({ method: "POST" })
     try {
       const { supabase, userId } = context;
 
+      // Plan gating: Free tier caps X publishing (text only, 5/month, no scheduling).
+      const { data: prof } = await supabase.from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+      const plan = (prof?.plan || "free") as string;
+      const isPaid = plan === "pro" || plan === "agency";
+      if (!isPaid) {
+        if (data.mediaUrls.length > 0) {
+          return { error: "Attaching images to X posts is a Pro feature. Upgrade to publish with media." };
+        }
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const { count } = await supabase
+          .from("scheduled_posts")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("platform", "twitter")
+          .eq("status", "published")
+          .gte("published_at", startOfMonth.toISOString());
+        if ((count ?? 0) >= 5) {
+          return { error: "Free plan limit reached: 5 X posts / month. Upgrade to Pro for unlimited." };
+        }
+      }
+
       const { accessToken, error: refreshErr } = await refreshXTokenIfNeeded(supabase, userId);
       if (refreshErr || !accessToken) {
         return { error: refreshErr === "NOT_CONNECTED" ? "X not connected. Connect in Settings." : refreshErr };
       }
+
+
 
       // Upload each media URL to X
       const mediaIds: string[] = [];
