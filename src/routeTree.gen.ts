@@ -114,6 +114,7 @@ import { Route as AlternativesBufferVsPostsparkRouteImport } from './routes/alte
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as DashboardSettingsFacebookRouteImport } from './routes/dashboard.settings.facebook'
 import { Route as DashboardGuidedProductLaunchRouteImport } from './routes/dashboard.guided.product-launch'
 import { Route as DashboardGuidedMarketingTipRouteImport } from './routes/dashboard.guided.marketing-tip'
 import { Route as DashboardGuidedFounderLessonRouteImport } from './routes/dashboard.guided.founder-lesson'
@@ -697,6 +698,12 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSettingsFacebookRoute =
+  DashboardSettingsFacebookRouteImport.update({
+    id: '/facebook',
+    path: '/facebook',
+    getParentRoute: () => DashboardSettingsRoute,
+  } as any)
 const DashboardGuidedProductLaunchRoute =
   DashboardGuidedProductLaunchRouteImport.update({
     id: '/guided/product-launch',
@@ -930,7 +937,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
@@ -993,6 +1000,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1068,7 +1076,7 @@ export interface FileRoutesByTo {
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
@@ -1131,6 +1139,7 @@ export interface FileRoutesByTo {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1208,7 +1217,7 @@ export interface FileRoutesById {
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
@@ -1271,6 +1280,7 @@ export interface FileRoutesById {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1412,6 +1422,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/settings/facebook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1550,6 +1561,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/settings/facebook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1689,6 +1701,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/settings/facebook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -2548,6 +2561,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/settings/facebook': {
+      id: '/dashboard/settings/facebook'
+      path: '/facebook'
+      fullPath: '/dashboard/settings/facebook'
+      preLoaderRoute: typeof DashboardSettingsFacebookRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
     '/dashboard/guided/product-launch': {
       id: '/dashboard/guided/product-launch'
       path: '/guided/product-launch'
@@ -2775,6 +2795,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardSettingsRouteChildren {
+  DashboardSettingsFacebookRoute: typeof DashboardSettingsFacebookRoute
+}
+
+const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
+  DashboardSettingsFacebookRoute: DashboardSettingsFacebookRoute,
+}
+
+const DashboardSettingsRouteWithChildren =
+  DashboardSettingsRoute._addFileChildren(DashboardSettingsRouteChildren)
+
 interface DashboardRouteChildren {
   DashboardAgencyAnalyticsRoute: typeof DashboardAgencyAnalyticsRoute
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
@@ -2799,7 +2830,7 @@ interface DashboardRouteChildren {
   DashboardReplyGeneratorRoute: typeof DashboardReplyGeneratorRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
-  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRouteWithChildren
   DashboardShortsEditorRoute: typeof DashboardShortsEditorRoute
   DashboardShortsSeriesRoute: typeof DashboardShortsSeriesRoute
   DashboardShortsStudioRoute: typeof DashboardShortsStudioRoute
@@ -2839,7 +2870,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardReplyGeneratorRoute: DashboardReplyGeneratorRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSeoBlogRoute: DashboardSeoBlogRoute,
-  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSettingsRoute: DashboardSettingsRouteWithChildren,
   DashboardShortsEditorRoute: DashboardShortsEditorRoute,
   DashboardShortsSeriesRoute: DashboardShortsSeriesRoute,
   DashboardShortsStudioRoute: DashboardShortsStudioRoute,
