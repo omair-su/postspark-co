@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/dashboard/settings")({
 });
 
 function SettingsPage() {
+  const location = useLocation();
   const { user, session } = useAuth();
   const [name, setName] = useState(user?.user_metadata?.full_name || user?.user_metadata?.name || "");
   const [email] = useState(user?.email || "");
@@ -65,6 +66,7 @@ function SettingsPage() {
   };
 
   const avatarUrl = user?.user_metadata?.avatar_url;
+  if (location.pathname !== "/dashboard/settings") return <Outlet />;
 
   return (
     <div className="mx-auto max-w-xl animate-fade-in space-y-5">

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { verifyOAuthState } from "@/lib/socialPublish.functions";
+import { getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 export const Route = createFileRoute("/api/public/oauth/tiktok/callback")({
   server: {
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/api/public/oauth/tiktok/callback")({
         const code = url.searchParams.get("code");
         const state = url.searchParams.get("state");
         const err = url.searchParams.get("error");
-        const base = process.env.PUBLIC_BASE_URL || `${url.protocol}//${url.host}`;
+        const base = getSafePublicBaseUrl();
         const redirect = (msg: string) =>
           new Response(null, {
             status: 302,
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/api/public/oauth/tiktok/callback")({
         const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
         if (!clientKey || !clientSecret) return redirect("error:not_configured");
 
-        const redirectUri = `${(process.env.PUBLIC_BASE_URL || "https://postspark.co").replace(/\/$/, "")}/api/public/oauth/tiktok/callback`;
+        const redirectUri = `${getSafePublicBaseUrl().replace(/\/$/, "")}/api/public/oauth/tiktok/callback`;
 
         const tokenRes = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
           method: "POST",

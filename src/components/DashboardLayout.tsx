@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare, Layers, PanelLeftClose, PanelLeftOpen, Check, CreditCard, Video, Megaphone, Rocket } from "lucide-react";
+import { LayoutDashboard, Repeat, History, Settings, LogOut, Menu, X, User, BarChart3, Bookmark, Mic, Flame, Image as ImageIcon, Calendar, FileText, Gift, Globe, Sparkles, Users, Building2, ChevronDown, Shield, Wand2, MessageSquare, Layers, PanelLeftClose, PanelLeftOpen, Check, CreditCard, Video, Megaphone, Rocket, Facebook, Instagram, AtSign } from "lucide-react";
 import { SparkCopilot } from "@/components/SparkCopilot";
 import { isCurrentUserAdmin } from "@/lib/blogAdmin.functions";
 import { useEffect, useState, type ReactNode } from "react";
@@ -55,6 +55,9 @@ const navGroups = [
     label: "Plan & Publish",
     items: [
       { to: "/dashboard/publish", icon: Megaphone, label: "Publish to X" },
+      { to: "/dashboard/publish/facebook", icon: Facebook, label: "Publish to Facebook" },
+      { to: "/dashboard/publish/instagram", icon: Instagram, label: "Publish to Instagram" },
+      { to: "/dashboard/publish/threads", icon: AtSign, label: "Publish to Threads" },
       { to: "/dashboard/calendar", icon: Calendar, label: "Calendar" },
       { to: "/dashboard/history", icon: History, label: "History" },
     ],

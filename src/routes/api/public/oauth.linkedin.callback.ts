@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { verifyOAuthState } from "@/lib/socialPublish.functions";
+import { getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 export const Route = createFileRoute("/api/public/oauth/linkedin/callback")({
   server: {
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/api/public/oauth/linkedin/callback")({
         const state = url.searchParams.get("state");
         const err = url.searchParams.get("error");
         const errDesc = url.searchParams.get("error_description");
-        const base = process.env.PUBLIC_BASE_URL || `${url.protocol}//${url.host}`;
+        const base = getSafePublicBaseUrl();
         const redirect = (msg: string) =>
           new Response(null, {
             status: 302,
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/api/public/oauth/linkedin/callback")({
         const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
         if (!clientId || !clientSecret) return redirect("error:not_configured");
 
-        const redirectUri = `${(process.env.PUBLIC_BASE_URL || "https://postspark.co").replace(/\/$/, "")}/api/public/oauth/linkedin/callback`;
+        const redirectUri = `${getSafePublicBaseUrl().replace(/\/$/, "")}/api/public/oauth/linkedin/callback`;
 
         const tokenRes = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
           method: "POST",

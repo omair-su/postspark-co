@@ -7,10 +7,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { CANONICAL_SITE_URL, getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 const META_GRAPH_VERSION = "v25.0";
 const META_GRAPH = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
-const META_CANONICAL_BASE_URL = "https://postspark.co";
+const META_CANONICAL_BASE_URL = CANONICAL_SITE_URL;
 const META_CALLBACK_PATH = "/auth/facebook/callback";
 const META_CANONICAL_REDIRECT_URI = `${META_CANONICAL_BASE_URL}${META_CALLBACK_PATH}`;
 
@@ -26,11 +27,11 @@ const FB_SCOPES = [
 ].join(",");
 
 function readMetaRedirectUriConfig() {
-  const explicitRedirectUri = process.env.META_OAUTH_REDIRECT_URI || process.env.META_REDIRECT_URI;
+  const explicitRedirectUri = getCorrectedCanonicalUrl(process.env.META_OAUTH_REDIRECT_URI || process.env.META_REDIRECT_URI);
 
-  if (explicitRedirectUri?.trim()) {
+  if (explicitRedirectUri) {
     return {
-      redirectUri: explicitRedirectUri.trim().replace(/\/$/, ""),
+      redirectUri: explicitRedirectUri,
       source: process.env.META_OAUTH_REDIRECT_URI ? "META_OAUTH_REDIRECT_URI" : "META_REDIRECT_URI",
     };
   }
@@ -46,7 +47,7 @@ function getMetaRedirectUri() {
 }
 
 function getReturnBaseUrl() {
-  return (process.env.PUBLIC_BASE_URL || META_CANONICAL_BASE_URL).replace(/\/$/, "");
+  return getSafePublicBaseUrl().replace(/\/$/, "");
 }
 
 function safeUrlParts(value: string) {

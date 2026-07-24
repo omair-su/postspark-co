@@ -4,6 +4,7 @@
 // on X works.
 import { createFileRoute } from "@tanstack/react-router";
 import { verifyXOAuthState } from "@/lib/socialPublish.functions";
+import { getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 export const Route = createFileRoute("/callbacks/x")({
   server: {
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/callbacks/x")({
         const state = url.searchParams.get("state");
         const err = url.searchParams.get("error");
         const errDesc = url.searchParams.get("error_description");
-        const base = process.env.PUBLIC_BASE_URL || `${url.protocol}//${url.host}`;
+        const base = getSafePublicBaseUrl();
         const redirect = (msg: string) =>
           new Response(null, {
             status: 302,
@@ -32,8 +33,8 @@ export const Route = createFileRoute("/callbacks/x")({
         if (!clientId || !clientSecret) return redirect("error:not_configured");
 
         const redirectUri =
-          process.env.X_REDIRECT_URI?.trim() ||
-          `${(process.env.PUBLIC_BASE_URL || "https://postspark.co").replace(/\/$/, "")}/callbacks/x`;
+          getCorrectedCanonicalUrl(process.env.X_REDIRECT_URI) ||
+          `${getSafePublicBaseUrl().replace(/\/$/, "")}/callbacks/x`;
 
         const basic = btoa(`${clientId}:${clientSecret}`);
         const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
