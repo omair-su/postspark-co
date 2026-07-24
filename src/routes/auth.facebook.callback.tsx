@@ -24,19 +24,27 @@ export const Route = createFileRoute("/auth/facebook/callback")({
         const code = url.searchParams.get("code");
         const state = url.searchParams.get("state");
         const err = url.searchParams.get("error");
-        const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
+        const base = (process.env.PUBLIC_BASE_URL || "https://postspark.co").replace(/\/$/, "");
 
         if (err || !code || !state) {
           const q = encodeURIComponent(err || "missing_code");
+          console.error("[meta-callback] OAuth returned an error or missing parameters", {
+            error: err,
+            hasCode: Boolean(code),
+            hasState: Boolean(state),
+            requestUrl: url.toString(),
+          });
           return Response.redirect(`${base}/dashboard/settings?facebook=error:${q}`, 302);
         }
         const verified = await verifyMetaOAuthState(state);
         if (!verified) {
+          console.error("[meta-callback] invalid OAuth state", { requestUrl: url.toString() });
           return Response.redirect(`${base}/dashboard/settings?facebook=error:invalid_state`, 302);
         }
         const result = await completeMetaOAuth(code, verified.userId);
         if (!result.ok) {
           const q = encodeURIComponent(result.error || "connect_failed");
+          console.error("[meta-callback] OAuth completion failed", result);
           return Response.redirect(`${base}/dashboard/settings?facebook=error:${q}`, 302);
         }
         return Response.redirect(`${base}/dashboard/settings?facebook=connected`, 302);

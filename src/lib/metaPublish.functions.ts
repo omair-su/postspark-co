@@ -10,6 +10,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const META_GRAPH_VERSION = "v25.0";
 const META_GRAPH = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
+const META_CANONICAL_BASE_URL = "https://postspark.co";
+const META_CALLBACK_PATH = "/auth/facebook/callback";
+const META_CANONICAL_REDIRECT_URI = `${META_CANONICAL_BASE_URL}${META_CALLBACK_PATH}`;
 
 const FB_SCOPES = [
   "public_profile",
@@ -22,9 +25,96 @@ const FB_SCOPES = [
   "instagram_content_publish",
 ].join(",");
 
+function readMetaRedirectUriConfig() {
+  const explicitRedirectUri = process.env.META_OAUTH_REDIRECT_URI || process.env.META_REDIRECT_URI;
+
+  if (explicitRedirectUri?.trim()) {
+    return {
+      redirectUri: explicitRedirectUri.trim().replace(/\/$/, ""),
+      source: process.env.META_OAUTH_REDIRECT_URI ? "META_OAUTH_REDIRECT_URI" : "META_REDIRECT_URI",
+    };
+  }
+
+  return {
+    redirectUri: META_CANONICAL_REDIRECT_URI,
+    source: "canonical postspark.co callback",
+  };
+}
+
 function getMetaRedirectUri() {
-  const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
-  return `${base.replace(/\/$/, "")}/auth/facebook/callback`;
+  return readMetaRedirectUriConfig().redirectUri;
+}
+
+function getReturnBaseUrl() {
+  return (process.env.PUBLIC_BASE_URL || META_CANONICAL_BASE_URL).replace(/\/$/, "");
+}
+
+function safeUrlParts(value: string) {
+  try {
+    const url = new URL(value);
+    return {
+      protocol: url.protocol.replace(":", ""),
+      host: url.host,
+      hostname: url.hostname,
+      pathname: url.pathname,
+      hasWww: url.hostname.startsWith("www."),
+      hasTrailingSlash: url.pathname.endsWith("/") && url.pathname !== "/",
+    };
+  } catch {
+    return {
+      protocol: "invalid",
+      host: "invalid",
+      hostname: "invalid",
+      pathname: "invalid",
+      hasWww: false,
+      hasTrailingSlash: false,
+    };
+  }
+}
+
+function buildMetaOAuthDiagnostics(appId: string | undefined, state: string) {
+  const config = readMetaRedirectUriConfig();
+  const redirectUri = config.redirectUri;
+  const oauthUrl = new URL(`https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth`);
+  oauthUrl.searchParams.set("client_id", appId || "META_APP_ID_NOT_SET");
+  oauthUrl.searchParams.set("redirect_uri", redirectUri);
+  oauthUrl.searchParams.set("response_type", "code");
+  oauthUrl.searchParams.set("scope", FB_SCOPES);
+  oauthUrl.searchParams.set("state", state);
+
+  const actual = safeUrlParts(redirectUri);
+  const expected = safeUrlParts(META_CANONICAL_REDIRECT_URI);
+  const checks = {
+    exactMatchToConfiguredMetaRedirect: redirectUri === META_CANONICAL_REDIRECT_URI,
+    protocolMatches: actual.protocol === expected.protocol,
+    hostMatches: actual.host === expected.host,
+    pathMatches: actual.pathname === expected.pathname,
+    wwwMatches: actual.hasWww === expected.hasWww,
+    trailingSlashMatches: actual.hasTrailingSlash === expected.hasTrailingSlash,
+    usesManagedAuthCallback: false,
+    usesCustomCallback: actual.pathname === META_CALLBACK_PATH,
+  };
+
+  return {
+    facebookAppId: appId || "META_APP_ID is not set",
+    oauthUrl: oauthUrl.toString(),
+    redirectUri,
+    configuredMetaRedirectUri: META_CANONICAL_REDIRECT_URI,
+    callbackUri: redirectUri,
+    managedAuthCallbackUri: "Not used — Facebook is handled by the custom PostSpark callback route.",
+    authProvider: "Custom Meta Graph OAuth",
+    currentEnvironment: {
+      graphApiVersion: META_GRAPH_VERSION,
+      redirectUriSource: config.source,
+      publicBaseUrl: process.env.PUBLIC_BASE_URL || "not set",
+      returnBaseUrl: getReturnBaseUrl(),
+      explicitRedirectUriConfigured: Boolean(process.env.META_OAUTH_REDIRECT_URI || process.env.META_REDIRECT_URI),
+    },
+    checks,
+    actualRedirectParts: actual,
+    expectedRedirectParts: expected,
+    scopes: FB_SCOPES.split(","),
+  };
 }
 
 async function signState(payload: string): Promise<string> {
@@ -75,18 +165,24 @@ export const getMetaAuthUrl = createServerFn({ method: "POST" })
       const sig = await signState(payload);
       const state = `${payload}.${sig}`;
 
-      const url = new URL(`https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth`);
-      url.searchParams.set("client_id", appId);
-      url.searchParams.set("redirect_uri", getMetaRedirectUri());
-      url.searchParams.set("response_type", "code");
-      url.searchParams.set("scope", FB_SCOPES);
-      url.searchParams.set("state", state);
-      return { url: url.toString() };
+      const diagnostics = buildMetaOAuthDiagnostics(appId, state);
+      console.info("[meta-oauth] complete OAuth URL before redirect", diagnostics.oauthUrl);
+      console.info("[meta-oauth] redirect_uri", diagnostics.redirectUri);
+      console.info("[meta-oauth] redirect checks", diagnostics.checks);
+      return { url: diagnostics.oauthUrl, diagnostics };
     } catch (e: any) {
       console.error("[getMetaAuthUrl] error", e);
       return { error: e?.message || "Failed to build Meta auth URL" };
     }
   });
+
+export const getFacebookAuthDiagnostics = createServerFn({ method: "GET" }).handler(async () => {
+  const diagnostics = buildMetaOAuthDiagnostics(process.env.META_APP_ID, "debug_state_not_for_login");
+  console.info("[meta-oauth-diagnostics] complete OAuth URL", diagnostics.oauthUrl);
+  console.info("[meta-oauth-diagnostics] redirect_uri", diagnostics.redirectUri);
+  console.info("[meta-oauth-diagnostics] checks", diagnostics.checks);
+  return diagnostics;
+});
 
 /**
  * Exchange a code from the OAuth callback for a long-lived user access token,
@@ -99,7 +195,14 @@ export async function completeMetaOAuth(
 ): Promise<{ ok: boolean; error?: string; pageCount?: number }> {
   const appId = process.env.META_APP_ID;
   const appSecret = process.env.META_APP_SECRET;
-  if (!appId || !appSecret) return { ok: false, error: "Meta app not configured" };
+  if (!appId || !appSecret) {
+    console.error("[meta] OAuth callback failed: Meta app not configured", {
+      hasAppId: Boolean(appId),
+      hasAppSecret: Boolean(appSecret),
+      redirectUri: getMetaRedirectUri(),
+    });
+    return { ok: false, error: "Meta app not configured" };
+  }
 
   // 1) Exchange code -> short-lived token
   const tokenUrl = new URL(`${META_GRAPH}/oauth/access_token`);
@@ -115,7 +218,10 @@ export async function completeMetaOAuth(
   }
   const tJson: any = await tRes.json();
   const shortToken = tJson.access_token as string;
-  if (!shortToken) return { ok: false, error: "No access_token from Meta" };
+  if (!shortToken) {
+    console.error("[meta] token exchange response did not include access_token", tJson);
+    return { ok: false, error: "No access_token from Meta" };
+  }
 
   // 2) Exchange short-lived -> long-lived (~60 days)
   const llUrl = new URL(`${META_GRAPH}/oauth/access_token`);
@@ -134,7 +240,10 @@ export async function completeMetaOAuth(
   );
   const me: any = meRes.ok ? await meRes.json() : {};
   const metaUserId = me?.id as string | undefined;
-  if (!metaUserId) return { ok: false, error: "Could not read Meta profile" };
+  if (!metaUserId) {
+    console.error("[meta] could not read Meta profile", me);
+    return { ok: false, error: "Could not read Meta profile" };
+  }
 
   // 4) Upsert social_accounts row (platform=facebook)
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
