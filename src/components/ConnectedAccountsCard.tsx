@@ -10,7 +10,7 @@ import {
 import { getMetaAuthUrl, disconnectMeta } from "@/lib/metaPublish.functions";
 import { toast } from "sonner";
 import { Loader2, Link2Off, CheckCircle2, Linkedin, Twitter, Facebook } from "lucide-react";
-import { useSearch, useNavigate } from "@tanstack/react-router";
+import { Link, useSearch, useNavigate } from "@tanstack/react-router";
 
 type Account = {
   platform: string;
@@ -155,6 +155,7 @@ export function ConnectedAccountsCard() {
     tagline,
     account,
     accentClass,
+    manageTo,
   }: {
     platform: Platform;
     label: string;
@@ -163,6 +164,7 @@ export function ConnectedAccountsCard() {
     tagline: string;
     account: Account | undefined;
     accentClass: string;
+    manageTo?: "/dashboard/settings/facebook" | "/dashboard/settings/instagram" | "/dashboard/settings/threads";
   }) => (
     <div className="mt-3 rounded-lg border border-border bg-background p-4">
       <div className="flex items-start justify-between gap-3">
@@ -203,18 +205,28 @@ export function ConnectedAccountsCard() {
         </div>
 
         {account ? (
-          <button
-            onClick={() => handleDisconnect(platform, label)}
-            disabled={disconnecting === platform}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
-          >
-            {disconnecting === platform ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Link2Off className="h-3 w-3" />
+          <div className="flex shrink-0 items-center gap-2">
+            {manageTo && (
+              <Link
+                to={manageTo}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent"
+              >
+                Manage
+              </Link>
             )}
-            Disconnect
-          </button>
+            <button
+              onClick={() => handleDisconnect(platform, label)}
+              disabled={disconnecting === platform}
+              className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+            >
+              {disconnecting === platform ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Link2Off className="h-3 w-3" />
+              )}
+              Disconnect
+            </button>
+          </div>
         ) : (
           <button
             onClick={() => handleConnect(platform)}
@@ -273,6 +285,7 @@ export function ConnectedAccountsCard() {
         tagline="Publish to your Facebook Pages and linked Instagram Business accounts."
         account={facebook}
         accentClass="bg-[#1877F2] hover:bg-[#1466d6]"
+        manageTo="/dashboard/settings/facebook"
       />
     </div>
   );

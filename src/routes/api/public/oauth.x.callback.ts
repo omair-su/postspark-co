@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { verifyXOAuthState } from "@/lib/socialPublish.functions";
+import { getSafeExplicitUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 export const Route = createFileRoute("/api/public/oauth/x/callback")({
   server: {
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/api/public/oauth/x/callback")({
         const state = url.searchParams.get("state");
         const err = url.searchParams.get("error");
         const errDesc = url.searchParams.get("error_description");
-        const base = process.env.PUBLIC_BASE_URL || `${url.protocol}//${url.host}`;
+        const base = getSafePublicBaseUrl();
         const redirect = (msg: string) =>
           new Response(null, {
             status: 302,
@@ -28,8 +29,8 @@ export const Route = createFileRoute("/api/public/oauth/x/callback")({
         if (!clientId || !clientSecret) return redirect("error:not_configured");
 
         const redirectUri =
-          process.env.X_REDIRECT_URI?.trim() ||
-          `${(process.env.PUBLIC_BASE_URL || "https://postspark.co").replace(/\/$/, "")}/api/public/oauth/x/callback`;
+          getSafeExplicitUrl(process.env.X_REDIRECT_URI) ||
+          `${getSafePublicBaseUrl().replace(/\/$/, "")}/api/public/oauth/x/callback`;
 
         // Exchange code -> tokens. X requires HTTP Basic auth for confidential clients.
         const basic = btoa(`${clientId}:${clientSecret}`);

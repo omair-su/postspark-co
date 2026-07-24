@@ -9,6 +9,7 @@
  */
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { verifyMetaOAuthState, completeMetaOAuth } from "@/lib/metaPublish.functions";
+import { getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 export const Route = createFileRoute("/auth/facebook/callback")({
   head: () => ({
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/auth/facebook/callback")({
         const code = url.searchParams.get("code");
         const state = url.searchParams.get("state");
         const err = url.searchParams.get("error");
-        const base = (process.env.PUBLIC_BASE_URL || "https://postspark.co").replace(/\/$/, "");
+        const base = getSafePublicBaseUrl().replace(/\/$/, "");
 
         if (err || !code || !state) {
           const q = encodeURIComponent(err || "missing_code");

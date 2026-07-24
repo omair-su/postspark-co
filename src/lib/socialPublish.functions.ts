@@ -1,14 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getSafeExplicitUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 const YT_SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
   "https://www.googleapis.com/auth/youtube.readonly",
 ].join(" ");
 
 function getRedirectUri() {
-  // Public OAuth callback. Override per-env via PUBLIC_BASE_URL if needed.
-  const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
+  const base = getSafePublicBaseUrl();
   return `${base.replace(/\/$/, "")}/api/public/oauth/youtube/callback`;
 }
 
@@ -37,7 +37,7 @@ export const getYouTubeAuthUrl = createServerFn({ method: "POST" })
     const ts = Date.now();
     const nonce = Math.random().toString(36).slice(2, 10);
     const payload = `${context.userId}.${ts}.${nonce}`;
-    const sig = signState(payload);
+    const sig = await signState(payload);
     const state = `${payload}.${sig}`;
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     url.searchParams.set("client_id", clientId);
@@ -321,7 +321,7 @@ export async function verifyOAuthState(state: string): Promise<{ userId: string 
 const TIKTOK_SCOPES = ["user.info.basic", "video.publish", "video.upload"].join(",");
 
 function getTikTokRedirectUri() {
-  const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
+  const base = getSafePublicBaseUrl();
   return `${base.replace(/\/$/, "")}/api/public/oauth/tiktok/callback`;
 }
 
@@ -413,7 +413,7 @@ export const publishToTikTok = createServerFn({ method: "POST" })
 const LINKEDIN_SCOPES = ["openid", "profile", "email", "w_member_social"].join(" ");
 
 function getLinkedInRedirectUri() {
-  const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
+  const base = getSafePublicBaseUrl();
   return `${base.replace(/\/$/, "")}/api/public/oauth/linkedin/callback`;
 }
 
@@ -587,9 +587,9 @@ function getXRedirectUri() {
   // Allow an explicit override so it EXACTLY matches whatever is registered in
   // the X developer portal ("Callback URI / Redirect URL"). If not set, derive
   // from PUBLIC_BASE_URL.
-  const explicit = process.env.X_REDIRECT_URI;
-  if (explicit) return explicit.trim();
-  const base = process.env.PUBLIC_BASE_URL || "https://postspark.co";
+  const explicit = getSafeExplicitUrl(process.env.X_REDIRECT_URI);
+  if (explicit) return explicit;
+  const base = getSafePublicBaseUrl();
   return `${base.replace(/\/$/, "")}/api/public/oauth/x/callback`;
 }
 

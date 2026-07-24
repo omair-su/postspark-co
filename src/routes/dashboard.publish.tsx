@@ -1,4 +1,4 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
 import { Twitter } from "lucide-react";
 import { XComposer } from "@/components/publish/XComposer";
@@ -29,7 +29,10 @@ export const Route = createFileRoute("/dashboard/publish")({
 });
 
 function PublishPage() {
+  const location = useLocation();
   const search = useSearch({ from: "/dashboard/publish" });
+  if (location.pathname !== "/dashboard/publish") return <Outlet />;
+
   const initialMedia = (search.media || "")
     .split(",")
     .map((s: string) => s.trim())
