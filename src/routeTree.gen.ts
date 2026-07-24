@@ -114,6 +114,12 @@ import { Route as AlternativesBufferVsPostsparkRouteImport } from './routes/alte
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as DashboardSettingsThreadsRouteImport } from './routes/dashboard.settings.threads'
+import { Route as DashboardSettingsInstagramRouteImport } from './routes/dashboard.settings.instagram'
+import { Route as DashboardSettingsFacebookRouteImport } from './routes/dashboard.settings.facebook'
+import { Route as DashboardPublishThreadsRouteImport } from './routes/dashboard.publish.threads'
+import { Route as DashboardPublishInstagramRouteImport } from './routes/dashboard.publish.instagram'
+import { Route as DashboardPublishFacebookRouteImport } from './routes/dashboard.publish.facebook'
 import { Route as DashboardGuidedProductLaunchRouteImport } from './routes/dashboard.guided.product-launch'
 import { Route as DashboardGuidedMarketingTipRouteImport } from './routes/dashboard.guided.marketing-tip'
 import { Route as DashboardGuidedFounderLessonRouteImport } from './routes/dashboard.guided.founder-lesson'
@@ -697,6 +703,41 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSettingsThreadsRoute =
+  DashboardSettingsThreadsRouteImport.update({
+    id: '/threads',
+    path: '/threads',
+    getParentRoute: () => DashboardSettingsRoute,
+  } as any)
+const DashboardSettingsInstagramRoute =
+  DashboardSettingsInstagramRouteImport.update({
+    id: '/instagram',
+    path: '/instagram',
+    getParentRoute: () => DashboardSettingsRoute,
+  } as any)
+const DashboardSettingsFacebookRoute =
+  DashboardSettingsFacebookRouteImport.update({
+    id: '/facebook',
+    path: '/facebook',
+    getParentRoute: () => DashboardSettingsRoute,
+  } as any)
+const DashboardPublishThreadsRoute = DashboardPublishThreadsRouteImport.update({
+  id: '/threads',
+  path: '/threads',
+  getParentRoute: () => DashboardPublishRoute,
+} as any)
+const DashboardPublishInstagramRoute =
+  DashboardPublishInstagramRouteImport.update({
+    id: '/instagram',
+    path: '/instagram',
+    getParentRoute: () => DashboardPublishRoute,
+  } as any)
+const DashboardPublishFacebookRoute =
+  DashboardPublishFacebookRouteImport.update({
+    id: '/facebook',
+    path: '/facebook',
+    getParentRoute: () => DashboardPublishRoute,
+  } as any)
 const DashboardGuidedProductLaunchRoute =
   DashboardGuidedProductLaunchRouteImport.update({
     id: '/guided/product-launch',
@@ -925,12 +966,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
-  '/dashboard/publish': typeof DashboardPublishRoute
+  '/dashboard/publish': typeof DashboardPublishRouteWithChildren
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
@@ -993,6 +1034,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
+  '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
+  '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
+  '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
+  '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1063,12 +1110,12 @@ export interface FileRoutesByTo {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
-  '/dashboard/publish': typeof DashboardPublishRoute
+  '/dashboard/publish': typeof DashboardPublishRouteWithChildren
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
@@ -1131,6 +1178,12 @@ export interface FileRoutesByTo {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
+  '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
+  '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
+  '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
+  '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1203,12 +1256,12 @@ export interface FileRoutesById {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
-  '/dashboard/publish': typeof DashboardPublishRoute
+  '/dashboard/publish': typeof DashboardPublishRouteWithChildren
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
   '/dashboard/seo-blog': typeof DashboardSeoBlogRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/shorts-editor': typeof DashboardShortsEditorRoute
   '/dashboard/shorts-series': typeof DashboardShortsSeriesRoute
   '/dashboard/shorts-studio': typeof DashboardShortsStudioRoute
@@ -1271,6 +1324,12 @@ export interface FileRoutesById {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
+  '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
+  '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
+  '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
+  '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1412,6 +1471,12 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/publish/facebook'
+    | '/dashboard/publish/instagram'
+    | '/dashboard/publish/threads'
+    | '/dashboard/settings/facebook'
+    | '/dashboard/settings/instagram'
+    | '/dashboard/settings/threads'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1550,6 +1615,12 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/publish/facebook'
+    | '/dashboard/publish/instagram'
+    | '/dashboard/publish/threads'
+    | '/dashboard/settings/facebook'
+    | '/dashboard/settings/instagram'
+    | '/dashboard/settings/threads'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1689,6 +1760,12 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/publish/facebook'
+    | '/dashboard/publish/instagram'
+    | '/dashboard/publish/threads'
+    | '/dashboard/settings/facebook'
+    | '/dashboard/settings/instagram'
+    | '/dashboard/settings/threads'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -2548,6 +2625,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/settings/threads': {
+      id: '/dashboard/settings/threads'
+      path: '/threads'
+      fullPath: '/dashboard/settings/threads'
+      preLoaderRoute: typeof DashboardSettingsThreadsRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
+    '/dashboard/settings/instagram': {
+      id: '/dashboard/settings/instagram'
+      path: '/instagram'
+      fullPath: '/dashboard/settings/instagram'
+      preLoaderRoute: typeof DashboardSettingsInstagramRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
+    '/dashboard/settings/facebook': {
+      id: '/dashboard/settings/facebook'
+      path: '/facebook'
+      fullPath: '/dashboard/settings/facebook'
+      preLoaderRoute: typeof DashboardSettingsFacebookRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
+    '/dashboard/publish/threads': {
+      id: '/dashboard/publish/threads'
+      path: '/threads'
+      fullPath: '/dashboard/publish/threads'
+      preLoaderRoute: typeof DashboardPublishThreadsRouteImport
+      parentRoute: typeof DashboardPublishRoute
+    }
+    '/dashboard/publish/instagram': {
+      id: '/dashboard/publish/instagram'
+      path: '/instagram'
+      fullPath: '/dashboard/publish/instagram'
+      preLoaderRoute: typeof DashboardPublishInstagramRouteImport
+      parentRoute: typeof DashboardPublishRoute
+    }
+    '/dashboard/publish/facebook': {
+      id: '/dashboard/publish/facebook'
+      path: '/facebook'
+      fullPath: '/dashboard/publish/facebook'
+      preLoaderRoute: typeof DashboardPublishFacebookRouteImport
+      parentRoute: typeof DashboardPublishRoute
+    }
     '/dashboard/guided/product-launch': {
       id: '/dashboard/guided/product-launch'
       path: '/guided/product-launch'
@@ -2775,6 +2894,36 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardPublishRouteChildren {
+  DashboardPublishFacebookRoute: typeof DashboardPublishFacebookRoute
+  DashboardPublishInstagramRoute: typeof DashboardPublishInstagramRoute
+  DashboardPublishThreadsRoute: typeof DashboardPublishThreadsRoute
+}
+
+const DashboardPublishRouteChildren: DashboardPublishRouteChildren = {
+  DashboardPublishFacebookRoute: DashboardPublishFacebookRoute,
+  DashboardPublishInstagramRoute: DashboardPublishInstagramRoute,
+  DashboardPublishThreadsRoute: DashboardPublishThreadsRoute,
+}
+
+const DashboardPublishRouteWithChildren =
+  DashboardPublishRoute._addFileChildren(DashboardPublishRouteChildren)
+
+interface DashboardSettingsRouteChildren {
+  DashboardSettingsFacebookRoute: typeof DashboardSettingsFacebookRoute
+  DashboardSettingsInstagramRoute: typeof DashboardSettingsInstagramRoute
+  DashboardSettingsThreadsRoute: typeof DashboardSettingsThreadsRoute
+}
+
+const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
+  DashboardSettingsFacebookRoute: DashboardSettingsFacebookRoute,
+  DashboardSettingsInstagramRoute: DashboardSettingsInstagramRoute,
+  DashboardSettingsThreadsRoute: DashboardSettingsThreadsRoute,
+}
+
+const DashboardSettingsRouteWithChildren =
+  DashboardSettingsRoute._addFileChildren(DashboardSettingsRouteChildren)
+
 interface DashboardRouteChildren {
   DashboardAgencyAnalyticsRoute: typeof DashboardAgencyAnalyticsRoute
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
@@ -2794,12 +2943,12 @@ interface DashboardRouteChildren {
   DashboardImportRoute: typeof DashboardImportRoute
   DashboardLinkedinRoute: typeof DashboardLinkedinRoute
   DashboardPodcastRoute: typeof DashboardPodcastRoute
-  DashboardPublishRoute: typeof DashboardPublishRoute
+  DashboardPublishRoute: typeof DashboardPublishRouteWithChildren
   DashboardReferralsRoute: typeof DashboardReferralsRoute
   DashboardReplyGeneratorRoute: typeof DashboardReplyGeneratorRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
   DashboardSeoBlogRoute: typeof DashboardSeoBlogRoute
-  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRouteWithChildren
   DashboardShortsEditorRoute: typeof DashboardShortsEditorRoute
   DashboardShortsSeriesRoute: typeof DashboardShortsSeriesRoute
   DashboardShortsStudioRoute: typeof DashboardShortsStudioRoute
@@ -2834,12 +2983,12 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardImportRoute: DashboardImportRoute,
   DashboardLinkedinRoute: DashboardLinkedinRoute,
   DashboardPodcastRoute: DashboardPodcastRoute,
-  DashboardPublishRoute: DashboardPublishRoute,
+  DashboardPublishRoute: DashboardPublishRouteWithChildren,
   DashboardReferralsRoute: DashboardReferralsRoute,
   DashboardReplyGeneratorRoute: DashboardReplyGeneratorRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
   DashboardSeoBlogRoute: DashboardSeoBlogRoute,
-  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSettingsRoute: DashboardSettingsRouteWithChildren,
   DashboardShortsEditorRoute: DashboardShortsEditorRoute,
   DashboardShortsSeriesRoute: DashboardShortsSeriesRoute,
   DashboardShortsStudioRoute: DashboardShortsStudioRoute,
