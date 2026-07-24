@@ -159,7 +159,8 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     try {
       const out: any = await doSchedule({
         data: {
-          text: firstText + (threadReply ? `\n\n---\n${threadReply}` : ""),
+          text: firstText,
+          replyText: threadReply || undefined,
           mediaUrls,
           scheduledFor: iso,
           repurposeJobId,

@@ -38,7 +38,7 @@ export const Route = createFileRoute("/api/public/hooks/publish-scheduled-x")({
         const now = new Date().toISOString();
         const { data: due, error: selErr } = await supabaseAdmin
           .from("scheduled_posts")
-          .select("id, user_id, content, media_url")
+          .select("id, user_id, content, reply_text, media_url, media_urls")
           .eq("platform", "twitter")
           .eq("status", "scheduled")
           .lte("scheduled_for", now)
@@ -72,7 +72,17 @@ export const Route = createFileRoute("/api/public/hooks/publish-scheduled-x")({
             continue;
           }
 
-          const mediaUrls = row.media_url ? [row.media_url] : [];
+          // Prefer the full media_urls list; fall back to legacy single-column rows.
+          const mediaFromArray: string[] = Array.isArray((row as any).media_urls)
+            ? ((row as any).media_urls as string[]).filter((u) => typeof u === "string")
+            : [];
+          const mediaUrls = mediaFromArray.length
+            ? mediaFromArray
+            : row.media_url
+              ? [row.media_url]
+              : [];
+          const replyText: string | null = (row as any).reply_text ?? null;
+
           try {
             const out = await publishTweetForUser(supabaseAdmin, row.user_id, {
               text: row.content || "",
@@ -89,6 +99,26 @@ export const Route = createFileRoute("/api/public/hooks/publish-scheduled-x")({
                 .eq("id", row.id);
               continue;
             }
+
+            // Best-effort thread reply (link-in-reply cost saver). If the reply
+            // fails we still consider the main tweet published — we just record
+            // the reply error in publish_error so the user can retry manually.
+            let replyError: string | null = null;
+            if (replyText && replyText.trim().length > 0) {
+              try {
+                const replyOut = await publishTweetForUser(supabaseAdmin, row.user_id, {
+                  text: replyText,
+                  mediaUrls: [],
+                  inReplyToTweetId: out.tweetId,
+                });
+                if (replyOut.error || !replyOut.tweetId) {
+                  replyError = replyOut.error || "reply failed";
+                }
+              } catch (e: any) {
+                replyError = e?.message || "reply exception";
+              }
+            }
+
             published++;
             await supabaseAdmin
               .from("scheduled_posts")
@@ -97,7 +127,9 @@ export const Route = createFileRoute("/api/public/hooks/publish-scheduled-x")({
                 published_at: new Date().toISOString(),
                 platform_post_id: out.tweetId,
                 media_url: out.url || row.media_url,
-                publish_error: null,
+                publish_error: replyError
+                  ? `Main tweet posted, reply failed: ${replyError}`.slice(0, MAX_ERR_LEN)
+                  : null,
               })
               .eq("id", row.id);
           } catch (e: any) {
