@@ -868,7 +868,10 @@ export const publishToX = createServerFn({ method: "POST" })
       });
       const postJson: any = await postRes.json().catch(() => ({}));
       if (!postRes.ok) {
-        const msg = postJson?.detail || postJson?.title || `X publish failed (${postRes.status})`;
+        const rawMsg = postJson?.detail || postJson?.title || `X publish failed (${postRes.status})`;
+        const msg = /not permitted|forbidden|unauthorized/i.test(rawMsg)
+          ? "X rejected this publish because the connected X developer app does not currently have write permission for this account. Reconnect X after enabling Read and write permissions and confirming the app has posting access."
+          : rawMsg;
         console.error("X publish error", postRes.status, postJson);
         return { error: msg };
       }
