@@ -115,6 +115,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as DashboardSettingsFacebookRouteImport } from './routes/dashboard.settings.facebook'
+import { Route as DashboardPublishFacebookRouteImport } from './routes/dashboard.publish.facebook'
 import { Route as DashboardGuidedProductLaunchRouteImport } from './routes/dashboard.guided.product-launch'
 import { Route as DashboardGuidedMarketingTipRouteImport } from './routes/dashboard.guided.marketing-tip'
 import { Route as DashboardGuidedFounderLessonRouteImport } from './routes/dashboard.guided.founder-lesson'
@@ -704,6 +705,12 @@ const DashboardSettingsFacebookRoute =
     path: '/facebook',
     getParentRoute: () => DashboardSettingsRoute,
   } as any)
+const DashboardPublishFacebookRoute =
+  DashboardPublishFacebookRouteImport.update({
+    id: '/facebook',
+    path: '/facebook',
+    getParentRoute: () => DashboardPublishRoute,
+  } as any)
 const DashboardGuidedProductLaunchRoute =
   DashboardGuidedProductLaunchRouteImport.update({
     id: '/guided/product-launch',
@@ -932,7 +939,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
-  '/dashboard/publish': typeof DashboardPublishRoute
+  '/dashboard/publish': typeof DashboardPublishRouteWithChildren
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -1000,6 +1007,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
@@ -1071,7 +1079,7 @@ export interface FileRoutesByTo {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
-  '/dashboard/publish': typeof DashboardPublishRoute
+  '/dashboard/publish': typeof DashboardPublishRouteWithChildren
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -1139,6 +1147,7 @@ export interface FileRoutesByTo {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
@@ -1212,7 +1221,7 @@ export interface FileRoutesById {
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
-  '/dashboard/publish': typeof DashboardPublishRoute
+  '/dashboard/publish': typeof DashboardPublishRouteWithChildren
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -1280,6 +1289,7 @@ export interface FileRoutesById {
   '/dashboard/guided/founder-lesson': typeof DashboardGuidedFounderLessonRoute
   '/dashboard/guided/marketing-tip': typeof DashboardGuidedMarketingTipRoute
   '/dashboard/guided/product-launch': typeof DashboardGuidedProductLaunchRoute
+  '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
@@ -1422,6 +1432,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/publish/facebook'
     | '/dashboard/settings/facebook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
@@ -1561,6 +1572,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/publish/facebook'
     | '/dashboard/settings/facebook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
@@ -1701,6 +1713,7 @@ export interface FileRouteTypes {
     | '/dashboard/guided/founder-lesson'
     | '/dashboard/guided/marketing-tip'
     | '/dashboard/guided/product-launch'
+    | '/dashboard/publish/facebook'
     | '/dashboard/settings/facebook'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
@@ -2568,6 +2581,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsFacebookRouteImport
       parentRoute: typeof DashboardSettingsRoute
     }
+    '/dashboard/publish/facebook': {
+      id: '/dashboard/publish/facebook'
+      path: '/facebook'
+      fullPath: '/dashboard/publish/facebook'
+      preLoaderRoute: typeof DashboardPublishFacebookRouteImport
+      parentRoute: typeof DashboardPublishRoute
+    }
     '/dashboard/guided/product-launch': {
       id: '/dashboard/guided/product-launch'
       path: '/guided/product-launch'
@@ -2795,6 +2815,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardPublishRouteChildren {
+  DashboardPublishFacebookRoute: typeof DashboardPublishFacebookRoute
+}
+
+const DashboardPublishRouteChildren: DashboardPublishRouteChildren = {
+  DashboardPublishFacebookRoute: DashboardPublishFacebookRoute,
+}
+
+const DashboardPublishRouteWithChildren =
+  DashboardPublishRoute._addFileChildren(DashboardPublishRouteChildren)
+
 interface DashboardSettingsRouteChildren {
   DashboardSettingsFacebookRoute: typeof DashboardSettingsFacebookRoute
 }
@@ -2825,7 +2856,7 @@ interface DashboardRouteChildren {
   DashboardImportRoute: typeof DashboardImportRoute
   DashboardLinkedinRoute: typeof DashboardLinkedinRoute
   DashboardPodcastRoute: typeof DashboardPodcastRoute
-  DashboardPublishRoute: typeof DashboardPublishRoute
+  DashboardPublishRoute: typeof DashboardPublishRouteWithChildren
   DashboardReferralsRoute: typeof DashboardReferralsRoute
   DashboardReplyGeneratorRoute: typeof DashboardReplyGeneratorRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
@@ -2865,7 +2896,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardImportRoute: DashboardImportRoute,
   DashboardLinkedinRoute: DashboardLinkedinRoute,
   DashboardPodcastRoute: DashboardPodcastRoute,
-  DashboardPublishRoute: DashboardPublishRoute,
+  DashboardPublishRoute: DashboardPublishRouteWithChildren,
   DashboardReferralsRoute: DashboardReferralsRoute,
   DashboardReplyGeneratorRoute: DashboardReplyGeneratorRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
