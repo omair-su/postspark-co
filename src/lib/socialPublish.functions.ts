@@ -949,7 +949,8 @@ export const scheduleXPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      text: z.string().min(1).max(4000),
+      text: z.string().min(1).max(280),
+      replyText: z.string().min(1).max(280).optional(),
       mediaUrls: z.array(z.string().url()).max(4).default([]),
       scheduledFor: z.string().datetime(),
       repurposeJobId: z.string().uuid().optional(),
@@ -973,9 +974,11 @@ export const scheduleXPost = createServerFn({ method: "POST" })
           user_id: userId,
           platform: "twitter",
           status: "scheduled",
-          content: data.text.slice(0, 3000),
+          content: data.text.slice(0, 280),
+          reply_text: data.replyText ? data.replyText.slice(0, 280) : null,
           title: data.text.slice(0, 80),
           media_url: data.mediaUrls[0] || null,
+          media_urls: data.mediaUrls.length ? data.mediaUrls : null,
           media_type: data.mediaUrls[0] ? "image" : null,
           scheduled_for: data.scheduledFor,
           repurpose_job_id: data.repurposeJobId,
