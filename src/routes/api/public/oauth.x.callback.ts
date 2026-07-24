@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { verifyXOAuthState } from "@/lib/socialPublish.functions";
-import { getSafeExplicitUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
+import { getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 export const Route = createFileRoute("/api/public/oauth/x/callback")({
   server: {
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/oauth/x/callback")({
         if (!clientId || !clientSecret) return redirect("error:not_configured");
 
         const redirectUri =
-          getSafeExplicitUrl(process.env.X_REDIRECT_URI) ||
+          getCorrectedCanonicalUrl(process.env.X_REDIRECT_URI) ||
           `${getSafePublicBaseUrl().replace(/\/$/, "")}/api/public/oauth/x/callback`;
 
         // Exchange code -> tokens. X requires HTTP Basic auth for confidential clients.

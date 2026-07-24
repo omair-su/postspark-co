@@ -7,7 +7,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { CANONICAL_SITE_URL, getSafeExplicitUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
+import { CANONICAL_SITE_URL, getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 const META_GRAPH_VERSION = "v25.0";
 const META_GRAPH = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
@@ -27,7 +27,7 @@ const FB_SCOPES = [
 ].join(",");
 
 function readMetaRedirectUriConfig() {
-  const explicitRedirectUri = getSafeExplicitUrl(process.env.META_OAUTH_REDIRECT_URI || process.env.META_REDIRECT_URI);
+  const explicitRedirectUri = getCorrectedCanonicalUrl(process.env.META_OAUTH_REDIRECT_URI || process.env.META_REDIRECT_URI);
 
   if (explicitRedirectUri) {
     return {

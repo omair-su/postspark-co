@@ -4,7 +4,7 @@
 // on X works.
 import { createFileRoute } from "@tanstack/react-router";
 import { verifyXOAuthState } from "@/lib/socialPublish.functions";
-import { getSafeExplicitUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
+import { getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 
 export const Route = createFileRoute("/callbacks/x")({
   server: {
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/callbacks/x")({
         if (!clientId || !clientSecret) return redirect("error:not_configured");
 
         const redirectUri =
-          getSafeExplicitUrl(process.env.X_REDIRECT_URI) ||
+          getCorrectedCanonicalUrl(process.env.X_REDIRECT_URI) ||
           `${getSafePublicBaseUrl().replace(/\/$/, "")}/callbacks/x`;
 
         const basic = btoa(`${clientId}:${clientSecret}`);

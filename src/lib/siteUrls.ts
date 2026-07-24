@@ -37,3 +37,19 @@ export function getSafeExplicitUrl(value: string | undefined | null) {
     return null;
   }
 }
+
+export function getCorrectedCanonicalUrl(value: string | undefined | null) {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+
+  try {
+    const parsed = new URL(trimmed);
+    if (!ALLOWED_CANONICAL_HOSTS.has(parsed.hostname) && !TYPO_HOSTS.has(parsed.hostname)) return null;
+    parsed.protocol = "https:";
+    parsed.hostname = "postspark.co";
+    parsed.port = "";
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return null;
+  }
+}

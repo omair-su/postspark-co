@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getSafeExplicitUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
+import { getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 const YT_SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
   "https://www.googleapis.com/auth/youtube.readonly",
@@ -587,7 +587,7 @@ function getXRedirectUri() {
   // Allow an explicit override so it EXACTLY matches whatever is registered in
   // the X developer portal ("Callback URI / Redirect URL"). If not set, derive
   // from PUBLIC_BASE_URL.
-  const explicit = getSafeExplicitUrl(process.env.X_REDIRECT_URI);
+  const explicit = getCorrectedCanonicalUrl(process.env.X_REDIRECT_URI);
   if (explicit) return explicit;
   const base = getSafePublicBaseUrl();
   return `${base.replace(/\/$/, "")}/api/public/oauth/x/callback`;
