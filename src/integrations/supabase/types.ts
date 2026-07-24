@@ -1006,10 +1006,12 @@ export type Database = {
           id: string
           media_type: string | null
           media_url: string | null
+          media_urls: Json | null
           platform: string
           platform_post_id: string | null
           publish_error: string | null
           published_at: string | null
+          reply_text: string | null
           repurpose_job_id: string | null
           scheduled_for: string
           social_account_id: string | null
@@ -1027,10 +1029,12 @@ export type Database = {
           id?: string
           media_type?: string | null
           media_url?: string | null
+          media_urls?: Json | null
           platform?: string
           platform_post_id?: string | null
           publish_error?: string | null
           published_at?: string | null
+          reply_text?: string | null
           repurpose_job_id?: string | null
           scheduled_for: string
           social_account_id?: string | null
@@ -1048,10 +1052,12 @@ export type Database = {
           id?: string
           media_type?: string | null
           media_url?: string | null
+          media_urls?: Json | null
           platform?: string
           platform_post_id?: string | null
           publish_error?: string | null
           published_at?: string | null
+          reply_text?: string | null
           repurpose_job_id?: string | null
           scheduled_for?: string
           social_account_id?: string | null
