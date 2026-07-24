@@ -8,7 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const META_GRAPH_VERSION = "v21.0";
+const META_GRAPH_VERSION = "v25.0";
 const META_GRAPH = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
 
 const FB_SCOPES = [
