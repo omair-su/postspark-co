@@ -65,6 +65,7 @@ import { Route as FeaturesYoutubeToTweetsRouteImport } from './routes/features.y
 import { Route as FeaturesRepurposeBlogToSocialRouteImport } from './routes/features.repurpose-blog-to-social'
 import { Route as FeaturesLinkedinPostGeneratorRouteImport } from './routes/features.linkedin-post-generator'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as DebugFacebookAuthRouteImport } from './routes/debug.facebook-auth'
 import { Route as DealsLifetimeRouteImport } from './routes/deals.lifetime'
 import { Route as DashboardThumbnailRouteImport } from './routes/dashboard.thumbnail'
 import { Route as DashboardTestimonialsAdminRouteImport } from './routes/dashboard.testimonials-admin'
@@ -438,6 +439,11 @@ const FeaturesLinkedinPostGeneratorRoute =
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebugFacebookAuthRoute = DebugFacebookAuthRouteImport.update({
+  id: '/debug/facebook-auth',
+  path: '/debug/facebook-auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DealsLifetimeRoute = DealsLifetimeRouteImport.update({
@@ -934,6 +940,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
   '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/deals/lifetime': typeof DealsLifetimeRoute
+  '/debug/facebook-auth': typeof DebugFacebookAuthRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -1071,6 +1078,7 @@ export interface FileRoutesByTo {
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
   '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/deals/lifetime': typeof DealsLifetimeRoute
+  '/debug/facebook-auth': typeof DebugFacebookAuthRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -1210,6 +1218,7 @@ export interface FileRoutesById {
   '/dashboard/testimonials-admin': typeof DashboardTestimonialsAdminRoute
   '/dashboard/thumbnail': typeof DashboardThumbnailRoute
   '/deals/lifetime': typeof DealsLifetimeRoute
+  '/debug/facebook-auth': typeof DebugFacebookAuthRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/features/linkedin-post-generator': typeof FeaturesLinkedinPostGeneratorRoute
   '/features/repurpose-blog-to-social': typeof FeaturesRepurposeBlogToSocialRoute
@@ -1350,6 +1359,7 @@ export interface FileRouteTypes {
     | '/dashboard/testimonials-admin'
     | '/dashboard/thumbnail'
     | '/deals/lifetime'
+    | '/debug/facebook-auth'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -1487,6 +1497,7 @@ export interface FileRouteTypes {
     | '/dashboard/testimonials-admin'
     | '/dashboard/thumbnail'
     | '/deals/lifetime'
+    | '/debug/facebook-auth'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -1625,6 +1636,7 @@ export interface FileRouteTypes {
     | '/dashboard/testimonials-admin'
     | '/dashboard/thumbnail'
     | '/deals/lifetime'
+    | '/debug/facebook-auth'
     | '/email/unsubscribe'
     | '/features/linkedin-post-generator'
     | '/features/repurpose-blog-to-social'
@@ -1732,6 +1744,7 @@ export interface RootRouteChildren {
   CallbacksXRoute: typeof CallbacksXRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   DealsLifetimeRoute: typeof DealsLifetimeRoute
+  DebugFacebookAuthRoute: typeof DebugFacebookAuthRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   FeaturesLinkedinPostGeneratorRoute: typeof FeaturesLinkedinPostGeneratorRoute
   FeaturesRepurposeBlogToSocialRoute: typeof FeaturesRepurposeBlogToSocialRoute
@@ -2190,6 +2203,13 @@ declare module '@tanstack/react-router' {
       path: '/email/unsubscribe'
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debug/facebook-auth': {
+      id: '/debug/facebook-auth'
+      path: '/debug/facebook-auth'
+      fullPath: '/debug/facebook-auth'
+      preLoaderRoute: typeof DebugFacebookAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deals/lifetime': {
@@ -2890,6 +2910,7 @@ const rootRouteChildren: RootRouteChildren = {
   CallbacksXRoute: CallbacksXRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
   DealsLifetimeRoute: DealsLifetimeRoute,
+  DebugFacebookAuthRoute: DebugFacebookAuthRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   FeaturesLinkedinPostGeneratorRoute: FeaturesLinkedinPostGeneratorRoute,
   FeaturesRepurposeBlogToSocialRoute: FeaturesRepurposeBlogToSocialRoute,

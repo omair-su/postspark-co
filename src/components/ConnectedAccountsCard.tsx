@@ -88,12 +88,36 @@ export function ConnectedAccountsCard() {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (res?.error) {
+        if (platform === "facebook") {
+          console.error("[Meta OAuth] server returned an OAuth setup error", res);
+        }
         toast.error(res.error);
         return;
       }
       if (res?.url) {
+        if (platform === "facebook") {
+          const redirectUri = res?.diagnostics?.redirectUri || new URL(res.url).searchParams.get("redirect_uri");
+          console.info("[Meta OAuth] complete OAuth URL before redirect", res.url);
+          console.info("[Meta OAuth] redirect_uri", redirectUri);
+          console.info("[Meta OAuth] callback URI", res?.diagnostics?.callbackUri || redirectUri);
+          console.info("[Meta OAuth] auth provider", res?.diagnostics?.authProvider || "Custom Meta Graph OAuth");
+          console.info("[Meta OAuth] current environment", res?.diagnostics?.currentEnvironment || null);
+          console.info("[Meta OAuth] redirect checks", res?.diagnostics?.checks || null);
+          if (res?.diagnostics?.checks?.exactMatchToConfiguredMetaRedirect === false) {
+            console.error("[Meta OAuth] redirect_uri mismatch", {
+              actual: res.diagnostics.redirectUri,
+              expected: res.diagnostics.configuredMetaRedirectUri,
+              checks: res.diagnostics.checks,
+            });
+          }
+        }
         window.location.href = res.url;
       }
+    } catch (e: any) {
+      if (platform === "facebook") {
+        console.error("[Meta OAuth] failed before redirect", e);
+      }
+      toast.error(e?.message || "Could not start connection");
     } finally {
       setConnecting(null);
     }
