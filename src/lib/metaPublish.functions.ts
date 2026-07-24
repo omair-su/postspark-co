@@ -8,7 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const META_GRAPH_VERSION = "v21.0";
+const META_GRAPH_VERSION = "v25.0";
 const META_GRAPH = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
 
 const FB_SCOPES = [
@@ -75,7 +75,7 @@ export const getMetaAuthUrl = createServerFn({ method: "POST" })
       const sig = await signState(payload);
       const state = `${payload}.${sig}`;
 
-      const url = new URL("https://www.facebook.com/v21.0/dialog/oauth");
+      const url = new URL(`https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth`);
       url.searchParams.set("client_id", appId);
       url.searchParams.set("redirect_uri", getMetaRedirectUri());
       url.searchParams.set("response_type", "code");
