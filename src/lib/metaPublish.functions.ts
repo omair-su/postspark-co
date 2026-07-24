@@ -75,7 +75,7 @@ export const getMetaAuthUrl = createServerFn({ method: "POST" })
       const sig = await signState(payload);
       const state = `${payload}.${sig}`;
 
-      const url = new URL("https://www.facebook.com/v21.0/dialog/oauth");
+      const url = new URL(`https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth`);
       url.searchParams.set("client_id", appId);
       url.searchParams.set("redirect_uri", getMetaRedirectUri());
       url.searchParams.set("response_type", "code");
