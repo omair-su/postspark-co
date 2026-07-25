@@ -6,6 +6,8 @@ import {
   getLinkedInAuthUrl,
   getXAuthUrl,
   disconnectSocial,
+  getXIntegrationDebug,
+  testXPublish,
 } from "@/lib/socialPublish.functions";
 import { getMetaAuthUrl, disconnectMeta } from "@/lib/metaPublish.functions";
 import { toast } from "sonner";
@@ -20,25 +22,53 @@ type Account = {
 
 type Platform = "tiktok" | "linkedin" | "twitter" | "facebook";
 
+type XDebug = {
+  connected: boolean;
+  username: string | null;
+  accountId: string | null;
+  scopes: string[];
+  missingScopes: string[];
+  scopeStatus: "ok" | "missing" | "not_connected";
+  tokenExpiresAt: string | null;
+  connectionUpdatedAt: string | null;
+  lastPublishAttempt: {
+    action?: string | null;
+    status?: string | null;
+    error_message?: string | null;
+    created_at?: string | null;
+  } | null;
+  lastErrorCode: string | null;
+  lastErrorMessage: string | null;
+};
+
 export function ConnectedAccountsCard() {
   const { session } = useAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<Platform | null>(null);
   const [disconnecting, setDisconnecting] = useState<Platform | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [xDebug, setXDebug] = useState<XDebug | null>(null);
+  const [xDebugLoading, setXDebugLoading] = useState(false);
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { tiktok?: string; linkedin?: string; x?: string; facebook?: string };
 
   const refresh = async () => {
     if (!session) return;
     setLoading(true);
+    setXDebugLoading(true);
     try {
       const res = await getConnectedSocials({
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       setAccounts((res.accounts as Account[]) || []);
+      const debug = await getXIntegrationDebug({
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      setXDebug(debug as XDebug);
     } finally {
       setLoading(false);
+      setXDebugLoading(false);
     }
   };
 
@@ -120,6 +150,23 @@ export function ConnectedAccountsCard() {
       toast.error(e?.message || "Could not start connection");
     } finally {
       setConnecting(null);
+    }
+  };
+
+  const handleTestPublish = async () => {
+    if (!session) return;
+    setTesting(true);
+    try {
+      const res: any = await testXPublish({
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res?.error) toast.error(res.error);
+      else toast.success("Test tweet posted successfully");
+      refresh();
+    } catch (e: any) {
+      toast.error(e?.message || "Test post failed");
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -214,6 +261,15 @@ export function ConnectedAccountsCard() {
                 Manage
               </Link>
             )}
+            {platform === "twitter" && (
+              <button
+                onClick={handleTestPublish}
+                disabled={testing}
+                className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+              >
+                {testing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Test Post"}
+              </button>
+            )}
             <button
               onClick={() => handleDisconnect(platform, label)}
               disabled={disconnecting === platform}
@@ -278,6 +334,51 @@ export function ConnectedAccountsCard() {
         account={twitter}
         accentClass="bg-black hover:bg-neutral-800"
       />
+      {twitter && (
+        <div className="mt-2 rounded-lg border border-border bg-background p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">X debug</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
+                {xDebugLoading ? "Checking connection…" : xDebug?.scopeStatus === "ok" ? "Ready to publish" : "Reconnect recommended"}
+              </p>
+            </div>
+            <button
+              onClick={handleTestPublish}
+              disabled={testing || xDebugLoading}
+              className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+            >
+              {testing ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+              Test Publish
+            </button>
+          </div>
+          <div className="mt-3 grid gap-2 text-[11px] text-muted-foreground sm:grid-cols-2">
+            <div>
+              <span className="text-foreground">Scopes:</span>{" "}
+              {xDebug?.scopes?.length ? xDebug.scopes.join(", ") : "none reported"}
+            </div>
+            <div>
+              <span className="text-foreground">Missing:</span>{" "}
+              {xDebug?.missingScopes?.length ? xDebug.missingScopes.join(", ") : "none"}
+            </div>
+            <div>
+              <span className="text-foreground">Token expires:</span>{" "}
+              {xDebug?.tokenExpiresAt ? new Date(xDebug.tokenExpiresAt).toLocaleString() : "unknown"}
+            </div>
+            <div>
+              <span className="text-foreground">Last attempt:</span>{" "}
+              {xDebug?.lastPublishAttempt?.created_at
+                ? `${xDebug.lastPublishAttempt.status || "unknown"} · ${new Date(xDebug.lastPublishAttempt.created_at).toLocaleString()}`
+                : "none"}
+            </div>
+          </div>
+          {xDebug?.lastErrorMessage ? (
+            <p className="mt-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              {xDebug.lastErrorCode ? `${xDebug.lastErrorCode}: ` : ""}{xDebug.lastErrorMessage}
+            </p>
+          ) : null}
+        </div>
+      )}
       <Row
         platform="facebook"
         label="Facebook & Instagram"

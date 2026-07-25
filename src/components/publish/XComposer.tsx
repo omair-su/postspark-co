@@ -23,6 +23,10 @@ import { XPostPreview } from "./XPostPreview";
 const X_LIMIT_STANDARD = 280;
 const URL_REGEX = /https?:\/\/\S+/gi;
 
+function getXWeightedLength(value: string) {
+  return value.replace(URL_REGEX, "x".repeat(23)).length;
+}
+
 interface Props {
   initialText?: string;
   initialMedia?: string[];
@@ -84,7 +88,8 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     return { firstText: stripped, threadReply: auto };
   }, [threadMode, hasUrl, text, replyText, detectedUrls]);
 
-  const charCount = firstText.length;
+  const charCount = getXWeightedLength(firstText);
+  const replyCharCount = getXWeightedLength(threadReply || "");
   const overLimit = charCount > X_LIMIT_STANDARD;
   const nearLimit = charCount > X_LIMIT_STANDARD - 20 && !overLimit;
   const canSubmit =
@@ -92,7 +97,7 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
     connection.connected &&
     firstText.trim().length > 0 &&
     !overLimit &&
-    (!threadReply || threadReply.length <= 280);
+    (!threadReply || replyCharCount <= X_LIMIT_STANDARD);
 
   const handleConnect = async () => {
     try {
@@ -246,7 +251,7 @@ export function XComposer({ initialText = "", initialMedia = [], repurposeJobId 
                 className="mt-1 resize-none"
               />
               <div className="mt-1 text-right text-[11px] text-muted-foreground">
-                {(replyText || `More: ${detectedUrls[0]}`).length}/280
+                {getXWeightedLength(replyText || `More: ${detectedUrls[0]}`)}/280
               </div>
             </div>
           ) : null}
