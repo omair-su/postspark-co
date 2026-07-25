@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { getThreadsAuthUrl, disconnectMeta } from "@/lib/metaPublish.functions";
 import { toast } from "sonner";
 import { AtSign, ArrowRight, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 
@@ -24,31 +25,66 @@ function ThreadsSettings() {
   const [threadsAcct, setThreadsAcct] = useState<any>(null);
   const [igLinked, setIgLinked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+
+  const authHeaders = session ? { headers: { Authorization: `Bearer ${session.access_token}` } } : ({} as any);
+
+  const refresh = async () => {
+    if (!user) return;
+    setLoading(true);
+    const [t, p] = await Promise.all([
+      supabase
+        .from("social_accounts")
+        .select("id, platform_user_id, platform_username, scopes, token_expires_at, metadata")
+        .eq("user_id", user.id)
+        .eq("platform", "threads")
+        .maybeSingle(),
+      supabase
+        .from("social_pages")
+        .select("instagram_business_account_id")
+        .eq("user_id", user.id)
+        .eq("platform", "facebook")
+        .not("instagram_business_account_id", "is", null)
+        .limit(1),
+    ]);
+    setThreadsAcct(t.data);
+    setIgLinked((p.data || []).length > 0);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      setLoading(true);
-      const [t, p] = await Promise.all([
-        supabase
-          .from("social_accounts")
-          .select("id, platform_user_id, platform_username, scopes, token_expires_at, metadata")
-          .eq("user_id", user.id)
-          .eq("platform", "threads")
-          .maybeSingle(),
-        supabase
-          .from("social_pages")
-          .select("instagram_business_account_id")
-          .eq("user_id", user.id)
-          .eq("platform", "facebook")
-          .not("instagram_business_account_id", "is", null)
-          .limit(1),
-      ]);
-      setThreadsAcct(t.data);
-      setIgLinked((p.data || []).length > 0);
-      setLoading(false);
-    })();
+    refresh();
+    // Show toast when returning from OAuth callback.
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("threads");
+    if (status === "connected") toast.success("Threads connected");
+    else if (status?.startsWith("error:")) toast.error(`Threads connect failed: ${decodeURIComponent(status.slice(6))}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, session]);
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      const r: any = await getThreadsAuthUrl({ ...authHeaders });
+      if (r?.error) throw new Error(r.error);
+      if (r?.url) window.location.href = r.url;
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to start Threads connect");
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!confirm("Disconnect Threads? (This also affects other Meta connections since they share credentials.)")) return;
+    try {
+      await disconnectMeta({ ...authHeaders });
+      toast.success("Disconnected");
+      refresh();
+    } catch (e: any) {
+      toast.error(e?.message || "Disconnect failed");
+    }
+  };
+
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -107,6 +143,12 @@ function ThreadsSettings() {
             >
               Publish a thread <ArrowRight className="h-4 w-4" />
             </Link>
+            <button
+              onClick={handleDisconnect}
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Disconnect
+            </button>
           </div>
         </section>
       ) : (
@@ -115,39 +157,47 @@ function ThreadsSettings() {
             <AlertCircle className="h-4 w-4" /> Threads is not connected yet
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Threads publishing needs the <code>threads_business_basic</code> and{" "}
-            <code>threads_content_publish</code> permissions, granted through the Instagram account linked to a
-            Facebook Page.
+            Threads uses its own OAuth flow (separate from Facebook Login). Click Connect below to authorize PostSpark
+            with the <code>threads_business_basic</code> and <code>threads_content_publish</code> permissions.
           </p>
 
-          <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-foreground">
-            <li>
-              Make sure an Instagram Business or Creator account is linked to a Facebook Page you manage.{" "}
-              <Link to="/dashboard/settings/instagram" className="text-primary underline">
-                Check Instagram
-              </Link>
-              .
-            </li>
-            <li>
-              In the Instagram app, open your profile → the "@" icon → follow the prompt to create/claim your Threads
-              profile. Toggle <b>Allow the Threads API</b> on for the linked account.
-            </li>
-            <li>
-              Come back and reauthorize Meta from{" "}
-              <Link to="/dashboard/settings/facebook" className="text-primary underline">
-                Facebook settings
-              </Link>{" "}
-              — Threads will attach automatically once available.
-            </li>
-          </ol>
+          <div className="mt-5">
+            <button
+              onClick={handleConnect}
+              disabled={connecting}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
+            >
+              {connecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <AtSign className="h-4 w-4" />}
+              Connect Threads
+            </button>
+          </div>
 
-          {!igLinked && (
-            <p className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
-              You don't have an Instagram account linked yet. Start there — Threads follows from it.
-            </p>
-          )}
+          <div className="mt-6 rounded-md border border-border bg-background/50 p-4 text-xs text-muted-foreground">
+            <p className="mb-2 font-medium text-foreground">Before connecting</p>
+            <ol className="list-decimal space-y-1 pl-5">
+              <li>
+                Make sure you have a Threads profile (create one in the Instagram app if needed) and toggle{" "}
+                <b>Allow the Threads API</b> on for that account.
+              </li>
+              <li>
+                An Instagram Business or Creator account linked to a Facebook Page is recommended for the full
+                publishing scope.{" "}
+                <Link to="/dashboard/settings/instagram" className="text-primary underline">
+                  Check Instagram
+                </Link>
+                .
+              </li>
+            </ol>
+            {!igLinked && (
+              <p className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-amber-300">
+                No Instagram account linked yet — you can still connect Threads, but full publishing requires an
+                IG-linked account.
+              </p>
+            )}
+          </div>
         </section>
       )}
+
 
       <section className="mt-6 rounded-xl border border-border bg-card p-4">
         <h3 className="mb-2 text-sm font-semibold text-foreground">Character limits</h3>

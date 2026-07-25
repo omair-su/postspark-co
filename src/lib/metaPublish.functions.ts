@@ -674,3 +674,152 @@ export const listPublishingLogs = createServerFn({ method: "POST" })
     if (error) return { logs: [], error: error.message };
     return { logs: logs || [] };
   });
+
+// ============================================================================
+// Threads OAuth (separate from Facebook Login — uses the Threads Graph API)
+// ============================================================================
+
+const THREADS_SCOPES = ["threads_business_basic", "threads_content_publish"].join(",");
+const THREADS_CALLBACK_PATH = "/auth/threads/callback";
+
+function getThreadsRedirectUri() {
+  const explicit = getCorrectedCanonicalUrl(process.env.THREADS_OAUTH_REDIRECT_URI);
+  if (explicit) return explicit;
+  return `${META_CANONICAL_BASE_URL}${THREADS_CALLBACK_PATH}`;
+}
+
+function getThreadsAppCredentials() {
+  // Prefer dedicated Threads credentials, but fall back to the Meta app when
+  // the same app is configured for Threads use case.
+  const appId = process.env.META_THREADS_APP_ID || process.env.META_APP_ID;
+  const appSecret = process.env.META_THREADS_APP_SECRET || process.env.META_APP_SECRET;
+  return { appId, appSecret };
+}
+
+/**
+ * Build the Threads consent URL. Threads OAuth is NOT part of Facebook Login —
+ * it lives at threads.net/oauth/authorize and requires its own approved
+ * redirect URI in the Meta app dashboard.
+ */
+export const getThreadsAuthUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    try {
+      const { appId } = getThreadsAppCredentials();
+      if (!appId) {
+        return {
+          error:
+            "Threads integration not configured yet — the workspace admin needs to add META_THREADS_APP_ID and META_THREADS_APP_SECRET (or ensure the existing Meta app has the Threads use case enabled).",
+        };
+      }
+      const ts = Date.now();
+      const nonce = Math.random().toString(36).slice(2, 10);
+      const payload = `${context.userId}.${ts}.${nonce}`;
+      const sig = await signState(payload);
+      const state = `${payload}.${sig}`;
+
+      const redirectUri = getThreadsRedirectUri();
+      const oauthUrl = new URL("https://threads.net/oauth/authorize");
+      oauthUrl.searchParams.set("client_id", appId);
+      oauthUrl.searchParams.set("redirect_uri", redirectUri);
+      oauthUrl.searchParams.set("response_type", "code");
+      oauthUrl.searchParams.set("scope", THREADS_SCOPES);
+      oauthUrl.searchParams.set("state", state);
+
+      console.info("[threads-oauth] URL", oauthUrl.toString());
+      console.info("[threads-oauth] redirect_uri", redirectUri);
+      return { url: oauthUrl.toString(), redirectUri };
+    } catch (e: any) {
+      console.error("[getThreadsAuthUrl] error", e);
+      return { error: e?.message || "Failed to build Threads auth URL" };
+    }
+  });
+
+/**
+ * Exchange the ?code from Threads for a long-lived access token, then upsert
+ * a platform=threads row in social_accounts.
+ */
+export async function completeThreadsOAuth(code: string, userId: string) {
+  const { appId, appSecret } = getThreadsAppCredentials();
+  const redirectUri = getThreadsRedirectUri();
+  if (!appId || !appSecret) {
+    console.error("[threads] OAuth callback failed: Threads app not configured", {
+      hasAppId: Boolean(appId),
+      hasAppSecret: Boolean(appSecret),
+      redirectUri,
+    });
+    return { ok: false as const, error: "Threads app not configured" };
+  }
+
+  // 1) Exchange code -> short-lived token
+  const tokenBody = new URLSearchParams({
+    client_id: appId,
+    client_secret: appSecret,
+    grant_type: "authorization_code",
+    redirect_uri: redirectUri,
+    code,
+  });
+  const tRes = await fetch("https://graph.threads.net/oauth/access_token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: tokenBody,
+  });
+  if (!tRes.ok) {
+    const txt = await tRes.text();
+    console.error("[threads] token exchange failed", tRes.status, txt);
+    return { ok: false as const, error: `Threads token exchange failed (${tRes.status})` };
+  }
+  const tJson: any = await tRes.json();
+  const shortToken = tJson.access_token as string;
+  const threadsUserId = tJson.user_id != null ? String(tJson.user_id) : undefined;
+  if (!shortToken) {
+    console.error("[threads] no access_token in response", tJson);
+    return { ok: false as const, error: "No access_token from Threads" };
+  }
+
+  // 2) Exchange short-lived -> long-lived (~60 days)
+  const llUrl = new URL("https://graph.threads.net/access_token");
+  llUrl.searchParams.set("grant_type", "th_exchange_token");
+  llUrl.searchParams.set("client_secret", appSecret);
+  llUrl.searchParams.set("access_token", shortToken);
+  const llRes = await fetch(llUrl.toString());
+  const llJson: any = llRes.ok ? await llRes.json() : { access_token: shortToken };
+  const longToken = (llJson.access_token as string) || shortToken;
+  const expiresIn = (llJson.expires_in as number) || 60 * 24 * 60 * 60;
+
+  // 3) Fetch profile (id + username)
+  const meRes = await fetch(
+    `https://graph.threads.net/v1.0/me?fields=id,username&access_token=${encodeURIComponent(longToken)}`,
+  );
+  const me: any = meRes.ok ? await meRes.json() : {};
+  const platformUserId = (me?.id as string | undefined) || threadsUserId;
+  if (!platformUserId) {
+    console.error("[threads] could not read Threads profile", me);
+    return { ok: false as const, error: "Could not read Threads profile" };
+  }
+
+  // 4) Upsert social_accounts row (platform=threads)
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error: upsertErr } = await supabaseAdmin
+    .from("social_accounts")
+    .upsert(
+      {
+        user_id: userId,
+        platform: "threads",
+        platform_user_id: platformUserId,
+        platform_username: me?.username || null,
+        access_token: longToken,
+        token_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
+        scopes: THREADS_SCOPES,
+        metadata: {},
+      },
+      { onConflict: "user_id,platform" as any },
+    );
+  if (upsertErr) {
+    console.error("[threads] upsert social_accounts failed", upsertErr);
+    return { ok: false as const, error: upsertErr.message };
+  }
+
+  return { ok: true as const, username: me?.username || null };
+}
+
