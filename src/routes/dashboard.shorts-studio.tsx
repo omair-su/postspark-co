@@ -16,6 +16,7 @@ import { withAIProgress } from "@/lib/aiProgress";
 import { supabase } from "@/integrations/supabase/client";
 import type { ShortsScript } from "@/lib/shorts.server";
 import { TRENDING_AUDIO, NICHES, type Niche, type Platform } from "@/lib/trendingAudio";
+import { ReelsSearchPanel } from "@/components/shorts/ReelsSearchPanel";
 
 export const Route = createFileRoute("/dashboard/shorts-studio")({
   validateSearch: (s: Record<string, unknown>) => ({ yt: typeof s.yt === "string" ? s.yt : undefined }),
