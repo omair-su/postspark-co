@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { getThreadsAuthUrl, disconnectMeta } from "@/lib/metaPublish.functions";
 import { toast } from "sonner";
 import { AtSign, ArrowRight, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 
@@ -24,31 +25,66 @@ function ThreadsSettings() {
   const [threadsAcct, setThreadsAcct] = useState<any>(null);
   const [igLinked, setIgLinked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+
+  const authHeaders = session ? { headers: { Authorization: `Bearer ${session.access_token}` } } : ({} as any);
+
+  const refresh = async () => {
+    if (!user) return;
+    setLoading(true);
+    const [t, p] = await Promise.all([
+      supabase
+        .from("social_accounts")
+        .select("id, platform_user_id, platform_username, scopes, token_expires_at, metadata")
+        .eq("user_id", user.id)
+        .eq("platform", "threads")
+        .maybeSingle(),
+      supabase
+        .from("social_pages")
+        .select("instagram_business_account_id")
+        .eq("user_id", user.id)
+        .eq("platform", "facebook")
+        .not("instagram_business_account_id", "is", null)
+        .limit(1),
+    ]);
+    setThreadsAcct(t.data);
+    setIgLinked((p.data || []).length > 0);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      setLoading(true);
-      const [t, p] = await Promise.all([
-        supabase
-          .from("social_accounts")
-          .select("id, platform_user_id, platform_username, scopes, token_expires_at, metadata")
-          .eq("user_id", user.id)
-          .eq("platform", "threads")
-          .maybeSingle(),
-        supabase
-          .from("social_pages")
-          .select("instagram_business_account_id")
-          .eq("user_id", user.id)
-          .eq("platform", "facebook")
-          .not("instagram_business_account_id", "is", null)
-          .limit(1),
-      ]);
-      setThreadsAcct(t.data);
-      setIgLinked((p.data || []).length > 0);
-      setLoading(false);
-    })();
+    refresh();
+    // Show toast when returning from OAuth callback.
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("threads");
+    if (status === "connected") toast.success("Threads connected");
+    else if (status?.startsWith("error:")) toast.error(`Threads connect failed: ${decodeURIComponent(status.slice(6))}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, session]);
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      const r: any = await getThreadsAuthUrl({ ...authHeaders });
+      if (r?.error) throw new Error(r.error);
+      if (r?.url) window.location.href = r.url;
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to start Threads connect");
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!confirm("Disconnect Threads? (This also affects other Meta connections since they share credentials.)")) return;
+    try {
+      await disconnectMeta({ ...authHeaders });
+      toast.success("Disconnected");
+      refresh();
+    } catch (e: any) {
+      toast.error(e?.message || "Disconnect failed");
+    }
+  };
+
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
