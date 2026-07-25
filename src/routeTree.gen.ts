@@ -114,6 +114,7 @@ import { Route as AlternativesBufferVsPostsparkRouteImport } from './routes/alte
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as DashboardSettingsWhatsappRouteImport } from './routes/dashboard.settings.whatsapp'
 import { Route as DashboardSettingsThreadsRouteImport } from './routes/dashboard.settings.threads'
 import { Route as DashboardSettingsInstagramRouteImport } from './routes/dashboard.settings.instagram'
 import { Route as DashboardSettingsFacebookRouteImport } from './routes/dashboard.settings.facebook'
@@ -704,6 +705,12 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSettingsWhatsappRoute =
+  DashboardSettingsWhatsappRouteImport.update({
+    id: '/whatsapp',
+    path: '/whatsapp',
+    getParentRoute: () => DashboardSettingsRoute,
+  } as any)
 const DashboardSettingsThreadsRoute =
   DashboardSettingsThreadsRouteImport.update({
     id: '/threads',
@@ -1047,6 +1054,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
+  '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1192,6 +1200,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
+  '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1339,6 +1348,7 @@ export interface FileRoutesById {
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
+  '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1487,6 +1497,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
+    | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1632,6 +1643,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
+    | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1778,6 +1790,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
+    | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -2638,6 +2651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/settings/whatsapp': {
+      id: '/dashboard/settings/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/dashboard/settings/whatsapp'
+      preLoaderRoute: typeof DashboardSettingsWhatsappRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
     '/dashboard/settings/threads': {
       id: '/dashboard/settings/threads'
       path: '/threads'
@@ -2933,12 +2953,14 @@ interface DashboardSettingsRouteChildren {
   DashboardSettingsFacebookRoute: typeof DashboardSettingsFacebookRoute
   DashboardSettingsInstagramRoute: typeof DashboardSettingsInstagramRoute
   DashboardSettingsThreadsRoute: typeof DashboardSettingsThreadsRoute
+  DashboardSettingsWhatsappRoute: typeof DashboardSettingsWhatsappRoute
 }
 
 const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
   DashboardSettingsFacebookRoute: DashboardSettingsFacebookRoute,
   DashboardSettingsInstagramRoute: DashboardSettingsInstagramRoute,
   DashboardSettingsThreadsRoute: DashboardSettingsThreadsRoute,
+  DashboardSettingsWhatsappRoute: DashboardSettingsWhatsappRoute,
 }
 
 const DashboardSettingsRouteWithChildren =
