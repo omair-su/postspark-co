@@ -429,6 +429,8 @@ function ShortsStudioPage() {
         </div>
       </div>
 
+      <ReelsSearchPanel />
+
       <div className="grid gap-3 sm:grid-cols-2">
         <Link to="/dashboard/shorts-series" className="shorts-feature-card group flex items-start gap-3 rounded-2xl p-4 transition">
           <div className="shorts-feature-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white">
