@@ -581,12 +581,16 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
 // X (Twitter) OAuth 2.0 with PKCE + Direct posting
 // ============================================================================
 
-const X_SCOPES = ["tweet.read", "users.read", "tweet.write", "offline.access", "media.write"].join(" ");
+const X_REQUIRED_SCOPES = ["tweet.read", "tweet.write", "users.read", "offline.access"] as const;
+const X_SCOPES = X_REQUIRED_SCOPES.join(" ");
+const X_PERMISSION_DENIED_MESSAGE =
+  "Your X account is connected but does not currently have write permission. Please reconnect X and grant posting access.";
+const X_RECONNECT_INSTRUCTIONS =
+  "X permission denied. Please go to Settings -> Integrations, disconnect X, and reconnect your account to grant write permissions.";
+const X_RECONNECT_ERROR = `${X_PERMISSION_DENIED_MESSAGE} ${X_RECONNECT_INSTRUCTIONS}`;
+const FREE_X_MONTHLY_LIMIT = 5;
 
 function getXRedirectUri() {
-  // Allow an explicit override so it EXACTLY matches whatever is registered in
-  // the X developer portal ("Callback URI / Redirect URL"). If not set, derive
-  // from PUBLIC_BASE_URL.
   const explicit = getCorrectedCanonicalUrl(process.env.X_REDIRECT_URI);
   if (explicit) return explicit;
   const base = getSafePublicBaseUrl();
@@ -604,7 +608,6 @@ async function sha256b64url(input: string): Promise<string> {
   return b64url(new Uint8Array(buf));
 }
 
-// State format for X (carries PKCE verifier): "x.<uid>.<ts>.<verifier>.<sig>"
 async function signXState(userId: string, ts: number, verifier: string): Promise<string> {
   const payload = `x.${userId}.${ts}.${verifier}`;
   const sig = await signState(payload);
@@ -624,22 +627,109 @@ export async function verifyXOAuthState(
   return { userId: uid, codeVerifier: verifier };
 }
 
+function splitOAuthScopes(scopes?: string | null): string[] {
+  return (scopes || "")
+    .split(/[\s,]+/)
+    .map((scope) => scope.trim())
+    .filter(Boolean);
+}
+
+function getMissingXScopes(scopes?: string | null): string[] {
+  const granted = new Set(splitOAuthScopes(scopes));
+  return X_REQUIRED_SCOPES.filter((scope) => !granted.has(scope));
+}
+
+function getXProviderMessage(status: number, body: any): string {
+  const errors = Array.isArray(body?.errors) ? body.errors : [];
+  const firstError = errors[0] || null;
+  return (
+    firstError?.message ||
+    firstError?.detail ||
+    body?.detail ||
+    body?.title ||
+    body?.error_description ||
+    body?.error ||
+    `X publish failed (${status})`
+  );
+}
+
+function getXProviderCode(body: any): string | null {
+  const errors = Array.isArray(body?.errors) ? body.errors : [];
+  const code = errors[0]?.code || body?.code || body?.error_code || null;
+  return code == null ? null : String(code);
+}
+
+function isXPermissionDenied(status: number, body: any): boolean {
+  const message = getXProviderMessage(status, body);
+  const code = getXProviderCode(body);
+  return status === 403 || code === "261" || /not permitted|permission denied|forbidden/i.test(message);
+}
+
+async function logXPublishAttempt(
+  supabase: any,
+  userId: string,
+  args: {
+    status: "success" | "failed";
+    action?: string;
+    text?: string;
+    scheduledPostId?: string | null;
+    responseStatus?: number | null;
+    responseBody?: any;
+    tweetId?: string | null;
+    errorMessage?: string | null;
+  },
+) {
+  try {
+    await supabase.from("publishing_logs").insert({
+      user_id: userId,
+      platform: "twitter",
+      action: args.action || "publish_tweet",
+      status: args.status,
+      scheduled_post_id: args.scheduledPostId || null,
+      request_payload: { text_preview: (args.text || "").slice(0, 80) },
+      response_payload: {
+        status: args.responseStatus ?? null,
+        body: args.responseBody ?? null,
+        tweet_id: args.tweetId ?? null,
+        error_code: getXProviderCode(args.responseBody),
+      },
+      error_message: args.errorMessage || null,
+    } as any);
+  } catch (error) {
+    console.warn("[x] publish log skipped", error);
+  }
+}
+
+async function postTweetWithToken(accessToken: string, body: any) {
+  const response = await fetch("https://api.x.com/2/tweets", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  let json: any = {};
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    json = { detail: text };
+  }
+  return { ok: response.ok, status: response.status, json };
+}
+
 export const getXAuthUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     try {
       const clientId = process.env.X_CLIENT_ID;
       if (!clientId) return { error: "X integration not configured (missing X_CLIENT_ID)." };
-
-      // PKCE
       const verifierBytes = new Uint8Array(48);
       crypto.getRandomValues(verifierBytes);
       const codeVerifier = b64url(verifierBytes);
       const codeChallenge = await sha256b64url(codeVerifier);
-
-      const ts = Date.now();
-      const state = await signXState(context.userId, ts, codeVerifier);
-
+      const state = await signXState(context.userId, Date.now(), codeVerifier);
       const url = new URL("https://twitter.com/i/oauth2/authorize");
       url.searchParams.set("response_type", "code");
       url.searchParams.set("client_id", clientId);
@@ -655,36 +745,52 @@ export const getXAuthUrl = createServerFn({ method: "POST" })
     }
   });
 
-/**
- * Refresh the X access token if it's expired.
- * Uses HTTP Basic auth (X requires client_id:client_secret) for confidential clients.
- */
 async function refreshXTokenIfNeeded(
   supabase: any,
   userId: string,
-): Promise<{ accessToken: string | null; error?: string }> {
+  options: { force?: boolean; validateScopes?: boolean } = {},
+): Promise<{ accessToken: string | null; error?: string; code?: string }> {
   const { data: acct } = await supabase
     .from("social_accounts")
-    .select("access_token, refresh_token, token_expires_at")
+    .select("access_token, refresh_token, token_expires_at, scopes")
     .eq("user_id", userId)
     .eq("platform", "twitter")
     .maybeSingle();
   if (!acct?.access_token) return { accessToken: null, error: "NOT_CONNECTED" };
 
+  if (options.validateScopes !== false) {
+    const missingScopes = getMissingXScopes(acct.scopes);
+    if (missingScopes.length > 0) {
+      return {
+        accessToken: null,
+        code: "X_RECONNECT_REQUIRED",
+        error: `X connection is missing ${missingScopes.join(", ")}. ${X_RECONNECT_INSTRUCTIONS}`,
+      };
+    }
+  }
+
   const needsRefresh =
+    options.force ||
     !acct.token_expires_at ||
     new Date(acct.token_expires_at).getTime() < Date.now() + 60_000;
   if (!needsRefresh) return { accessToken: acct.access_token };
-  if (!acct.refresh_token) return { accessToken: null, error: "Reconnect X (no refresh token)" };
+  if (!acct.refresh_token) {
+    return {
+      accessToken: null,
+      code: "X_RECONNECT_REQUIRED",
+      error: `X connection is missing a refresh token. ${X_RECONNECT_INSTRUCTIONS}`,
+    };
+  }
 
-  const clientId = process.env.X_CLIENT_ID!;
-  const clientSecret = process.env.X_CLIENT_SECRET!;
-  const basic = btoa(`${clientId}:${clientSecret}`);
+  const clientId = process.env.X_CLIENT_ID;
+  const clientSecret = process.env.X_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return { accessToken: null, error: "X integration is not configured." };
+
   const r = await fetch("https://api.x.com/2/oauth2/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${basic}`,
+      Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
@@ -695,7 +801,11 @@ async function refreshXTokenIfNeeded(
   if (!r.ok) {
     const txt = await r.text();
     console.error("X refresh failed", r.status, txt);
-    return { accessToken: null, error: "Reconnect X (refresh failed)" };
+    return {
+      accessToken: null,
+      code: "X_RECONNECT_REQUIRED",
+      error: `X token refresh failed. ${X_RECONNECT_INSTRUCTIONS}`,
+    };
   }
   const j: any = await r.json();
   const newAccess = j.access_token as string;
@@ -707,18 +817,14 @@ async function refreshXTokenIfNeeded(
       access_token: newAccess,
       refresh_token: newRefresh,
       token_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
+      scopes: j.scope || acct.scopes || X_SCOPES,
+      updated_at: new Date().toISOString(),
     })
     .eq("user_id", userId)
     .eq("platform", "twitter");
   return { accessToken: newAccess };
 }
 
-/**
- * Upload a single media file (image or video) to X via the v1.1 chunked
- * upload endpoint (INIT/APPEND/FINALIZE + STATUS polling). X's v2 media
- * upload uses the same INIT/APPEND/FINALIZE flow at /2/media/upload.
- * Returns the media_id_string.
- */
 async function uploadMediaToX(
   accessToken: string,
   fileBuf: ArrayBuffer,
@@ -727,21 +833,18 @@ async function uploadMediaToX(
   const isVideo = mimeType.startsWith("video/");
   const mediaCategory = isVideo ? "tweet_video" : "tweet_image";
   const base = "https://api.x.com/2/media/upload";
-
-  // INIT
-  const initBody = new URLSearchParams({
-    command: "INIT",
-    total_bytes: String(fileBuf.byteLength),
-    media_type: mimeType,
-    media_category: mediaCategory,
-  });
   const initRes = await fetch(base, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: initBody,
+    body: new URLSearchParams({
+      command: "INIT",
+      total_bytes: String(fileBuf.byteLength),
+      media_type: mimeType,
+      media_category: mediaCategory,
+    }),
   });
   if (!initRes.ok) {
     const txt = await initRes.text();
@@ -751,7 +854,6 @@ async function uploadMediaToX(
   const mediaId = initJson?.data?.id || initJson?.media_id_string;
   if (!mediaId) return { error: "X media INIT: no media_id" };
 
-  // APPEND (single chunk; small enough for this app's usage)
   const form = new FormData();
   form.set("command", "APPEND");
   form.set("media_id", mediaId);
@@ -767,7 +869,6 @@ async function uploadMediaToX(
     return { error: `X media APPEND failed (${appendRes.status}): ${txt.slice(0, 200)}` };
   }
 
-  // FINALIZE
   const finRes = await fetch(base, {
     method: "POST",
     headers: {
@@ -781,33 +882,67 @@ async function uploadMediaToX(
     return { error: `X media FINALIZE failed (${finRes.status}): ${txt.slice(0, 200)}` };
   }
   const finJson: any = await finRes.json();
-
-  // Poll processing_info for video
   let info = finJson?.data?.processing_info || finJson?.processing_info;
   let tries = 0;
   while (info && info.state && info.state !== "succeeded" && tries < 20) {
-    if (info.state === "failed") {
-      return { error: `X media processing failed: ${info?.error?.message || "unknown"}` };
-    }
+    if (info.state === "failed") return { error: `X media processing failed: ${info?.error?.message || "unknown"}` };
     const wait = Math.min(info.check_after_secs || 2, 10) * 1000;
-    await new Promise((r) => setTimeout(r, wait));
-    const sRes = await fetch(
-      `${base}?command=STATUS&media_id=${encodeURIComponent(mediaId)}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } },
-    );
+    await new Promise((resolve) => setTimeout(resolve, wait));
+    const sRes = await fetch(`${base}?command=STATUS&media_id=${encodeURIComponent(mediaId)}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
     if (!sRes.ok) break;
     const sJson: any = await sRes.json();
     info = sJson?.data?.processing_info || sJson?.processing_info;
     tries++;
   }
-
   return { mediaId };
 }
 
-/**
- * Publish a single tweet (text + optional media). Media URLs are fetched
- * server-side, uploaded to X, and attached to the tweet.
- */
+async function publishXBody(
+  supabase: any,
+  userId: string,
+  args: { body: any; text: string; scheduledPostId?: string | null; action?: string },
+) {
+  const token = await refreshXTokenIfNeeded(supabase, userId);
+  if (token.error || !token.accessToken) {
+    return { error: token.error === "NOT_CONNECTED" ? "X not connected. Connect in Settings." : token.error, code: token.code };
+  }
+
+  let postResult = await postTweetWithToken(token.accessToken, args.body);
+  if (!postResult.ok && postResult.status === 401) {
+    const refreshed = await refreshXTokenIfNeeded(supabase, userId, { force: true, validateScopes: false });
+    if (refreshed.accessToken) postResult = await postTweetWithToken(refreshed.accessToken, args.body);
+  }
+
+  if (!postResult.ok) {
+    const denied = isXPermissionDenied(postResult.status, postResult.json);
+    const error = denied ? X_RECONNECT_ERROR : getXProviderMessage(postResult.status, postResult.json);
+    await logXPublishAttempt(supabase, userId, {
+      status: "failed",
+      action: args.action,
+      text: args.text,
+      scheduledPostId: args.scheduledPostId,
+      responseStatus: postResult.status,
+      responseBody: postResult.json,
+      errorMessage: error,
+    });
+    return { error, code: denied ? "X_PERMISSION_DENIED" : getXProviderCode(postResult.json) || "X_PUBLISH_FAILED" };
+  }
+
+  const tweetId = postResult.json?.data?.id as string | undefined;
+  await logXPublishAttempt(supabase, userId, {
+    status: "success",
+    action: args.action,
+    text: args.text,
+    scheduledPostId: args.scheduledPostId,
+    responseStatus: postResult.status,
+    responseBody: postResult.json,
+    tweetId: tweetId || null,
+  });
+  return { tweetId };
+}
+
 export const publishToX = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -821,8 +956,6 @@ export const publishToX = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
       const { supabase, userId } = context;
-
-      // Skip gating for reply tweets in a thread (already counted the parent).
       if (!data.inReplyToTweetId) {
         const gate = await checkFreeTierXLimit(supabase, userId);
         if (gate.blocked) {
@@ -833,51 +966,30 @@ export const publishToX = createServerFn({ method: "POST" })
         }
       }
 
-      const { accessToken, error: refreshErr } = await refreshXTokenIfNeeded(supabase, userId);
-      if (refreshErr || !accessToken) {
-        return { error: refreshErr === "NOT_CONNECTED" ? "X not connected. Connect in Settings." : refreshErr };
+      const token = await refreshXTokenIfNeeded(supabase, userId);
+      if (token.error || !token.accessToken) {
+        return { error: token.error === "NOT_CONNECTED" ? "X not connected. Connect in Settings." : token.error, code: token.code };
       }
 
-      // Upload each media URL to X
       const mediaIds: string[] = [];
       for (const url of data.mediaUrls) {
         const r = await fetch(url);
         if (!r.ok) return { error: `Could not fetch media at ${url.slice(0, 80)}` };
         const buf = await r.arrayBuffer();
         const mimeType = r.headers.get("content-type") || "image/jpeg";
-        if (buf.byteLength > 15 * 1024 * 1024) {
-          return { error: "Media exceeds 15MB limit" };
-        }
-        const up = await uploadMediaToX(accessToken, buf, mimeType);
+        if (buf.byteLength > 15 * 1024 * 1024) return { error: "Media exceeds 15MB limit" };
+        const up = await uploadMediaToX(token.accessToken, buf, mimeType);
         if (up.error || !up.mediaId) return { error: up.error || "X media upload failed" };
         mediaIds.push(up.mediaId);
       }
 
-      // Post tweet
       const body: any = { text: data.text.slice(0, 4000) };
       if (mediaIds.length) body.media = { media_ids: mediaIds };
       if (data.inReplyToTweetId) body.reply = { in_reply_to_tweet_id: data.inReplyToTweetId };
 
-      const postRes = await fetch("https://api.x.com/2/tweets", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      const postJson: any = await postRes.json().catch(() => ({}));
-      if (!postRes.ok) {
-        const rawMsg = postJson?.detail || postJson?.title || `X publish failed (${postRes.status})`;
-        const msg = /not permitted|forbidden|unauthorized/i.test(rawMsg)
-          ? "X rejected this publish because the connected X developer app does not currently have write permission for this account. Reconnect X after enabling Read and write permissions and confirming the app has posting access."
-          : rawMsg;
-        console.error("X publish error", postRes.status, postJson);
-        return { error: msg };
-      }
-      const tweetId = postJson?.data?.id as string | undefined;
+      const out = await publishXBody(supabase, userId, { body, text: data.text });
+      if (out.error || !out.tweetId) return out.error ? out : { error: "X publish failed" };
 
-      // Get username for the tweet URL
       const { data: acctRow } = await supabase
         .from("social_accounts")
         .select("platform_username")
@@ -885,7 +997,7 @@ export const publishToX = createServerFn({ method: "POST" })
         .eq("platform", "twitter")
         .maybeSingle();
       const uname = (acctRow?.platform_username || "i").replace(/^@/, "");
-      const tweetUrl = tweetId ? `https://x.com/${uname}/status/${tweetId}` : null;
+      const tweetUrl = `https://x.com/${uname}/status/${out.tweetId}`;
 
       await supabase.from("scheduled_posts").insert({
         user_id: userId,
@@ -894,40 +1006,27 @@ export const publishToX = createServerFn({ method: "POST" })
         published_at: new Date().toISOString(),
         content: data.text.slice(0, 3000),
         title: data.text.slice(0, 80),
-        platform_post_id: tweetId,
+        platform_post_id: out.tweetId,
         media_url: tweetUrl || data.mediaUrls[0] || null,
         media_type: data.mediaUrls[0] ? "image" : null,
         repurpose_job_id: data.repurposeJobId,
         scheduled_for: new Date().toISOString(),
       } as any);
 
-      return { ok: true, tweetId, url: tweetUrl };
+      return { ok: true, tweetId: out.tweetId, url: tweetUrl };
     } catch (e: any) {
       console.error("[publishToX] error:", e);
       return { error: e?.message || "Failed to publish to X" };
     }
   });
 
-/**
- * Schedule an X post. Stored in scheduled_posts; the cron worker will
- * pick it up and call publishToX at the scheduled time.
- */
-// Free-tier limit on total X posts scheduled/published per calendar month.
-const FREE_X_MONTHLY_LIMIT = 5;
-
 async function checkFreeTierXLimit(
   supabase: any,
   userId: string,
 ): Promise<{ blocked: boolean; used: number; limit: number; plan: string }> {
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("plan")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("plan").eq("user_id", userId).maybeSingle();
   const plan = profile?.plan || "free";
-  if (plan === "pro" || plan === "agency") {
-    return { blocked: false, used: 0, limit: -1, plan };
-  }
+  if (plan === "pro" || plan === "agency") return { blocked: false, used: 0, limit: -1, plan };
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
@@ -944,16 +1043,78 @@ async function checkFreeTierXLimit(
 
 export const getXUsage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => checkFreeTierXLimit(context.supabase, context.userId));
+
+export const getXIntegrationDebug = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    return await checkFreeTierXLimit(context.supabase, context.userId);
+    const { data: account } = await context.supabase
+      .from("social_accounts")
+      .select("platform_username, platform_user_id, scopes, token_expires_at, updated_at")
+      .eq("user_id", context.userId)
+      .eq("platform", "twitter")
+      .maybeSingle();
+    const { data: lastLog } = await context.supabase
+      .from("publishing_logs")
+      .select("action, status, error_message, response_payload, created_at")
+      .eq("user_id", context.userId)
+      .eq("platform", "twitter")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const missingScopes = getMissingXScopes(account?.scopes);
+    return {
+      connected: !!account,
+      username: account?.platform_username || null,
+      accountId: account?.platform_user_id || null,
+      scopes: splitOAuthScopes(account?.scopes),
+      missingScopes,
+      scopeStatus: account ? (missingScopes.length ? "missing" : "ok") : "not_connected",
+      tokenExpiresAt: account?.token_expires_at || null,
+      connectionUpdatedAt: account?.updated_at || null,
+      lastPublishAttempt: lastLog || null,
+      lastApiResponse: (lastLog?.response_payload as any) || null,
+      lastErrorCode: getXProviderCode((lastLog?.response_payload as any)?.body),
+      lastErrorMessage: lastLog?.error_message || null,
+    };
+  });
+
+export const testXPublish = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const text = `PostSpark X connection test — ${new Date().toISOString().slice(0, 16)} UTC`;
+    const out = await publishXBody(supabase, userId, { body: { text }, text, action: "test_publish_tweet" });
+    if (out.error || !out.tweetId) return out.error ? out : { error: "X test publish failed" };
+    const { data: acctRow } = await supabase
+      .from("social_accounts")
+      .select("platform_username")
+      .eq("user_id", userId)
+      .eq("platform", "twitter")
+      .maybeSingle();
+    const username = (acctRow?.platform_username || "i").replace(/^@/, "");
+    const url = `https://x.com/${username}/status/${out.tweetId}`;
+    await supabase.from("scheduled_posts").insert({
+      user_id: userId,
+      platform: "twitter",
+      status: "published",
+      published_at: new Date().toISOString(),
+      content: text,
+      title: "X connection test",
+      platform_post_id: out.tweetId,
+      media_url: url,
+      scheduled_for: new Date().toISOString(),
+      tool: "x_test_publish",
+    } as any);
+    return { ok: true, tweetId: out.tweetId, url };
   });
 
 export const scheduleXPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      text: z.string().min(1).max(280),
-      replyText: z.string().min(1).max(280).optional(),
+      text: z.string().min(1).max(4000),
+      replyText: z.string().min(1).max(4000).optional(),
       mediaUrls: z.array(z.string().url()).max(4).default([]),
       scheduledFor: z.string().datetime(),
       repurposeJobId: z.string().uuid().optional(),
@@ -962,7 +1123,6 @@ export const scheduleXPost = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
       const { supabase, userId } = context;
-
       const gate = await checkFreeTierXLimit(supabase, userId);
       if (gate.blocked) {
         return {
@@ -977,8 +1137,8 @@ export const scheduleXPost = createServerFn({ method: "POST" })
           user_id: userId,
           platform: "twitter",
           status: "scheduled",
-          content: data.text.slice(0, 280),
-          reply_text: data.replyText ? data.replyText.slice(0, 280) : null,
+          content: data.text.slice(0, 4000),
+          reply_text: data.replyText ? data.replyText.slice(0, 4000) : null,
           title: data.text.slice(0, 80),
           media_url: data.mediaUrls[0] || null,
           media_urls: data.mediaUrls.length ? data.mediaUrls : null,
@@ -989,10 +1149,7 @@ export const scheduleXPost = createServerFn({ method: "POST" })
         } as any)
         .select()
         .single();
-      if (error) {
-        console.error("Schedule X post error:", error);
-        return { error: error.message };
-      }
+      if (error) return { error: error.message };
       return { ok: true, post: inserted };
     } catch (e: any) {
       console.error("[scheduleXPost] error:", e);
@@ -1000,20 +1157,17 @@ export const scheduleXPost = createServerFn({ method: "POST" })
     }
   });
 
-/**
- * Delete a tweet that was already published via PostSpark.
- */
 export const deleteXPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ tweetId: z.string().min(1).max(40) }).parse)
   .handler(async ({ data, context }) => {
     try {
       const { supabase, userId } = context;
-      const { accessToken, error: refreshErr } = await refreshXTokenIfNeeded(supabase, userId);
-      if (refreshErr || !accessToken) return { error: refreshErr || "Not connected" };
+      const token = await refreshXTokenIfNeeded(supabase, userId, { validateScopes: false });
+      if (token.error || !token.accessToken) return { error: token.error || "Not connected", code: token.code };
       const r = await fetch(`https://api.x.com/2/tweets/${encodeURIComponent(data.tweetId)}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${token.accessToken}` },
       });
       if (!r.ok) {
         const txt = await r.text();
@@ -1031,20 +1185,16 @@ export const deleteXPost = createServerFn({ method: "POST" })
     }
   });
 
-/**
- * Cancel a scheduled (not-yet-published) X post. Removes it from the queue.
- */
 export const cancelScheduledXPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
     try {
-      const { supabase, userId } = context;
-      const { error } = await supabase
+      const { error } = await context.supabase
         .from("scheduled_posts")
         .delete()
         .eq("id", data.id)
-        .eq("user_id", userId)
+        .eq("user_id", context.userId)
         .eq("platform", "twitter")
         .in("status", ["scheduled", "failed"]);
       if (error) return { error: error.message };
@@ -1054,9 +1204,6 @@ export const cancelScheduledXPost = createServerFn({ method: "POST" })
     }
   });
 
-/**
- * Re-queue a failed X post so the cron worker will retry it.
- */
 export const retryScheduledXPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -1067,17 +1214,12 @@ export const retryScheduledXPost = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
-      const { supabase, userId } = context;
       const when = data.scheduledFor || new Date(Date.now() + 60_000).toISOString();
-      const { error } = await supabase
+      const { error } = await context.supabase
         .from("scheduled_posts")
-        .update({
-          status: "scheduled",
-          scheduled_for: when,
-          publish_error: null,
-        })
+        .update({ status: "scheduled", scheduled_for: when, publish_error: null })
         .eq("id", data.id)
-        .eq("user_id", userId)
+        .eq("user_id", context.userId)
         .eq("platform", "twitter")
         .in("status", ["failed", "publishing"]);
       if (error) return { error: error.message };
