@@ -736,6 +736,45 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          account_connected: boolean
+          approval_request: boolean
+          post_failed: boolean
+          post_published: boolean
+          scheduled_reminder: boolean
+          subscription: boolean
+          updated_at: string
+          user_id: string
+          whatsapp_connected_at: string | null
+          whatsapp_phone: string | null
+        }
+        Insert: {
+          account_connected?: boolean
+          approval_request?: boolean
+          post_failed?: boolean
+          post_published?: boolean
+          scheduled_reminder?: boolean
+          subscription?: boolean
+          updated_at?: string
+          user_id: string
+          whatsapp_connected_at?: string | null
+          whatsapp_phone?: string | null
+        }
+        Update: {
+          account_connected?: boolean
+          approval_request?: boolean
+          post_failed?: boolean
+          post_published?: boolean
+          scheduled_reminder?: boolean
+          subscription?: boolean
+          updated_at?: string
+          user_id?: string
+          whatsapp_connected_at?: string | null
+          whatsapp_phone?: string | null
+        }
+        Relationships: []
+      }
       post_metrics: {
         Row: {
           comments: number | null
@@ -1529,6 +1568,42 @@ export type Database = {
           platform?: string
           processed?: boolean
           signature?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_notifications: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          message_id: string | null
+          payload: Json | null
+          recipient: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          message_id?: string | null
+          payload?: Json | null
+          recipient: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          message_id?: string | null
+          payload?: Json | null
+          recipient?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
