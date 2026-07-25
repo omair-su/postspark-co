@@ -54,6 +54,7 @@ const navGroups = [
   {
     label: "Plan & Publish",
     items: [
+      { to: "/dashboard/publishing", icon: Rocket, label: "Publishing Center" },
       { to: "/dashboard/publish", icon: Megaphone, label: "Publish to X" },
       { to: "/dashboard/publish/facebook", icon: Facebook, label: "Publish to Facebook" },
       { to: "/dashboard/publish/instagram", icon: Instagram, label: "Publish to Instagram" },
@@ -84,6 +85,7 @@ const navGroups = [
       { to: "/dashboard/stock-gallery", icon: ImageIcon, label: "Stock Photos & Video" },
       { to: "/dashboard/referrals", icon: Gift, label: "Refer & Earn" },
       { to: "/dashboard/billing", icon: CreditCard, label: "Billing" },
+      { to: "/dashboard/settings/whatsapp", icon: MessageSquare, label: "WhatsApp Alerts" },
       { to: "/dashboard/settings", icon: Settings, label: "Settings" },
     ],
   },

@@ -80,6 +80,7 @@ import { Route as DashboardSeoBlogRouteImport } from './routes/dashboard.seo-blo
 import { Route as DashboardRepurposeRouteImport } from './routes/dashboard.repurpose'
 import { Route as DashboardReplyGeneratorRouteImport } from './routes/dashboard.reply-generator'
 import { Route as DashboardReferralsRouteImport } from './routes/dashboard.referrals'
+import { Route as DashboardPublishingRouteImport } from './routes/dashboard.publishing'
 import { Route as DashboardPublishRouteImport } from './routes/dashboard.publish'
 import { Route as DashboardPodcastRouteImport } from './routes/dashboard.podcast'
 import { Route as DashboardLinkedinRouteImport } from './routes/dashboard.linkedin'
@@ -114,6 +115,7 @@ import { Route as AlternativesBufferVsPostsparkRouteImport } from './routes/alte
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as DashboardSettingsWhatsappRouteImport } from './routes/dashboard.settings.whatsapp'
 import { Route as DashboardSettingsThreadsRouteImport } from './routes/dashboard.settings.threads'
 import { Route as DashboardSettingsInstagramRouteImport } from './routes/dashboard.settings.instagram'
 import { Route as DashboardSettingsFacebookRouteImport } from './routes/dashboard.settings.facebook'
@@ -524,6 +526,11 @@ const DashboardReferralsRoute = DashboardReferralsRouteImport.update({
   path: '/referrals',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardPublishingRoute = DashboardPublishingRouteImport.update({
+  id: '/publishing',
+  path: '/publishing',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardPublishRoute = DashboardPublishRouteImport.update({
   id: '/publish',
   path: '/publish',
@@ -704,6 +711,12 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSettingsWhatsappRoute =
+  DashboardSettingsWhatsappRouteImport.update({
+    id: '/whatsapp',
+    path: '/whatsapp',
+    getParentRoute: () => DashboardSettingsRoute,
+  } as any)
 const DashboardSettingsThreadsRoute =
   DashboardSettingsThreadsRouteImport.update({
     id: '/threads',
@@ -973,6 +986,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
+  '/dashboard/publishing': typeof DashboardPublishingRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -1047,6 +1061,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
+  '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1118,6 +1133,7 @@ export interface FileRoutesByTo {
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
+  '/dashboard/publishing': typeof DashboardPublishingRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -1192,6 +1208,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
+  '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1265,6 +1282,7 @@ export interface FileRoutesById {
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
+  '/dashboard/publishing': typeof DashboardPublishingRoute
   '/dashboard/referrals': typeof DashboardReferralsRoute
   '/dashboard/reply-generator': typeof DashboardReplyGeneratorRoute
   '/dashboard/repurpose': typeof DashboardRepurposeRoute
@@ -1339,6 +1357,7 @@ export interface FileRoutesById {
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
+  '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1413,6 +1432,7 @@ export interface FileRouteTypes {
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
+    | '/dashboard/publishing'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -1487,6 +1507,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
+    | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1558,6 +1579,7 @@ export interface FileRouteTypes {
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
+    | '/dashboard/publishing'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -1632,6 +1654,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
+    | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1704,6 +1727,7 @@ export interface FileRouteTypes {
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
+    | '/dashboard/publishing'
     | '/dashboard/referrals'
     | '/dashboard/reply-generator'
     | '/dashboard/repurpose'
@@ -1778,6 +1802,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
+    | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-x'
@@ -2400,6 +2425,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardReferralsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/publishing': {
+      id: '/dashboard/publishing'
+      path: '/publishing'
+      fullPath: '/dashboard/publishing'
+      preLoaderRoute: typeof DashboardPublishingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/publish': {
       id: '/dashboard/publish'
       path: '/publish'
@@ -2637,6 +2669,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/settings/whatsapp': {
+      id: '/dashboard/settings/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/dashboard/settings/whatsapp'
+      preLoaderRoute: typeof DashboardSettingsWhatsappRouteImport
+      parentRoute: typeof DashboardSettingsRoute
     }
     '/dashboard/settings/threads': {
       id: '/dashboard/settings/threads'
@@ -2933,12 +2972,14 @@ interface DashboardSettingsRouteChildren {
   DashboardSettingsFacebookRoute: typeof DashboardSettingsFacebookRoute
   DashboardSettingsInstagramRoute: typeof DashboardSettingsInstagramRoute
   DashboardSettingsThreadsRoute: typeof DashboardSettingsThreadsRoute
+  DashboardSettingsWhatsappRoute: typeof DashboardSettingsWhatsappRoute
 }
 
 const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
   DashboardSettingsFacebookRoute: DashboardSettingsFacebookRoute,
   DashboardSettingsInstagramRoute: DashboardSettingsInstagramRoute,
   DashboardSettingsThreadsRoute: DashboardSettingsThreadsRoute,
+  DashboardSettingsWhatsappRoute: DashboardSettingsWhatsappRoute,
 }
 
 const DashboardSettingsRouteWithChildren =
@@ -2964,6 +3005,7 @@ interface DashboardRouteChildren {
   DashboardLinkedinRoute: typeof DashboardLinkedinRoute
   DashboardPodcastRoute: typeof DashboardPodcastRoute
   DashboardPublishRoute: typeof DashboardPublishRouteWithChildren
+  DashboardPublishingRoute: typeof DashboardPublishingRoute
   DashboardReferralsRoute: typeof DashboardReferralsRoute
   DashboardReplyGeneratorRoute: typeof DashboardReplyGeneratorRoute
   DashboardRepurposeRoute: typeof DashboardRepurposeRoute
@@ -3004,6 +3046,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardLinkedinRoute: DashboardLinkedinRoute,
   DashboardPodcastRoute: DashboardPodcastRoute,
   DashboardPublishRoute: DashboardPublishRouteWithChildren,
+  DashboardPublishingRoute: DashboardPublishingRoute,
   DashboardReferralsRoute: DashboardReferralsRoute,
   DashboardReplyGeneratorRoute: DashboardReplyGeneratorRoute,
   DashboardRepurposeRoute: DashboardRepurposeRoute,
