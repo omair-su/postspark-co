@@ -68,11 +68,9 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const today = new Date().toISOString().slice(0, 10);
-
         const urls: string[] = STATIC_ROUTES.map(
           (r) =>
-            `<url><loc>${SITE}${r.path}</loc><lastmod>${today}</lastmod><changefreq>${r.changefreq}</changefreq><priority>${r.priority}</priority></url>`
+            `<url><loc>${SITE}${r.path}</loc><changefreq>${r.changefreq}</changefreq><priority>${r.priority}</priority></url>`
         );
 
         try {
@@ -86,9 +84,11 @@ export const Route = createFileRoute("/sitemap.xml")({
 
           for (const j of jobs || []) {
             if (!j.public_slug) continue;
-            const lastmod = (j.created_at || new Date().toISOString()).slice(0, 10);
+            const lastmodPart = j.created_at
+              ? `<lastmod>${j.created_at.slice(0, 10)}</lastmod>`
+              : "";
             urls.push(
-              `<url><loc>${SITE}/gallery/${escapeXml(j.public_slug)}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>`
+              `<url><loc>${SITE}/gallery/${escapeXml(j.public_slug)}</loc>${lastmodPart}<changefreq>monthly</changefreq><priority>0.6</priority></url>`
             );
           }
         } catch (e) {
@@ -104,9 +104,12 @@ export const Route = createFileRoute("/sitemap.xml")({
             .limit(1000);
 
           for (const p of posts || []) {
-            const lastmod = (p.updated_at || p.published_at || new Date().toISOString()).slice(0, 10);
+            const authoritative = p.updated_at || p.published_at;
+            const lastmodPart = authoritative
+              ? `<lastmod>${authoritative.slice(0, 10)}</lastmod>`
+              : "";
             urls.push(
-              `<url><loc>${SITE}/blog/${escapeXml(p.slug)}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`
+              `<url><loc>${SITE}/blog/${escapeXml(p.slug)}</loc>${lastmodPart}<changefreq>monthly</changefreq><priority>0.7</priority></url>`
             );
           }
 
