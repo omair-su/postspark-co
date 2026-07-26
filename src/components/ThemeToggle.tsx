@@ -2,14 +2,16 @@ import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
 
 export function ThemeToggle() {
-  const [dark, setDark] = useState(true);
-
-  useEffect(() => {
-    const saved = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
-    // Default to dark unless the user has explicitly chosen light.
-    const isDark = saved !== "light";
-    setDark(isDark);
-  }, []);
+  // Read the saved preference synchronously so the write-effect below
+  // does NOT clobber a saved "light" value with the default "dark".
+  const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      return localStorage.getItem("theme") !== "light";
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     const root = document.documentElement;
