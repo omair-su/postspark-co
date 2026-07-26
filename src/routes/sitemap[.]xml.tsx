@@ -104,9 +104,12 @@ export const Route = createFileRoute("/sitemap.xml")({
             .limit(1000);
 
           for (const p of posts || []) {
-            const lastmod = (p.updated_at || p.published_at || new Date().toISOString()).slice(0, 10);
+            const authoritative = p.updated_at || p.published_at;
+            const lastmodPart = authoritative
+              ? `<lastmod>${authoritative.slice(0, 10)}</lastmod>`
+              : "";
             urls.push(
-              `<url><loc>${SITE}/blog/${escapeXml(p.slug)}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`
+              `<url><loc>${SITE}/blog/${escapeXml(p.slug)}</loc>${lastmodPart}<changefreq>monthly</changefreq><priority>0.7</priority></url>`
             );
           }
 
