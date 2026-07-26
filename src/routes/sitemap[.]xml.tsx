@@ -84,9 +84,11 @@ export const Route = createFileRoute("/sitemap.xml")({
 
           for (const j of jobs || []) {
             if (!j.public_slug) continue;
-            const lastmod = (j.created_at || new Date().toISOString()).slice(0, 10);
+            const lastmodPart = j.created_at
+              ? `<lastmod>${j.created_at.slice(0, 10)}</lastmod>`
+              : "";
             urls.push(
-              `<url><loc>${SITE}/gallery/${escapeXml(j.public_slug)}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>`
+              `<url><loc>${SITE}/gallery/${escapeXml(j.public_slug)}</loc>${lastmodPart}<changefreq>monthly</changefreq><priority>0.6</priority></url>`
             );
           }
         } catch (e) {
