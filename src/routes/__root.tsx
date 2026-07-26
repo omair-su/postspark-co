@@ -119,10 +119,15 @@ export const Route = createRootRoute({
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  // Server renders with `dark` pre-applied so the very first paint on a fresh
+  // visit matches our default. The inline script below runs synchronously
+  // before HeadContent (and therefore before the stylesheet <link> is parsed),
+  // reconciling the class + data-theme + color-scheme with any saved
+  // preference to eliminate FOUC / theme flash.
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" data-theme="dark" style={{ colorScheme: "dark" }}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light'){document.documentElement.classList.remove('dark');}else{document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}})();` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');var d=document.documentElement;var isLight=(t==='light');d.classList.toggle('dark',!isLight);d.classList.toggle('light',isLight);d.setAttribute('data-theme',isLight?'light':'dark');d.style.colorScheme=isLight?'light':'dark';}catch(e){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','dark');document.documentElement.style.colorScheme='dark';}})();` }} />
         <HeadContent />
         <noscript>
           <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
