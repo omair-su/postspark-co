@@ -96,24 +96,46 @@ function PublishingCenter() {
     if (selected.size === 0) return toast.error("Pick at least one platform");
     setPublishing(true);
     const results: string[] = [];
+    const fmt = (label: string, r: any) =>
+      r?.ok ? `${label}: ✅` : `${label}: ❌ ${r?.error || "failed"}`;
     for (const id of selected) {
       try {
         if (id === "x") {
           const r = await publishToX({ data: { text, mediaUrls: mediaUrl ? [mediaUrl] : [] }, ...authHeaders } as any);
-          results.push(`X: ${(r as any).success ? "✅" : "❌ " + ((r as any).error || "")}`);
+          // publishToX returns { ok: true, tweetId } or { error }
+          results.push(fmt("X", r));
         } else if (id === "facebook") {
-          const r = await publishToFacebook({ data: { text, mediaUrl: mediaUrl || undefined }, ...authHeaders } as any);
-          results.push(`Facebook: ${(r as any).success ? "✅" : "❌ " + ((r as any).error || "")}`);
+          const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
+          const r = await publishToFacebook({
+            data: {
+              message: text,
+              ...(mediaUrl && !isVideo ? { imageUrl: mediaUrl } : {}),
+            },
+            ...authHeaders,
+          } as any);
+          results.push(fmt("Facebook", r));
         } else if (id === "instagram") {
           if (!mediaUrl) {
             results.push("Instagram: ❌ media required");
             continue;
           }
-          const r = await publishToInstagram({ data: { caption: text, mediaUrl }, ...authHeaders } as any);
-          results.push(`Instagram: ${(r as any).success ? "✅" : "❌ " + ((r as any).error || "")}`);
+          const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
+          const r = await publishToInstagram({
+            data: { caption: text, mediaUrl, mediaType: isVideo ? "REELS" : "IMAGE" },
+            ...authHeaders,
+          } as any);
+          results.push(fmt("Instagram", r));
         } else if (id === "threads") {
-          const r = await publishToThreads({ data: { text, mediaUrl: mediaUrl || undefined }, ...authHeaders } as any);
-          results.push(`Threads: ${(r as any).success ? "✅" : "❌ " + ((r as any).error || "")}`);
+          const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
+          const r = await publishToThreads({
+            data: {
+              text,
+              mediaUrl: mediaUrl || undefined,
+              mediaType: mediaUrl ? (isVideo ? "VIDEO" : "IMAGE") : "TEXT",
+            },
+            ...authHeaders,
+          } as any);
+          results.push(fmt("Threads", r));
         } else {
           results.push(`${id}: not wired for direct publish yet — use dedicated page`);
         }
