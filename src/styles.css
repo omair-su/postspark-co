@@ -2989,3 +2989,22 @@ html:not(.dark) input::placeholder { color: #9090AA !important; }
 
 /* Loud dark hero fallback inside light mode: PostSpark logo text */
 html:not(.dark) .text-white.font-bold { color: #1A1A2E !important; }
+
+/* Light-mode search pill (top-nav command bar) */
+html:not(.dark) .dashboard-shell .ds-search-pill,
+html:not(.dark) .ds-search-pill {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(107,78,255,0.18) !important;
+  color: #4B4B6B !important;
+  box-shadow: 0 1px 3px rgba(107,78,255,0.06);
+}
+html:not(.dark) .ds-search-pill:hover {
+  background: #FAFAFF !important;
+  border-color: rgba(107,78,255,0.35) !important;
+  color: #6B4EFF !important;
+}
+html:not(.dark) .ds-search-pill kbd {
+  background: rgba(107,78,255,0.08) !important;
+  color: #6B4EFF !important;
+  border-color: rgba(107,78,255,0.2) !important;
+}
