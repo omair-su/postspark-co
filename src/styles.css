@@ -3008,3 +3008,41 @@ html:not(.dark) .ds-search-pill kbd {
   color: #6B4EFF !important;
   border-color: rgba(107,78,255,0.2) !important;
 }
+
+/* ==========================================================================
+   Slate-* & bg-black utilities audit — light mode remap
+   Covers surfaces used in Brand Kit, Brand Voice, Watermark controls,
+   Shorts Studio and dashboard modals that hard-code dark slate colors
+   without going through the .ds-canvas token layer.
+   ========================================================================== */
+html:not(.dark) .bg-slate-900,
+html:not(.dark) .bg-slate-900\/60,
+html:not(.dark) .bg-slate-900\/40,
+html:not(.dark) .bg-slate-950,
+html:not(.dark) .bg-slate-950\/80,
+html:not(.dark) .bg-slate-950\/60,
+html:not(.dark) .bg-slate-950\/40 { background-color: #FFFFFF !important; }
+html:not(.dark) .bg-slate-800,
+html:not(.dark) .bg-slate-800\/60 { background-color: #F5F3FF !important; }
+html:not(.dark) .border-slate-700,
+html:not(.dark) .border-slate-800,
+html:not(.dark) .border-slate-800\/80,
+html:not(.dark) .border-slate-800\/70 { border-color: rgba(107,78,255,0.14) !important; }
+html:not(.dark) .text-slate-100,
+html:not(.dark) .text-slate-200 { color: #1A1A2E !important; }
+html:not(.dark) .text-slate-300,
+html:not(.dark) .text-slate-400 { color: #6B6B85 !important; }
+html:not(.dark) .text-slate-600,
+html:not(.dark) .placeholder\:text-slate-600::placeholder { color: #9090AA !important; }
+html:not(.dark) .hover\:text-slate-200:hover { color: #1A1A2E !important; }
+html:not(.dark) .hover\:border-violet-500\/60:hover,
+html:not(.dark) .hover\:border-violet-500\/40:hover,
+html:not(.dark) .hover\:border-violet-500\/30:hover { border-color: rgba(107,78,255,0.55) !important; }
+
+/* Modal scrims — soften pure black on light. */
+html:not(.dark) .bg-black\/60,
+html:not(.dark) .bg-black\/50 { background-color: rgba(26,26,46,0.35) !important; }
+/* Small hard-black pills (e.g. TikTok/X label swatches) stay dark on purpose;
+   only remap the large text-white/font-bold logo case. */
+html:not(.dark) .bg-black\/70 { background-color: rgba(26,26,46,0.72) !important; }
+
