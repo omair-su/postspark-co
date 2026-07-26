@@ -2974,3 +2974,18 @@ html:not(.dark) .text-white\/90,
 html:not(.dark) .text-white\/80 { color: #1A1A2E !important; }
 html:not(.dark) .border-white\/10,
 html:not(.dark) .border-white\/20 { border-color: rgba(107,78,255,0.14) !important; }
+
+/* Global light-mode safety net for white/alpha utilities used
+   outside .ds-canvas (top nav search, sidebar toggle, etc.). */
+html:not(.dark) .bg-white\/5 { background-color: #FFFFFF !important; }
+html:not(.dark) .bg-white\/10 { background-color: #FAFAFF !important; }
+html:not(.dark) .hover\:bg-white\/10:hover { background-color: rgba(107,78,255,0.06) !important; }
+html:not(.dark) .text-white { color: #1A1A2E !important; }
+html:not(.dark) .text-white\/40,
+html:not(.dark) .text-white\/50 { color: #9090AA !important; }
+html:not(.dark) .hover\:text-white:hover { color: #5538EF !important; }
+html:not(.dark) .placeholder\:text-white\/40::placeholder,
+html:not(.dark) input::placeholder { color: #9090AA !important; }
+
+/* Loud dark hero fallback inside light mode: PostSpark logo text */
+html:not(.dark) .text-white.font-bold { color: #1A1A2E !important; }
