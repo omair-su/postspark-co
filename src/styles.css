@@ -3043,3 +3043,113 @@ html:not(.dark) .bg-black\/50 { background-color: rgba(26,26,46,0.35) !important
    only remap the large text-white/font-bold logo case. */
 html:not(.dark) .bg-black\/70 { background-color: rgba(26,26,46,0.72) !important; }
 
+/* ════════════════════════════════════════════════════════════════════
+   LIGHT MODE — Ice-Blue Card Rescue
+   Remap hardcoded dark hex/slate/gray card backgrounds → ice-blue
+   gradient (#E3EEF9 → #FFFFFF → #E6F2FF) so text stays legible.
+   Scoped strictly to html:not(.dark); dark mode is untouched.
+   ════════════════════════════════════════════════════════════════════ */
+
+html:not(.dark) {
+  --ice-card: linear-gradient(135deg, #E3EEF9 0%, #FFFFFF 45%, #E6F2FF 100%);
+  --ice-card-hover: linear-gradient(135deg, #DCE9F6 0%, #FFFFFF 45%, #DFEEFC 100%);
+  --ice-card-border: rgba(4, 30, 66, 0.08);
+  --ice-card-shadow: 0 1px 3px rgba(4, 30, 66, 0.05), 0 8px 24px -12px rgba(107, 78, 255, 0.10);
+  --ice-heading: #1F1F1F;
+  --ice-body: #1F1F1F;
+  --ice-muted: #4B5563;
+  --ice-upgrade-bg: #D3E3FD;
+  --ice-upgrade-fg: #041E42;
+}
+
+/* Remap hardcoded dark neutral card backgrounds → ice-blue gradient.
+   Brand-color buttons (bg-[#0A66C2] LinkedIn, bg-[#1877F2] FB,
+   bg-[#E4405F] IG, bg-[#FF0000] YT, bg-black/pure-black TikTok/X)
+   are NOT listed here, so they retain white text on brand color. */
+html:not(.dark) .bg-\[\#14142B\],
+html:not(.dark) .bg-\[\#17152A\],
+html:not(.dark) .bg-\[\#0B0A14\],
+html:not(.dark) .bg-\[\#0F172A\],
+html:not(.dark) .bg-\[\#111827\],
+html:not(.dark) .bg-\[\#1A1A2E\],
+html:not(.dark) .bg-\[\#1E1B4B\],
+html:not(.dark) .bg-\[\#1F2937\],
+html:not(.dark) .bg-\[\#161F33\],
+html:not(.dark) .bg-\[\#0B1020\],
+html:not(.dark) .bg-\[\#243047\],
+html:not(.dark) .bg-slate-900,
+html:not(.dark) .bg-slate-800,
+html:not(.dark) .bg-slate-700,
+html:not(.dark) .bg-gray-900,
+html:not(.dark) .bg-gray-800,
+html:not(.dark) .bg-neutral-900,
+html:not(.dark) .bg-zinc-900,
+html:not(.dark) .bg-zinc-800 {
+  background: var(--ice-card) !important;
+  color: var(--ice-body) !important;
+  border-color: var(--ice-card-border) !important;
+  box-shadow: var(--ice-card-shadow) !important;
+}
+
+/* Gradient-utility remaps (from-*/via-*/to-* using dark stops) */
+html:not(.dark) .bg-gradient-to-r.from-slate-900,
+html:not(.dark) .bg-gradient-to-r.from-\[\#0B0A14\],
+html:not(.dark) .bg-gradient-to-r.from-\[\#14142B\],
+html:not(.dark) .bg-gradient-to-r.from-\[\#17152A\],
+html:not(.dark) .bg-gradient-to-r.from-\[\#0F172A\],
+html:not(.dark) .bg-gradient-to-br.from-slate-900,
+html:not(.dark) .bg-gradient-to-br.from-\[\#0B0A14\],
+html:not(.dark) .bg-gradient-to-br.from-\[\#14142B\],
+html:not(.dark) .bg-gradient-to-br.from-\[\#17152A\],
+html:not(.dark) .bg-gradient-to-br.from-\[\#0F172A\],
+html:not(.dark) .bg-gradient-to-b.from-slate-900,
+html:not(.dark) .bg-gradient-to-b.from-\[\#0B0A14\],
+html:not(.dark) .bg-gradient-to-b.from-\[\#14142B\],
+html:not(.dark) .bg-gradient-to-tr.from-slate-900 {
+  background: var(--ice-card) !important;
+  color: var(--ice-body) !important;
+  border-color: var(--ice-card-border) !important;
+  box-shadow: var(--ice-card-shadow) !important;
+}
+
+/* Text-color rescue inside remapped cards — force dark ink so
+   originally-white text stays legible on the ice-blue surface. */
+html:not(.dark) :is(.bg-\[\#14142B\], .bg-\[\#17152A\], .bg-\[\#0B0A14\], .bg-\[\#0F172A\], .bg-\[\#111827\], .bg-\[\#1A1A2E\], .bg-\[\#1E1B4B\], .bg-\[\#1F2937\], .bg-\[\#161F33\], .bg-\[\#0B1020\], .bg-slate-900, .bg-slate-800, .bg-gray-900, .bg-gray-800, .bg-neutral-900, .bg-zinc-900, .bg-zinc-800)
+  :is(.text-white, .text-white\/90, .text-white\/80, .text-white\/70, .text-white\/60,
+      .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400,
+      .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400,
+      .text-neutral-100, .text-neutral-200, .text-neutral-300) {
+  color: var(--ice-body) !important;
+}
+html:not(.dark) :is(.bg-\[\#14142B\], .bg-\[\#17152A\], .bg-\[\#0B0A14\], .bg-\[\#0F172A\], .bg-\[\#111827\], .bg-\[\#1A1A2E\], .bg-\[\#1E1B4B\], .bg-\[\#161F33\], .bg-slate-900, .bg-slate-800, .bg-gray-900, .bg-gray-800)
+  :is(.text-white\/50, .text-white\/40, .text-white\/30,
+      .text-slate-500, .text-slate-600,
+      .text-gray-500, .text-gray-600,
+      .text-neutral-500) {
+  color: var(--ice-muted) !important;
+}
+
+/* Force headings inside dashboard/canvas to charcoal in light mode */
+html:not(.dark) .dashboard-shell :is(h1, h2, h3),
+html:not(.dark) .ds-canvas :is(h1, h2, h3) {
+  color: var(--ice-heading);
+}
+
+/* Upgrade pill — soft pastel blue container, deep navy ink */
+html:not(.dark) [data-upgrade-pill],
+html:not(.dark) .ds-upgrade-pill {
+  background: var(--ice-upgrade-bg) !important;
+  color: var(--ice-upgrade-fg) !important;
+  border-color: rgba(4, 30, 66, 0.12) !important;
+}
+html:not(.dark) [data-upgrade-pill] svg,
+html:not(.dark) .ds-upgrade-pill svg {
+  color: var(--ice-upgrade-fg) !important;
+}
+
+/* Card hover uplift on remapped surfaces */
+html:not(.dark) :is(.bg-\[\#14142B\], .bg-\[\#17152A\], .bg-\[\#0B0A14\], .bg-\[\#0F172A\], .bg-\[\#111827\], .bg-\[\#1A1A2E\], .bg-slate-900, .bg-slate-800, .bg-gray-900, .bg-gray-800):hover {
+  background: var(--ice-card-hover) !important;
+}
+
+
