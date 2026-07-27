@@ -1,9 +1,10 @@
 /**
  * Cron worker: publish due X (Twitter) scheduled_posts.
  *
- * Auth: `apikey: <SUPABASE_ANON_KEY>` header. This route lives under
- * `/api/public/*` so it bypasses site-level auth; the anon key check keeps
- * random callers out. The pg_cron job is configured to send this header.
+ * Auth: requires the Supabase service role key in the `apikey` (or
+ * `Authorization: Bearer`) header. The anon/publishable key is public and
+ * shipped in every client bundle, so it cannot be used as a gate. The
+ * pg_cron job must be updated to send SUPABASE_SERVICE_ROLE_KEY.
  *
  * Strategy:
  *  1) Select up to N due rows where platform='twitter' and status='scheduled'.
@@ -21,11 +22,11 @@ export const Route = createFileRoute("/api/public/hooks/publish-scheduled-x")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const anonKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         const provided =
           request.headers.get("apikey") ||
           (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-        if (!anonKey || provided !== anonKey) {
+        if (!serviceKey || !provided || provided !== serviceKey) {
           return new Response(JSON.stringify({ error: "unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },
