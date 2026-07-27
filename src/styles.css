@@ -3091,7 +3091,7 @@ html:not(.dark) .bg-zinc-800 {
   box-shadow: var(--ice-card-shadow) !important;
 }
 
-/* Gradient-utility remaps (from-*/via-*/to-* using dark stops) */
+/* Gradient-utility remaps (from/via/to using dark stops) */
 html:not(.dark) .bg-gradient-to-r.from-slate-900,
 html:not(.dark) .bg-gradient-to-r.from-\[\#0B0A14\],
 html:not(.dark) .bg-gradient-to-r.from-\[\#14142B\],
