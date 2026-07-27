@@ -2965,30 +2965,27 @@ html:not(.dark) [role="option"]:hover {
   color: #5538EF;
 }
 
-/* Safety net: any hard-coded white-on-white or near-invisible dark
-   text on dark bg that leaked past the dark normalization. */
-html:not(.dark) .text-white\/70,
-html:not(.dark) .text-white\/60,
-html:not(.dark) .text-white\/50 { color: #6B6B85 !important; }
-html:not(.dark) .text-white\/90,
-html:not(.dark) .text-white\/80 { color: #1A1A2E !important; }
-html:not(.dark) .border-white\/10,
-html:not(.dark) .border-white\/20 { border-color: rgba(107,78,255,0.14) !important; }
+/* Light-mode safety net for white/alpha utilities — SCOPED to light
+   surfaces only. We must NOT remap `.text-white` globally, because it
+   is legitimately used on dark/brand-colored backgrounds (Spark
+   Copilot, LinkedIn/Facebook/Instagram/YouTube brand tiles, Navbar
+   sign-up CTA, referral banner, style icon tiles). Only remap when
+   the utility appears inside a known light-surface container. */
+html:not(.dark) .ds-canvas .text-white\/70,
+html:not(.dark) .ds-canvas .text-white\/60,
+html:not(.dark) .ds-canvas .text-white\/50 { color: #6B6B85; }
+html:not(.dark) .ds-canvas .text-white\/90,
+html:not(.dark) .ds-canvas .text-white\/80 { color: #1A1A2E; }
+html:not(.dark) .ds-canvas .border-white\/10,
+html:not(.dark) .ds-canvas .border-white\/20 { border-color: rgba(107,78,255,0.14); }
 
-/* Global light-mode safety net for white/alpha utilities used
-   outside .ds-canvas (top nav search, sidebar toggle, etc.). */
-html:not(.dark) .bg-white\/5 { background-color: #FFFFFF !important; }
-html:not(.dark) .bg-white\/10 { background-color: #FAFAFF !important; }
-html:not(.dark) .hover\:bg-white\/10:hover { background-color: rgba(107,78,255,0.06) !important; }
-html:not(.dark) .text-white { color: #1A1A2E !important; }
-html:not(.dark) .text-white\/40,
-html:not(.dark) .text-white\/50 { color: #9090AA !important; }
-html:not(.dark) .hover\:text-white:hover { color: #5538EF !important; }
-html:not(.dark) .placeholder\:text-white\/40::placeholder,
-html:not(.dark) input::placeholder { color: #9090AA !important; }
-
-/* Loud dark hero fallback inside light mode: PostSpark logo text */
-html:not(.dark) .text-white.font-bold { color: #1A1A2E !important; }
+/* Background alpha utilities on light surfaces — bg-white/* usually
+   means "translucent white over a dark parent", which reads as
+   near-white on light. Scope to the light dashboard canvas. */
+html:not(.dark) .ds-canvas .bg-white\/5 { background-color: #FFFFFF; }
+html:not(.dark) .ds-canvas .bg-white\/10 { background-color: #FAFAFF; }
+html:not(.dark) .ds-canvas .hover\:bg-white\/10:hover { background-color: rgba(107,78,255,0.06); }
+html:not(.dark) .ds-canvas .text-white\/40 { color: #9090AA; }
 
 /* Light-mode search pill (top-nav command bar) */
 html:not(.dark) .dashboard-shell .ds-search-pill,
