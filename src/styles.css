@@ -3067,23 +3067,90 @@ html:not(.dark) {
    bg-[#E4405F] IG, bg-[#FF0000] YT, bg-black/pure-black TikTok/X)
    are NOT listed here, so they retain white text on brand color. */
 html:not(.dark) .bg-\[\#14142B\],
+html:not(.dark) .bg-\[\#14142B\]\/90,
+html:not(.dark) .bg-\[\#14142B\]\/80,
+html:not(.dark) .bg-\[\#14142B\]\/70,
+html:not(.dark) .bg-\[\#14142B\]\/60,
+html:not(.dark) .bg-\[\#14142B\]\/50,
+html:not(.dark) .bg-\[\#14142B\]\/40,
+html:not(.dark) .bg-\[\#14142B\]\/30,
+html:not(.dark) .bg-\[\#14142B\]\/20,
+html:not(.dark) .bg-\[\#14142B\]\/15,
+html:not(.dark) .bg-\[\#14142B\]\/10,
 html:not(.dark) .bg-\[\#17152A\],
+html:not(.dark) .bg-\[\#17152A\]\/90,
+html:not(.dark) .bg-\[\#17152A\]\/80,
+html:not(.dark) .bg-\[\#17152A\]\/70,
+html:not(.dark) .bg-\[\#17152A\]\/60,
+html:not(.dark) .bg-\[\#17152A\]\/50,
+html:not(.dark) .bg-\[\#17152A\]\/40,
 html:not(.dark) .bg-\[\#0B0A14\],
+html:not(.dark) .bg-\[\#0B0A14\]\/90,
+html:not(.dark) .bg-\[\#0B0A14\]\/80,
+html:not(.dark) .bg-\[\#0B0A14\]\/70,
+html:not(.dark) .bg-\[\#0B0A14\]\/60,
+html:not(.dark) .bg-\[\#0B0A14\]\/50,
+html:not(.dark) .bg-\[\#0B0A14\]\/40,
 html:not(.dark) .bg-\[\#0F172A\],
+html:not(.dark) .bg-\[\#0F172A\]\/90,
+html:not(.dark) .bg-\[\#0F172A\]\/80,
+html:not(.dark) .bg-\[\#0F172A\]\/70,
+html:not(.dark) .bg-\[\#0F172A\]\/60,
+html:not(.dark) .bg-\[\#0F172A\]\/50,
+html:not(.dark) .bg-\[\#0F172A\]\/40,
 html:not(.dark) .bg-\[\#111827\],
+html:not(.dark) .bg-\[\#111827\]\/90,
+html:not(.dark) .bg-\[\#111827\]\/80,
+html:not(.dark) .bg-\[\#111827\]\/70,
+html:not(.dark) .bg-\[\#111827\]\/60,
+html:not(.dark) .bg-\[\#111827\]\/50,
+html:not(.dark) .bg-\[\#111827\]\/40,
 html:not(.dark) .bg-\[\#1A1A2E\],
+html:not(.dark) .bg-\[\#1A1A2E\]\/90,
+html:not(.dark) .bg-\[\#1A1A2E\]\/80,
+html:not(.dark) .bg-\[\#1A1A2E\]\/70,
+html:not(.dark) .bg-\[\#1A1A2E\]\/60,
+html:not(.dark) .bg-\[\#1A1A2E\]\/50,
+html:not(.dark) .bg-\[\#1A1A2E\]\/40,
 html:not(.dark) .bg-\[\#1E1B4B\],
+html:not(.dark) .bg-\[\#1E1B4B\]\/90,
+html:not(.dark) .bg-\[\#1E1B4B\]\/80,
+html:not(.dark) .bg-\[\#1E1B4B\]\/70,
+html:not(.dark) .bg-\[\#1E1B4B\]\/60,
+html:not(.dark) .bg-\[\#1E1B4B\]\/50,
+html:not(.dark) .bg-\[\#1E1B4B\]\/40,
 html:not(.dark) .bg-\[\#1F2937\],
 html:not(.dark) .bg-\[\#161F33\],
 html:not(.dark) .bg-\[\#0B1020\],
 html:not(.dark) .bg-\[\#243047\],
 html:not(.dark) .bg-slate-900,
+html:not(.dark) .bg-slate-900\/90,
+html:not(.dark) .bg-slate-900\/80,
+html:not(.dark) .bg-slate-900\/70,
+html:not(.dark) .bg-slate-900\/60,
+html:not(.dark) .bg-slate-900\/50,
+html:not(.dark) .bg-slate-900\/40,
 html:not(.dark) .bg-slate-800,
+html:not(.dark) .bg-slate-800\/90,
+html:not(.dark) .bg-slate-800\/80,
+html:not(.dark) .bg-slate-800\/70,
+html:not(.dark) .bg-slate-800\/60,
+html:not(.dark) .bg-slate-800\/50,
+html:not(.dark) .bg-slate-800\/40,
 html:not(.dark) .bg-slate-700,
+html:not(.dark) .bg-slate-950,
+html:not(.dark) .bg-slate-950\/90,
+html:not(.dark) .bg-slate-950\/80,
+html:not(.dark) .bg-slate-950\/70,
+html:not(.dark) .bg-slate-950\/60,
+html:not(.dark) .bg-slate-950\/50,
+html:not(.dark) .bg-slate-950\/40,
 html:not(.dark) .bg-gray-900,
 html:not(.dark) .bg-gray-800,
 html:not(.dark) .bg-neutral-900,
+html:not(.dark) .bg-neutral-950,
 html:not(.dark) .bg-zinc-900,
+html:not(.dark) .bg-zinc-950,
 html:not(.dark) .bg-zinc-800 {
   background: var(--ice-card) !important;
   color: var(--ice-body) !important;
@@ -3092,20 +3159,34 @@ html:not(.dark) .bg-zinc-800 {
 }
 
 /* Gradient-utility remaps (from/via/to using dark stops) */
-html:not(.dark) .bg-gradient-to-r.from-slate-900,
-html:not(.dark) .bg-gradient-to-r.from-\[\#0B0A14\],
-html:not(.dark) .bg-gradient-to-r.from-\[\#14142B\],
-html:not(.dark) .bg-gradient-to-r.from-\[\#17152A\],
-html:not(.dark) .bg-gradient-to-r.from-\[\#0F172A\],
-html:not(.dark) .bg-gradient-to-br.from-slate-900,
-html:not(.dark) .bg-gradient-to-br.from-\[\#0B0A14\],
-html:not(.dark) .bg-gradient-to-br.from-\[\#14142B\],
-html:not(.dark) .bg-gradient-to-br.from-\[\#17152A\],
-html:not(.dark) .bg-gradient-to-br.from-\[\#0F172A\],
-html:not(.dark) .bg-gradient-to-b.from-slate-900,
-html:not(.dark) .bg-gradient-to-b.from-\[\#0B0A14\],
-html:not(.dark) .bg-gradient-to-b.from-\[\#14142B\],
-html:not(.dark) .bg-gradient-to-tr.from-slate-900 {
+html:not(.dark) .bg-gradient-to-r.from-slate-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-slate-900:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-neutral-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-neutral-900:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-zinc-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-zinc-900:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-\[\#0B0A14\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-\[\#14142B\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-\[\#17152A\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-r.from-\[\#0F172A\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-slate-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-slate-900:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-neutral-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-neutral-900:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-zinc-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-zinc-900:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-\[\#0B0A14\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-\[\#14142B\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-\[\#17152A\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-br.from-\[\#0F172A\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-b.from-slate-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-b.from-slate-900:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-b.from-neutral-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-b.from-neutral-900:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-b.from-\[\#0B0A14\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-b.from-\[\#14142B\]:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-tr.from-slate-950:not([data-brand-tile="true"]),
+html:not(.dark) .bg-gradient-to-tr.from-slate-900:not([data-brand-tile="true"]) {
   background: var(--ice-card) !important;
   color: var(--ice-body) !important;
   border-color: var(--ice-card-border) !important;
@@ -3119,6 +3200,12 @@ html:not(.dark) :is(.bg-\[\#14142B\], .bg-\[\#17152A\], .bg-\[\#0B0A14\], .bg-\[
       .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400,
       .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400,
       .text-neutral-100, .text-neutral-200, .text-neutral-300) {
+  color: var(--ice-body) !important;
+}
+html:not(.dark) :is(.bg-\[\#14142B\]\/90, .bg-\[\#14142B\]\/80, .bg-\[\#14142B\]\/70, .bg-\[\#14142B\]\/60, .bg-\[\#14142B\]\/50, .bg-\[\#14142B\]\/40, .bg-\[\#14142B\]\/30, .bg-\[\#14142B\]\/20, .bg-\[\#14142B\]\/15, .bg-\[\#14142B\]\/10, .bg-\[\#17152A\]\/90, .bg-\[\#17152A\]\/80, .bg-\[\#17152A\]\/70, .bg-\[\#17152A\]\/60, .bg-\[\#17152A\]\/50, .bg-\[\#17152A\]\/40, .bg-\[\#0B0A14\]\/90, .bg-\[\#0B0A14\]\/80, .bg-\[\#0B0A14\]\/70, .bg-\[\#0B0A14\]\/60, .bg-\[\#0B0A14\]\/50, .bg-\[\#0B0A14\]\/40, .bg-\[\#0F172A\]\/90, .bg-\[\#0F172A\]\/80, .bg-\[\#0F172A\]\/70, .bg-\[\#0F172A\]\/60, .bg-\[\#0F172A\]\/50, .bg-\[\#0F172A\]\/40, .bg-slate-900\/90, .bg-slate-900\/80, .bg-slate-900\/70, .bg-slate-900\/60, .bg-slate-900\/50, .bg-slate-900\/40, .bg-slate-950\/90, .bg-slate-950\/80, .bg-slate-950\/70, .bg-slate-950\/60, .bg-slate-950\/50, .bg-slate-950\/40)
+  :is(.text-white, .text-white\/90, .text-white\/80, .text-white\/70, .text-white\/60,
+      .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400,
+      .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-400) {
   color: var(--ice-body) !important;
 }
 html:not(.dark) :is(.bg-\[\#14142B\], .bg-\[\#17152A\], .bg-\[\#0B0A14\], .bg-\[\#0F172A\], .bg-\[\#111827\], .bg-\[\#1A1A2E\], .bg-\[\#1E1B4B\], .bg-\[\#161F33\], .bg-slate-900, .bg-slate-800, .bg-gray-900, .bg-gray-800)
@@ -3150,6 +3237,35 @@ html:not(.dark) .ds-upgrade-pill svg {
 /* Card hover uplift on remapped surfaces */
 html:not(.dark) :is(.bg-\[\#14142B\], .bg-\[\#17152A\], .bg-\[\#0B0A14\], .bg-\[\#0F172A\], .bg-\[\#111827\], .bg-\[\#1A1A2E\], .bg-slate-900, .bg-slate-800, .bg-gray-900, .bg-gray-800):hover {
   background: var(--ice-card-hover) !important;
+}
+
+/* Preserve real brand/style icon tiles: these are intentionally colored fills. */
+html:not(.dark) [data-brand-tile="true"] {
+  color: #FFFFFF !important;
+}
+html:not(.dark) [data-brand-tile="true"] svg,
+html:not(.dark) [data-brand-tile="true"] .text-white {
+  color: #FFFFFF !important;
+}
+
+/* Spark Copilot: make the whole assistant light-mode native instead of a dark island. */
+html:not(.dark) .spark-copilot-trigger,
+html:not(.dark) .spark-copilot-panel,
+html:not(.dark) .spark-copilot-header {
+  background: var(--ice-card) !important;
+  color: var(--ice-body) !important;
+  border-color: var(--ice-card-border) !important;
+  box-shadow: var(--ice-card-shadow) !important;
+}
+html:not(.dark) .spark-copilot-trigger :is(.text-white, .text-white\/55),
+html:not(.dark) .spark-copilot-panel :is(.text-white, .text-white\/90, .text-white\/80, .text-white\/70, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40),
+html:not(.dark) .spark-copilot-header :is(.text-white, .text-white\/90, .text-white\/80, .text-white\/70, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40) {
+  color: var(--ice-body) !important;
+}
+html:not(.dark) .spark-copilot-panel :is(input, textarea) {
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: var(--ice-body) !important;
+  border-color: var(--ice-card-border) !important;
 }
 
 
