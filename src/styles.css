@@ -3552,6 +3552,16 @@ html:not(.dark) .dashboard-shell :is(input, textarea, select):focus {
   box-shadow: 0 0 0 3px rgba(68, 142, 228, 0.16) !important;
 }
 
+html:not(.dark) .dashboard-shell .bg-background,
+html:not(.dark) .dashboard-shell .ds-canvas .bg-background {
+  background: rgba(255, 255, 255, 0.86) !important;
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .dashboard-shell .hover\:bg-accent:hover {
+  background: rgba(68, 142, 228, 0.10) !important;
+}
+
 html:not(.dark) .dashboard-shell .ds-icon-disc {
   background: rgba(68, 142, 228, 0.10) !important;
   border-color: rgba(68, 142, 228, 0.20) !important;
