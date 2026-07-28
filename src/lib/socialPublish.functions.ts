@@ -633,13 +633,18 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
       platform: "linkedin",
       status: "published",
       published_at: new Date().toISOString(),
+      title: data.commentary.slice(0, 80),
       content: data.commentary.slice(0, 3000),
       platform_post_id: postId,
-      media_url: postUrl || data.mediaUrl || data.linkUrl || null,
+      media_url: postUrl || mediaUrlsForRow[0] || null,
+      media_urls: mediaUrlsForRow,
+      media_type: mediaKind,
+      first_comment: data.firstComment || null,
       scheduled_for: new Date().toISOString(),
     } as any);
 
-    return { ok: true, postId, url: postUrl };
+    return { ok: true, postId, url: postUrl, firstCommentError };
+
   });
 
 // ============================================================================
