@@ -3268,4 +3268,313 @@ html:not(.dark) .spark-copilot-panel :is(input, textarea) {
   border-color: var(--ice-card-border) !important;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   LIGHT MODE — final premium polish pass
+   Pure white canvas, ice-blue cards, #448EE4 primary actions, soft sidebar.
+   Scoped strictly to html:not(.dark); dark mode remains untouched.
+   ════════════════════════════════════════════════════════════════════ */
+
+html:not(.dark) {
+  --primary: oklch(0.64 0.17 253);
+  --primary-foreground: oklch(1 0 0);
+  --ring: oklch(0.64 0.17 253);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.24 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0 0);
+  --muted: oklch(0.96 0.02 248);
+  --muted-foreground: oklch(0.42 0.02 260);
+  --accent: oklch(0.96 0.03 248);
+  --accent-foreground: oklch(0.29 0.11 253);
+  --border: oklch(0.90 0.03 248);
+  --input: oklch(0.90 0.03 248);
+
+  --ps-light-canvas: #FFFFFF;
+  --ps-light-edge: #E3EEF9;
+  --ps-light-edge-2: #E6F2FF;
+  --ps-light-ink: #1F1F1F;
+  --ps-light-muted: #4B5563;
+  --ps-light-primary: #448EE4;
+  --ps-light-primary-hover: #2F7DD2;
+  --ps-light-sidebar: linear-gradient(180deg, #F8FBFF 0%, #EEF6FF 46%, #E6F2FF 100%);
+  --ps-light-card: linear-gradient(135deg, #E3EEF9 0%, #FFFFFF 44%, #E6F2FF 100%);
+  --ps-light-card-hover: linear-gradient(135deg, #D9E9F8 0%, #FFFFFF 44%, #DEEEFC 100%);
+  --ps-light-border: rgba(68, 142, 228, 0.18);
+  --ps-light-shadow: 0 1px 2px rgba(31, 31, 31, 0.04), 0 18px 48px -32px rgba(68, 142, 228, 0.34);
+}
+
+html:not(.dark) body {
+  background-color: var(--ps-light-canvas) !important;
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .dashboard-shell {
+  --ds-bg: var(--ps-light-canvas);
+  --ds-bg-elev: #FFFFFF;
+  --ds-card: var(--ps-light-card);
+  --ds-card-hover: var(--ps-light-card-hover);
+  --ds-border: var(--ps-light-border);
+  --ds-border-strong: rgba(68, 142, 228, 0.32);
+  --ds-text: var(--ps-light-ink);
+  --ds-muted: var(--ps-light-muted);
+  --ds-accent: var(--ps-light-primary);
+  --ds-accent-soft: #7FB3F0;
+  --ice-card: var(--ps-light-card);
+  --ice-card-hover: var(--ps-light-card-hover);
+  --ice-card-border: var(--ps-light-border);
+  --ice-card-shadow: var(--ps-light-shadow);
+  --ice-heading: var(--ps-light-ink);
+  --ice-body: var(--ps-light-ink);
+  --ice-muted: var(--ps-light-muted);
+  background: var(--ps-light-canvas) !important;
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-canvas {
+  background:
+    radial-gradient(900px 520px at 18% -8%, rgba(68, 142, 228, 0.14), transparent 64%),
+    radial-gradient(760px 460px at 108% 10%, rgba(167, 139, 250, 0.10), transparent 62%),
+    radial-gradient(520px 380px at 45% 112%, rgba(236, 72, 153, 0.055), transparent 64%),
+    var(--ps-light-canvas) !important;
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-canvas::before {
+  background-image:
+    linear-gradient(rgba(68, 142, 228, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(68, 142, 228, 0.03) 1px, transparent 1px);
+  opacity: 0.55;
+}
+
+html:not(.dark) .dashboard-shell .ds-canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.26;
+  background-image: radial-gradient(rgba(31, 31, 31, 0.11) 0.55px, transparent 0.55px);
+  background-size: 3px 3px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.72), transparent 78%);
+}
+
+html:not(.dark) .dashboard-shell .ds-header {
+  background: rgba(255, 255, 255, 0.82) !important;
+  border-bottom-color: rgba(68, 142, 228, 0.16) !important;
+  box-shadow: 0 12px 34px -28px rgba(68, 142, 228, 0.45) !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-card,
+html:not(.dark) .dashboard-shell .ds-card-feature,
+html:not(.dark) .dashboard-shell .ds-tool-tile,
+html:not(.dark) .dashboard-shell .rounded-xl.border.border-border.bg-card,
+html:not(.dark) .dashboard-shell .rounded-lg.border.border-border.bg-card {
+  background: var(--ps-light-card) !important;
+  border-color: var(--ps-light-border) !important;
+  color: var(--ps-light-ink) !important;
+  box-shadow: var(--ps-light-shadow) !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-card-hover,
+html:not(.dark) .dashboard-shell .ds-tool-tile,
+html:not(.dark) .dashboard-shell a.ds-card {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+html:not(.dark) .dashboard-shell .ds-card-hover:hover,
+html:not(.dark) .dashboard-shell .ds-tool-tile:hover,
+html:not(.dark) .dashboard-shell a.ds-card:hover {
+  transform: translateY(-2px);
+  background: var(--ps-light-card-hover) !important;
+  border-color: rgba(68, 142, 228, 0.34) !important;
+  box-shadow: 0 12px 34px -20px rgba(68, 142, 228, 0.32), 0 2px 8px rgba(31, 31, 31, 0.04) !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-page-hero,
+html:not(.dark) .dashboard-shell .ps-hero,
+html:not(.dark) .dashboard-shell .ds-card-hero {
+  background:
+    radial-gradient(640px 260px at 0% 0%, rgba(68, 142, 228, 0.18), transparent 68%),
+    radial-gradient(520px 220px at 100% 0%, rgba(167, 139, 250, 0.14), transparent 64%),
+    var(--ps-light-card) !important;
+  border-color: rgba(68, 142, 228, 0.22) !important;
+  box-shadow: 0 24px 58px -34px rgba(68, 142, 228, 0.38) !important;
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .dashboard-shell .ps-hero *,
+html:not(.dark) .dashboard-shell .ds-card-hero *,
+html:not(.dark) .dashboard-shell .ds-page-hero * {
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .dashboard-shell .ps-hero :is(.ds-muted-text, .text-muted-foreground, p),
+html:not(.dark) .dashboard-shell .ds-card-hero :is(.ds-muted-text, .text-muted-foreground, p),
+html:not(.dark) .dashboard-shell .ds-page-hero-sub {
+  color: var(--ps-light-muted) !important;
+}
+
+html:not(.dark) .dashboard-shell .ps-hero-username,
+html:not(.dark) .dashboard-shell .ds-page-hero-title .grad,
+html:not(.dark) .dashboard-shell .ds-gradient-text {
+  background: linear-gradient(135deg, #1F1F1F 0%, #448EE4 62%, #7C3AED 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-btn-primary,
+html:not(.dark) .dashboard-shell .ds-cta-pill,
+html:not(.dark) .dashboard-shell .gradient-electric,
+html:not(.dark) .dashboard-shell .bg-primary,
+html:not(.dark) .dashboard-shell button.bg-primary,
+html:not(.dark) .dashboard-shell a.bg-primary,
+html:not(.dark) .dashboard-shell .from-violet-600.to-fuchsia-600,
+html:not(.dark) .dashboard-shell .bg-gradient-to-r.from-violet-600.to-fuchsia-600 {
+  background: linear-gradient(135deg, var(--ps-light-primary) 0%, #5BA4F2 100%) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(68, 142, 228, 0.32) !important;
+  box-shadow: 0 12px 28px -18px rgba(68, 142, 228, 0.78) !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-btn-primary:hover,
+html:not(.dark) .dashboard-shell .ds-cta-pill:hover,
+html:not(.dark) .dashboard-shell button.bg-primary:hover,
+html:not(.dark) .dashboard-shell a.bg-primary:hover {
+  background: linear-gradient(135deg, var(--ps-light-primary-hover) 0%, #448EE4 100%) !important;
+}
+
+html:not(.dark) .dashboard-shell .text-primary,
+html:not(.dark) .dashboard-shell a:not([class*="text-white"]):not(.ds-cta-pill) {
+  color: var(--ps-light-primary) !important;
+}
+
+html:not(.dark) .dashboard-shell :is(.text-white, .text-white\/90, .text-white\/85, .text-white\/80),
+html:not(.dark) .dashboard-shell :is(.text-slate-50, .text-slate-100, .text-slate-200) {
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .dashboard-shell :is(.text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, .text-white\/45, .text-white\/40, .text-white\/30),
+html:not(.dark) .dashboard-shell :is(.text-slate-300, .text-slate-400, .text-slate-500) {
+  color: var(--ps-light-muted) !important;
+}
+
+html:not(.dark) .dashboard-shell .lux-sidebar {
+  background: var(--ps-light-sidebar) !important;
+  border-right-color: rgba(68, 142, 228, 0.18) !important;
+  box-shadow: 16px 0 48px -42px rgba(68, 142, 228, 0.55) !important;
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .lux-sidebar .ps-sidebar-logo:hover,
+html:not(.dark) .lux-sidebar .lux-nav-item:hover,
+html:not(.dark) .lux-collapse-btn:hover {
+  background: rgba(68, 142, 228, 0.10) !important;
+  color: var(--ps-light-primary) !important;
+}
+
+html:not(.dark) .lux-sidebar .lux-group-label,
+html:not(.dark) .lux-sidebar [class*="uppercase"] {
+  color: rgba(31, 31, 31, 0.52) !important;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+}
+
+html:not(.dark) .lux-sidebar .lux-nav-item {
+  color: rgba(31, 31, 31, 0.72) !important;
+}
+
+html:not(.dark) .lux-sidebar .lux-nav-active {
+  background: linear-gradient(90deg, rgba(68, 142, 228, 0.18), rgba(68, 142, 228, 0.04)) !important;
+  border-left-color: var(--ps-light-primary) !important;
+  color: var(--ps-light-primary) !important;
+}
+
+html:not(.dark) .lux-sidebar .lux-nav-icon,
+html:not(.dark) .lux-sidebar .lux-nav-active .lux-nav-icon {
+  color: currentColor !important;
+  filter: none !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+html:not(.dark) .lux-workspace-pill,
+html:not(.dark) .ds-user-card,
+html:not(.dark) .lux-popover,
+html:not(.dark) .lux-tooltip {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(68, 142, 228, 0.18) !important;
+  color: var(--ps-light-ink) !important;
+  box-shadow: 0 12px 34px -28px rgba(68, 142, 228, 0.45) !important;
+}
+
+html:not(.dark) .lux-popover-item,
+html:not(.dark) .lux-workspace-pill :is(.text-white, .text-white\/55, .text-white\/60),
+html:not(.dark) .ds-user-card :is(.text-sidebar-foreground, .text-sidebar-foreground\/55, .text-white\/75) {
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .lux-popover-item:hover,
+html:not(.dark) .lux-popover-item[data-active="true"] {
+  background: rgba(68, 142, 228, 0.10) !important;
+  color: var(--ps-light-primary) !important;
+}
+
+html:not(.dark) .lux-collapse-btn,
+html:not(.dark) .dashboard-shell .md\:hidden.inline-flex,
+html:not(.dark) .dashboard-shell .md\:hidden.inline-flex.h-9 {
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(68, 142, 228, 0.20) !important;
+  color: var(--ps-light-ink) !important;
+}
+
+html:not(.dark) .dashboard-shell [data-brand-tile="true"],
+html:not(.dark) .dashboard-shell [data-brand-tile="true"] *,
+html:not(.dark) .dashboard-shell :is(.bg-\[\#1877F2\], .bg-\[\#0A66C2\], .bg-\[\#FF0000\], .bg-\[\#E4405F\], .bg-black, .bg-black\/70) {
+  color: #FFFFFF !important;
+}
+
+html:not(.dark) .dashboard-shell .bg-black:not([data-brand-tile="true"]) {
+  background: #111827 !important;
+}
+
+html:not(.dark) .dashboard-shell :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]) {
+  background: rgba(255, 255, 255, 0.86) !important;
+  color: var(--ps-light-ink) !important;
+  border-color: rgba(68, 142, 228, 0.20) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.64);
+}
+
+html:not(.dark) .dashboard-shell :is(input, textarea, select):focus {
+  border-color: var(--ps-light-primary) !important;
+  box-shadow: 0 0 0 3px rgba(68, 142, 228, 0.16) !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-icon-disc {
+  background: rgba(68, 142, 228, 0.10) !important;
+  border-color: rgba(68, 142, 228, 0.20) !important;
+  color: var(--ps-light-primary) !important;
+}
+
+html:not(.dark) .dashboard-shell .ds-spark span,
+html:not(.dark) .dashboard-shell .ds-progress > div,
+html:not(.dark) .dashboard-shell .ps-usage-fill {
+  background: linear-gradient(180deg, #448EE4 0%, #7FB3F0 100%) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.dark) .dashboard-shell .ds-card-hover,
+  html:not(.dark) .dashboard-shell .ds-tool-tile,
+  html:not(.dark) .dashboard-shell a.ds-card {
+    transition: none;
+  }
+  html:not(.dark) .dashboard-shell .ds-card-hover:hover,
+  html:not(.dark) .dashboard-shell .ds-tool-tile:hover,
+  html:not(.dark) .dashboard-shell a.ds-card:hover {
+    transform: none;
+  }
+}
+
 
