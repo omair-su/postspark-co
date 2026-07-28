@@ -689,12 +689,15 @@ function getThreadsRedirectUri() {
 }
 
 function getThreadsAppCredentials() {
-  // Prefer dedicated Threads credentials, but fall back to the Meta app when
-  // the same app is configured for Threads use case.
-  const appId = process.env.META_THREADS_APP_ID || process.env.META_APP_ID;
-  const appSecret = process.env.META_THREADS_APP_SECRET || process.env.META_APP_SECRET;
+  // Threads OAuth uses the *Threads App ID* from the Threads use case in the
+  // Meta app dashboard — NOT the Facebook App ID. Falling back to META_APP_ID
+  // makes threads.com reject the request with error_code 4476002
+  // ("No app ID was sent with the request").
+  const appId = process.env.META_THREADS_APP_ID;
+  const appSecret = process.env.META_THREADS_APP_SECRET;
   return { appId, appSecret };
 }
+
 
 /**
  * Build the Threads consent URL. Threads OAuth is NOT part of Facebook Login —
