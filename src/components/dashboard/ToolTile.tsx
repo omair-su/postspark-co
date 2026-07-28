@@ -38,7 +38,7 @@ export function ToolTile({ item }: { item: ToolTileItem }) {
         </div>
       </div>
       <div className="relative">
-        <p className="text-sm font-semibold text-slate-900 flex items-center justify-between gap-2">
+        <p className="flex items-center justify-between gap-2 text-sm font-semibold text-[color:var(--ds-text)]">
           {item.label}
           <ArrowUpRight className="h-3.5 w-3.5 text-slate-400 transition-colors group-hover:text-[color:var(--cat)]" />
         </p>

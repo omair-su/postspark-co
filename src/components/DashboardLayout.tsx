@@ -197,7 +197,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             isCollapsed ? "h-10 w-10 justify-center" : "h-12 flex-1 px-2"
           }`}
         >
-          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 26 : 34} tone="light" />
+          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 26 : 34} tone="auto" />
         </Link>
         <button
           type="button"
