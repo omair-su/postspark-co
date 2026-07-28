@@ -81,6 +81,7 @@ export function BrandIcon({ brand, size = 36, tile = true, className = "" }: Bra
   return (
     <div
       className={`inline-flex items-center justify-center rounded-xl shadow-lg shadow-black/20 ${def.tile} ${className}`}
+      data-brand-tile="true"
       style={{ width: size, height: size }}
       aria-hidden
     >
@@ -116,6 +117,7 @@ export function StyleIcon({ styleId, size = 36 }: { styleId: keyof typeof STYLE_
   return (
     <div
       className={`inline-flex items-center justify-center rounded-xl shadow-lg shadow-black/20 ${def.tile}`}
+      data-brand-tile="true"
       style={{ width: size, height: size }}
       aria-hidden
     >

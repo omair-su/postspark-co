@@ -260,7 +260,7 @@ export function SparkCopilot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full bg-[#14142B] border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 hover:-translate-y-0.5 transition-all"
+          className="spark-copilot-trigger group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full bg-[#14142B] border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 hover:-translate-y-0.5 transition-all"
           aria-label="Open Spark Copilot"
         >
           <SparkOrb size={32} />
@@ -271,7 +271,7 @@ export function SparkCopilot() {
 
       {open && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden bg-[#14142B]"
+          className="spark-copilot-panel fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden bg-[#14142B]"
           style={{
             width: "min(380px, calc(100vw - 2rem))",
             height: "min(560px, calc(100vh - 3rem))",
@@ -282,7 +282,7 @@ export function SparkCopilot() {
         >
           {/* Header — dark gradient */}
           <div
-            className="px-4 pt-3.5 pb-3"
+            className="spark-copilot-header px-4 pt-3.5 pb-3"
             style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)" }}
           >
             <div className="flex items-center justify-between">
