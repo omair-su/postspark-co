@@ -292,6 +292,7 @@ function PublishingCenter() {
                 >
                   <span className="flex items-center gap-2">
                     <span
+                      data-brand-tile="true"
                       className={`flex h-6 w-6 items-center justify-center rounded ${p.color} text-white`}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -344,7 +345,7 @@ function PostPreview({
   return (
     <div className="rounded-xl border border-border bg-background p-4">
       <div className="flex items-center gap-2">
-        <div className={`flex h-8 w-8 items-center justify-center rounded-full ${P.color} text-white`}>
+        <div data-brand-tile="true" className={`flex h-8 w-8 items-center justify-center rounded-full ${P.color} text-white`}>
           <Icon className="h-4 w-4" />
         </div>
         <div className="text-sm font-semibold">Your Brand</div>
