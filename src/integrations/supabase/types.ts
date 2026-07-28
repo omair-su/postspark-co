@@ -1042,6 +1042,7 @@ export type Database = {
           brand_kit_id: string | null
           content: string
           created_at: string
+          first_comment: string | null
           id: string
           media_type: string | null
           media_url: string | null
@@ -1065,6 +1066,7 @@ export type Database = {
           brand_kit_id?: string | null
           content: string
           created_at?: string
+          first_comment?: string | null
           id?: string
           media_type?: string | null
           media_url?: string | null
@@ -1088,6 +1090,7 @@ export type Database = {
           brand_kit_id?: string | null
           content?: string
           created_at?: string
+          first_comment?: string | null
           id?: string
           media_type?: string | null
           media_url?: string | null

@@ -149,6 +149,7 @@ import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/w
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/api/public/hooks/publish-scheduled-x'
+import { Route as ApiPublicHooksPublishScheduledLinkedinRouteImport } from './routes/api/public/hooks/publish-scheduled-linkedin'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
 import { Route as ApiPublicWebhooksMetaDeauthorizeRouteImport } from './routes/api/public/webhooks/meta.deauthorize'
 import { Route as ApiPublicOauthYoutubeCallbackRouteImport } from './routes/api/public/oauth.youtube.callback'
@@ -898,6 +899,12 @@ const ApiPublicHooksPublishScheduledXRoute =
     path: '/api/public/hooks/publish-scheduled-x',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPublishScheduledLinkedinRoute =
+  ApiPublicHooksPublishScheduledLinkedinRouteImport.update({
+    id: '/api/public/hooks/publish-scheduled-linkedin',
+    path: '/api/public/hooks/publish-scheduled-linkedin',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksEmailDripRoute = ApiPublicHooksEmailDripRouteImport.update({
   id: '/api/public/hooks/email-drip',
   path: '/api/public/hooks/email-drip',
@@ -1064,6 +1071,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -1211,6 +1219,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -1360,6 +1369,7 @@ export interface FileRoutesById {
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -1510,6 +1520,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
@@ -1657,6 +1668,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
@@ -1805,6 +1817,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
@@ -1909,6 +1922,7 @@ export interface RootRouteChildren {
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksEmailDripRoute: typeof ApiPublicHooksEmailDripRoute
+  ApiPublicHooksPublishScheduledLinkedinRoute: typeof ApiPublicHooksPublishScheduledLinkedinRoute
   ApiPublicHooksPublishScheduledXRoute: typeof ApiPublicHooksPublishScheduledXRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -2908,6 +2922,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPublishScheduledXRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/publish-scheduled-linkedin': {
+      id: '/api/public/hooks/publish-scheduled-linkedin'
+      path: '/api/public/hooks/publish-scheduled-linkedin'
+      fullPath: '/api/public/hooks/publish-scheduled-linkedin'
+      preLoaderRoute: typeof ApiPublicHooksPublishScheduledLinkedinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/email-drip': {
       id: '/api/public/hooks/email-drip'
       path: '/api/public/hooks/email-drip'
@@ -3174,6 +3195,8 @@ const rootRouteChildren: RootRouteChildren = {
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksEmailDripRoute: ApiPublicHooksEmailDripRoute,
+  ApiPublicHooksPublishScheduledLinkedinRoute:
+    ApiPublicHooksPublishScheduledLinkedinRoute,
   ApiPublicHooksPublishScheduledXRoute: ApiPublicHooksPublishScheduledXRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,

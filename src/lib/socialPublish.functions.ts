@@ -438,25 +438,91 @@ export const getLinkedInAuthUrl = createServerFn({ method: "POST" })
 
 /**
  * Publish a native LinkedIn post using the /rest/posts API.
- * - Text-only when no mediaUrl
- * - Single image when mediaUrl points to an image (jpeg/png)
- * - Article/link post when linkUrl is provided
+ * Supports text, single image, multi-image (up to 9), video, PDF document
+ * and article/link posts, plus scheduling and an optional first comment.
  */
+const LI_MEDIA_ITEM = z.object({
+  /** Either a storage path inside the private post-media bucket… */
+  path: z.string().max(300).optional(),
+  /** …or a directly reachable URL. */
+  url: z.string().url().optional(),
+  altText: z.string().max(300).optional(),
+  title: z.string().max(200).optional(),
+});
+
 export const publishToLinkedIn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       commentary: z.string().min(1).max(3000),
       visibility: z.enum(["PUBLIC", "CONNECTIONS"]).default("PUBLIC"),
+      /** New structured media input */
+      mediaKind: z.enum(["none", "images", "video", "document", "article"]).default("none"),
+      mediaItems: z.array(LI_MEDIA_ITEM).max(9).default([]),
+      /** Legacy single-image / link inputs (still used by PostToLinkedInButton) */
       mediaUrl: z.string().url().optional(),
       mediaTitle: z.string().max(200).optional(),
       mediaAltText: z.string().max(300).optional(),
       linkUrl: z.string().url().optional(),
-      status: z.enum(["published", "draft"]).default("published"),
+      firstComment: z.string().max(1250).optional(),
+      /** ISO timestamp — when set with status "scheduled", queue it instead. */
+      scheduledFor: z.string().optional(),
+      status: z.enum(["published", "draft", "scheduled"]).default("published"),
     }).parse,
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const {
+      uploadLinkedInImage,
+      uploadLinkedInVideo,
+      uploadLinkedInDocument,
+      commentOnLinkedInPost,
+      linkedInHeaders,
+      humanizeLinkedInError,
+      isLinkedInError,
+    } = await import("@/lib/linkedinMedia.server");
+    const { POST_MEDIA_BUCKET } = await import("@/lib/media.functions");
+
+    // Normalize legacy inputs into the structured shape
+    let mediaKind = data.mediaKind;
+    let mediaItems = [...data.mediaItems];
+    if (mediaKind === "none") {
+      if (data.mediaUrl) {
+        mediaKind = /\.(mp4|mov|webm|m4v)(\?|$)/i.test(data.mediaUrl)
+          ? "video"
+          : /\.pdf(\?|$)/i.test(data.mediaUrl)
+            ? "document"
+            : "images";
+        mediaItems = [{ url: data.mediaUrl, altText: data.mediaAltText, title: data.mediaTitle }];
+      } else if (data.linkUrl) {
+        mediaKind = "article";
+        mediaItems = [{ url: data.linkUrl, title: data.mediaTitle }];
+      }
+    }
+
+    const mediaUrlsForRow = mediaItems.map((m) => m.path || m.url).filter(Boolean) as string[];
+
+    // Draft / scheduled: persist only, the cron worker publishes later
+    if (data.status === "draft" || data.status === "scheduled") {
+      const when =
+        data.status === "scheduled" && data.scheduledFor
+          ? new Date(data.scheduledFor).toISOString()
+          : new Date().toISOString();
+      const { error } = await supabase.from("scheduled_posts").insert({
+        user_id: userId,
+        platform: "linkedin",
+        status: data.status === "scheduled" ? "scheduled" : "draft",
+        title: data.commentary.slice(0, 80),
+        content: data.commentary.slice(0, 3000),
+        media_url: mediaUrlsForRow[0] || null,
+        media_urls: mediaUrlsForRow,
+        media_type: mediaKind,
+        first_comment: data.firstComment || null,
+        scheduled_for: when,
+      } as any);
+      if (error) return { error: error.message };
+      return { ok: true, draft: data.status === "draft", scheduled: data.status === "scheduled" };
+    }
 
     const { data: acct } = await supabase
       .from("social_accounts")
@@ -466,76 +532,68 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!acct?.access_token) return { error: "LinkedIn not connected. Connect in Settings first." };
     if (acct.token_expires_at && new Date(acct.token_expires_at) < new Date()) {
-      return { error: "LinkedIn access expired. Please reconnect in Settings." };
+      return { error: "LinkedIn access expired. Please reconnect in Settings → Integrations." };
     }
     if (!acct.platform_user_id) return { error: "LinkedIn member id missing. Please reconnect." };
 
-    // Draft: just record intent, no API call
-    if (data.status === "draft") {
-      await supabase.from("scheduled_posts").insert({
-        user_id: userId,
-        platform: "linkedin",
-        status: "draft",
-        content: data.commentary.slice(0, 3000),
-        media_url: data.mediaUrl || data.linkUrl || null,
-        scheduled_for: new Date().toISOString(),
-      } as any);
-      return { ok: true, draft: true };
-    }
-
+    const token = acct.access_token;
     const authorUrn = acct.platform_user_id.startsWith("urn:")
       ? acct.platform_user_id
       : `urn:li:person:${acct.platform_user_id}`;
+    const headers = linkedInHeaders(token);
 
-    const headers = {
-      Authorization: `Bearer ${acct.access_token}`,
-      "Content-Type": "application/json",
-      "LinkedIn-Version": "202506",
-      "X-Restli-Protocol-Version": "2.0.0",
-    } as Record<string, string>;
+    // Resolve each media item to raw bytes (storage download or remote fetch)
+    async function readBytes(item: { path?: string; url?: string }): Promise<ArrayBuffer | null> {
+      if (item.path) {
+        const { data: blob, error } = await supabase.storage.from(POST_MEDIA_BUCKET).download(item.path);
+        if (error || !blob) return null;
+        return await blob.arrayBuffer();
+      }
+      if (item.url) {
+        const res = await fetch(item.url);
+        if (!res.ok) return null;
+        return await res.arrayBuffer();
+      }
+      return null;
+    }
 
     let content: any = undefined;
 
-    // Image upload flow
-    if (data.mediaUrl && /\.(jpe?g|png|gif|webp)(\?|$)/i.test(data.mediaUrl)) {
-      // 1. Initialize upload
-      const initRes = await fetch("https://api.linkedin.com/rest/images?action=initializeUpload", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ initializeUploadRequest: { owner: authorUrn } }),
-      });
-      if (!initRes.ok) {
-        const txt = await initRes.text();
-        console.error("LinkedIn image init failed", initRes.status, txt);
-        return { error: `LinkedIn image init failed: ${initRes.status}` };
+    if (mediaKind === "images" && mediaItems.length > 0) {
+      const urns: { id: string; altText: string }[] = [];
+      for (const item of mediaItems.slice(0, 9)) {
+        const bytes = await readBytes(item);
+        if (!bytes) return { error: "Could not read one of the images. Try re-uploading it." };
+        const up = await uploadLinkedInImage(token, authorUrn, bytes);
+        if (isLinkedInError(up)) return { error: up.error };
+        urns.push({ id: up.urn, altText: item.altText || "" });
       }
-      const initJson = await initRes.json();
-      const uploadUrl = initJson?.value?.uploadUrl as string;
-      const imageUrn = initJson?.value?.image as string;
-      if (!uploadUrl || !imageUrn) return { error: "LinkedIn upload URL missing" };
-
-      // 2. Fetch image bytes and PUT them
-      const imgRes = await fetch(data.mediaUrl);
-      if (!imgRes.ok) return { error: "Could not fetch image bytes" };
-      const imgBuf = await imgRes.arrayBuffer();
-      const putRes = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${acct.access_token}` },
-        body: imgBuf,
-      });
-      if (!putRes.ok) {
-        const txt = await putRes.text();
-        console.error("LinkedIn image PUT failed", putRes.status, txt);
-        return { error: `LinkedIn image upload failed: ${putRes.status}` };
-      }
+      content =
+        urns.length === 1
+          ? { media: { id: urns[0].id, altText: urns[0].altText } }
+          : { multiImage: { images: urns } };
+    } else if (mediaKind === "video" && mediaItems[0]) {
+      const bytes = await readBytes(mediaItems[0]);
+      if (!bytes) return { error: "Could not read the video file. Try re-uploading it." };
+      const up = await uploadLinkedInVideo(token, authorUrn, bytes);
+      if (isLinkedInError(up)) return { error: up.error };
+      content = { media: { id: up.urn, title: mediaItems[0].title || "Video" } };
+    } else if (mediaKind === "document" && mediaItems[0]) {
+      const bytes = await readBytes(mediaItems[0]);
+      if (!bytes) return { error: "Could not read the PDF. Try re-uploading it." };
+      const up = await uploadLinkedInDocument(token, authorUrn, bytes);
+      if (isLinkedInError(up)) return { error: up.error };
+      content = { media: { id: up.urn, title: mediaItems[0].title || "Document" } };
+    } else if (mediaKind === "article" && mediaItems[0]?.url) {
       content = {
-        media: { id: imageUrn, altText: data.mediaAltText || data.mediaTitle || "" },
+        article: {
+          source: mediaItems[0].url,
+          title: mediaItems[0].title || "",
+          description: mediaItems[0].altText || "",
+        },
       };
-    } else if (data.linkUrl) {
-      content = { article: { source: data.linkUrl, title: data.mediaTitle || "" } };
     }
 
-    // 3. Create post
     const postBody: any = {
       author: authorUrn,
       commentary: data.commentary,
@@ -558,23 +616,35 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
     if (!postRes.ok && postRes.status !== 201) {
       const txt = await postRes.text();
       console.error("LinkedIn post failed", postRes.status, txt);
-      return { error: `LinkedIn publish failed (${postRes.status}): ${txt.slice(0, 200)}` };
+      return { error: humanizeLinkedInError(postRes.status, txt) };
     }
     const postId = postRes.headers.get("x-restli-id") || postRes.headers.get("x-linkedin-id") || null;
     const postUrl = postId ? `https://www.linkedin.com/feed/update/${encodeURIComponent(postId)}/` : null;
+
+    let firstCommentError: string | null = null;
+    if (data.firstComment?.trim() && postId) {
+      const c = await commentOnLinkedInPost(token, authorUrn, postId, data.firstComment.trim());
+      if (isLinkedInError(c)) firstCommentError = c.error;
+    }
+
 
     await supabase.from("scheduled_posts").insert({
       user_id: userId,
       platform: "linkedin",
       status: "published",
       published_at: new Date().toISOString(),
+      title: data.commentary.slice(0, 80),
       content: data.commentary.slice(0, 3000),
       platform_post_id: postId,
-      media_url: postUrl || data.mediaUrl || data.linkUrl || null,
+      media_url: postUrl || mediaUrlsForRow[0] || null,
+      media_urls: mediaUrlsForRow,
+      media_type: mediaKind,
+      first_comment: data.firstComment || null,
       scheduled_for: new Date().toISOString(),
     } as any);
 
-    return { ok: true, postId, url: postUrl };
+    return { ok: true, postId, url: postUrl, firstCommentError };
+
   });
 
 // ============================================================================

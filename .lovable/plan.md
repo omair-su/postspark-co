@@ -1,96 +1,69 @@
-## Goal
-Apply the exact ice-blue card system across the whole interior app in light mode only, with pure white page backgrounds, #448EE4 light-mode buttons, a light ice-blue sidebar, richer dashboard cards, and no changes to dark mode.
 
-## Current state confirmed
-- `src/styles.css` already has light-only ice-card tokens: `--ice-card`, `--ice-card-hover`, `--ice-heading`, `--ice-body`.
-- The dashboard shell still defines dark defaults in `.dashboard-shell` (`--ds-bg`, `--ds-card`, `--ds-text`) and many pages rely on hardcoded dark Tailwind classes.
-- The sidebar uses `.lux-sidebar`, currently a deep dark violet gradient.
-- Pages/components with confirmed hardcoded dark or low-contrast areas include `DashboardLayout`, `SparkCopilot`, `dashboard.history`, `dashboard.brand-kit`, `dashboard.publishing`, plus scanned hotspots in Shorts, Image Studio, Thumbnail, Carousel, Templates, Hook Lab, Repurpose, SEO Blog, Humanizer, Brand Voice components, Brand Kit components, and Stock/Publishing surfaces.
+# LinkedIn Composer — Premium Upgrade Plan
 
-## Implementation plan
+## Where it stands today (verified)
 
-### 1. Create the final light-mode design system in `src/styles.css`
-Add a single light-only block under `html:not(.dark)` that becomes the source of truth:
-- Pure white app canvas: `--ds-bg: #FFFFFF`.
-- Ice-blue cards: `linear-gradient(135deg, #E3EEF9 0%, #FFFFFF 45%, #E6F2FF 100%)`.
-- Deep charcoal text/icons: `#1F1F1F`.
-- Primary light-mode button color: `#448EE4`.
-- Softer borders/shadows tuned to blue: pale blue border, shadow bloom, and hover lift.
-- Keep `.dark` variables and dark mode CSS untouched.
+- `publishToLinkedIn` (`src/lib/socialPublish.functions.ts`) supports **text only, one image URL, or one article link**. No video, no multi-image, no documents.
+- The composer page (`src/routes/dashboard.linkedin.tsx`) has **no media UI at all** — just a textarea, templates and a hashtag helper.
+- `PostToLinkedInButton` accepts a `mediaUrl` prop but nothing in the composer ever sets it.
+- There is **no file storage bucket in the project** — users currently cannot upload anything anywhere.
+- The stock library (`StockPickerDialog` / Unsplash + Pexels) exists and works, but is not wired into LinkedIn.
+- LinkedIn **scheduling is not implemented** — the scheduler cron only handles X (`api/public/hooks/publish-scheduled-x`). Drafts are stored but never published.
+- Only one LinkedIn account per user; no organization/company Page posting.
 
-### 2. Add semantic reusable classes and retire fragile overrides over time
-Introduce/strengthen these classes so pages can use tokens instead of hardcoded dark utilities:
-- `.ds-card`, `.ds-panel`, `.ds-card-hover`, `.ds-card-hero`, `.ds-page-hero`, `.ds-tool-tile`.
-- `.ds-primary-button` / update `.ds-cta-pill` to become #448EE4 in light mode only.
-- `.ds-subtle-button`, `.ds-input`, `.ds-chip`, `.ds-icon-btn` with light-safe foregrounds.
-- Add a subtle noise texture on card surfaces using pseudo-elements.
-- Add 200ms hover lift + shadow bloom on interactive cards.
-- Add light heading typography polish: `letter-spacing: -0.02em`, `font-feature-settings: "ss01", "cv11"`.
+## What we'll build
 
-### 3. Convert the dashboard shell and sidebar
-- Make `.ds-canvas` pure white in light mode.
-- Make `.lux-sidebar` light-mode-only ice-blue/white gradient instead of dark navy.
-- Update sidebar nav, labels, user card, workspace popover, collapse button, mobile drawer, and top header text/icons so they read charcoal/blue in light mode.
-- Preserve the current dark sidebar exactly when `.dark` is active.
+### 1. Media foundation (new)
+- Create a private `post-media` storage bucket with per-user RLS (`user_id` folder prefix) and signed-URL reads.
+- Upload widget: drag & drop, paste-from-clipboard, progress bar, client-side validation (images ≤10MB, video ≤200MB / ≤10 min, PDF ≤100MB).
+- Media library tab: recent uploads + previously generated PostSpark images, reusable across posts.
 
-### 4. Replace hardcoded dark cards in the high-impact route files
-Update the key interior pages the user listed to use semantic classes instead of dark classes:
-- History
-- Publishing Center
-- Publish to X / Facebook / Instagram / Threads
-- LinkedIn Composer
-- Shorts Studio / Shorts Series / Shorts Editor
-- Image Studio
-- Thumbnail / Cover
-- Carousel
-- Templates
-- Settings and WhatsApp Alerts
-- Calendar
-- Analytics / Agency Analytics
-- Team
-- Gallery
-- Stock Photos & Video
-- Refer & Earn
-- Billing
-- Brand Kit / Brand Voice remaining nested panels
+### 2. Stock library inside the composer
+- "Search stock" button opens the existing `StockPickerDialog` (photos + videos) directly in the LinkedIn composer.
+- Selected stock assets are copied server-side into `post-media` so LinkedIn always fetches from a stable URL, and Unsplash download tracking still fires.
 
-For each page:
-- Replace `bg-slate-*`, `bg-[#14142B]`, `bg-[#17152A]`, `bg-[#0B0A14]`, dark borders, and `text-white/*` card text with `ds-card`, `ds-panel`, `text-foreground`, `text-muted-foreground`, and semantic buttons.
-- Keep real platform brand tiles black/blue/red/gradient where appropriate so their white icons remain readable.
+### 3. Real LinkedIn media publishing
+Extend `publishToLinkedIn` to a proper media pipeline:
+- **Multi-image posts** (up to 9) via `/rest/images` init → PUT → `content.multiImage`.
+- **Video posts** via `/rest/videos?action=initializeUpload`, chunked part uploads, `finalizeUpload`, then post with `content.media` (video URN), including thumbnail + title.
+- **Document/carousel PDF posts** via `/rest/documents` (the highest-reach LinkedIn format).
+- Keep article/link posts, add **auto link-preview fetch** (title/description/thumb).
+- Alt text per image (accessibility + reach), title for video/document.
 
-### 5. Add tinted category accents on cards
-Apply 2px top-border accents on ice-blue base cards:
-- Shorts: rose
-- Brand Kit / Brand Voice: violet
-- LinkedIn / X / publishing: blue
-- Meta/Instagram/Threads: platform-inspired but softened
-- Image/thumbnail/carousel: cyan or magenta-blue
-- Analytics/team/billing/settings: blue/violet variants
+### 4. Composer UX — premium pass
+- Two-pane layout: editor left, **pixel-accurate LinkedIn feed preview** right (avatar, name, "see more" truncation at 210 chars, image grid layout matching LinkedIn's 1/2/3/4+ tiling, video player, document carousel).
+- Rich helpers: bold/italic Unicode formatter, emoji picker, bullet/arrow inserters, **hook strength meter**, readability + "first 3 lines" hook warning, hashtag suggester driven by post content (AI, not the current hardcoded list).
+- AI actions: Rewrite in Brand Voice, Shorten, Add hook, Generate CTA, Generate comment-bait question — reusing the existing Claude server functions and the user's Brand Voice / Brand Kit.
+- Draft autosave, draft list, duplicate post, and a template gallery upgrade.
+- Light/dark safe styling using existing semantic tokens (no hardcoded dark cards).
 
-This will be implemented through semantic classes or `data-accent` attributes, not random per-card hex utilities.
+### 5. Scheduling & queue
+- Generalize the X scheduler cron into a shared `publish-scheduled` handler that also drains LinkedIn rows in `scheduled_posts` (media URLs included), with retry + failure logging into `publishing_logs`.
+- Date/time picker + "best time to post" suggestions in the composer; scheduled posts show in the existing Content Calendar.
+- Optional **first comment** auto-post (link-in-comment strategy) after publish.
 
-### 6. Upgrade dashboard card visuals
-For dashboard home and tool cards still appearing dark in light mode:
-- Convert to ice-blue card base.
-- Add animated Gemini-style soft aurora/mesh on hero surfaces in light mode only.
-- Add restrained visual animation: slow gradient drift, shimmer edge, and hover shadow bloom.
-- Avoid decorative orbs; use mesh/vignette bands and card surface movement instead.
+### 6. Reliability fixes
+- Refresh-token handling + clear reconnect prompt (LinkedIn tokens expire in 60 days; today it just errors out).
+- Validate the account has `w_member_social` before showing Publish; inline connection diagnostics like the X panel.
+- Surface LinkedIn's real error body (currently truncated to 200 chars with no user guidance) with mapped, human messages for 401/403/422/426.
+- Post-publish: store `platform_post_id`, link to the live post, and pull like/comment counts into `post_metrics`.
 
-### 7. Marketing light hero mesh
-Add a light-mode-specific Gemini-style animated aurora background utility for marketing/landing surfaces:
-- Pure white base.
-- Soft blue/violet mesh vignette.
-- Motion disabled under `prefers-reduced-motion`.
+### 7. Nice-to-have (phase 2, only if you want it)
+- Company/organization Page posting (`w_organization_social`) with a page picker like the Facebook one.
+- Multi-post carousels/series and repurpose → LinkedIn one-click handoff.
 
-### 8. Verification pass
-After implementation:
-- Run the existing build/typecheck workflow.
-- Run the visual theme tests already present for light and dark dashboard routes.
-- Add or expand targeted visual regression coverage for these routes: `/dashboard`, `/dashboard/history`, `/dashboard/shorts-studio`, `/dashboard/publishing`, `/dashboard/settings`, `/dashboard/brand-kit`, `/dashboard/brand-voice`, `/dashboard/billing`.
-- Manually inspect light-mode screenshots to confirm: no dark cards, no invisible history text, sidebar is light ice-blue, buttons use #448EE4, and dark mode remains unchanged.
+## Technical notes
 
-## Technical approach
-- CSS changes are scoped under `html:not(.dark)` where possible.
-- Dark mode selectors and `.dark` token values will not be modified.
-- Component edits will replace confirmed hardcoded dark utilities with semantic classes, prioritizing shared components and route-level wrappers so one change fixes many pages.
-- Existing brand/platform colored tiles will be protected with `data-brand-tile` or equivalent semantic classes so their white icons do not get remapped.
+- New: `src/lib/linkedinMedia.server.ts` (image/video/document upload state machine), `src/lib/media.functions.ts` (signed upload URLs, list, delete).
+- Rewrite: `src/routes/dashboard.linkedin.tsx` into components under `src/components/linkedin/` (`Composer`, `MediaTray`, `LinkedInPreview`, `ScheduleBar`, `AiAssistBar`).
+- `publishToLinkedIn` input becomes `media: { kind: 'none'|'images'|'video'|'document'|'article', items: [...] }` with backward-compatible handling of the old `mediaUrl` prop used by `PostToLinkedInButton`.
+- Migration: `post-media` bucket policies + `scheduled_posts` reuse of `media_urls` (already exists) and a `first_comment` column.
+- LinkedIn API version stays `202506`; video upload requires the Versioned REST API with `LinkedIn-Version` header on every call.
+
+## Suggested order
+
+1. Storage bucket + upload/stock media tray + multi-image publish (biggest visible win).
+2. Composer redesign with accurate preview + AI assist.
+3. Video + document posting.
+4. Scheduling/queue + first comment.
+5. Reliability, metrics, org pages.
