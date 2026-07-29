@@ -79,7 +79,7 @@ export async function generateRepurposedContent(
         case "podcast":
           return "1 set of podcast show notes (title, summary, key takeaways, timestamps outline, ~300 words)";
         case "thread":
-          return "1 Twitter/X thread (8-12 connected tweets, numbered, with a compelling hook)";
+          return "1 Threads (Meta) post chain (8-12 connected posts, numbered, with a compelling hook)";
         default:
           return "";
       }
@@ -249,18 +249,19 @@ OUTPUT: ${count} numbered posts.${suffix}`,
       const tweetCount = cfg.count || 10;
       return {
         maxTokens: 3500,
-        system: `You write viral Twitter/X threads.
+        system: `You write viral Threads (Meta) post chains.
 
-TASK: Turn the source into ONE thread of exactly ${tweetCount} connected tweets.
+TASK: Turn the source into ONE Threads chain of exactly ${tweetCount} connected posts.
 
-THREAD RULES:
-1. Tweet 1 = killer hook + promise. Make people NEED to read tweet 2.
-2. Each subsequent tweet delivers a single, specific idea.
-3. Each tweet under 280 characters.
-4. Build narrative momentum — don't repeat ideas.
-5. Final tweet = strong CTA or memorable takeaway.
+CHAIN RULES:
+1. Post 1 = killer hook + promise. Make people NEED to read post 2.
+2. Each subsequent post delivers a single, specific idea.
+3. Each post under 500 characters (Threads limit).
+4. Conversational, human tone — Threads rewards personality over polish.
+5. Build narrative momentum — don't repeat ideas.
+6. Final post = strong CTA or memorable takeaway.
 
-OUTPUT: Numbered 1/${tweetCount}, 2/${tweetCount}, … Each tweet on its own block.${suffix}`,
+OUTPUT: Numbered 1/${tweetCount}, 2/${tweetCount}, … Each post on its own block.${suffix}`,
       };
     }
 
