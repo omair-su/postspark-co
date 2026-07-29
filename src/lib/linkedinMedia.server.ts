@@ -8,16 +8,66 @@
  * Every call must carry the LinkedIn-Version header.
  */
 
-export const LINKEDIN_API_VERSION = "202506";
+/**
+ * LinkedIn only supports a rolling ~12-month window of versions, so a pinned
+ * constant silently expires and every call starts returning 426. We resolve the
+ * version at call time (env override → last completed month) and retry with
+ * older months if LinkedIn rejects one.
+ */
+function monthStamp(offsetMonths: number): string {
+  const d = new Date();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + offsetMonths);
+  return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
 
-export function linkedInHeaders(accessToken: string): Record<string, string> {
+export function resolveLinkedInVersion(): string {
+  const env = (process.env.LINKEDIN_API_VERSION || "").trim();
+  return /^\d{6}$/.test(env) ? env : monthStamp(-1);
+}
+
+/** Candidate versions tried in order when LinkedIn answers 426. */
+export function linkedInVersionCandidates(): string[] {
+  const first = resolveLinkedInVersion();
+  const rest = [-1, -2, -3, -4, -6].map(monthStamp);
+  return Array.from(new Set([first, ...rest]));
+}
+
+/** @deprecated use resolveLinkedInVersion() */
+export const LINKEDIN_API_VERSION = resolveLinkedInVersion();
+
+export function linkedInHeaders(accessToken: string, version?: string): Record<string, string> {
   return {
     Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
-    "LinkedIn-Version": LINKEDIN_API_VERSION,
+    "LinkedIn-Version": version || resolveLinkedInVersion(),
     "X-Restli-Protocol-Version": "2.0.0",
   };
 }
+
+/**
+ * Fetch a LinkedIn REST endpoint, automatically retrying with older API
+ * versions when LinkedIn answers 426 (Upgrade Required / version retired).
+ */
+export async function linkedInFetch(
+  url: string,
+  accessToken: string,
+  init: { method?: string; body?: string } = {},
+): Promise<Response> {
+  let last: Response | null = null;
+  for (const version of linkedInVersionCandidates()) {
+    const res = await fetch(url, {
+      method: init.method || "POST",
+      headers: linkedInHeaders(accessToken, version),
+      body: init.body,
+    });
+    if (res.status !== 426) return res;
+    console.warn(`[linkedin] version ${version} rejected (426), trying an older version`);
+    last = res;
+  }
+  return last as Response;
+}
+
 
 export interface LinkedInError {
   error: string;
@@ -60,10 +110,7 @@ export async function uploadLinkedInImage(
   ownerUrn: string,
   bytes: ArrayBuffer,
 ): Promise<{ urn: string } | LinkedInError> {
-  const headers = linkedInHeaders(accessToken);
-  const initRes = await fetch("https://api.linkedin.com/rest/images?action=initializeUpload", {
-    method: "POST",
-    headers,
+  const initRes = await linkedInFetch("https://api.linkedin.com/rest/images?action=initializeUpload", accessToken, {
     body: JSON.stringify({ initializeUploadRequest: { owner: ownerUrn } }),
   });
   if (!initRes.ok) return fail(initRes, "image initializeUpload");
@@ -88,10 +135,7 @@ export async function uploadLinkedInDocument(
   ownerUrn: string,
   bytes: ArrayBuffer,
 ): Promise<{ urn: string } | LinkedInError> {
-  const headers = linkedInHeaders(accessToken);
-  const initRes = await fetch("https://api.linkedin.com/rest/documents?action=initializeUpload", {
-    method: "POST",
-    headers,
+  const initRes = await linkedInFetch("https://api.linkedin.com/rest/documents?action=initializeUpload", accessToken, {
     body: JSON.stringify({ initializeUploadRequest: { owner: ownerUrn } }),
   });
   if (!initRes.ok) return fail(initRes, "document initializeUpload");
@@ -119,12 +163,9 @@ export async function uploadLinkedInVideo(
   ownerUrn: string,
   bytes: ArrayBuffer,
 ): Promise<{ urn: string } | LinkedInError> {
-  const headers = linkedInHeaders(accessToken);
   const fileSizeBytes = bytes.byteLength;
 
-  const initRes = await fetch("https://api.linkedin.com/rest/videos?action=initializeUpload", {
-    method: "POST",
-    headers,
+  const initRes = await linkedInFetch("https://api.linkedin.com/rest/videos?action=initializeUpload", accessToken, {
     body: JSON.stringify({
       initializeUploadRequest: {
         owner: ownerUrn,
@@ -162,9 +203,7 @@ export async function uploadLinkedInVideo(
     if (etag) partIds.push(etag.replace(/"/g, ""));
   }
 
-  const finalizeRes = await fetch("https://api.linkedin.com/rest/videos?action=finalizeUpload", {
-    method: "POST",
-    headers,
+  const finalizeRes = await linkedInFetch("https://api.linkedin.com/rest/videos?action=finalizeUpload", accessToken, {
     body: JSON.stringify({
       finalizeUploadRequest: { video: urn, uploadToken, uploadedPartIds: partIds },
     }),
@@ -181,13 +220,10 @@ export async function commentOnLinkedInPost(
   postUrn: string,
   text: string,
 ): Promise<{ ok: true } | LinkedInError> {
-  const res = await fetch(
+  const res = await linkedInFetch(
     `https://api.linkedin.com/rest/socialActions/${encodeURIComponent(postUrn)}/comments`,
-    {
-      method: "POST",
-      headers: linkedInHeaders(accessToken),
-      body: JSON.stringify({ actor: actorUrn, object: postUrn, message: { text } }),
-    },
+    accessToken,
+    { body: JSON.stringify({ actor: actorUrn, object: postUrn, message: { text } }) },
   );
   if (!res.ok) return fail(res, "first comment");
   return { ok: true };

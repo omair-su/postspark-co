@@ -7,7 +7,7 @@ import {
   commentOnLinkedInPost,
   humanizeLinkedInError,
   isLinkedInError,
-  linkedInHeaders,
+  linkedInFetch,
   uploadLinkedInDocument,
   uploadLinkedInImage,
   uploadLinkedInVideo,
@@ -98,9 +98,7 @@ export async function publishLinkedInForUser(
   };
   if (content) body.content = content;
 
-  const res = await fetch("https://api.linkedin.com/rest/posts", {
-    method: "POST",
-    headers: linkedInHeaders(token),
+  const res = await linkedInFetch("https://api.linkedin.com/rest/posts", token, {
     body: JSON.stringify(body),
   });
   if (!res.ok && res.status !== 201) {
