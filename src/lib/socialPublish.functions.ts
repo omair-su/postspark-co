@@ -550,7 +550,8 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
         return await blob.arrayBuffer();
       }
       if (item.url) {
-        const res = await fetch(item.url);
+        if (!isSafePublicUrl(item.url)) return null;
+        const res = await safeFetch(item.url);
         if (!res.ok) return null;
         return await res.arrayBuffer();
       }
