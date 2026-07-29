@@ -105,7 +105,8 @@ export const importRemoteMedia = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    const res = await fetch(data.url);
+    if (!isSafePublicUrl(data.url)) return { error: "That URL is not allowed." };
+    const res = await safeFetch(data.url);
     if (!res.ok) return { error: `Could not download that asset (${res.status}).` };
     const mime = res.headers.get("content-type")?.split(";")[0] || "application/octet-stream";
     const buf = await res.arrayBuffer();
