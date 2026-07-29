@@ -262,7 +262,7 @@ function PublishThreads() {
                   {i === 0 && mediaType !== "TEXT" && mediaUrl && (
                     <div className="mt-2 overflow-hidden rounded-md border border-border">
                       {mediaType === "IMAGE" ? (
-                        <img src={mediaUrl} className="h-40 w-full object-cover" />
+                        <img src={mediaUrl} alt="Preview of the image attached to your Threads post" className="h-40 w-full object-cover" />
                       ) : (
                         <video src={mediaUrl} className="h-40 w-full object-cover" muted playsInline />
                       )}

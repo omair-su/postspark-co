@@ -149,7 +149,7 @@ function TeamPage() {
             </button>
           </div>
           <p className="mt-3 text-[11px] text-muted-foreground">
-            Requires the Agency plan. Free/Pro: <a href="/dashboard/settings" className="text-primary underline">upgrade here</a>.
+            Requires the Agency plan. Free/Pro: <a href="/dashboard/settings" className="text-primary underline">upgrade your plan</a>.
           </p>
         </div>
       </div>

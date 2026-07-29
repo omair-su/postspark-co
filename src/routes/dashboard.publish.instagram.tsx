@@ -275,7 +275,7 @@ function PublishInstagram() {
             <div className="overflow-hidden rounded-lg border border-border bg-background">
               <div className="flex items-center gap-2 px-3 py-2">
                 {selectedPage?.page_picture_url ? (
-                  <img src={selectedPage.page_picture_url} className="h-8 w-8 rounded-full object-cover" />
+                  <img src={selectedPage.page_picture_url} alt={`${selectedPage.page_name || "Instagram account"} profile picture`} className="h-8 w-8 rounded-full object-cover" />
                 ) : (
                   <div className="h-8 w-8 rounded-full bg-muted" />
                 )}
@@ -288,6 +288,7 @@ function PublishInstagram() {
                   mediaType === "IMAGE" ? (
                     <img
                       src={mediaUrl}
+                      alt="Preview of the image attached to your Instagram post"
                       className="h-full w-full object-cover"
                       onError={(e) => ((e.target as HTMLImageElement).style.opacity = "0.2")}
                     />
