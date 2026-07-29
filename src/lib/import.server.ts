@@ -48,6 +48,7 @@ function stripHtml(html: string): { text: string; title?: string } {
 
 /** Block private, loopback, link-local, and cloud metadata hosts to prevent SSRF. */
 export { isBlockedHost, isSafePublicUrl, safeFetch } from "./safeFetch";
+import { isBlockedHost } from "./safeFetch";
 
 export async function scrapeUrl(url: string): Promise<ImportResult> {
   try {
