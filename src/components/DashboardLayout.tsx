@@ -405,9 +405,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="ds-header relative z-20 flex h-14 items-center justify-between gap-3 px-4">
+        <header className="ds-header relative z-20 grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4">
           <button
-            className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+            className="md:hidden inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-card/70 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
           >
@@ -417,27 +417,36 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-            className="ds-search-pill hidden md:inline-flex min-w-[260px] justify-between"
+            className="ds-search-pill flex w-full min-w-0 items-center justify-between md:min-w-[260px]"
             aria-label="Open command palette"
           >
-            <span className="flex items-center gap-2">
-              <span className="ds-status-dot" aria-hidden />
-              <span>Search workflows, posts, tools…</span>
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="ds-status-dot shrink-0" aria-hidden />
+              <span className="truncate">
+                <span className="md:hidden">Search…</span>
+                <span className="hidden md:inline">Search workflows, posts, tools…</span>
+              </span>
             </span>
-            <span className="ds-kbd">⌘K</span>
+            <span className="ds-kbd hidden md:inline-flex">⌘K</span>
           </button>
 
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <span className="ds-chip hidden sm:inline-flex">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+            <span className="ds-chip hidden lg:inline-flex">
               <span className="ds-status-dot" aria-hidden /> AI online
             </span>
             <span className="ds-chip ds-chip-accent hidden sm:inline-flex capitalize">{planLabel}</span>
-            <Link to="/dashboard/repurpose" className="ds-cta-pill !py-1.5 !px-3 !text-[12px] hidden sm:inline-flex">
-              <Sparkles className="h-3.5 w-3.5" /> New
+            <Link
+              to="/dashboard/repurpose"
+              aria-label="New repurpose"
+              className="ds-cta-pill !py-1.5 !px-2.5 !text-[12px] sm:!px-3"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">New</span>
             </Link>
             <ThemeToggle />
           </div>
         </header>
+
         <SubscriptionBanner />
         <main className="ds-canvas flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="ds-orb ds-orb-violet" aria-hidden />
