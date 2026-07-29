@@ -2,7 +2,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/checkout/success")({
-  head: () => ({ meta: [{ title: "Welcome to PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Welcome to PostSpark" },
+      { name: "description", content: "Your PostSpark subscription is active. Head to your dashboard to start repurposing long-form content into posts for every platform." },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Welcome to PostSpark" },
+      { property: "og:description", content: "Your PostSpark subscription is active. Head to your dashboard to start repurposing long-form content into posts for every platform." },
+      { property: "og:url", content: "https://postspark.co/checkout/success" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+    links: [{ rel: "canonical", href: "https://postspark.co/checkout/success" }],
+  }),
   component: CheckoutSuccess,
 });
 

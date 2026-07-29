@@ -5,7 +5,19 @@ import { Loader2, Check, MessageSquareWarning, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/review/$token")({
-  head: () => ({ meta: [{ title: "Content review — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Content review — PostSpark" },
+      { name: "description", content: "Review the content shared with you: approve the drafts or request changes before they are scheduled and published." },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Content review — PostSpark" },
+      { property: "og:description", content: "Review the content shared with you: approve the drafts or request changes before they are scheduled and published." },
+      { property: "og:url", content: "https://postspark.co/review" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+    links: [{ rel: "canonical", href: "https://postspark.co/review" }],
+  }),
   component: ReviewPage,
 });
 

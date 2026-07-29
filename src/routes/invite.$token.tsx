@@ -6,7 +6,19 @@ import { Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/invite/$token")({
-  head: () => ({ meta: [{ title: "Team invite — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Team invite — PostSpark" },
+      { name: "description", content: "Accept your PostSpark workspace invite to collaborate with your team on repurposing, scheduling, and publishing content." },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Team invite — PostSpark" },
+      { property: "og:description", content: "Accept your PostSpark workspace invite to collaborate with your team on repurposing, scheduling, and publishing content." },
+      { property: "og:url", content: "https://postspark.co/invite" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+    links: [{ rel: "canonical", href: "https://postspark.co/invite" }],
+  }),
   component: InvitePage,
 });
 
