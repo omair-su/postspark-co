@@ -477,7 +477,7 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
       uploadLinkedInVideo,
       uploadLinkedInDocument,
       commentOnLinkedInPost,
-      linkedInHeaders,
+      linkedInFetch,
       humanizeLinkedInError,
       isLinkedInError,
     } = await import("@/lib/linkedinMedia.server");
@@ -540,7 +540,6 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
     const authorUrn = acct.platform_user_id.startsWith("urn:")
       ? acct.platform_user_id
       : `urn:li:person:${acct.platform_user_id}`;
-    const headers = linkedInHeaders(token);
 
     // Resolve each media item to raw bytes (storage download or remote fetch)
     async function readBytes(item: { path?: string; url?: string }): Promise<ArrayBuffer | null> {
@@ -608,9 +607,7 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
     };
     if (content) postBody.content = content;
 
-    const postRes = await fetch("https://api.linkedin.com/rest/posts", {
-      method: "POST",
-      headers,
+    const postRes = await linkedInFetch("https://api.linkedin.com/rest/posts", token, {
       body: JSON.stringify(postBody),
     });
     if (!postRes.ok && postRes.status !== 201) {

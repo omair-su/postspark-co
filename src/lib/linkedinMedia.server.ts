@@ -110,10 +110,7 @@ export async function uploadLinkedInImage(
   ownerUrn: string,
   bytes: ArrayBuffer,
 ): Promise<{ urn: string } | LinkedInError> {
-  const headers = linkedInHeaders(accessToken);
-  const initRes = await fetch("https://api.linkedin.com/rest/images?action=initializeUpload", {
-    method: "POST",
-    headers,
+  const initRes = await linkedInFetch("https://api.linkedin.com/rest/images?action=initializeUpload", accessToken, {
     body: JSON.stringify({ initializeUploadRequest: { owner: ownerUrn } }),
   });
   if (!initRes.ok) return fail(initRes, "image initializeUpload");
@@ -138,10 +135,7 @@ export async function uploadLinkedInDocument(
   ownerUrn: string,
   bytes: ArrayBuffer,
 ): Promise<{ urn: string } | LinkedInError> {
-  const headers = linkedInHeaders(accessToken);
-  const initRes = await fetch("https://api.linkedin.com/rest/documents?action=initializeUpload", {
-    method: "POST",
-    headers,
+  const initRes = await linkedInFetch("https://api.linkedin.com/rest/documents?action=initializeUpload", accessToken, {
     body: JSON.stringify({ initializeUploadRequest: { owner: ownerUrn } }),
   });
   if (!initRes.ok) return fail(initRes, "document initializeUpload");
@@ -169,12 +163,9 @@ export async function uploadLinkedInVideo(
   ownerUrn: string,
   bytes: ArrayBuffer,
 ): Promise<{ urn: string } | LinkedInError> {
-  const headers = linkedInHeaders(accessToken);
   const fileSizeBytes = bytes.byteLength;
 
-  const initRes = await fetch("https://api.linkedin.com/rest/videos?action=initializeUpload", {
-    method: "POST",
-    headers,
+  const initRes = await linkedInFetch("https://api.linkedin.com/rest/videos?action=initializeUpload", accessToken, {
     body: JSON.stringify({
       initializeUploadRequest: {
         owner: ownerUrn,
@@ -212,9 +203,7 @@ export async function uploadLinkedInVideo(
     if (etag) partIds.push(etag.replace(/"/g, ""));
   }
 
-  const finalizeRes = await fetch("https://api.linkedin.com/rest/videos?action=finalizeUpload", {
-    method: "POST",
-    headers,
+  const finalizeRes = await linkedInFetch("https://api.linkedin.com/rest/videos?action=finalizeUpload", accessToken, {
     body: JSON.stringify({
       finalizeUploadRequest: { video: urn, uploadToken, uploadedPartIds: partIds },
     }),
@@ -231,13 +220,10 @@ export async function commentOnLinkedInPost(
   postUrn: string,
   text: string,
 ): Promise<{ ok: true } | LinkedInError> {
-  const res = await fetch(
+  const res = await linkedInFetch(
     `https://api.linkedin.com/rest/socialActions/${encodeURIComponent(postUrn)}/comments`,
-    {
-      method: "POST",
-      headers: linkedInHeaders(accessToken),
-      body: JSON.stringify({ actor: actorUrn, object: postUrn, message: { text } }),
-    },
+    accessToken,
+    { body: JSON.stringify({ actor: actorUrn, object: postUrn, message: { text } }) },
   );
   if (!res.ok) return fail(res, "first comment");
   return { ok: true };
