@@ -123,8 +123,13 @@ export const importRemoteMedia = createServerFn({ method: "POST" })
       .upload(path, buf, { contentType: mime, upsert: false });
     if (error) return { error: error.message };
 
-    // Fire-and-forget Unsplash download tracking
-    if (data.downloadLocation && process.env.UNSPLASH_ACCESS_KEY) {
+    // Fire-and-forget Unsplash download tracking (host-locked: never send the key elsewhere)
+    if (
+      data.downloadLocation &&
+      process.env.UNSPLASH_ACCESS_KEY &&
+      isSafePublicUrl(data.downloadLocation) &&
+      /(^|\.)unsplash\.com$/.test(new URL(data.downloadLocation).hostname)
+    ) {
       fetch(data.downloadLocation, {
         headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` },
       }).catch(() => {});
