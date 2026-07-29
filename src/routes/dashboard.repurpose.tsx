@@ -53,7 +53,7 @@ const FORMATS: FormatDef[] = [
   { id: "facebook",  name: "Facebook",       emoji: "👍", group: "Social Media", quantities: [1,3,5], defaultQty: 3, qtyLabel: "Posts" },
   { id: "tiktok",    name: "TikTok / Reels", emoji: "🎵", group: "Social Media", quantities: [1,3,5], defaultQty: 3, qtyLabel: "Scripts" },
 
-  { id: "thread",    name: "X Thread",       emoji: "🧵", group: "Long-form", quantities: [5,8,10,12,15,20], defaultQty: 10, qtyLabel: "Tweets" },
+  { id: "thread",    name: "Threads",        emoji: "🧵", group: "Long-form", quantities: [5,8,10,12,15,20], defaultQty: 10, qtyLabel: "Posts" },
   { id: "email",     name: "Email Newsletter", emoji: "📧", group: "Long-form",
     styles: ["Newsletter","Promotional","Educational digest","Weekly roundup"] },
   { id: "video",     name: "Video Script",   emoji: "🎬", group: "Long-form",
@@ -102,7 +102,7 @@ const ALL_LANGUAGES = [
 ];
 
 const PLATFORM_MAP: Record<string, "twitter"|"linkedin"|"instagram"|"facebook"|"tiktok"|"youtube"|"blog"|"email"> = {
-  tweets: "twitter", thread: "twitter", linkedin: "linkedin", instagram: "instagram",
+  tweets: "twitter", thread: "threads", linkedin: "linkedin", instagram: "instagram",
   facebook: "facebook", tiktok: "tiktok", video: "youtube", email: "email",
   podcast: "blog", seo: "blog",
 };
