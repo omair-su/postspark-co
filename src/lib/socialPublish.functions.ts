@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
+import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
 const YT_SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
   "https://www.googleapis.com/auth/youtube.readonly",
