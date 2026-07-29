@@ -8,7 +8,19 @@ import { toast } from "sonner";
 import { getRolePreset } from "@/lib/sampleSuggestions";
 
 export const Route = createFileRoute("/onboarding")({
-  head: () => ({ meta: [{ title: "Welcome — PostSpark" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({
+    meta: [
+      { title: "Welcome — PostSpark" },
+      { name: "description", content: "Set up your PostSpark account: pick your role, choose the platforms you publish on, and start repurposing content in minutes." },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Welcome — PostSpark" },
+      { property: "og:description", content: "Set up your PostSpark account: pick your role, choose the platforms you publish on, and start repurposing content in minutes." },
+      { property: "og:url", content: "https://postspark.co/onboarding" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+    links: [{ rel: "canonical", href: "https://postspark.co/onboarding" }],
+  }),
   component: OnboardingPage,
 });
 
