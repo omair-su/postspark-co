@@ -208,13 +208,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         >
           {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
         </button>
-        <button
-          className="md:hidden shrink-0 p-1.5 absolute right-2 top-3 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="Close menu"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        {/* Mobile: no extra close button — tap outside the drawer to dismiss */}
+
       </div>
 
 
