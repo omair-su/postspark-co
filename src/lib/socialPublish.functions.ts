@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
+import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
 const YT_SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
   "https://www.googleapis.com/auth/youtube.readonly",
@@ -549,7 +550,8 @@ export const publishToLinkedIn = createServerFn({ method: "POST" })
         return await blob.arrayBuffer();
       }
       if (item.url) {
-        const res = await fetch(item.url);
+        if (!isSafePublicUrl(item.url)) return null;
+        const res = await safeFetch(item.url);
         if (!res.ok) return null;
         return await res.arrayBuffer();
       }
@@ -1040,7 +1042,8 @@ export const publishToX = createServerFn({ method: "POST" })
 
       const mediaIds: string[] = [];
       for (const url of data.mediaUrls) {
-        const r = await fetch(url);
+        if (!isSafePublicUrl(url)) return { error: "Media URL not allowed" };
+        const r = await safeFetch(url);
         if (!r.ok) return { error: `Could not fetch media at ${url.slice(0, 80)}` };
         const buf = await r.arrayBuffer();
         const mimeType = r.headers.get("content-type") || "image/jpeg";

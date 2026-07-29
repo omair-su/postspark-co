@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
 
 export const POST_MEDIA_BUCKET = "post-media";
 export const SIGNED_URL_TTL = 60 * 60; // 1 hour
@@ -104,7 +105,8 @@ export const importRemoteMedia = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    const res = await fetch(data.url);
+    if (!isSafePublicUrl(data.url)) return { error: "That URL is not allowed." };
+    const res = await safeFetch(data.url);
     if (!res.ok) return { error: `Could not download that asset (${res.status}).` };
     const mime = res.headers.get("content-type")?.split(";")[0] || "application/octet-stream";
     const buf = await res.arrayBuffer();
@@ -121,8 +123,13 @@ export const importRemoteMedia = createServerFn({ method: "POST" })
       .upload(path, buf, { contentType: mime, upsert: false });
     if (error) return { error: error.message };
 
-    // Fire-and-forget Unsplash download tracking
-    if (data.downloadLocation && process.env.UNSPLASH_ACCESS_KEY) {
+    // Fire-and-forget Unsplash download tracking (host-locked: never send the key elsewhere)
+    if (
+      data.downloadLocation &&
+      process.env.UNSPLASH_ACCESS_KEY &&
+      isSafePublicUrl(data.downloadLocation) &&
+      /(^|\.)unsplash\.com$/.test(new URL(data.downloadLocation).hostname)
+    ) {
       fetch(data.downloadLocation, {
         headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` },
       }).catch(() => {});

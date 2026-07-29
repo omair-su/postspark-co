@@ -13,6 +13,7 @@ import {
   upscaleImage as upscaleImageServer,
   enhanceImagePrompt,
 } from "@/lib/image.server";
+import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
 
 const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
 const QUALITY = z.enum(["standard", "hd"]).default("standard");
@@ -41,7 +42,8 @@ async function persistGeneratedImage(opts: {
       mime = m[1];
       bytes = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
     } else if (/^https?:\/\//i.test(opts.imageUrl)) {
-      const r = await fetch(opts.imageUrl);
+      if (!isSafePublicUrl(opts.imageUrl)) return null;
+      const r = await safeFetch(opts.imageUrl);
       if (!r.ok) return null;
       mime = (r.headers.get("content-type") || "image/png").split(";")[0];
       bytes = new Uint8Array(await r.arrayBuffer());
