@@ -13,6 +13,7 @@ import {
   upscaleImage as upscaleImageServer,
   enhanceImagePrompt,
 } from "@/lib/image.server";
+import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
 
 const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
 const QUALITY = z.enum(["standard", "hd"]).default("standard");
