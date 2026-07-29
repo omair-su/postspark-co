@@ -47,30 +47,7 @@ function stripHtml(html: string): { text: string; title?: string } {
 }
 
 /** Block private, loopback, link-local, and cloud metadata hosts to prevent SSRF. */
-export function isBlockedHost(hostname: string): boolean {
-  const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
-  if (
-    h === "localhost" ||
-    h.endsWith(".localhost") ||
-    h.endsWith(".internal") ||
-    h.endsWith(".local")
-  ) return true;
-  // IPv6 loopback / unspecified / link-local / unique-local
-  if (h === "::1" || h === "::" || h.startsWith("fe80:") || h.startsWith("fc") || h.startsWith("fd")) return true;
-  // IPv4 dotted
-  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (m) {
-    const [a, b] = [parseInt(m[1], 10), parseInt(m[2], 10)];
-    if (a === 0) return true;                          // 0.0.0.0/8
-    if (a === 10) return true;                         // 10.0.0.0/8
-    if (a === 127) return true;                        // loopback
-    if (a === 169 && b === 254) return true;           // link-local + AWS/GCP/Azure metadata
-    if (a === 172 && b >= 16 && b <= 31) return true;  // 172.16.0.0/12
-    if (a === 192 && b === 168) return true;           // 192.168.0.0/16
-    if (a >= 224) return true;                         // multicast / reserved
-  }
-  return false;
-}
+export { isBlockedHost, isSafePublicUrl, safeFetch } from "./safeFetch";
 
 export async function scrapeUrl(url: string): Promise<ImportResult> {
   try {
