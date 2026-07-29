@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
 
 export const POST_MEDIA_BUCKET = "post-media";
 export const SIGNED_URL_TTL = 60 * 60; // 1 hour
