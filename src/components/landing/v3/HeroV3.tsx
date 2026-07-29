@@ -17,7 +17,7 @@ export function HeroV3() {
           </span>
 
           <h1
-            className="mt-6 font-display-lux text-balance lv3-fade-up"
+            className="mt-6 font-display-lux text-balance"
             style={{
               fontSize: "clamp(44px, 8vw, 104px)",
               lineHeight: 1.02,
@@ -31,7 +31,7 @@ export function HeroV3() {
           </h1>
 
           <p
-            className="mt-6 max-w-2xl text-balance lv3-fade-up"
+            className="mt-6 max-w-2xl text-balance"
             style={{
               fontSize: "clamp(16px, 1.6vw, 20px)",
               lineHeight: 1.55,
