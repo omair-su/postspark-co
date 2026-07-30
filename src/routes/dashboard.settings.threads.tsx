@@ -2,9 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { getThreadsAuthUrl, disconnectMeta } from "@/lib/metaPublish.functions";
+import {
+  getThreadsAuthUrl,
+  disconnectMeta,
+  getThreadsInsights,
+} from "@/lib/metaPublish.functions";
 import { toast } from "sonner";
-import { AtSign, ArrowRight, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { AtSign, ArrowRight, CheckCircle2, Loader2, AlertCircle, BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/settings/threads")({
   head: () => ({
