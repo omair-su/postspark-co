@@ -42,7 +42,7 @@ export const createScheduledPost = createServerFn({ method: "POST" })
     z.object({
       title: z.string().min(1).max(200),
       content: z.string().min(1).max(10000),
-      platform: z.enum(["twitter", "linkedin", "instagram", "facebook", "tiktok", "youtube", "blog", "email"]),
+      platform: z.enum(["twitter", "threads", "linkedin", "instagram", "facebook", "tiktok", "youtube", "blog", "email"]),
       scheduled_for: z.string().datetime(),
     }).parse,
   )
@@ -82,7 +82,7 @@ export const updateScheduledPost = createServerFn({ method: "POST" })
       id: z.string().uuid(),
       title: z.string().min(1).max(200).optional(),
       content: z.string().min(1).max(10000).optional(),
-      platform: z.enum(["twitter", "linkedin", "instagram", "facebook", "tiktok", "youtube", "blog", "email"]).optional(),
+      platform: z.enum(["twitter", "threads", "linkedin", "instagram", "facebook", "tiktok", "youtube", "blog", "email"]).optional(),
       scheduled_for: z.string().datetime().optional(),
       status: z.enum(["scheduled", "published", "draft"]).optional(),
     }).parse,
@@ -145,7 +145,7 @@ export const bulkImportScheduledPosts = createServerFn({ method: "POST" })
         z.object({
           title: z.string().min(1).max(200),
           content: z.string().min(1).max(10000),
-          platform: z.enum(["twitter","linkedin","instagram","facebook","tiktok","youtube","blog","email"]),
+          platform: z.enum(["twitter","threads","linkedin","instagram","facebook","tiktok","youtube","blog","email"]),
           scheduled_for: z.string().datetime(),
         })
       ).min(1).max(200),
@@ -185,7 +185,7 @@ export const generateAIPlan = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       niche: z.string().min(3).max(500),
-      platforms: z.array(z.enum(["twitter", "linkedin", "instagram", "facebook", "tiktok", "youtube", "blog", "email"])).min(1).max(5),
+      platforms: z.array(z.enum(["twitter", "threads", "linkedin", "instagram", "facebook", "tiktok", "youtube", "blog", "email"])).min(1).max(5),
       cadence: z.enum(["daily", "3x", "weekly"]),
       days: z.number().int().min(7).max(30).default(30),
       startDate: z.string().datetime().optional(),

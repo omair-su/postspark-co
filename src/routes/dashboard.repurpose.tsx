@@ -101,10 +101,8 @@ const ALL_LANGUAGES = [
   "Czech","Hungarian","Finnish","Norwegian","Danish",
 ];
 
-const PLATFORM_MAP: Record<string, "twitter"|"linkedin"|"instagram"|"facebook"|"tiktok"|"youtube"|"blog"|"email"> = {
-  // NOTE: the scheduler has no dedicated "threads" channel yet, so Threads
-  // chains are queued under the generic social channel.
-  tweets: "twitter", thread: "twitter", linkedin: "linkedin", instagram: "instagram",
+const PLATFORM_MAP: Record<string, "twitter"|"threads"|"linkedin"|"instagram"|"facebook"|"tiktok"|"youtube"|"blog"|"email"> = {
+  tweets: "twitter", thread: "threads", linkedin: "linkedin", instagram: "instagram",
 
   facebook: "facebook", tiktok: "tiktok", video: "youtube", email: "email",
   podcast: "blog", seo: "blog",
