@@ -679,7 +679,15 @@ export const listPublishingLogs = createServerFn({ method: "POST" })
 // Threads OAuth (separate from Facebook Login — uses the Threads Graph API)
 // ============================================================================
 
-const THREADS_SCOPES = ["threads_business_basic", "threads_content_publish"].join(",");
+// Scope names for the dedicated Threads app (Threads API use case). These match
+// the permissions approved in the Meta dashboard: basic profile/posts, publish,
+// insights and reply reading.
+const THREADS_SCOPES = [
+  "threads_basic",
+  "threads_content_publish",
+  "threads_manage_insights",
+  "threads_read_replies",
+].join(",");
 const THREADS_CALLBACK_PATH = "/auth/threads/callback";
 
 function getThreadsRedirectUri() {
