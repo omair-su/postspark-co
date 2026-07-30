@@ -164,7 +164,32 @@ function ThreadsSettings() {
               Disconnect
             </button>
           </div>
+
+          <div className="mt-6 border-t border-border pt-4">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <BarChart3 className="h-4 w-4" /> Account insights
+            </h3>
+            {insights && insights.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {insights.map((m: any) => (
+                  <div key={m.name} className="rounded-lg border border-border bg-background p-3">
+                    <div className="text-xs capitalize text-muted-foreground">
+                      {String(m.name).replace(/_/g, " ")}
+                    </div>
+                    <div className="mt-0.5 text-lg font-semibold text-foreground">
+                      {m.total_value?.value ?? m.values?.[0]?.value ?? 0}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {insightsError || "No insights available yet — publish a thread to start collecting data."}
+              </p>
+            )}
+          </div>
         </section>
+
       ) : (
         <section className="rounded-xl border border-border bg-card p-6">
           <div className="flex items-center gap-2 text-sm text-amber-400">
