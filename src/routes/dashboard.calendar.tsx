@@ -23,6 +23,7 @@ import {
   Youtube,
   FileText,
   Mail,
+  AtSign,
 } from "lucide-react";
 import {
   listScheduledPosts,
