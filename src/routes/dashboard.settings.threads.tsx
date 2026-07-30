@@ -30,6 +30,8 @@ function ThreadsSettings() {
   const [igLinked, setIgLinked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
+  const [insights, setInsights] = useState<any[] | null>(null);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
 
   const authHeaders = session ? { headers: { Authorization: `Bearer ${session.access_token}` } } : ({} as any);
 
@@ -54,7 +56,15 @@ function ThreadsSettings() {
     setThreadsAcct(t.data);
     setIgLinked((p.data || []).length > 0);
     setLoading(false);
+    if (t.data && session) {
+      const r: any = await getThreadsInsights({ ...authHeaders }).catch((e: any) => ({
+        error: e?.message || "Insights unavailable",
+      }));
+      if (r?.error) setInsightsError(r.error);
+      else setInsights(r?.metrics || []);
+    }
   };
+
 
   useEffect(() => {
     refresh();
