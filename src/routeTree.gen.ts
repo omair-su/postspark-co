@@ -153,6 +153,7 @@ import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/ap
 import { Route as ApiPublicHooksPublishScheduledLinkedinRouteImport } from './routes/api/public/hooks/publish-scheduled-linkedin'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
 import { Route as ApiPublicWebhooksThreadsUninstallRouteImport } from './routes/api/public/webhooks/threads.uninstall'
+import { Route as ApiPublicWebhooksThreadsDeleteRouteImport } from './routes/api/public/webhooks/threads.delete'
 import { Route as ApiPublicWebhooksMetaDeauthorizeRouteImport } from './routes/api/public/webhooks/meta.deauthorize'
 import { Route as ApiPublicOauthYoutubeCallbackRouteImport } from './routes/api/public/oauth.youtube.callback'
 import { Route as ApiPublicOauthXCallbackRouteImport } from './routes/api/public/oauth.x.callback'
@@ -924,6 +925,12 @@ const ApiPublicWebhooksThreadsUninstallRoute =
     path: '/uninstall',
     getParentRoute: () => ApiPublicWebhooksThreadsRoute,
   } as any)
+const ApiPublicWebhooksThreadsDeleteRoute =
+  ApiPublicWebhooksThreadsDeleteRouteImport.update({
+    id: '/delete',
+    path: '/delete',
+    getParentRoute: () => ApiPublicWebhooksThreadsRoute,
+  } as any)
 const ApiPublicWebhooksMetaDeauthorizeRoute =
   ApiPublicWebhooksMetaDeauthorizeRouteImport.update({
     id: '/deauthorize',
@@ -1103,6 +1110,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
+  '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
 }
 export interface FileRoutesByTo {
@@ -1253,6 +1261,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
+  '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
 }
 export interface FileRoutesById {
@@ -1405,6 +1414,7 @@ export interface FileRoutesById {
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
+  '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
 }
 export interface FileRouteTypes {
@@ -1558,6 +1568,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
     | '/api/public/webhooks/meta/deauthorize'
+    | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1708,6 +1719,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
     | '/api/public/webhooks/meta/deauthorize'
+    | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
   id:
     | '__root__'
@@ -1859,6 +1871,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
     | '/api/public/webhooks/meta/deauthorize'
+    | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
   fileRoutesById: FileRoutesById
 }
@@ -2977,6 +2990,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksThreadsUninstallRouteImport
       parentRoute: typeof ApiPublicWebhooksThreadsRoute
     }
+    '/api/public/webhooks/threads/delete': {
+      id: '/api/public/webhooks/threads/delete'
+      path: '/delete'
+      fullPath: '/api/public/webhooks/threads/delete'
+      preLoaderRoute: typeof ApiPublicWebhooksThreadsDeleteRouteImport
+      parentRoute: typeof ApiPublicWebhooksThreadsRoute
+    }
     '/api/public/webhooks/meta/deauthorize': {
       id: '/api/public/webhooks/meta/deauthorize'
       path: '/deauthorize'
@@ -3147,11 +3167,13 @@ const ApiPublicWebhooksMetaRouteWithChildren =
   )
 
 interface ApiPublicWebhooksThreadsRouteChildren {
+  ApiPublicWebhooksThreadsDeleteRoute: typeof ApiPublicWebhooksThreadsDeleteRoute
   ApiPublicWebhooksThreadsUninstallRoute: typeof ApiPublicWebhooksThreadsUninstallRoute
 }
 
 const ApiPublicWebhooksThreadsRouteChildren: ApiPublicWebhooksThreadsRouteChildren =
   {
+    ApiPublicWebhooksThreadsDeleteRoute: ApiPublicWebhooksThreadsDeleteRoute,
     ApiPublicWebhooksThreadsUninstallRoute:
       ApiPublicWebhooksThreadsUninstallRoute,
   }
