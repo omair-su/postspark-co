@@ -679,7 +679,15 @@ export const listPublishingLogs = createServerFn({ method: "POST" })
 // Threads OAuth (separate from Facebook Login — uses the Threads Graph API)
 // ============================================================================
 
-const THREADS_SCOPES = ["threads_business_basic", "threads_content_publish"].join(",");
+// Scope names for the dedicated Threads app (Threads API use case). These match
+// the permissions approved in the Meta dashboard: basic profile/posts, publish,
+// insights and reply reading.
+const THREADS_SCOPES = [
+  "threads_basic",
+  "threads_content_publish",
+  "threads_manage_insights",
+  "threads_read_replies",
+].join(",");
 const THREADS_CALLBACK_PATH = "/auth/threads/callback";
 
 function getThreadsRedirectUri() {
@@ -829,3 +837,61 @@ export async function completeThreadsOAuth(code: string, userId: string) {
   return { ok: true as const, username: me?.username || null };
 }
 
+
+// ============================================================================
+// Threads insights + replies (threads_manage_insights, threads_read_replies)
+// ============================================================================
+
+async function getThreadsAccount(supabase: any, userId: string) {
+  const { data } = await supabase
+    .from("social_accounts")
+    .select("access_token, platform_user_id")
+    .eq("user_id", userId)
+    .eq("platform", "threads")
+    .maybeSingle();
+  return data as { access_token: string; platform_user_id: string } | null;
+}
+
+/** Account-level Threads insights (views, likes, replies, quotes, reposts, followers). */
+export const getThreadsInsights = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const acct = await getThreadsAccount(context.supabase, context.userId);
+    if (!acct?.access_token) return { error: "Threads not connected" };
+    const metrics = "views,likes,replies,reposts,quotes,followers_count";
+    const url = `https://graph.threads.net/v1.0/${acct.platform_user_id}/threads_insights?metric=${metrics}&access_token=${encodeURIComponent(acct.access_token)}`;
+    const res = await fetch(url);
+    const json: any = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: json?.error?.message || `HTTP ${res.status}` };
+    return { metrics: json?.data || [] };
+  });
+
+/** Recent Threads posts for the connected account, with per-post metrics. */
+export const listThreadsPosts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ limit: z.number().int().min(1).max(25).default(10) }).parse)
+  .handler(async ({ data, context }) => {
+    const acct = await getThreadsAccount(context.supabase, context.userId);
+    if (!acct?.access_token) return { error: "Threads not connected" };
+    const fields = "id,text,media_type,permalink,timestamp";
+    const url = `https://graph.threads.net/v1.0/${acct.platform_user_id}/threads?fields=${fields}&limit=${data.limit}&access_token=${encodeURIComponent(acct.access_token)}`;
+    const res = await fetch(url);
+    const json: any = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: json?.error?.message || `HTTP ${res.status}` };
+    return { posts: json?.data || [] };
+  });
+
+/** Replies to one of the user's Threads posts. */
+export const listThreadsReplies = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ threadId: z.string().min(1) }).parse)
+  .handler(async ({ data, context }) => {
+    const acct = await getThreadsAccount(context.supabase, context.userId);
+    if (!acct?.access_token) return { error: "Threads not connected" };
+    const fields = "id,text,username,timestamp,permalink,has_replies";
+    const url = `https://graph.threads.net/v1.0/${data.threadId}/replies?fields=${fields}&access_token=${encodeURIComponent(acct.access_token)}`;
+    const res = await fetch(url);
+    const json: any = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: json?.error?.message || `HTTP ${res.status}` };
+    return { replies: json?.data || [] };
+  });
