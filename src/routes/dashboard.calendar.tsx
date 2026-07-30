@@ -23,6 +23,7 @@ import {
   Youtube,
   FileText,
   Mail,
+  AtSign,
 } from "lucide-react";
 import {
   listScheduledPosts,
@@ -54,6 +55,7 @@ interface Post {
 
 type PlatformId =
   | "twitter"
+  | "threads"
   | "linkedin"
   | "instagram"
   | "facebook"
@@ -71,6 +73,7 @@ const PLATFORMS: {
   charLimit?: number;
 }[] = [
   { id: "twitter", label: "X/Twitter", icon: Twitter, pill: "bg-sky-50 text-sky-700 border-l-[3px] border-sky-500", dot: "bg-sky-500", charLimit: 280 },
+  { id: "threads", label: "Threads", icon: AtSign, pill: "bg-slate-100 text-slate-900 border-l-[3px] border-slate-900", dot: "bg-slate-900", charLimit: 500 },
   { id: "linkedin", label: "LinkedIn", icon: Linkedin, pill: "bg-blue-50 text-blue-700 border-l-[3px] border-blue-600", dot: "bg-blue-600", charLimit: 3000 },
   { id: "instagram", label: "Instagram", icon: Instagram, pill: "bg-pink-50 text-pink-700 border-l-[3px] border-pink-500", dot: "bg-pink-500", charLimit: 2200 },
   { id: "facebook", label: "Facebook", icon: Facebook, pill: "bg-indigo-50 text-indigo-700 border-l-[3px] border-indigo-500", dot: "bg-indigo-500", charLimit: 63206 },
@@ -84,6 +87,7 @@ const platformMeta = (p: string) => PLATFORMS.find((x) => x.id === p) || PLATFOR
 
 const BEST_TIMES: Record<PlatformId, { time: string; days: string; tip: string }> = {
   twitter: { time: "12–3 PM, 5–6 PM", days: "Mon–Thu", tip: "Lunch breaks and end of day" },
+  threads: { time: "9–11 AM, 6–8 PM", days: "Mon–Fri", tip: "Morning scroll and evening wind-down" },
   linkedin: { time: "8–10 AM, 5–6 PM", days: "Tue–Thu", tip: "Before and after work hours" },
   instagram: { time: "11 AM–1 PM, 7–9 PM", days: "Mon, Wed, Thu", tip: "Lunch break and evenings" },
   facebook: { time: "1–4 PM", days: "Wed", tip: "Mid-week afternoon peak" },
@@ -297,6 +301,7 @@ function CalendarPage() {
                   }
                   const allowed = new Set([
                     "twitter",
+                    "threads",
                     "linkedin",
                     "instagram",
                     "facebook",
