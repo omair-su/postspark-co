@@ -152,6 +152,7 @@ import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/pub
 import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/api/public/hooks/publish-scheduled-x'
 import { Route as ApiPublicHooksPublishScheduledLinkedinRouteImport } from './routes/api/public/hooks/publish-scheduled-linkedin'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
+import { Route as ApiPublicWebhooksThreadsUninstallRouteImport } from './routes/api/public/webhooks/threads.uninstall'
 import { Route as ApiPublicWebhooksMetaDeauthorizeRouteImport } from './routes/api/public/webhooks/meta.deauthorize'
 import { Route as ApiPublicOauthYoutubeCallbackRouteImport } from './routes/api/public/oauth.youtube.callback'
 import { Route as ApiPublicOauthXCallbackRouteImport } from './routes/api/public/oauth.x.callback'
@@ -917,6 +918,12 @@ const ApiPublicHooksEmailDripRoute = ApiPublicHooksEmailDripRouteImport.update({
   path: '/api/public/hooks/email-drip',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksThreadsUninstallRoute =
+  ApiPublicWebhooksThreadsUninstallRouteImport.update({
+    id: '/uninstall',
+    path: '/uninstall',
+    getParentRoute: () => ApiPublicWebhooksThreadsRoute,
+  } as any)
 const ApiPublicWebhooksMetaDeauthorizeRoute =
   ApiPublicWebhooksMetaDeauthorizeRouteImport.update({
     id: '/deauthorize',
@@ -1083,7 +1090,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
-  '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRoute
+  '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/api/public/webhooks/x': typeof ApiPublicWebhooksXRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1096,6 +1103,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
+  '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1232,7 +1240,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
-  '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRoute
+  '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/api/public/webhooks/x': typeof ApiPublicWebhooksXRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1245,6 +1253,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
+  '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1383,7 +1392,7 @@ export interface FileRoutesById {
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
-  '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRoute
+  '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
   '/api/public/webhooks/x': typeof ApiPublicWebhooksXRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -1396,6 +1405,7 @@ export interface FileRoutesById {
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
+  '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1548,6 +1558,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
     | '/api/public/webhooks/meta/deauthorize'
+    | '/api/public/webhooks/threads/uninstall'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1697,6 +1708,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
     | '/api/public/webhooks/meta/deauthorize'
+    | '/api/public/webhooks/threads/uninstall'
   id:
     | '__root__'
     | '/'
@@ -1847,6 +1859,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
     | '/api/public/webhooks/meta/deauthorize'
+    | '/api/public/webhooks/threads/uninstall'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1940,7 +1953,7 @@ export interface RootRouteChildren {
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRouteWithChildren
-  ApiPublicWebhooksThreadsRoute: typeof ApiPublicWebhooksThreadsRoute
+  ApiPublicWebhooksThreadsRoute: typeof ApiPublicWebhooksThreadsRouteWithChildren
   ApiPublicWebhooksTiktokRoute: typeof ApiPublicWebhooksTiktokRoute
   ApiPublicWebhooksXRoute: typeof ApiPublicWebhooksXRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -2957,6 +2970,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksEmailDripRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/threads/uninstall': {
+      id: '/api/public/webhooks/threads/uninstall'
+      path: '/uninstall'
+      fullPath: '/api/public/webhooks/threads/uninstall'
+      preLoaderRoute: typeof ApiPublicWebhooksThreadsUninstallRouteImport
+      parentRoute: typeof ApiPublicWebhooksThreadsRoute
+    }
     '/api/public/webhooks/meta/deauthorize': {
       id: '/api/public/webhooks/meta/deauthorize'
       path: '/deauthorize'
@@ -3126,6 +3146,21 @@ const ApiPublicWebhooksMetaRouteWithChildren =
     ApiPublicWebhooksMetaRouteChildren,
   )
 
+interface ApiPublicWebhooksThreadsRouteChildren {
+  ApiPublicWebhooksThreadsUninstallRoute: typeof ApiPublicWebhooksThreadsUninstallRoute
+}
+
+const ApiPublicWebhooksThreadsRouteChildren: ApiPublicWebhooksThreadsRouteChildren =
+  {
+    ApiPublicWebhooksThreadsUninstallRoute:
+      ApiPublicWebhooksThreadsUninstallRoute,
+  }
+
+const ApiPublicWebhooksThreadsRouteWithChildren =
+  ApiPublicWebhooksThreadsRoute._addFileChildren(
+    ApiPublicWebhooksThreadsRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChangelogRoute: ChangelogRoute,
@@ -3222,7 +3257,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRouteWithChildren,
-  ApiPublicWebhooksThreadsRoute: ApiPublicWebhooksThreadsRoute,
+  ApiPublicWebhooksThreadsRoute: ApiPublicWebhooksThreadsRouteWithChildren,
   ApiPublicWebhooksTiktokRoute: ApiPublicWebhooksTiktokRoute,
   ApiPublicWebhooksXRoute: ApiPublicWebhooksXRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
