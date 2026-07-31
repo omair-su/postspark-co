@@ -582,15 +582,21 @@ export const publishToInstagram = createServerFn({ method: "POST" })
  */
 const THREADS_API = "https://graph.threads.net/v1.0";
 
+const THREADS_UNAUTHORIZED_HINT =
+  "Threads is rejecting this account's token (Meta error code 1). This happens when the Threads profile has no role on the Meta app while it is in Development mode. Add that Threads account under App roles → Threads Tester, accept the invite in Threads → Settings → Account → Website permissions → Invites, then reconnect Threads in Settings.";
+
 function threadsErrorMessage(json: any, res: Response, fallback: string) {
   const e = json?.error;
+  if (e?.code === 1 && !e?.error_subcode) return THREADS_UNAUTHORIZED_HINT;
   if (e?.message) {
     const code = e.code ?? e.error_subcode;
     return code ? `${e.message} (Threads error ${code})` : e.message;
   }
   if (json?.__raw) return `${fallback} — HTTP ${res.status}: ${String(json.__raw).slice(0, 180)}`;
+  if (res.status >= 500) return THREADS_UNAUTHORIZED_HINT;
   return `${fallback} — HTTP ${res.status}`;
 }
+
 
 /**
  * Threads Graph API POST.
@@ -916,16 +922,38 @@ export async function completeThreadsOAuth(code: string, userId: string) {
   const longToken = (llJson.access_token as string) || shortToken;
   const expiresIn = (llJson.expires_in as number) || 60 * 24 * 60 * 60;
 
-  // 3) Fetch profile (id + username)
+  // 3) Verify the token actually works against the Threads Graph API.
+  //    OAuth can succeed and still hand back a token the API refuses (error
+  //    code 1, "An unknown error occurred") when the Threads profile that
+  //    logged in has no role on the Meta app while that app is still in
+  //    development mode. Saving such a token makes every later publish fail
+  //    with an opaque HTTP 500, so refuse the connection here instead.
   const meRes = await fetch(
     `https://graph.threads.net/v1.0/me?fields=id,username&access_token=${encodeURIComponent(longToken)}`,
   );
-  const me: any = meRes.ok ? await meRes.json() : {};
-  const platformUserId = (me?.id as string | undefined) || threadsUserId;
-  if (!platformUserId) {
-    console.error("[threads] could not read Threads profile", me);
-    return { ok: false as const, error: "Could not read Threads profile" };
+  const meRaw = await meRes.text();
+  let me: any = {};
+  try {
+    me = meRaw ? JSON.parse(meRaw) : {};
+  } catch {
+    me = {};
   }
+  if (!meRes.ok || !me?.id) {
+    console.error("[threads] profile check failed", meRes.status, meRaw.slice(0, 300));
+    if (me?.error?.code === 1 || meRes.status >= 500) {
+      return {
+        ok: false as const,
+        error:
+          "Threads accepted the login but rejects API calls for this profile. The Threads app is still in Development mode, so the Threads account you signed in with must have a role on it: Meta app dashboard → App roles → Roles → add that account as Threads Tester, then accept the invite in the Threads app under Settings → Account → Website permissions → Invites. Then connect again.",
+      };
+    }
+    return {
+      ok: false as const,
+      error: me?.error?.message || `Could not read Threads profile (HTTP ${meRes.status})`,
+    };
+  }
+  const platformUserId = String(me.id);
+
 
   // 4) Save social_accounts row (platform=threads). Unique index is
   // (user_id, platform, platform_user_id) — replace rather than upsert.
@@ -943,7 +971,7 @@ export async function completeThreadsOAuth(code: string, userId: string) {
     access_token: longToken,
     token_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
     scopes: THREADS_SCOPES,
-    metadata: {},
+    metadata: { oauth_user_id: threadsUserId ?? null },
   });
   if (upsertErr) {
     console.error("[threads] insert social_accounts failed", upsertErr);
