@@ -1,0 +1,1 @@
+DELETE FROM public.social_accounts WHERE platform = 'threads' AND platform_username IS NULL;
