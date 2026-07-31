@@ -88,6 +88,7 @@ export const pollMp4Render = createServerFn({ method: "POST" })
 
     const status = json.status as string;
     if (status !== "succeeded") {
+      await supabase.from("video_render_jobs").update({ status }).eq("id", job.id);
       return { status, mp4Url: null as string | null, error: json.error || null };
     }
     const out = json.output;
