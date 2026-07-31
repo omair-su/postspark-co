@@ -40,7 +40,20 @@ export const startMp4Render = createServerFn({ method: "POST" })
     });
     const json: any = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(json?.detail || json?.error || `Replicate ${resp.status}`);
-    return { predictionId: json.id as string, status: json.status as string };
+
+    const predictionId = json.id as string;
+    if (!predictionId) throw new Error("Replicate did not return a job id");
+
+    // Record ownership so only this user can poll / download the result.
+    const { error: insErr } = await supabase.from("video_render_jobs").insert({
+      user_id: userId,
+      prediction_id: predictionId,
+      source_path: data.webmPath,
+      status: (json.status as string) ?? "starting",
+    });
+    if (insErr) throw new Error(insErr.message);
+
+    return { predictionId, status: json.status as string };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       if (e instanceof Response) {
