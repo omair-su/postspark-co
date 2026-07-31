@@ -40,7 +40,20 @@ export const startMp4Render = createServerFn({ method: "POST" })
     });
     const json: any = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(json?.detail || json?.error || `Replicate ${resp.status}`);
-    return { predictionId: json.id as string, status: json.status as string };
+
+    const predictionId = json.id as string;
+    if (!predictionId) throw new Error("Replicate did not return a job id");
+
+    // Record ownership so only this user can poll / download the result.
+    const { error: insErr } = await supabase.from("video_render_jobs").insert({
+      user_id: userId,
+      prediction_id: predictionId,
+      source_path: data.webmPath,
+      status: (json.status as string) ?? "starting",
+    });
+    if (insErr) throw new Error(insErr.message);
+
+    return { predictionId, status: json.status as string };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
       if (e instanceof Response) {
@@ -57,6 +70,16 @@ export const pollMp4Render = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
     const { supabase, userId } = context;
+
+    // Ownership check: RLS restricts this read to the caller's own jobs.
+    const { data: job, error: jobErr } = await supabase
+      .from("video_render_jobs")
+      .select("id")
+      .eq("prediction_id", data.predictionId)
+      .maybeSingle();
+    if (jobErr) throw new Error(jobErr.message);
+    if (!job) throw new Error("Render job not found");
+
     const resp = await fetch(`${GATEWAY}/predictions/${data.predictionId}`, {
       headers: gatewayHeaders(),
     });
@@ -65,6 +88,7 @@ export const pollMp4Render = createServerFn({ method: "POST" })
 
     const status = json.status as string;
     if (status !== "succeeded") {
+      await supabase.from("video_render_jobs").update({ status }).eq("id", job.id);
       return { status, mp4Url: null as string | null, error: json.error || null };
     }
     const out = json.output;
@@ -84,6 +108,7 @@ export const pollMp4Render = createServerFn({ method: "POST" })
     const { data: signed, error: sErr } = await supabase
       .storage.from(BUCKET).createSignedUrl(path, 60 * 60 * 24);
     if (sErr || !signed?.signedUrl) throw new Error(sErr?.message || "sign output failed");
+    await supabase.from("video_render_jobs").update({ status, output_path: path }).eq("id", job.id);
     return { status, mp4Url: signed.signedUrl, mp4Path: path, error: null };
   } catch (e: any) {
       console.error('[server-fn] error:', e);

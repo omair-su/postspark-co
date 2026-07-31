@@ -1541,6 +1541,39 @@ export type Database = {
         }
         Relationships: []
       }
+      video_render_jobs: {
+        Row: {
+          created_at: string
+          id: string
+          output_path: string | null
+          prediction_id: string
+          source_path: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          output_path?: string | null
+          prediction_id: string
+          source_path: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          output_path?: string | null
+          prediction_id?: string
+          source_path?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       webhook_events: {
         Row: {
           created_at: string
