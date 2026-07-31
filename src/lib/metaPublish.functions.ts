@@ -575,16 +575,55 @@ export const publishToInstagram = createServerFn({ method: "POST" })
   });
 
 /**
- * Threads publishing via the Threads Graph API. Requires threads_business_basic
- * plus threads_content_publish. Uses the same 2-step container flow as IG.
+ * Threads publishing via the Threads Graph API. Requires threads_basic plus
+ * threads_content_publish. Uses the 2-step container flow (create → publish),
+ * polls the container until it is FINISHED for media posts, and supports
+ * reply chaining so long content becomes a real thread.
  */
+const THREADS_API = "https://graph.threads.net/v1.0";
+
+function threadsErrorMessage(json: any, res: Response, fallback: string) {
+  const e = json?.error;
+  if (e?.message) {
+    const code = e.code ?? e.error_subcode;
+    return code ? `${e.message} (Threads error ${code})` : e.message;
+  }
+  return `${fallback} — HTTP ${res.status}`;
+}
+
+async function threadsPost(path: string, params: Record<string, string>) {
+  const url = new URL(`${THREADS_API}${path}`);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  const res = await fetch(url.toString(), { method: "POST" });
+  const json: any = await res.json().catch(() => ({}));
+  return { res, json };
+}
+
+async function waitForContainer(containerId: string, token: string) {
+  for (let i = 0; i < 20; i++) {
+    const url = `${THREADS_API}/${containerId}?fields=status,error_message&access_token=${encodeURIComponent(token)}`;
+    const json: any = await fetch(url).then((r) => r.json()).catch(() => ({}));
+    const status = json?.status;
+    if (status === "FINISHED" || status === undefined) return { ok: true as const };
+    if (status === "ERROR" || status === "EXPIRED") {
+      return { ok: false as const, error: json?.error_message || `Media processing ${status}` };
+    }
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+  return { ok: false as const, error: "Media is still processing on Threads — try again in a moment." };
+}
+
 export const publishToThreads = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       text: z.string().min(1).max(500),
       mediaUrl: z.string().url().optional(),
+      /** Storage path inside the private post-media bucket (preferred). */
+      mediaPath: z.string().optional(),
       mediaType: z.enum(["TEXT", "IMAGE", "VIDEO"]).default("TEXT"),
+      /** Thread chaining: id of the post this one replies to. */
+      replyToId: z.string().optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -600,46 +639,74 @@ export const publishToThreads = createServerFn({ method: "POST" })
         return { error: "Threads not connected. Connect in Settings first." };
       }
 
-      const containerBody = new URLSearchParams({
-        media_type: data.mediaType,
-        text: data.text,
-        access_token: acct.access_token,
-      });
-      if (data.mediaUrl && data.mediaType === "IMAGE") containerBody.set("image_url", data.mediaUrl);
-      if (data.mediaUrl && data.mediaType === "VIDEO") containerBody.set("video_url", data.mediaUrl);
-
-      const containerRes = await fetch(
-        `https://graph.threads.net/v1.0/${acct.platform_user_id}/threads`,
-        { method: "POST", body: containerBody },
-      );
-      const containerJson: any = await containerRes.json().catch(() => ({}));
-      if (!containerRes.ok || !containerJson?.id) {
-        return { error: containerJson?.error?.message || "Threads container failed" };
+      // Resolve media: prefer a freshly-signed URL from our own bucket.
+      let mediaUrl = data.mediaUrl;
+      if (data.mediaPath) {
+        if (!data.mediaPath.startsWith(`${userId}/`)) return { error: "Not allowed" };
+        const { data: signed } = await supabase.storage
+          .from("post-media")
+          .createSignedUrl(data.mediaPath, 60 * 60);
+        if (!signed?.signedUrl) return { error: "Could not read that uploaded file." };
+        mediaUrl = signed.signedUrl;
+      }
+      const mediaType = mediaUrl ? data.mediaType : "TEXT";
+      if (data.mediaType !== "TEXT" && !mediaUrl) {
+        return { error: "Add an image or video (upload a file or paste a public URL) before publishing." };
       }
 
-      const publishRes = await fetch(
-        `https://graph.threads.net/v1.0/${acct.platform_user_id}/threads_publish`,
-        {
-          method: "POST",
-          body: new URLSearchParams({
-            creation_id: containerJson.id,
-            access_token: acct.access_token,
-          }),
-        },
+      const params: Record<string, string> = {
+        media_type: mediaType,
+        text: data.text,
+        access_token: acct.access_token,
+      };
+      if (mediaUrl && mediaType === "IMAGE") params.image_url = mediaUrl;
+      if (mediaUrl && mediaType === "VIDEO") params.video_url = mediaUrl;
+      if (data.replyToId) params.reply_to_id = data.replyToId;
+
+      const { res: containerRes, json: containerJson } = await threadsPost(
+        `/${acct.platform_user_id}/threads`,
+        params,
       );
-      const publishJson: any = await publishRes.json().catch(() => ({}));
+      if (!containerRes.ok || !containerJson?.id) {
+        const message = threadsErrorMessage(containerJson, containerRes, "Threads container failed");
+        console.error("[publishToThreads] container failed", containerRes.status, containerJson);
+        await supabase.from("publishing_logs").insert({
+          user_id: userId,
+          platform: "threads",
+          action: "container",
+          response_payload: containerJson,
+          status: "error",
+          error_message: message,
+        });
+        return { error: message };
+      }
+
+      if (mediaType !== "TEXT") {
+        const ready = await waitForContainer(containerJson.id, acct.access_token);
+        if (!ready.ok) return { error: ready.error };
+      }
+
+      const { res: publishRes, json: publishJson } = await threadsPost(
+        `/${acct.platform_user_id}/threads_publish`,
+        { creation_id: containerJson.id, access_token: acct.access_token },
+      );
+
+      const publishError = publishRes.ok && publishJson?.id
+        ? null
+        : threadsErrorMessage(publishJson, publishRes, "Threads publish failed");
 
       await supabase.from("publishing_logs").insert({
         user_id: userId,
         platform: "threads",
         action: "publish",
         response_payload: publishJson,
-        status: publishRes.ok ? "success" : "error",
-        error_message: publishRes.ok ? null : publishJson?.error?.message || `HTTP ${publishRes.status}`,
+        status: publishError ? "error" : "success",
+        error_message: publishError,
       });
 
-      if (!publishRes.ok || !publishJson?.id) {
-        return { error: publishJson?.error?.message || "Threads publish failed" };
+      if (publishError) {
+        console.error("[publishToThreads] publish failed", publishRes.status, publishJson);
+        return { error: publishError };
       }
 
       await supabase.from("scheduled_posts").insert({
@@ -651,15 +718,16 @@ export const publishToThreads = createServerFn({ method: "POST" })
         content: data.text,
         title: data.text.slice(0, 80),
         platform_post_id: publishJson.id,
-        media_url: data.mediaUrl || null,
+        media_url: mediaUrl || null,
       } as any);
 
-      return { ok: true, threadId: publishJson.id };
+      return { ok: true, threadId: publishJson.id, id: publishJson.id };
     } catch (e: any) {
       console.error("[publishToThreads] error", e);
       return { error: e?.message || "Failed to publish to Threads" };
     }
   });
+
 
 /**
  * Read recent publishing logs for the current user (any Meta platform).
