@@ -273,14 +273,77 @@ function PublishThreads() {
               ))}
             </div>
             {mediaType !== "TEXT" && (
-              <input
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                placeholder="https://…"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
-              />
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground hover:bg-muted disabled:opacity-60"
+                  >
+                    {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                    Upload from device
+                  </button>
+                  <button
+                    onClick={openLibrary}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground hover:bg-muted"
+                  >
+                    <FolderOpen className="h-3.5 w-3.5" /> My gallery
+                  </button>
+                  {(mediaPath || mediaUrl) && (
+                    <button
+                      onClick={clearMedia}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
+                    >
+                      <X className="h-3.5 w-3.5" /> Remove
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept={mediaType === "VIDEO" ? "video/*" : "image/*"}
+                  className="hidden"
+                  onChange={(e) => handleFiles(e.target.files)}
+                />
+                {showLibrary && (
+                  <div className="grid max-h-48 grid-cols-4 gap-2 overflow-auto rounded-lg border border-border bg-background p-2">
+                    {library.length === 0 ? (
+                      <p className="col-span-4 py-4 text-center text-xs text-muted-foreground">
+                        No uploads yet — add one from your device.
+                      </p>
+                    ) : (
+                      library.map((a: any) => (
+                        <button
+                          key={a.path}
+                          onClick={() => pickFromLibrary(a)}
+                          className="overflow-hidden rounded-md border border-border hover:border-primary"
+                        >
+                          {a.kind === "video" ? (
+                            <video src={a.url} className="h-16 w-full object-cover" muted playsInline />
+                          ) : (
+                            <img src={a.url} alt={a.name} className="h-16 w-full object-cover" />
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+                <input
+                  value={mediaPath ? "" : mediaUrl}
+                  onChange={(e) => {
+                    setMediaPath(null);
+                    setMediaUrl(e.target.value);
+                  }}
+                  placeholder="…or paste a public https:// URL"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                />
+                {mediaPath && (
+                  <p className="text-xs text-muted-foreground">Attached file: {mediaPath.split("/").pop()}</p>
+                )}
+              </div>
             )}
           </div>
+
 
           <div className="flex items-center gap-3 pt-2">
             <button
