@@ -108,6 +108,7 @@ export const pollMp4Render = createServerFn({ method: "POST" })
     const { data: signed, error: sErr } = await supabase
       .storage.from(BUCKET).createSignedUrl(path, 60 * 60 * 24);
     if (sErr || !signed?.signedUrl) throw new Error(sErr?.message || "sign output failed");
+    await supabase.from("video_render_jobs").update({ status, output_path: path }).eq("id", job.id);
     return { status, mp4Url: signed.signedUrl, mp4Path: path, error: null };
   } catch (e: any) {
       console.error('[server-fn] error:', e);
