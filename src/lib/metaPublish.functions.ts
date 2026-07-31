@@ -588,16 +588,59 @@ function threadsErrorMessage(json: any, res: Response, fallback: string) {
     const code = e.code ?? e.error_subcode;
     return code ? `${e.message} (Threads error ${code})` : e.message;
   }
+  if (json?.__raw) return `${fallback} — HTTP ${res.status}: ${String(json.__raw).slice(0, 180)}`;
   return `${fallback} — HTTP ${res.status}`;
 }
 
-async function threadsPost(path: string, params: Record<string, string>) {
-  const url = new URL(`${THREADS_API}${path}`);
-  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-  const res = await fetch(url.toString(), { method: "POST" });
-  const json: any = await res.json().catch(() => ({}));
+/**
+ * Threads Graph API POST.
+ * Params MUST go in a form-encoded body (query-string POSTs make the Threads
+ * endpoint return an empty HTTP 500 for text containing newlines/emoji), and
+ * the token is sent as a Bearer header rather than a URL param.
+ */
+async function threadsRequest(
+  path: string,
+  params: Record<string, string>,
+  mode: "body" | "query",
+) {
+  const { access_token, ...rest } = params;
+  let res: Response;
+  if (mode === "body") {
+    res = await fetch(`${THREADS_API}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Bearer ${access_token}`,
+      },
+      body: new URLSearchParams(rest).toString(),
+    });
+  } else {
+    const url = new URL(`${THREADS_API}${path}`);
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+    res = await fetch(url.toString(), { method: "POST" });
+  }
+  const raw = await res.text();
+  let json: any = {};
+  try {
+    json = raw ? JSON.parse(raw) : {};
+  } catch {
+    json = { __raw: raw };
+  }
   return { res, json };
 }
+
+async function threadsPost(path: string, params: Record<string, string>) {
+  let out = await threadsRequest(path, params, "body");
+  // Some Threads endpoints still only accept query-string params; retry once
+  // on a server-side failure before surfacing the error.
+  if (!out.res.ok && out.res.status >= 500) {
+    console.warn("[threads] body POST failed", out.res.status, "— retrying with query params");
+    out = await threadsRequest(path, params, "query");
+  }
+  return out;
+}
+
+
 
 async function waitForContainer(containerId: string, token: string) {
   for (let i = 0; i < 20; i++) {
