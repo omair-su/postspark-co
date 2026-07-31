@@ -582,15 +582,21 @@ export const publishToInstagram = createServerFn({ method: "POST" })
  */
 const THREADS_API = "https://graph.threads.net/v1.0";
 
+const THREADS_UNAUTHORIZED_HINT =
+  "Threads is rejecting this account's token (Meta error code 1). This happens when the Threads profile has no role on the Meta app while it is in Development mode. Add that Threads account under App roles → Threads Tester, accept the invite in Threads → Settings → Account → Website permissions → Invites, then reconnect Threads in Settings.";
+
 function threadsErrorMessage(json: any, res: Response, fallback: string) {
   const e = json?.error;
+  if (e?.code === 1 && !e?.error_subcode) return THREADS_UNAUTHORIZED_HINT;
   if (e?.message) {
     const code = e.code ?? e.error_subcode;
     return code ? `${e.message} (Threads error ${code})` : e.message;
   }
   if (json?.__raw) return `${fallback} — HTTP ${res.status}: ${String(json.__raw).slice(0, 180)}`;
+  if (res.status >= 500) return THREADS_UNAUTHORIZED_HINT;
   return `${fallback} — HTTP ${res.status}`;
 }
+
 
 /**
  * Threads Graph API POST.
