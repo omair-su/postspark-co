@@ -70,6 +70,16 @@ export const pollMp4Render = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
     const { supabase, userId } = context;
+
+    // Ownership check: RLS restricts this read to the caller's own jobs.
+    const { data: job, error: jobErr } = await supabase
+      .from("video_render_jobs")
+      .select("id")
+      .eq("prediction_id", data.predictionId)
+      .maybeSingle();
+    if (jobErr) throw new Error(jobErr.message);
+    if (!job) throw new Error("Render job not found");
+
     const resp = await fetch(`${GATEWAY}/predictions/${data.predictionId}`, {
       headers: gatewayHeaders(),
     });
