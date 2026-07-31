@@ -598,17 +598,27 @@ function threadsErrorMessage(json: any, res: Response, fallback: string) {
  * endpoint return an empty HTTP 500 for text containing newlines/emoji), and
  * the token is sent as a Bearer header rather than a URL param.
  */
-async function threadsPost(path: string, params: Record<string, string>) {
+async function threadsRequest(
+  path: string,
+  params: Record<string, string>,
+  mode: "body" | "query",
+) {
   const { access_token, ...rest } = params;
-  const body = new URLSearchParams(rest);
-  const res = await fetch(`${THREADS_API}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Bearer ${access_token}`,
-    },
-    body: body.toString(),
-  });
+  let res: Response;
+  if (mode === "body") {
+    res = await fetch(`${THREADS_API}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Bearer ${access_token}`,
+      },
+      body: new URLSearchParams(rest).toString(),
+    });
+  } else {
+    const url = new URL(`${THREADS_API}${path}`);
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+    res = await fetch(url.toString(), { method: "POST" });
+  }
   const raw = await res.text();
   let json: any = {};
   try {
@@ -618,6 +628,18 @@ async function threadsPost(path: string, params: Record<string, string>) {
   }
   return { res, json };
 }
+
+async function threadsPost(path: string, params: Record<string, string>) {
+  let out = await threadsRequest(path, params, "body");
+  // Some Threads endpoints still only accept query-string params; retry once
+  // on a server-side failure before surfacing the error.
+  if (!out.res.ok && out.res.status >= 500) {
+    console.warn("[threads] body POST failed", out.res.status, "— retrying with query params");
+    out = await threadsRequest(path, params, "query");
+  }
+  return out;
+}
+
 
 
 async function waitForContainer(containerId: string, token: string) {
