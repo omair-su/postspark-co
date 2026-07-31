@@ -965,7 +965,7 @@ export async function completeThreadsOAuth(code: string, userId: string) {
     access_token: longToken,
     token_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
     scopes: THREADS_SCOPES,
-    metadata: {},
+    metadata: { oauth_user_id: threadsUserId ?? null },
   });
   if (upsertErr) {
     console.error("[threads] insert social_accounts failed", upsertErr);
