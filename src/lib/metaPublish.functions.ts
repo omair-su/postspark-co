@@ -816,26 +816,28 @@ export async function completeThreadsOAuth(code: string, userId: string) {
     return { ok: false as const, error: "Could not read Threads profile" };
   }
 
-  // 4) Upsert social_accounts row (platform=threads)
+  // 4) Save social_accounts row (platform=threads). Unique index is
+  // (user_id, platform, platform_user_id) — replace rather than upsert.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { error: upsertErr } = await supabaseAdmin
+  await supabaseAdmin
     .from("social_accounts")
-    .upsert(
-      {
-        user_id: userId,
-        platform: "threads",
-        platform_user_id: platformUserId,
-        platform_username: me?.username || null,
-        access_token: longToken,
-        token_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
-        scopes: THREADS_SCOPES,
-        metadata: {},
-      },
-      { onConflict: "user_id,platform" as any },
-    );
+    .delete()
+    .eq("user_id", userId)
+    .eq("platform", "threads");
+  const { error: upsertErr } = await supabaseAdmin.from("social_accounts").insert({
+    user_id: userId,
+    platform: "threads",
+    platform_user_id: platformUserId,
+    platform_username: me?.username || null,
+    access_token: longToken,
+    token_expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
+    scopes: THREADS_SCOPES,
+    metadata: {},
+  });
   if (upsertErr) {
-    console.error("[threads] upsert social_accounts failed", upsertErr);
+    console.error("[threads] insert social_accounts failed", upsertErr);
     return { ok: false as const, error: upsertErr.message };
+
   }
 
   return { ok: true as const, username: me?.username || null };
