@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { publishToThreads, listPublishingLogs } from "@/lib/metaPublish.functions";
+import { listMediaLibrary } from "@/lib/media.functions";
 import { toast } from "sonner";
 import {
   AtSign,
@@ -13,7 +14,11 @@ import {
   Image as ImageIcon,
   Film,
   Split,
+  Upload,
+  FolderOpen,
+  X,
 } from "lucide-react";
+
 
 export const Route = createFileRoute("/dashboard/publish/threads")({
   head: () => ({
