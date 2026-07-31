@@ -59,6 +59,11 @@ function PublishThreads() {
   const [username, setUsername] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaPath, setMediaPath] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [library, setLibrary] = useState<any[]>([]);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const [mediaType, setMediaType] = useState<"TEXT" | "IMAGE" | "VIDEO">("TEXT");
   const [autoSplit, setAutoSplit] = useState(true);
   const [publishing, setPublishing] = useState(false);
@@ -88,7 +93,51 @@ function PublishThreads() {
 
   const posts = useMemo(() => (autoSplit ? splitIntoThreads(text) : [text]), [text, autoSplit]);
   const overLimit = !autoSplit && text.length > MAX;
-  const canPublish = text.trim().length > 0 && !overLimit && !publishing && connected;
+  const canPublish = text.trim().length > 0 && !overLimit && !publishing && !uploading && connected;
+
+  const clearMedia = () => {
+    setMediaUrl("");
+    setMediaPath(null);
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files?.length || !user) return;
+    const file = files[0];
+    setUploading(true);
+    try {
+      const kind: "IMAGE" | "VIDEO" = file.type.startsWith("video/") ? "VIDEO" : "IMAGE";
+      const safe = file.name.replace(/[^a-zA-Z0-9-_.]/g, "-").slice(-60);
+      const path = `${user.id}/${Date.now()}-${safe}`;
+      const { error } = await supabase.storage
+        .from("post-media")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw new Error(error.message);
+      const { data: signed } = await supabase.storage.from("post-media").createSignedUrl(path, 3600);
+      setMediaPath(path);
+      setMediaUrl(signed?.signedUrl || "");
+      setMediaType(kind);
+      toast.success("Media attached");
+    } catch (e: any) {
+      toast.error(e?.message || "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const openLibrary = async () => {
+    setShowLibrary((v) => !v);
+    if (library.length || !session) return;
+    const r: any = await listMediaLibrary({ ...authHeaders }).catch(() => null);
+    setLibrary((r?.assets || []).filter((a: any) => a.kind !== "document"));
+  };
+
+  const pickFromLibrary = (asset: any) => {
+    setMediaPath(asset.path);
+    setMediaUrl(asset.url);
+    setMediaType(asset.kind === "video" ? "VIDEO" : "IMAGE");
+    setShowLibrary(false);
+  };
 
   const handleSubmit = async () => {
     if (!canPublish) return;
@@ -98,23 +147,29 @@ function PublishThreads() {
     try {
       const chain = posts;
       const results: any[] = [];
-      for (const p of chain) {
+      let replyToId: string | undefined;
+      for (let i = 0; i < chain.length; i++) {
+        const useMedia = i === 0 && mediaType !== "TEXT" && (mediaPath || mediaUrl);
         const r: any = await publishToThreads({
           ...authHeaders,
           data: {
-            text: p,
-            mediaUrl: mediaType !== "TEXT" && mediaUrl ? mediaUrl : undefined,
-            mediaType: mediaType === "TEXT" ? "TEXT" : mediaType,
+            text: chain[i],
+            mediaPath: useMedia && mediaPath ? mediaPath : undefined,
+            mediaUrl: useMedia && !mediaPath && mediaUrl ? mediaUrl : undefined,
+            mediaType: useMedia ? mediaType : "TEXT",
+            replyToId,
           },
         });
         results.push(r);
         if (r?.error) throw new Error(r.error);
+        replyToId = r?.id || r?.threadId;
       }
       setApiLog(results);
       setStatus("published");
       toast.success(chain.length > 1 ? `Published thread of ${chain.length}` : "Published to Threads");
       setText("");
-      setMediaUrl("");
+      clearMedia();
+      setMediaType("TEXT");
       listPublishingLogs({ ...authHeaders, data: { limit: 20 } }).then((rr: any) =>
         setRecent((rr?.logs || []).filter((l: any) => l.platform === "threads")),
       );
@@ -125,6 +180,7 @@ function PublishThreads() {
       setPublishing(false);
     }
   };
+
 
   if (connected === false) {
     return (
