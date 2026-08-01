@@ -1,3 +1,4 @@
+import { ToolHero } from "@/components/dashboard/ToolHero";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
