@@ -650,6 +650,7 @@ async function threadsPost(path: string, params: Record<string, string>) {
 
 async function waitForContainer(containerId: string, token: string) {
   for (let i = 0; i < 20; i++) {
+    await new Promise((r) => setTimeout(r, i === 0 ? 1200 : 3000));
     const url = `${THREADS_API}/${containerId}?fields=status,error_message&access_token=${encodeURIComponent(token)}`;
     const json: any = await fetch(url).then((r) => r.json()).catch(() => ({}));
     const status = json?.status;
@@ -657,7 +658,6 @@ async function waitForContainer(containerId: string, token: string) {
     if (status === "ERROR" || status === "EXPIRED") {
       return { ok: false as const, error: json?.error_message || `Media processing ${status}` };
     }
-    await new Promise((r) => setTimeout(r, 3000));
   }
   return { ok: false as const, error: "Media is still processing on Threads — try again in a moment." };
 }
@@ -736,8 +736,8 @@ export const publishToThreads = createServerFn({ method: "POST" })
       const ready = await waitForContainer(containerJson.id, acct.access_token);
       if (!ready.ok) return { error: ready.error };
 
-      let publishRes: Response;
-      let publishJson: any;
+      let publishRes: Response | null = null;
+      let publishJson: any = {};
       for (let attempt = 0; attempt < 5; attempt++) {
         const out = await threadsPost(
           `/${acct.platform_user_id}/threads_publish`,
@@ -751,10 +751,9 @@ export const publishToThreads = createServerFn({ method: "POST" })
         if (subcode !== 4279009 && publishRes.status < 500) break;
         await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
       }
-      publishRes = publishRes!;
 
 
-      const publishError = publishRes.ok && publishJson?.id
+      const publishError = publishRes?.ok && publishJson?.id
         ? null
         : threadsErrorMessage(publishJson, publishRes, "Threads publish failed");
 
@@ -768,7 +767,7 @@ export const publishToThreads = createServerFn({ method: "POST" })
       });
 
       if (publishError) {
-        console.error("[publishToThreads] publish failed", publishRes.status, publishJson);
+        console.error("[publishToThreads] publish failed", publishRes?.status, publishJson);
         return { error: publishError };
       }
 
