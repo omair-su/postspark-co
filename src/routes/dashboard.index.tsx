@@ -14,8 +14,14 @@ import { StreakBadge } from "@/components/StreakBadge";
 import { ReferralBanner } from "@/components/ReferralBanner";
 import { AskBar } from "@/components/dashboard/AskBar";
 import { StatTile } from "@/components/dashboard/StatTile";
-import { EmptyState } from "@/components/dashboard/EmptyState";
 import { ToolTile, type ToolTileItem } from "@/components/dashboard/ToolTile";
+import { CountUp } from "@/components/dashboard/CountUp";
+import { StatRing } from "@/components/dashboard/StatRing";
+import { Sparkline } from "@/components/dashboard/Sparkline";
+import { IllustratedEmpty } from "@/components/dashboard/IllustratedEmpty";
+import { SpotlightCard } from "@/components/dashboard/SpotlightCard";
+import { PREMIUM_ART } from "@/components/dashboard/premiumArt";
+
 
 const WIDGETS: Array<{ to: string; title: string; emoji: string; description: string; outputs: string[]; accent: string; badge?: string; badgeKind?: "popular" | "new" }> = [
   { to: "/dashboard/guided/founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into authority content with scored hooks.", outputs: ["LinkedIn", "Thread", "Email"], accent: "linear-gradient(90deg,#7c3aed,#8b6fff)", badge: "Most Popular", badgeKind: "popular" },
