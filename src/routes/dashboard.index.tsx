@@ -14,8 +14,14 @@ import { StreakBadge } from "@/components/StreakBadge";
 import { ReferralBanner } from "@/components/ReferralBanner";
 import { AskBar } from "@/components/dashboard/AskBar";
 import { StatTile } from "@/components/dashboard/StatTile";
-import { EmptyState } from "@/components/dashboard/EmptyState";
 import { ToolTile, type ToolTileItem } from "@/components/dashboard/ToolTile";
+import { CountUp } from "@/components/dashboard/CountUp";
+import { StatRing } from "@/components/dashboard/StatRing";
+import { Sparkline } from "@/components/dashboard/Sparkline";
+import { IllustratedEmpty } from "@/components/dashboard/IllustratedEmpty";
+import { SpotlightCard } from "@/components/dashboard/SpotlightCard";
+import { PREMIUM_ART } from "@/components/dashboard/premiumArt";
+
 
 const WIDGETS: Array<{ to: string; title: string; emoji: string; description: string; outputs: string[]; accent: string; badge?: string; badgeKind?: "popular" | "new" }> = [
   { to: "/dashboard/guided/founder-lesson", title: "Founder Lesson", emoji: "🚀", description: "Turn a lesson into authority content with scored hooks.", outputs: ["LinkedIn", "Thread", "Email"], accent: "linear-gradient(90deg,#7c3aed,#8b6fff)", badge: "Most Popular", badgeKind: "popular" },
@@ -135,7 +141,7 @@ function DashboardHome() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* Hero — million-dollar premium card */}
-      <section className="ps-hero">
+      <section className="ps-hero ps-ring ps-elev-3">
         {/* Ambient layers */}
         <span className="ps-hero-orb ps-hero-orb-1" aria-hidden />
         <span className="ps-hero-orb ps-hero-orb-2" aria-hidden />
@@ -143,8 +149,18 @@ function DashboardHome() {
         <span className="ps-hero-orb ps-hero-orb-4" aria-hidden />
         <span className="ps-hero-grid" aria-hidden />
         <span className="ps-hero-top-glow" aria-hidden />
+        <img
+          src={PREMIUM_ART.hero}
+          alt=""
+          aria-hidden
+          width={1600}
+          height={912}
+          className="ps-tool-hero-art hidden md:block"
+          style={{ width: "46%", opacity: 0.4 }}
+        />
 
-        <div className="flex flex-wrap items-start justify-between gap-3">
+
+        <div className="relative flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <span className="ps-hero-badge">
               <span className="ps-hero-badge-dot" />
@@ -205,48 +221,71 @@ function DashboardHome() {
 
       {/* Today rail */}
       <section className="grid gap-3 sm:grid-cols-3 ds-fade-up-2">
-        <div className="ds-card p-4 flex items-center gap-3">
-          <div className="ds-icon-disc h-10 w-10"><Activity className="h-4 w-4" /></div>
+        <SpotlightCard className="ds-card p-4 flex items-center gap-3">
+          <div className="ds-icon-disc ps-icon-pop h-10 w-10"><Activity className="h-4 w-4" /></div>
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] ds-muted-text">Today</p>
-            <p className="ds-stat-num text-xl">{todayCount} <span className="text-xs font-normal text-white/50">generations</span></p>
+            <p className="ds-stat-num text-xl">
+              <CountUp value={todayCount} /> <span className="text-xs font-normal text-white/50">generations</span>
+            </p>
           </div>
-        </div>
-        <div className="ds-card p-4 flex items-center gap-3">
-          <div className="ds-icon-disc h-10 w-10"><Flame className="h-4 w-4" /></div>
+        </SpotlightCard>
+        <SpotlightCard className="ds-card p-4 flex items-center gap-3" accent="#F97316">
+          <div className="ds-icon-disc ps-icon-pop h-10 w-10"><Flame className="h-4 w-4" /></div>
           <div className="min-w-0 flex-1"><StreakBadge /></div>
-        </div>
-        <Link to="/dashboard/calendar" className="ds-card ds-card-hover p-4 flex items-center gap-3 group">
-          <div className="ds-icon-disc h-10 w-10"><Calendar className="h-4 w-4" /></div>
+        </SpotlightCard>
+        <SpotlightCard as={Link} to="/dashboard/calendar" accent="#0891B2" className="ds-card ds-card-hover p-4 flex items-center gap-3 group">
+          <div className="ds-icon-disc ps-icon-pop h-10 w-10"><Calendar className="h-4 w-4" /></div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] uppercase tracking-[0.18em] ds-muted-text">Calendar</p>
             <p className="text-sm font-medium text-white">Plan your next drop</p>
           </div>
-          <ArrowUpRight className="h-4 w-4 text-white/30 group-hover:text-[#c4b5fd]" />
-        </Link>
+          <ArrowUpRight className="h-4 w-4 text-white/30 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#c4b5fd]" />
+        </SpotlightCard>
+      </section>
+
+      {/* Momentum — last 14 days */}
+      <section className="ds-fade-up-2">
+        <SpotlightCard className="ds-card p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[11px] uppercase tracking-[0.18em] ds-muted-text">Momentum · last 14 days</p>
+            <p className="text-[11px] ds-muted-text">
+              {allJobDates.length ? `${sparkline.filter((v) => v > 8).length} active days` : "No activity yet"}
+            </p>
+          </div>
+          <div className="ps-dot-strip mt-3">
+            {sparkline.slice(-14).map((v, i, arr) => (
+              <span
+                key={i}
+                className="ps-dot"
+                data-on={v > 8 ? "1" : "0"}
+                data-today={i === arr.length - 1 ? "1" : "0"}
+                style={{ animationDelay: `${i * 0.04}s` }}
+              />
+            ))}
+          </div>
+        </SpotlightCard>
       </section>
 
       {/* Stats v2 */}
       <section className="grid gap-4 sm:grid-cols-3 ds-fade-up-3">
         {loading ? (
           <>
-            <div className="ds-skeleton h-32" />
-            <div className="ds-skeleton h-32" />
-            <div className="ds-skeleton h-32" />
+            <div className="ps-skel h-32" />
+            <div className="ps-skel h-32" />
+            <div className="ps-skel h-32" />
           </>
         ) : (
           <>
             <StatTile
               label="This month"
-              value={usage?.used ?? 0}
+              value={<CountUp value={usage?.used ?? 0} />}
               icon={<Repeat className="h-4 w-4" />}
               footer={
                 usage && !isUnlimited ? (
-                  <>
-                    <div className="ds-progress">
-                      <div style={{ width: `${Math.min(100, (usage.used / usage.limit) * 100)}%` }} />
-                    </div>
-                    <p className="mt-2 text-[11px] ds-muted-text">
+                  <div className="flex items-center gap-3">
+                    <StatRing value={usage.used} max={usage.limit} size={54} />
+                    <p className="text-[11px] ds-muted-text">
                       {usage.used} / {usage.limit} repurposes
                       {usage.used >= usage.limit && (
                         <>
@@ -255,7 +294,7 @@ function DashboardHome() {
                         </>
                       )}
                     </p>
-                  </>
+                  </div>
                 ) : isUnlimited ? (
                   <p className="text-[11px] ds-muted-text">Unlimited on {plan}</p>
                 ) : null
@@ -264,13 +303,11 @@ function DashboardHome() {
 
             <StatTile
               label="All-time"
-              value={totalJobs}
+              value={<CountUp value={totalJobs} />}
               icon={<TrendingUp className="h-4 w-4" />}
               footer={
                 <>
-                  <div className="ds-spark" aria-hidden>
-                    {sparkline.map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}
-                  </div>
+                  <Sparkline points={sparkline} height={42} />
                   <p className="mt-2 text-[11px] ds-muted-text">Last 14 days</p>
                 </>
               }
@@ -290,7 +327,7 @@ function DashboardHome() {
         )}
       </section>
 
-      {/* Premium tool grid */}
+      {/* Premium tool grid — bento with featured studio */}
       <section className="ds-fade-up-4">
         <div className="mb-3 flex items-end justify-between">
           <div>
@@ -298,10 +335,46 @@ function DashboardHome() {
             <h2 className="mt-1 text-lg font-semibold text-white">Pick your superpower</h2>
           </div>
         </div>
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-          {TOOLS.map((t) => <ToolTile key={t.to} item={t} />)}
+        <div className="grid gap-3 lg:grid-cols-4">
+          {/* Featured */}
+          <SpotlightCard
+            as={Link}
+            to="/dashboard/repurpose"
+            className="ds-card group relative overflow-hidden p-5 lg:col-span-2 lg:row-span-2"
+          >
+            <img
+              src={PREMIUM_ART.repurpose}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              width={1024}
+              height={768}
+              className="absolute inset-0 h-full w-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-105"
+            />
+            <span className="ps-ambient" aria-hidden />
+            <div className="relative flex h-full min-h-[190px] flex-col justify-between gap-6">
+              <div className="flex items-center justify-between">
+                <span className="ds-icon-disc ps-icon-pop h-11 w-11"><Repeat className="h-5 w-5" /></span>
+                <span className="ds-chip ds-chip-accent">★ Most used</span>
+              </div>
+              <div>
+                <p className="ds-gradient-text text-xl font-bold">Repurpose Studio</p>
+                <p className="mt-1.5 max-w-sm text-[12px] leading-relaxed text-white/70">
+                  Drop in a video, podcast or blog — get 30+ platform-ready pieces in your voice, in under a minute.
+                </p>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#c4b5fd]">
+                  Start a repurpose <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </span>
+              </div>
+            </div>
+          </SpotlightCard>
+
+          {TOOLS.filter((t) => t.to !== "/dashboard/repurpose").map((t) => (
+            <ToolTile key={t.to} item={t} />
+          ))}
         </div>
       </section>
+
 
       {/* Command Center — premium ops snapshot */}
       <section className="ds-card-hero p-5 sm:p-6 ds-fade-up-5">
@@ -397,7 +470,7 @@ function DashboardHome() {
             <Link
               key={w.to}
               to={w.to}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
+              className="ps-spot ps-lift ps-press group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
             >
               <span aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ background: w.accent }} />
               <div className="flex items-start justify-between gap-2">
@@ -432,12 +505,12 @@ function DashboardHome() {
         {loading ? (
           <div className="ds-skeleton h-40" />
         ) : recentJobs.length === 0 ? (
-          <EmptyState
-            variant="shimmer"
+          <IllustratedEmpty
             title="Your first spark is waiting"
             description="Turn one idea into 10 platform-ready posts. Your recent generations will surface here."
             cta={{ to: "/dashboard/repurpose", label: "Run your first repurpose" }}
           />
+
         ) : (
           <div className="ds-card divide-y divide-white/5">
             {recentJobs.map((job) => (

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { generateHooks } from "@/lib/hookLab.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { ToolHero } from "@/components/dashboard/ToolHero";
 
 interface Hook {
   framework: string;
@@ -139,44 +140,16 @@ function HookLabPage() {
   return (
     <div className="mx-auto max-w-[900px] px-6 pb-20 pt-6 space-y-6">
       {/* HERO HEADER */}
-      <div
-        className="flex items-start gap-4 rounded-2xl p-5"
-        style={{
-          background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)",
-          border: "1px solid #243047",
-        }}
-      >
-        <div
-          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]"
-          style={{
-            background: "linear-gradient(135deg, #FB923C 0%, #F97316 100%)",
-            boxShadow: "0 2px 8px rgba(249,115,22,0.25)",
-          }}
-        >
-          <Flame className="h-6 w-6 text-white" />
-        </div>
-        <div className="flex-1">
-          <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">Viral Hook Lab</h1>
-          <p className="m-0 mb-2.5 mt-1 text-[13px] leading-relaxed text-[#6B7280]">
-            Generate 20 scroll-stopping hooks using proven viral frameworks. Scored, ranked, and platform-native.
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {["20 hooks", "Scored & ranked", "Platform-native", "A/B ready"].map((t) => (
-              <span
-                key={t}
-                className="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
-                style={{
-                  background: "rgba(107,78,255,0.08)",
-                  color: "#6B4EFF",
-                  border: "0.5px solid rgba(107,78,255,0.15)",
-                }}
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+      <ToolHero
+        eyebrow="Viral Hook Lab"
+        icon={<Flame className="h-3 w-3" />}
+        accent="#F97316"
+        art="hook"
+        title="Hooks that stop the scroll"
+        subtitle="Generate 20 scroll-stopping hooks using proven viral frameworks. Scored, ranked, and platform-native."
+        steps={["Set topic & niche", "Generate 20 hooks", "Score & A/B test"]}
+      />
+
 
       {/* TOPIC */}
       <Card>

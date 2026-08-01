@@ -1,3 +1,4 @@
+import { ToolHero } from "@/components/dashboard/ToolHero";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -170,50 +171,35 @@ function SeoBlogPage() {
   return (
     <div className="mx-auto max-w-[900px] px-6 pb-20 pt-6 space-y-6">
       {/* HERO */}
-      <div
-        className="rounded-2xl p-5"
-        style={{
-          background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)",
-          border: "1px solid #243047",
-        }}
-      >
-        <div className="flex items-start gap-4">
-          <div
-            className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]"
-            style={{ background: "linear-gradient(135deg, #10B981 0%, #059669 100%)", boxShadow: "0 2px 8px rgba(5,150,105,0.25)" }}
+      <ToolHero
+        eyebrow="SEO Blog Generator"
+        icon={<FileText className="h-3 w-3" />}
+        accent="#10B981"
+        art="seo"
+        title="Long-form articles that rank"
+        subtitle="Search-optimized blogs with meta, structure and FAQ included."
+        steps={["Pick keyword", "Generate draft", "Publish & rank"]}
+      />
+      <div className="flex flex-wrap gap-1.5">
+        {([
+          { id: "blog" as const, label: "Full Blog" },
+          { id: "outline" as const, label: "Outline + Research" },
+          { id: "refresh" as const, label: "Refresh Old Post" },
+        ]).map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`rounded-lg border px-3.5 py-1.5 text-[12.5px] font-medium transition ${
+              tab === t.id
+                ? "border-transparent bg-primary text-primary-foreground"
+                : "border-[color:var(--ds-border)] bg-[color:var(--ds-card)] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-text)]"
+            }`}
           >
-            <FileText className="h-6 w-6 text-white" />
-          </div>
-          <div className="flex-1">
-            <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">SEO Blog Generator</h1>
-            <p className="m-0 mb-2.5 mt-1 text-[13px] text-[#6B7280]">Long-form, search-optimized articles that actually rank.</p>
-            <div className="flex flex-wrap gap-1.5">
-              {["Long-form", "SEO-optimized", "Meta included", "FAQ section"].map((t) => (
-                <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px] font-medium" style={{ background: "rgba(107,78,255,0.08)", color: "#6B4EFF", border: "0.5px solid rgba(107,78,255,0.15)" }}>{t}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs inside hero */}
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {([
-            { id: "blog" as const, label: "Full Blog" },
-            { id: "outline" as const, label: "Outline + Research" },
-            { id: "refresh" as const, label: "Refresh Old Post" },
-          ]).map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`rounded-lg px-3.5 py-1.5 text-[12.5px] font-medium transition ${
-                tab === t.id ? "bg-[#1A1A2E] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:text-[#1A1A2E]"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+            {t.label}
+          </button>
+        ))}
       </div>
+
 
       {tab === "blog" && (
         <>
