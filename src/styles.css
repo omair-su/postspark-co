@@ -3588,3 +3588,233 @@ html:not(.dark) .dashboard-shell .ps-usage-fill {
 }
 
 
+
+/* ============================================================
+   PREMIUM VISUAL KIT  (additive — composes existing tokens only)
+   ============================================================ */
+
+/* --- Ambient aurora + grain layer (interior, low intensity) --- */
+.ps-ambient {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.ps-ambient::before {
+  content: "";
+  position: absolute; inset: -20%;
+  background:
+    radial-gradient(38% 30% at 22% 18%, rgba(124,58,237,0.20), transparent 70%),
+    radial-gradient(32% 26% at 78% 22%, rgba(8,145,178,0.16), transparent 72%),
+    radial-gradient(30% 30% at 60% 88%, rgba(236,72,153,0.12), transparent 74%);
+  animation: ps-drift 22s ease-in-out infinite alternate;
+}
+.ps-ambient::after {
+  content: "";
+  position: absolute; inset: 0;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+html:not(.dark) .ps-ambient::before { opacity: 0.55; }
+html:not(.dark) .ps-ambient::after { opacity: 0.16; }
+
+@keyframes ps-drift {
+  0%   { transform: translate3d(0,0,0) scale(1); }
+  100% { transform: translate3d(-4%, 3%, 0) scale(1.08); }
+}
+
+/* Decorative floating orb */
+.ps-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(46px);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: ds-float 16s ease-in-out infinite;
+}
+
+/* --- Glass tiers --- */
+.ps-glass-1,
+.ps-glass-2 {
+  position: relative;
+  border-radius: 16px;
+  background: var(--ds-card);
+  border: 1px solid var(--ds-border);
+  backdrop-filter: blur(14px) saturate(120%);
+}
+.ps-glass-2 { border-radius: 14px; background: color-mix(in oklab, var(--ds-card) 82%, transparent); }
+.ps-glass-1::before,
+.ps-glass-2::before {
+  content: "";
+  position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), transparent 42%);
+}
+html:not(.dark) .ps-glass-1::before,
+html:not(.dark) .ps-glass-2::before {
+  background: linear-gradient(180deg, rgba(255,255,255,0.85), transparent 46%);
+}
+
+/* --- Spotlight (pointer-tracked highlight) --- */
+.ps-spot { position: relative; isolation: isolate; }
+.ps-spot::after {
+  content: "";
+  position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none; z-index: 0;
+  opacity: 0; transition: opacity .28s ease;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%),
+    color-mix(in oklab, var(--cat, #7C3AED) 26%, transparent), transparent 72%);
+}
+.ps-spot:hover::after { opacity: 1; }
+html:not(.dark) .ps-spot::after {
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%),
+    color-mix(in oklab, var(--cat, #448EE4) 16%, transparent), transparent 72%);
+}
+.ps-spot > * { position: relative; z-index: 1; }
+
+/* --- Animated conic ring (hero / featured surfaces) --- */
+.ps-ring { position: relative; }
+.ps-ring::before {
+  content: "";
+  position: absolute; inset: -1px; border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--ps-angle, 0deg),
+    rgba(124,58,237,0.65), rgba(8,145,178,0.45), rgba(236,72,153,0.5), rgba(124,58,237,0.65));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: ps-spin-angle 8s linear infinite;
+  pointer-events: none;
+  opacity: 0.75;
+}
+@property --ps-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes ps-spin-angle { to { --ps-angle: 360deg; } }
+
+/* --- Micro-interactions --- */
+.ps-lift { transition: transform .24s cubic-bezier(.2,.8,.2,1), box-shadow .24s ease, border-color .24s ease; }
+.ps-lift:hover { transform: translateY(-3px); }
+.ps-press { transition: transform .12s ease; }
+.ps-press:active { transform: scale(0.97); }
+.ps-icon-pop { transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.group:hover .ps-icon-pop { transform: translateY(-2px) scale(1.08) rotate(-4deg); }
+
+/* --- Elevation scale --- */
+.ps-elev-1 { box-shadow: 0 1px 2px rgba(2,6,23,0.20); }
+.ps-elev-2 { box-shadow: 0 8px 24px -12px rgba(2,6,23,0.45); }
+.ps-elev-3 { box-shadow: 0 18px 48px -18px rgba(2,6,23,0.55); }
+html:not(.dark) .ps-elev-1 { box-shadow: 0 1px 2px rgba(31,31,31,0.06); }
+html:not(.dark) .ps-elev-2 { box-shadow: 0 10px 28px -16px rgba(68,142,228,0.28); }
+html:not(.dark) .ps-elev-3 { box-shadow: 0 20px 52px -22px rgba(68,142,228,0.32); }
+
+/* --- Scroll reveal --- */
+.ps-reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+.ps-reveal.is-in { opacity: 1; transform: none; }
+
+/* --- Shimmer skeleton --- */
+.ps-skel {
+  border-radius: 12px;
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--ds-card) 92%, transparent) 0%,
+    color-mix(in oklab, var(--ds-card-hover, var(--ds-card)) 70%, #ffffff 6%) 50%,
+    color-mix(in oklab, var(--ds-card) 92%, transparent) 100%);
+  background-size: 200% 100%;
+  animation: ds-shimmer 1.6s linear infinite;
+  border: 1px solid var(--ds-border);
+}
+
+/* --- Generation progress theatre --- */
+.ps-gen-bar {
+  position: relative; height: 6px; border-radius: 999px; overflow: hidden;
+  background: color-mix(in oklab, var(--ds-border) 70%, transparent);
+}
+.ps-gen-bar > span {
+  position: absolute; inset: 0 auto 0 0; width: 42%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7C3AED, #C4B5FD, #0891B2);
+  animation: ps-sweep 1.35s cubic-bezier(.45,.05,.55,.95) infinite;
+}
+@keyframes ps-sweep {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(240%); }
+}
+.ps-gen-line { height: 10px; border-radius: 999px; }
+.ps-gen-glow { animation: ps-glow 2.4s ease-in-out infinite; }
+@keyframes ps-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.0); }
+  50%      { box-shadow: 0 0 34px -6px rgba(124,58,237,0.45); }
+}
+
+/* --- Tool hero strip --- */
+.ps-tool-hero {
+  position: relative; overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--ds-border);
+  background: var(--ds-card);
+  padding: 22px;
+}
+.ps-tool-hero-art {
+  position: absolute; right: -8px; top: -8px; bottom: -8px;
+  width: 42%;
+  object-fit: cover;
+  opacity: 0.55;
+  mask-image: linear-gradient(to left, #000 25%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, #000 25%, transparent 100%);
+  pointer-events: none;
+  animation: ps-art-float 18s ease-in-out infinite alternate;
+}
+html:not(.dark) .ps-tool-hero-art { opacity: 0.42; }
+@keyframes ps-art-float {
+  0%   { transform: scale(1.02) translateY(0); }
+  100% { transform: scale(1.08) translateY(-8px); }
+}
+.ps-steps { display: flex; flex-wrap: wrap; gap: 8px; }
+.ps-step {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px; border-radius: 999px;
+  font-size: 11px; font-weight: 600;
+  background: color-mix(in oklab, var(--ds-card) 60%, transparent);
+  border: 1px solid var(--ds-border);
+  color: var(--ds-muted);
+}
+.ps-step b {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px; border-radius: 999px;
+  background: rgba(124,58,237,0.18); color: #C4B5FD; font-size: 9px;
+}
+html:not(.dark) .ps-step b { background: rgba(68,142,228,0.16); color: #1F1F1F; }
+
+/* --- Ring gauge --- */
+.ps-ring-gauge { transform: rotate(-90deg); }
+.ps-ring-gauge circle { transition: stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1); }
+
+/* --- Sparkline draw-in --- */
+.ps-sparkline path { stroke-dasharray: 1000; animation: ps-draw 1.6s ease-out both; }
+@keyframes ps-draw { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+
+/* --- Title gradient sweep (once, on mount) --- */
+.ps-title-sweep {
+  background-size: 200% 100%;
+  animation: ds-shimmer 2.4s ease-out 1;
+}
+
+/* --- Momentum dots --- */
+.ps-dot-strip { display: flex; gap: 6px; }
+.ps-dot { width: 100%; height: 26px; border-radius: 7px; background: color-mix(in oklab, var(--ds-border) 80%, transparent); }
+.ps-dot[data-on="1"] { background: linear-gradient(180deg, #C4B5FD, #7C3AED); animation: ds-fade-up .5s ease-out both; }
+html:not(.dark) .ps-dot[data-on="1"] { background: linear-gradient(180deg, #7FB3F0, #448EE4); }
+.ps-dot[data-today="1"] { animation: ps-glow 2.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-ambient::before,
+  .ps-orb,
+  .ps-ring::before,
+  .ps-tool-hero-art,
+  .ps-gen-bar > span,
+  .ps-sparkline path,
+  .ps-title-sweep,
+  .ps-dot,
+  .ps-skel { animation: none !important; }
+  .ps-reveal { opacity: 1; transform: none; transition: none; }
+  .ps-lift:hover { transform: none; }
+}
