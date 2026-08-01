@@ -141,7 +141,7 @@ function DashboardHome() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* Hero — million-dollar premium card */}
-      <section className="ps-hero">
+      <section className="ps-hero ps-ring ps-elev-3">
         {/* Ambient layers */}
         <span className="ps-hero-orb ps-hero-orb-1" aria-hidden />
         <span className="ps-hero-orb ps-hero-orb-2" aria-hidden />
@@ -149,6 +149,16 @@ function DashboardHome() {
         <span className="ps-hero-orb ps-hero-orb-4" aria-hidden />
         <span className="ps-hero-grid" aria-hidden />
         <span className="ps-hero-top-glow" aria-hidden />
+        <img
+          src={PREMIUM_ART.hero}
+          alt=""
+          aria-hidden
+          width={1600}
+          height={912}
+          className="ps-tool-hero-art hidden md:block"
+          style={{ width: "46%", opacity: 0.4 }}
+        />
+
 
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
