@@ -1,69 +1,77 @@
 
-# LinkedIn Composer — Premium Upgrade Plan
+# PostSpark — Interior UI Premium Upgrade
 
-## Where it stands today (verified)
+Goal: make the logged-in app (dashboard home + all tool pages) feel like a million-dollar AI product — richer visual layers, real imagery, tasteful motion — **without changing a single color token, gradient value, or font**. Everything reuses the existing `ds-*` / `lv3-*` tokens in `src/styles.css`.
 
-- `publishToLinkedIn` (`src/lib/socialPublish.functions.ts`) supports **text only, one image URL, or one article link**. No video, no multi-image, no documents.
-- The composer page (`src/routes/dashboard.linkedin.tsx`) has **no media UI at all** — just a textarea, templates and a hashtag helper.
-- `PostToLinkedInButton` accepts a `mediaUrl` prop but nothing in the composer ever sets it.
-- There is **no file storage bucket in the project** — users currently cannot upload anything anywhere.
-- The stock library (`StockPickerDialog` / Unsplash + Pexels) exists and works, but is not wired into LinkedIn.
-- LinkedIn **scheduling is not implemented** — the scheduler cron only handles X (`api/public/hooks/publish-scheduled-x`). Drafts are stored but never published.
-- Only one LinkedIn account per user; no organization/company Page posting.
+## Guardrails
 
-## What we'll build
+- No edits to color variables, palettes, or font stacks. New CSS only composes existing tokens (`--ds-*`, `--cat`, existing violet/cyan gradients).
+- Frontend/presentation only — no business logic, no server functions, no schema.
+- All motion respects `prefers-reduced-motion` and stays GPU-cheap (transform/opacity only). No framer-motion (Worker SSR constraint) — pure CSS + tiny IntersectionObserver hook (`useReveal` already exists).
 
-### 1. Media foundation (new)
-- Create a private `post-media` storage bucket with per-user RLS (`user_id` folder prefix) and signed-URL reads.
-- Upload widget: drag & drop, paste-from-clipboard, progress bar, client-side validation (images ≤10MB, video ≤200MB / ≤10 min, PDF ≤100MB).
-- Media library tab: recent uploads + previously generated PostSpark images, reusable across posts.
+## 1. Shared visual primitive layer (new CSS block in `src/styles.css`)
 
-### 2. Stock library inside the composer
-- "Search stock" button opens the existing `StockPickerDialog` (photos + videos) directly in the LinkedIn composer.
-- Selected stock assets are copied server-side into `post-media` so LinkedIn always fetches from a stable URL, and Unsplash download tracking still fires.
+A single "premium kit" section, used everywhere so the app feels designed, not patched:
 
-### 3. Real LinkedIn media publishing
-Extend `publishToLinkedIn` to a proper media pipeline:
-- **Multi-image posts** (up to 9) via `/rest/images` init → PUT → `content.multiImage`.
-- **Video posts** via `/rest/videos?action=initializeUpload`, chunked part uploads, `finalizeUpload`, then post with `content.media` (video URN), including thumbnail + title.
-- **Document/carousel PDF posts** via `/rest/documents` (the highest-reach LinkedIn format).
-- Keep article/link posts, add **auto link-preview fetch** (title/description/thumb).
-- Alt text per image (accessibility + reach), title for video/document.
+- **Aurora canvas**: soft drifting radial glow behind page content (already used on landing `lv3-aurora`) ported to an interior variant with lower intensity, plus a fine grain overlay so flat surfaces stop looking flat.
+- **Spotlight cards**: pointer-tracked highlight on cards/tiles (CSS custom props updated by one small `useSpotlight` hook), giving the Linear/Cursor "light follows cursor" feel.
+- **Conic gradient borders**: 1px animated ring on hero/primary cards and on active sidebar item, using existing accent colors only.
+- **Glass tiers**: `ds-glass-1/2/3` — consistent blur + border + inner-highlight recipes so nested surfaces read as layers.
+- **Depth & elevation scale**: 4 shadow steps derived from existing shadow tokens, applied consistently (page header → cards → popovers).
+- **Noise/mesh section dividers** and a reusable `ds-orb` decorative blob for empty corners.
+- **Micro-interactions**: press-scale on buttons, magnetic hover on tiles, icon pop on hover, animated underline for links, count-up numbers for stats.
+- **Skeleton shimmer refresh**: replace flat skeletons with gradient-sweep shimmer matching brand.
 
-### 4. Composer UX — premium pass
-- Two-pane layout: editor left, **pixel-accurate LinkedIn feed preview** right (avatar, name, "see more" truncation at 210 chars, image grid layout matching LinkedIn's 1/2/3/4+ tiling, video player, document carousel).
-- Rich helpers: bold/italic Unicode formatter, emoji picker, bullet/arrow inserters, **hook strength meter**, readability + "first 3 lines" hook warning, hashtag suggester driven by post content (AI, not the current hardcoded list).
-- AI actions: Rewrite in Brand Voice, Shorten, Add hook, Generate CTA, Generate comment-bait question — reusing the existing Claude server functions and the user's Brand Voice / Brand Kit.
-- Draft autosave, draft list, duplicate post, and a template gallery upgrade.
-- Light/dark safe styling using existing semantic tokens (no hardcoded dark cards).
+## 2. Dashboard home (`src/routes/dashboard.index.tsx`)
 
-### 5. Scheduling & queue
-- Generalize the X scheduler cron into a shared `publish-scheduled` handler that also drains LinkedIn rows in `scheduled_posts` (media URLs included), with retry + failure logging into `publishing_logs`.
-- Date/time picker + "best time to post" suggestions in the composer; scheduled posts show in the existing Content Calendar.
-- Optional **first comment** auto-post (link-in-comment strategy) after publish.
+- **Hero band**: aurora + grain backdrop, greeting with time-of-day line, the AskBar promoted into a glowing "command console" (animated focus ring, typewriter placeholder cycling through real prompts, suggestion chips with staggered entrance).
+- **Stat tiles**: count-up animation, tiny inline sparkline (SVG, generated from existing data), plan-usage ring gauge instead of plain text, trend arrow.
+- **Bento "Studio" grid**: replace uniform tool grid with a mixed-size bento — 1 large featured tool card (with real generated illustration/thumbnail), 2 medium, rest compact. Category accent per tile already supported via `--cat`.
+- **Live activity rail**: recent generations as a stacked "receipt" list with platform BrandIcons, hover preview popover.
+- **Streak / momentum module**: 7-day dot strip with fill animation, subtle confetti-free pulse on today.
+- **Empty states**: illustrated (real image + ghost rows) instead of text-only.
 
-### 6. Reliability fixes
-- Refresh-token handling + clear reconnect prompt (LinkedIn tokens expire in 60 days; today it just errors out).
-- Validate the account has `w_member_social` before showing Publish; inline connection diagnostics like the X panel.
-- Surface LinkedIn's real error body (currently truncated to 200 chars with no user guidance) with mapped, human messages for 401/403/422/426.
-- Post-publish: store `platform_post_id`, link to the live post, and pull like/comment counts into `post_metrics`.
+## 3. Tools pages — one shared premium shell
 
-### 7. Nice-to-have (phase 2, only if you want it)
-- Company/organization Page posting (`w_organization_social`) with a page picker like the Facebook one.
-- Multi-post carousels/series and repurpose → LinkedIn one-click handoff.
+Introduce `ToolShell` (wraps `PageHeader` + hero art + content):
+
+- Every tool page gets a **hero strip**: eyebrow chip, gradient title, subtitle, and a right-side decorative visual (per-tool image or animated graphic), plus an "how it works in 3 steps" micro-row.
+- **Two-pane pattern** standardized: input panel left (glass tier 2), live output/preview right (glass tier 1 with device/platform frame). Applies to Repurpose, Hook Lab, Image Studio, Carousel, SEO Blog, Humanizer, Podcast, Shorts, LinkedIn, Publishing.
+- **Generation experience**: replace plain spinners with a premium progress theatre — animated gradient bar, streaming skeleton lines, rotating status copy ("analysing voice…", "drafting hooks…"), and a soft glow pulse on the output pane. Result cards animate in staggered.
+- **Result cards**: platform-accurate mock frames (LinkedIn/X/Threads/Instagram previews already partly exist) reused across tools so output always looks like the real feed.
+- **Sticky action bar** at bottom of tool panes (Generate / Regenerate / Copy / Publish) with press physics.
+
+## 4. Real imagery (generated assets, brand-consistent)
+
+Generate a small, deliberate set (each optimized, lazy-loaded, alt text, uploaded as CDN assets):
+
+1. Dashboard hero abstract — dark navy/violet flowing mesh (matches existing palette).
+2. 8–10 tool hero illustrations (Repurpose, Hook Lab, Image Studio, Carousel, SEO Blog, Shorts, Podcast, Publishing, Brand Kit, Analytics) — same abstract-3D visual language, per-tool accent.
+3. 3 empty-state illustrations (no content yet / no connections / no schedule).
+4. Upgrade/pricing module backdrop.
+5. Onboarding & referral card art.
+
+All use existing brand colors only, single cohesive style so it reads as one art direction (not stock-mixed).
+
+## 5. Animated things (no new heavy deps)
+
+- Aurora drift + grain (CSS keyframes).
+- Scroll-reveal stagger on every section via existing `useReveal`.
+- Count-up stats, ring gauges, sparkline draw-in.
+- Animated gradient text sweep on page titles (subtle, once on mount).
+- Sidebar: active-item glow slide, icon micro-bounce, collapsible width spring.
+- Toast/notification entrance polish; success state with animated check.
+- Optional lightweight canvas particle field (~40 dots, paused off-screen) only on dashboard hero — behind reduced-motion + mobile off.
+
+## 6. Sidebar, header, mobile
+
+- Sidebar: grouped sections with tiny labels, gradient active pill, hover reveal descriptions, plan badge module at the bottom with usage ring.
+- Header: glass blur on scroll, compact search with ⌘K hint, avatar ring.
+- Mobile: full-height sheet nav with staggered items, tool cards single-column with larger art, tap feedback; no layout regressions on 360px width.
 
 ## Technical notes
 
-- New: `src/lib/linkedinMedia.server.ts` (image/video/document upload state machine), `src/lib/media.functions.ts` (signed upload URLs, list, delete).
-- Rewrite: `src/routes/dashboard.linkedin.tsx` into components under `src/components/linkedin/` (`Composer`, `MediaTray`, `LinkedInPreview`, `ScheduleBar`, `AiAssistBar`).
-- `publishToLinkedIn` input becomes `media: { kind: 'none'|'images'|'video'|'document'|'article', items: [...] }` with backward-compatible handling of the old `mediaUrl` prop used by `PostToLinkedInButton`.
-- Migration: `post-media` bucket policies + `scheduled_posts` reuse of `media_urls` (already exists) and a `first_comment` column.
-- LinkedIn API version stays `202506`; video upload requires the Versioned REST API with `LinkedIn-Version` header on every call.
-
-## Suggested order
-
-1. Storage bucket + upload/stock media tray + multi-image publish (biggest visible win).
-2. Composer redesign with accurate preview + AI assist.
-3. Video + document posting.
-4. Scheduling/queue + first comment.
-5. Reliability, metrics, org pages.
+- New files: `src/components/dashboard/ToolShell.tsx`, `HeroBand.tsx`, `SpotlightCard.tsx`, `StatRing.tsx`, `Sparkline.tsx`, `CountUp.tsx`, `GenerationProgress.tsx`, `IllustratedEmpty.tsx`, `hooks/useSpotlight.ts`.
+- One additive CSS block in `src/styles.css` (`/* === PREMIUM VISUAL KIT === */`) composing existing variables; zero token edits.
+- Images generated then externalized via `lovable-assets`, imported as `.asset.json` pointers.
+- Rollout order: (1) CSS kit + primitives, (2) dashboard home, (3) ToolShell + top 5 tools, (4) remaining tools, (5) imagery pass, (6) sidebar/header/mobile polish, (7) light-mode verification + reduced-motion + Playwright screenshot QA at 360px and 1440px in both themes.
