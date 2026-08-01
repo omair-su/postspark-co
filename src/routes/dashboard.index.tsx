@@ -470,7 +470,7 @@ function DashboardHome() {
             <Link
               key={w.to}
               to={w.to}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
+              className="ps-spot ps-lift ps-press group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
             >
               <span aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ background: w.accent }} />
               <div className="flex items-start justify-between gap-2">
