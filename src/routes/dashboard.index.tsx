@@ -438,12 +438,12 @@ function DashboardHome() {
         {loading ? (
           <div className="ds-skeleton h-40" />
         ) : recentJobs.length === 0 ? (
-          <EmptyState
-            variant="shimmer"
+          <IllustratedEmpty
             title="Your first spark is waiting"
             description="Turn one idea into 10 platform-ready posts. Your recent generations will surface here."
             cta={{ to: "/dashboard/repurpose", label: "Run your first repurpose" }}
           />
+
         ) : (
           <div className="ds-card divide-y divide-white/5">
             {recentJobs.map((job) => (
