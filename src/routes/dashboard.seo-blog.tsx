@@ -179,29 +179,26 @@ function SeoBlogPage() {
         subtitle="Search-optimized blogs with meta, structure and FAQ included."
         steps={["Pick keyword", "Generate draft", "Publish & rank"]}
       />
-      <div className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-card)] p-4">
-
-        </div>
-
-        {/* Tabs inside hero */}
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {([
-            { id: "blog" as const, label: "Full Blog" },
-            { id: "outline" as const, label: "Outline + Research" },
-            { id: "refresh" as const, label: "Refresh Old Post" },
-          ]).map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`rounded-lg px-3.5 py-1.5 text-[12.5px] font-medium transition ${
-                tab === t.id ? "bg-[#1A1A2E] text-white" : "bg-white text-[#6B7280] border border-[#E5E7EB] hover:text-[#1A1A2E]"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-1.5">
+        {([
+          { id: "blog" as const, label: "Full Blog" },
+          { id: "outline" as const, label: "Outline + Research" },
+          { id: "refresh" as const, label: "Refresh Old Post" },
+        ]).map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`rounded-lg border px-3.5 py-1.5 text-[12.5px] font-medium transition ${
+              tab === t.id
+                ? "border-transparent bg-primary text-primary-foreground"
+                : "border-[color:var(--ds-border)] bg-[color:var(--ds-card)] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-text)]"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
+
 
       {tab === "blog" && (
         <>
