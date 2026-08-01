@@ -13,7 +13,7 @@ export function CountUp({
   suffix?: string;
 }) {
   const [display, setDisplay] = useState(0);
-  const raf = useRef<number>();
+  const raf = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const reduce =
