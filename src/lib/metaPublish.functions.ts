@@ -755,7 +755,7 @@ export const publishToThreads = createServerFn({ method: "POST" })
 
       const publishError = publishRes?.ok && publishJson?.id
         ? null
-        : threadsErrorMessage(publishJson, publishRes, "Threads publish failed");
+        : threadsErrorMessage(publishJson, publishRes ?? new Response(null, { status: 500 }), "Threads publish failed");
 
       await supabase.from("publishing_logs").insert({
         user_id: userId,
