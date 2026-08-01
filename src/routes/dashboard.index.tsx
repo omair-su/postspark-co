@@ -160,7 +160,7 @@ function DashboardHome() {
         />
 
 
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="relative flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <span className="ps-hero-badge">
               <span className="ps-hero-badge-dot" />
