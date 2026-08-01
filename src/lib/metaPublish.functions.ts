@@ -730,15 +730,29 @@ export const publishToThreads = createServerFn({ method: "POST" })
         return { error: message };
       }
 
-      if (mediaType !== "TEXT") {
-        const ready = await waitForContainer(containerJson.id, acct.access_token);
-        if (!ready.ok) return { error: ready.error };
-      }
+      // Always give Threads a moment to register the container — even TEXT
+      // containers can be briefly unavailable, which makes /threads_publish
+      // fail with subcode 4279009 "Media not found".
+      const ready = await waitForContainer(containerJson.id, acct.access_token);
+      if (!ready.ok) return { error: ready.error };
 
-      const { res: publishRes, json: publishJson } = await threadsPost(
-        `/${acct.platform_user_id}/threads_publish`,
-        { creation_id: containerJson.id, access_token: acct.access_token },
-      );
+      let publishRes: Response;
+      let publishJson: any;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const out = await threadsPost(
+          `/${acct.platform_user_id}/threads_publish`,
+          { creation_id: containerJson.id, access_token: acct.access_token },
+        );
+        publishRes = out.res;
+        publishJson = out.json;
+        if (publishRes.ok && publishJson?.id) break;
+        const subcode = publishJson?.error?.error_subcode;
+        // 4279009 = container not yet available; back off and retry.
+        if (subcode !== 4279009 && publishRes.status < 500) break;
+        await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+      }
+      publishRes = publishRes!;
+
 
       const publishError = publishRes.ok && publishJson?.id
         ? null
