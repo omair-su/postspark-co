@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { generateHooks } from "@/lib/hookLab.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { ToolHero } from "@/components/dashboard/ToolHero";
 
 interface Hook {
   framework: string;
@@ -143,7 +144,7 @@ function HookLabPage() {
         eyebrow="Viral Hook Lab"
         icon={<Flame className="h-3 w-3" />}
         accent="#F97316"
-        art="hookLab"
+        art="hook"
         title="Hooks that stop the scroll"
         subtitle="Generate 20 scroll-stopping hooks using proven viral frameworks. Scored, ranked, and platform-native."
         steps={["Set topic & niche", "Generate 20 hooks", "Score & A/B test"]}
