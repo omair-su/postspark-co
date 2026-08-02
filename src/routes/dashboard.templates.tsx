@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Bookmark, Plus, Trash2, X, Loader2, Play, Globe, Lock, Store, Sparkles, Search } from "lucide-react";
 import { getTemplates, createTemplate, deleteTemplate } from "@/lib/templates.functions";
 import { togglePublishTemplate, listPublicTemplates, cloneTemplate } from "@/lib/marketplace.functions";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 const allTypes = [
   { id: "tweets", label: "Tweets" },
@@ -269,6 +270,7 @@ function TemplatesPage() {
           borderColor: "rgba(107,78,255,0.18)",
         }}
       >
+        <HeroArt art="carousel" />
         <div>
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgba(107,78,255,0.12)]">

@@ -1,3 +1,4 @@
+import { HeroArt } from "@/components/dashboard/HeroArt";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
@@ -105,8 +106,15 @@ function AnalyticsPage() {
 
   return (
     <div className="mx-auto max-w-3xl animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Track your content creation performance.</p>
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden">
+        <span className="ps-ambient" aria-hidden />
+        <HeroArt art="hero" />
+        <div className="relative">
+          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Track your content creation performance.</p>
+        </div>
+      </section>
+
 
       {/* Stats cards */}
       <div className="mt-6 grid gap-4 sm:grid-cols-4">

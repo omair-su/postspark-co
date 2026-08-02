@@ -3818,3 +3818,13 @@ html:not(.dark) .ps-dot[data-on="1"] { background: linear-gradient(180deg, #7FB3
   .ps-reveal { opacity: 1; transform: none; transition: none; }
   .ps-lift:hover { transform: none; }
 }
+
+/* === PREMIUM HERO ART SAFETY (additive, no token changes) === */
+:where(div, section, header):has(> .ps-tool-hero-art) {
+  position: relative;
+  overflow: hidden;
+}
+.dashboard-shell .shorts-hero > .ps-tool-hero-art {
+  position: absolute;
+  z-index: 0;
+}

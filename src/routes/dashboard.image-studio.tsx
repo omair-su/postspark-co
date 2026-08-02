@@ -50,6 +50,7 @@ import { trackUnsplashUse } from "@/lib/stockMedia.functions";
 import type { StockPhoto } from "@/lib/stockMedia.server";
 import { Images } from "lucide-react";
 import { StyleIcon } from "@/components/BrandIcon";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 
 
@@ -692,44 +693,48 @@ function ImageStudioPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-electric">
-            <ImageIcon className="h-5 w-5 text-primary-foreground" />
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+        <span className="ps-ambient" aria-hidden />
+        <HeroArt art="image" />
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-electric">
+              <ImageIcon className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">AI Image Studio Pro</h1>
+              <p className="text-sm text-muted-foreground">
+                Generate, edit, vary, and save share-worthy social visuals.
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">AI Image Studio Pro</h1>
-            <p className="text-sm text-muted-foreground">
-              Generate, edit, vary, and save share-worthy social visuals.
-            </p>
-          </div>
-        </div>
 
-        {/* Usage indicator */}
-        {usage && (
-          <div className="min-w-[240px] rounded-xl border border-border bg-card p-3">
-            <div className="mb-1 flex items-center justify-between text-xs">
-              <span className="inline-flex items-center gap-1 font-medium">
-                <Zap className="h-3.5 w-3.5 text-primary" /> This month
-              </span>
-              <span className="text-muted-foreground">
-                {usage.used}/{usage.limit}{" "}
-                <span className="uppercase tracking-wide">{usage.plan}</span>
-              </span>
+          {/* Usage indicator */}
+          {usage && (
+            <div className="min-w-[240px] rounded-xl border border-border bg-card p-3">
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="inline-flex items-center gap-1 font-medium">
+                  <Zap className="h-3.5 w-3.5 text-primary" /> This month
+                </span>
+                <span className="text-muted-foreground">
+                  {usage.used}/{usage.limit}{" "}
+                  <span className="uppercase tracking-wide">{usage.plan}</span>
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full gradient-electric transition-all"
+                  style={{ width: `${usagePct}%` }}
+                />
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {usage.remaining} remaining
+              </p>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full gradient-electric transition-all"
-                style={{ width: `${usagePct}%` }}
-              />
-            </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              {usage.remaining} remaining
-            </p>
-          </div>
-        )}
-        <ModelHealthBadge />
-      </div>
+          )}
+          <ModelHealthBadge />
+        </div>
+      </section>
 
       {/* Settings strip: watermark + safety */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">

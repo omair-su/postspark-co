@@ -25,6 +25,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { trackUnsplashUse } from "@/lib/stockMedia.functions";
 import { Images } from "lucide-react";
 import { Droplet } from "lucide-react";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 import {
   THUMBNAIL_STYLES,
   THUMBNAIL_STARTERS,
@@ -433,18 +434,22 @@ function ThumbnailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Thumbnail &amp; Cover Generator</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            AI background + crisp text overlay. Optimized sizes for YouTube, X, LinkedIn, blog &amp; podcast.
-          </p>
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+        <span className="ps-ambient" aria-hidden />
+        <HeroArt art="image" />
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Thumbnail &amp; Cover Generator</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              AI background + crisp text overlay. Optimized sizes for YouTube, X, LinkedIn, blog &amp; podcast.
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <UsageMeter refreshKey={bgUrl ? 1 : 0} />
+            <ModelHealthBadge compact />
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <UsageMeter refreshKey={bgUrl ? 1 : 0} />
-          <ModelHealthBadge compact />
-        </div>
-      </div>
+      </section>
 
       {/* One-click starter templates */}
       <div className="rounded-2xl border border-border bg-card p-4">

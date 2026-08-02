@@ -342,16 +342,8 @@ function DashboardHome() {
             to="/dashboard/repurpose"
             className="ds-card group relative overflow-hidden p-5 lg:col-span-2 lg:row-span-2"
           >
-            <img
-              src={PREMIUM_ART.repurpose}
-              alt=""
-              aria-hidden
-              loading="lazy"
-              width={1024}
-              height={768}
-              className="absolute inset-0 h-full w-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-105"
-            />
             <span className="ps-ambient" aria-hidden />
+
             <div className="relative flex h-full min-h-[190px] flex-col justify-between gap-6">
               <div className="flex items-center justify-between">
                 <span className="ds-icon-disc ps-icon-pop h-11 w-11"><Repeat className="h-5 w-5" /></span>

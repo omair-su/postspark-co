@@ -18,6 +18,7 @@ import {
 import { publishToX } from "@/lib/socialPublish.functions";
 import { publishToFacebook, publishToInstagram, publishToThreads } from "@/lib/metaPublish.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/publishing")({
   head: () => ({
@@ -173,17 +174,21 @@ function PublishingCenter() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
-      <header className="mb-6 flex items-start gap-3">
-        <div className="rounded-lg bg-primary/10 p-2 text-primary">
-          <Sparkles className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Publishing Center</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            One composer for every network. Toggle platforms, preview, then publish or schedule.
-          </p>
-        </div>
-      </header>
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+        <span className="ps-ambient" aria-hidden />
+        <HeroArt art="upgrade" />
+        <header className="mb-6 flex items-start gap-3">
+          <div className="rounded-lg bg-primary/10 p-2 text-primary">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Publishing Center</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              One composer for every network. Toggle platforms, preview, then publish or schedule.
+            </p>
+          </div>
+        </header>
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_260px_1fr]">
         {/* Composer */}

@@ -12,6 +12,7 @@ import { getPaddleEnvironment } from "@/lib/paddle";
 import { PublicShowcaseSettings } from "@/components/PublicShowcaseSettings";
 import { ConnectedAccountsCard } from "@/components/ConnectedAccountsCard";
 import { XAnalyticsCard } from "@/components/publish/XAnalyticsCard";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/settings")({
   component: SettingsPage,
@@ -71,6 +72,7 @@ function SettingsPage() {
   return (
     <div className="mx-auto max-w-xl animate-fade-in space-y-5">
       <section className="ds-page-hero">
+        <HeroArt art="hero" />
         <span className="ds-page-hero-eyebrow">⚙︎ Account</span>
         <h1 className="ds-page-hero-title">Your <span className="grad">Settings</span></h1>
         <p className="ds-page-hero-sub">Profile, plan, and preferences — all in one place.</p>
