@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Film } from "lucide-react";
 import { TimelineEditor } from "@/components/shorts/TimelineEditor";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/shorts-editor")({
   component: ShortsEditorPage,
@@ -14,6 +15,7 @@ function ShortsEditorPage() {
       </Link>
 
       <div className="shorts-hero flex items-start gap-4 rounded-2xl p-5 sm:p-6">
+        <HeroArt art="shorts" />
         <div className="shorts-hero-icon flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]">
           <Film className="h-6 w-6 text-white" />
         </div>

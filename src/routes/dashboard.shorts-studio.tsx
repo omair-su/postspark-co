@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ShortsScript } from "@/lib/shorts.server";
 import { TRENDING_AUDIO, NICHES, type Niche, type Platform } from "@/lib/trendingAudio";
 import { ReelsSearchPanel } from "@/components/shorts/ReelsSearchPanel";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/shorts-studio")({
   validateSearch: (s: Record<string, unknown>) => ({ yt: typeof s.yt === "string" ? s.yt : undefined }),
@@ -402,6 +403,7 @@ function ShortsStudioPage() {
   return (
     <div className="shorts-workbench shorts-studio-page mx-auto max-w-[1180px] px-4 pb-20 pt-4 sm:px-6 sm:pt-6 space-y-6">
       <div className="shorts-hero flex items-start gap-4 rounded-2xl p-5 sm:p-6">
+        <HeroArt art="shorts" />
         <div className="shorts-hero-icon flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]">
           <Video className="h-6 w-6 text-white" />
         </div>

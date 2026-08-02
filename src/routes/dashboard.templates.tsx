@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Bookmark, Plus, Trash2, X, Loader2, Play, Globe, Lock, Store, Sparkles, Search } from "lucide-react";
 import { getTemplates, createTemplate, deleteTemplate } from "@/lib/templates.functions";
 import { togglePublishTemplate, listPublicTemplates, cloneTemplate } from "@/lib/marketplace.functions";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 const allTypes = [
   { id: "tweets", label: "Tweets" },
@@ -264,6 +265,7 @@ function TemplatesPage() {
       {/* HERO */}
       <div
         className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-6 py-5"
+          <HeroArt art="carousel" />
         style={{
           background: "linear-gradient(135deg, hsl(var(--card)) 0%, rgba(107,78,255,0.06) 100%)",
           borderColor: "rgba(107,78,255,0.18)",

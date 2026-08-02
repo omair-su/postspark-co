@@ -7,6 +7,7 @@ import { publishToLinkedIn } from "@/lib/socialPublish.functions";
 import { LinkedInMediaPanel, type ComposerMedia } from "@/components/linkedin/LinkedInMediaPanel";
 import { LinkedInPreview } from "@/components/linkedin/LinkedInPreview";
 import { useAuth } from "@/hooks/useAuth";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/linkedin")({
   head: () => ({
@@ -168,17 +169,21 @@ function LinkedInComposerPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A66C2]/10">
-          <Linkedin className="h-5 w-5 text-[#0A66C2]" />
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+        <span className="ps-ambient" aria-hidden />
+        <HeroArt art="seo" />
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A66C2]/10">
+            <Linkedin className="h-5 w-5 text-[#0A66C2]" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">LinkedIn Composer</h1>
+            <p className="text-xs text-muted-foreground">
+              Text, images, video and PDF carousels — publish, schedule or save as a draft.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">LinkedIn Composer</h1>
-          <p className="text-xs text-muted-foreground">
-            Text, images, video and PDF carousels — publish, schedule or save as a draft.
-          </p>
-        </div>
-      </div>
+      </section>
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_380px_300px]">
         {/* Editor */}

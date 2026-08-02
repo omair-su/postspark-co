@@ -9,6 +9,7 @@ import { toggleFavorite, bulkDeleteJobs } from "@/lib/repurpose.functions";
 import { togglePublic } from "@/lib/gallery.functions";
 import { createApprovalRequest } from "@/lib/approvals.functions";
 import { toast } from "sonner";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 interface Job {
   id: string;
@@ -394,6 +395,7 @@ function HistoryPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <section className="ds-page-hero">
+        <HeroArt art="empty" />
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             <span className="ds-page-hero-eyebrow"><Clock className="h-3 w-3" /> Archive</span>

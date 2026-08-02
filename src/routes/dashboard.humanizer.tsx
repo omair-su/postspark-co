@@ -4,6 +4,7 @@ import { Sparkles, Loader2, Copy, Check, Wand2, Save, Repeat } from "lucide-reac
 import { humanize } from "@/lib/copilot.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { toast } from "sonner";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/humanizer")({
   component: HumanizerPage,
@@ -80,6 +81,7 @@ function HumanizerPage() {
       {/* HERO */}
       <div
         className="flex items-start gap-4 rounded-2xl p-5"
+          <HeroArt art="hook" />
         style={{
           background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)",
           border: "1px solid #243047",

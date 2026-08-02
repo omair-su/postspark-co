@@ -7,6 +7,7 @@ import { generateShortsSeries, getShortsUsage } from "@/lib/shorts.functions";
 import { listShortsSeries, loadShortsSeries, deleteShortsSeries } from "@/lib/shortsSeries.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import type { ShortsScript } from "@/lib/shorts.server";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/shorts-series")({
   component: ShortsSeriesPage,
@@ -143,6 +144,7 @@ function ShortsSeriesPage() {
       </Link>
 
       <div className="shorts-hero flex items-start gap-4 rounded-2xl p-5 sm:p-6">
+        <HeroArt art="shorts" />
         <div className="shorts-hero-icon flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]">
           <Layers className="h-6 w-6 text-white" />
         </div>

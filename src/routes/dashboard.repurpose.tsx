@@ -23,6 +23,7 @@ import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
 import { HookABTester } from "@/components/HookABTester";
 import { Link } from "@tanstack/react-router";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 // -------- Format catalog (the new world-class spec) --------------------
 
@@ -470,6 +471,7 @@ function RepurposePage() {
           style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,124,0.6), transparent)" }}
         />
         <style>{`@keyframes rs-drift { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-20px,15px)} 66%{transform:translate(10px,-10px)} }`}</style>
+          <HeroArt art="repurpose" />
 
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">

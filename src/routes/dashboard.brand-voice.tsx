@@ -15,6 +15,7 @@ import { VoiceProfileCard } from "@/components/brandvoice/VoiceProfileCard";
 import { ToneSliders, DEFAULT_TONE_SLIDERS, type ToneSliderValues } from "@/components/brandvoice/ToneSliders";
 import { Guardrails, DEFAULT_GUARDRAILS, type GuardrailValues } from "@/components/brandvoice/Guardrails";
 import { LiveTestBench } from "@/components/brandvoice/LiveTestBench";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 interface Voice {
   id: string;
@@ -125,27 +126,31 @@ function BrandVoicePage() {
   return (
     <div className="mx-auto max-w-7xl">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-white">Brand Voice</h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-300 border border-violet-500/30">
-              <Crown className="h-3 w-3" /> Pro
-            </span>
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+        <span className="ps-ambient" aria-hidden />
+        <HeroArt art="hook" />
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-white">Brand Voice</h1>
+              <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-300 border border-violet-500/30">
+                <Crown className="h-3 w-3" /> Pro
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-slate-400">
+              Train, tune, and test how PostSpark writes for you. Every generation with an active voice follows these rules.
+            </p>
           </div>
-          <p className="mt-1 text-sm text-slate-400">
-            Train, tune, and test how PostSpark writes for you. Every generation with an active voice follows these rules.
-          </p>
+          {!showHub && (
+            <button
+              onClick={() => setShowHub(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" /> New voice
+            </button>
+          )}
         </div>
-        {!showHub && (
-          <button
-            onClick={() => setShowHub(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-bold text-white hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" /> New voice
-          </button>
-        )}
-      </div>
+      </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         {/* Main column */}

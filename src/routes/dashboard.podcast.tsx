@@ -11,6 +11,7 @@ import { transcribeAudio } from "@/lib/import.functions";
 import { generatePodcastContentPack } from "@/lib/podcast.functions";
 import { fileToBase64 } from "@/lib/clientImport";
 import { withAIProgress } from "@/lib/aiProgress";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/podcast")({
   component: PodcastPage,
@@ -208,6 +209,7 @@ function PodcastPage() {
     <div className="space-y-6">
       {/* Hero */}
       <div className="pod-hero">
+        <HeroArt art="shorts" />
         <div className="flex items-start gap-3">
           <div className="pod-hero-badge"><Headphones className="h-4 w-4" /></div>
           <div>
