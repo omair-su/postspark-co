@@ -1,3 +1,4 @@
+import { HeroArt } from "@/components/dashboard/HeroArt";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
