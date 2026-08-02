@@ -16,10 +16,10 @@ import { useAuth } from "@/hooks/useAuth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PostSpark AI | Create Once. Repurpose Every. Publish Instant" },
-      { name: "description", content: "Generate social posts, X thread, LinkedIn content, blogs, image, shorts, and more from a single video, or idea. Create, repurpose, schedule, and publish with AI" },
-      { property: "og:title", content: "PostSpark AI | Create Once. Repurpose Every. Publish Instant" },
-      { property: "og:description", content: "Generate social posts, X thread, LinkedIn content, blogs, image, shorts, and more from a single video, or idea. Create, repurpose, schedule, and publish with AI" },
+      { title: "PostSpark — Turn 1 Video Into a Month of Content" },
+      { name: "description", content: "PostSpark repurposes your podcast, YouTube, or Zoom into 30+ posts, shorts, and threads — in your voice, in under 60 seconds. Free, no card." },
+      { property: "og:title", content: "PostSpark — Turn 1 Video Into a Month of Content" },
+      { property: "og:description", content: "PostSpark repurposes your podcast, YouTube, or Zoom into 30+ posts, shorts, and threads — in your voice, in under 60 seconds. Free, no card." },
       { property: "og:url", content: "https://postspark.co" },
       { property: "og:type", content: "website" },
     ],
