@@ -81,12 +81,12 @@ function HumanizerPage() {
       {/* HERO */}
       <div
         className="flex items-start gap-4 rounded-2xl p-5"
-          <HeroArt art="hook" />
         style={{
           background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)",
           border: "1px solid #243047",
         }}
       >
+        <HeroArt art="hook" />
         <div
           className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]"
           style={{

@@ -265,12 +265,12 @@ function TemplatesPage() {
       {/* HERO */}
       <div
         className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-6 py-5"
-          <HeroArt art="carousel" />
         style={{
           background: "linear-gradient(135deg, hsl(var(--card)) 0%, rgba(107,78,255,0.06) 100%)",
           borderColor: "rgba(107,78,255,0.18)",
         }}
       >
+        <HeroArt art="carousel" />
         <div>
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgba(107,78,255,0.12)]">
