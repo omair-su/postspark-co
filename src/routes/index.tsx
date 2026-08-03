@@ -1,31 +1,51 @@
-import { HeroV3 } from "@/components/landing/v3/HeroV3";
-import { LogoStripV3 } from "@/components/landing/v3/LogoStripV3";
-import { HowItWorksV3 } from "@/components/landing/v3/HowItWorksV3";
-import { FeatureBento } from "@/components/landing/v3/FeatureBento";
-import { TestimonialsV3 } from "@/components/landing/v3/TestimonialsV3";
-import { FAQV3, FAQ_V3 } from "@/components/landing/v3/FAQV3";
-import { FinalCTAV3 } from "@/components/landing/v3/FinalCTAV3";
-import { FooterV3 } from "@/components/landing/v3/FooterV3";
-import { NavV3 } from "@/components/landing/v3/NavV3";
-import { ToolsGridV3 } from "@/components/landing/v3/ToolsGridV3";
-import { ModelsStripV3 } from "@/components/landing/v3/ModelsStripV3";
-import { CompareV3 } from "@/components/landing/v3/CompareV3";
 import { Navigate, createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
+import { useFadeIn } from "@/components/landing/v4/parts";
+import { Lp4Nav, Lp4Hero, Lp4SocialProof, Lp4HowItWorks } from "@/components/landing/v4/SectionsTop";
+import { Lp4Studios, Lp4Models, Lp4Features } from "@/components/landing/v4/SectionsMid";
+import { Lp4Guided, Lp4Testimonials, Lp4Stats } from "@/components/landing/v4/SectionsBottom";
+import {
+  Lp4Pricing,
+  Lp4Faq,
+  Lp4FinalCta,
+  Lp4Footer,
+  Lp4StickyCta,
+  LP4_FAQ,
+} from "@/components/landing/v4/SectionsEnd";
+
+const TITLE = "PostSpark — AI Content Operating System | Turn 1 Idea Into 30+ Posts";
+const DESCRIPTION =
+  "PostSpark is the AI Content Operating System for creators and marketers. Repurpose one idea into LinkedIn posts, carousels, TikTok scripts, SEO blogs & more. Publish to 7 platforms.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PostSpark — Turn 1 Video Into a Month of Content" },
-      { name: "description", content: "PostSpark repurposes your podcast, YouTube, or Zoom into 30+ posts, shorts, and threads — in your voice, in under 60 seconds. Free, no card." },
-      { property: "og:title", content: "PostSpark — Turn 1 Video Into a Month of Content" },
-      { property: "og:description", content: "PostSpark repurposes your podcast, YouTube, or Zoom into 30+ posts, shorts, and threads — in your voice, in under 60 seconds. Free, no card." },
+      { title: TITLE },
+      { name: "description", content: DESCRIPTION },
+      {
+        name: "keywords",
+        content:
+          "AI content repurposing, social media AI, LinkedIn content creator, TikTok script generator, content operating system",
+      },
+      { property: "og:title", content: "PostSpark — AI Content Operating System" },
+      {
+        property: "og:description",
+        content:
+          "Turn one idea into a week of content. Repurpose, create & publish to LinkedIn, TikTok, Instagram, YouTube & more — powered by Claude AI.",
+      },
+      { property: "og:image", content: "https://postspark.co/og-image.png" },
       { property: "og:url", content: "https://postspark.co" },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "PostSpark — AI Content Operating System" },
+      {
+        name: "twitter:description",
+        content:
+          "Turn one idea into a week of content across 7 platforms. AI repurposing, image generation & direct publishing.",
+      },
+      { name: "twitter:image", content: "https://postspark.co/og-image.png" },
     ],
-    links: [
-      { rel: "canonical", href: "https://postspark.co" },
-    ],
+    links: [{ rel: "canonical", href: "https://postspark.co" }],
     scripts: [
       {
         type: "application/ld+json",
@@ -34,10 +54,10 @@ export const Route = createFileRoute("/")({
           "@type": "SoftwareApplication",
           name: "PostSpark",
           applicationCategory: "BusinessApplication",
-          operatingSystem: "Web",
-          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-          description: "AI-powered content repurposing tool powered by Claude AI.",
+          description: "AI Content Operating System for creators and marketers",
           url: "https://postspark.co",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          operatingSystem: "Web",
         }),
       },
       {
@@ -45,7 +65,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: FAQ_V3.map((f) => ({
+          mainEntity: LP4_FAQ.map((f) => ({
             "@type": "Question",
             name: f.q,
             acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -59,24 +79,29 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   const { session, loading } = useAuth();
+  useFadeIn();
+
   if (!loading && session) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="min-h-screen lv3-aurora" style={{ color: "#FAFAF9" }}>
-      <NavV3 />
+    <div className="lp4 min-h-screen">
+      <Lp4Nav />
       <main>
-        <HeroV3 />
-        <LogoStripV3 />
-        <ToolsGridV3 />
-        <ModelsStripV3 />
-        <HowItWorksV3 />
-        <FeatureBento />
-        <CompareV3 />
-        <TestimonialsV3 />
-        <FAQV3 />
-        <FinalCTAV3 />
-        <FooterV3 />
+        <Lp4Hero />
+        <Lp4SocialProof />
+        <Lp4HowItWorks />
+        <Lp4Studios />
+        <Lp4Models />
+        <Lp4Features />
+        <Lp4Guided />
+        <Lp4Testimonials />
+        <Lp4Stats />
+        <Lp4Pricing />
+        <Lp4Faq />
+        <Lp4FinalCta />
       </main>
+      <Lp4Footer />
+      <Lp4StickyCta />
     </div>
   );
 }
