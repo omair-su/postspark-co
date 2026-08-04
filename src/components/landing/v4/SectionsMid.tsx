@@ -12,6 +12,7 @@ import {
   Check,
 } from "lucide-react";
 import { AI_BADGES, AiBadge, delay } from "./parts";
+import { SCREENS } from "./screens";
 
 const STUDIOS = [
   { Icon: RefreshCw, name: "Repurpose Studio", desc: "One source → 30+ platform-ready posts, on-brand.", tier: "PRO", to: "/dashboard/repurpose" },
@@ -148,7 +149,8 @@ type Feature = {
   bullets: string[];
   tags?: string[];
   mockBg: string;
-  mock: { name: string; color: string }[];
+  shot: string;
+  shotAlt: string;
   to: string;
 };
 
@@ -166,11 +168,8 @@ const FEATURES: Feature[] = [
     ],
     tags: ["LinkedIn", "Twitter/X", "Instagram", "TikTok", "Email"],
     mockBg: "linear-gradient(135deg, #EDE9FE, #DDD6FE)",
-    mock: [
-      { name: "LinkedIn", color: "#0A66C2" },
-      { name: "Twitter/X", color: "#0F0F1A" },
-      { name: "TikTok", color: "#EC4899" },
-    ],
+    shot: SCREENS.repurpose,
+    shotAlt: "PostSpark Repurpose Studio with source input and platform format picker",
     to: "/dashboard/repurpose",
   },
   {
@@ -184,11 +183,8 @@ const FEATURES: Feature[] = [
       "Download as PDF or bulk ZIP",
     ],
     mockBg: "linear-gradient(135deg, #F0F9FF, #E0F2FE)",
-    mock: [
-      { name: "GPT Image 2", color: "#10A37F" },
-      { name: "Flux Pro 1.1", color: "#FF6B35" },
-      { name: "Gemini Flash", color: "#4285F4" },
-    ],
+    shot: SCREENS.imageStudio,
+    shotAlt: "PostSpark AI Image Studio with model selection and prompt controls",
     to: "/dashboard/image-studio",
   },
   {
@@ -202,11 +198,8 @@ const FEATURES: Feature[] = [
       "Content calendar & scheduling",
     ],
     mockBg: "linear-gradient(135deg, #ECFDF5, #D1FAE5)",
-    mock: [
-      { name: "Scheduled · Mon 9:00", color: "#10B981" },
-      { name: "Queued · Tue 14:30", color: "#06B6D4" },
-      { name: "Published · today", color: "#7C3AED" },
-    ],
+    shot: SCREENS.publishing,
+    shotAlt: "PostSpark Publishing Center composer with platform toggles and live preview",
     to: "/dashboard/publishing",
   },
   {
@@ -221,11 +214,8 @@ const FEATURES: Feature[] = [
       "Consistent across all 9 Studios",
     ],
     mockBg: "linear-gradient(135deg, #FFF7ED, #FED7AA)",
-    mock: [
-      { name: "Primary #7C3AED", color: "#7C3AED" },
-      { name: "Accent #06B6D4", color: "#06B6D4" },
-      { name: "Voice · confident, warm", color: "#F59E0B" },
-    ],
+    shot: SCREENS.brandKit,
+    shotAlt: "PostSpark Brand Kit with brand identity fields and logo vault slots",
     to: "/dashboard/brand-kit",
   },
 ];
@@ -233,11 +223,14 @@ const FEATURES: Feature[] = [
 function FeatureMock({ f }: { f: Feature }) {
   return (
     <div
-      className="flex items-center justify-center overflow-hidden p-8"
-      style={{ background: f.mockBg, borderRadius: 20, height: 380, boxShadow: "0 20px 60px rgba(0,0,0,0.10)" }}
+      className="overflow-hidden p-4 sm:p-6"
+      style={{ background: f.mockBg, borderRadius: 20, boxShadow: "0 20px 60px rgba(0,0,0,0.10)" }}
     >
-      <div className="w-full max-w-[380px] overflow-hidden rounded-2xl bg-white" style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }}>
-        <div className="flex items-center gap-1.5 px-4" style={{ height: 32, background: "#F9FAFB", borderBottom: "1px solid #E5E7EB" }}>
+      <div className="overflow-hidden rounded-2xl bg-white" style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }}>
+        <div
+          className="flex items-center gap-1.5 px-4"
+          style={{ height: 32, background: "#F9FAFB", borderBottom: "1px solid #E5E7EB" }}
+        >
           {["#EF4444", "#F59E0B", "#22C55E"].map((c) => (
             <span key={c} className="h-2 w-2 rounded-full" style={{ background: c }} />
           ))}
@@ -245,21 +238,15 @@ function FeatureMock({ f }: { f: Feature }) {
             {f.label}
           </span>
         </div>
-        <div className="space-y-2.5 p-4">
-          {f.mock.map((m) => (
-            <div key={m.name} className="rounded-xl border p-3" style={{ borderColor: "#E5E7EB" }}>
-              <div className="flex items-center gap-2">
-                <span className="h-5 w-5 rounded-full" style={{ background: m.color }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#0F0F1A" }}>{m.name}</span>
-              </div>
-              <div className="mt-2 space-y-1.5">
-                <div className="h-1.5 rounded-full" style={{ width: "92%", background: "#EEF0F4" }} />
-                <div className="h-1.5 rounded-full" style={{ width: "76%", background: "#EEF0F4" }} />
-                <div className="h-1.5 rounded-full" style={{ width: "48%", background: "#DDD6FE" }} />
-              </div>
-            </div>
-          ))}
-        </div>
+        <img
+          src={f.shot}
+          alt={f.shotAlt}
+          width={1800}
+          height={1125}
+          loading="lazy"
+          decoding="async"
+          className="block w-full"
+        />
       </div>
     </div>
   );

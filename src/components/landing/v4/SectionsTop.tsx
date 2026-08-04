@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, X as XIcon, Upload, Sparkles, Send, Play, ArrowRight } from "lucide-react";
 import { SOCIALS, SocialCircle, Wordmark, delay } from "./parts";
+import { SCREENS } from "./screens";
+
 
 const NAV_LINKS = [
   { label: "Features", to: "/#features" },
@@ -115,88 +117,20 @@ export function Lp4Nav() {
 }
 
 function DashboardMock() {
-  const cards = [
-    { name: "LinkedIn", color: "#0A66C2", lines: [96, 88, 70] },
-    { name: "Twitter/X", color: "#0F0F1A", lines: [90, 74, 60] },
-    { name: "TikTok Script", color: "#EC4899", lines: [92, 80, 66] },
-  ];
   return (
-    <div className="flex" style={{ height: 520, background: "linear-gradient(180deg, #0F0F1A 0%, #1A0A3D 100%)" }}>
-      <aside className="hidden w-[240px] shrink-0 flex-col gap-2 p-5 sm:flex" style={{ background: "#0F0F1A" }}>
-        <div className="mb-4 flex items-center gap-2">
-          <span
-            className="grid h-7 w-7 place-items-center rounded-lg"
-            style={{ background: "linear-gradient(135deg,#7C3AED,#06B6D4)" }}
-          />
-          <span style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>PostSpark</span>
-        </div>
-        {["Dashboard", "Repurpose Studio", "Hook Lab", "Image Studio", "Shorts Studio", "Publishing", "Brand Kit"].map(
-          (item, i) => (
-            <div
-              key={item}
-              className="rounded-lg px-3 py-2"
-              style={{
-                fontSize: 12.5,
-                fontWeight: i === 1 ? 700 : 500,
-                color: i === 1 ? "#fff" : "rgba(255,255,255,0.55)",
-                background: i === 1 ? "rgba(124,58,237,0.28)" : "transparent",
-              }}
-            >
-              {item}
-            </div>
-          ),
-        )}
-      </aside>
-
-      <div className="flex-1 p-5" style={{ background: "linear-gradient(160deg,#FFFFFF, #F5F3FF)" }}>
-        <div className="rounded-xl border bg-white p-4" style={{ borderColor: "#E5E7EB" }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", color: "#7C3AED" }}>SOURCE</p>
-          <div
-            className="mt-2 flex items-center justify-between gap-3 rounded-lg px-3 py-2.5"
-            style={{ background: "#FAFAFA", border: "1px solid #E5E7EB" }}
-          >
-            <span style={{ fontSize: 12.5, color: "#6B7280" }}>youtube.com/watch?v=our-best-episode</span>
-            <span
-              className="shrink-0 rounded-md px-3 py-1.5"
-              style={{ background: "linear-gradient(135deg,#7C3AED,#3B82F6)", color: "#fff", fontSize: 11.5, fontWeight: 700 }}
-            >
-              Repurpose
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {cards.map((c) => (
-            <div key={c.name} className="rounded-xl border bg-white p-3.5" style={{ borderColor: "#E5E7EB" }}>
-              <div className="flex items-center gap-2">
-                <span className="h-6 w-6 rounded-full" style={{ background: c.color }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#0F0F1A" }}>{c.name}</span>
-              </div>
-              <div className="mt-3 space-y-1.5">
-                {c.lines.map((w, i) => (
-                  <div key={i} className="h-2 rounded-full" style={{ width: `${w}%`, background: "#EEF0F4" }} />
-                ))}
-                <div className="h-2 rounded-full" style={{ width: "45%", background: "#DDD6FE" }} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {["Hooks scored 9.2/10", "Carousel · 10 slides ready"].map((t) => (
-            <div
-              key={t}
-              className="rounded-xl border p-3.5"
-              style={{ borderColor: "#DDD6FE", background: "#F5F3FF", fontSize: 12.5, fontWeight: 600, color: "#4C1D95" }}
-            >
-              {t}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <img
+      src={SCREENS.dashboard}
+      alt="PostSpark dashboard showing the AI content workspace, quick actions and generation stats"
+      width={1800}
+      height={1125}
+      loading="eager"
+      decoding="async"
+      className="block w-full"
+      style={{ display: "block" }}
+    />
   );
 }
+
 
 export function Lp4Hero() {
   const marquee = [...SOCIALS, ...SOCIALS];
