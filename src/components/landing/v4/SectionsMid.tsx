@@ -215,7 +215,7 @@ const FEATURES: Feature[] = [
     ],
     mockBg: "linear-gradient(135deg, #FFF7ED, #FED7AA)",
     shot: SCREENS.brandKit,
-    shotAlt: "PostSpark Brand Kit with brand identity fields and logo vault slots,
+    shotAlt: "PostSpark Brand Kit with brand identity fields and logo vault slots",
     to: "/dashboard/brand-kit",
   },
 ];
