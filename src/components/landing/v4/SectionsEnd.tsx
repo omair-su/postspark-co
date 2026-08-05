@@ -362,21 +362,20 @@ const FOOTER_COLS = [
   {
     head: "Compare",
     links: [
-      { label: "vs Repurpose.io", to: "/compare/repurpose-io" },
-      { label: "vs Buffer", to: "/compare/buffer" },
-      { label: "vs Hootsuite", to: "/compare/hootsuite" },
-      { label: "vs Typefully", to: "/compare/typefully" },
-      { label: "vs ChatGPT", to: "/compare/chatgpt" },
+      { label: "vs Repurpose.io", to: "/alternatives/repurpose-io-vs-postspark" },
+      { label: "vs Buffer", to: "/alternatives/buffer-vs-postspark" },
+      { label: "vs Hootsuite", to: "/alternatives/hootsuite-vs-postspark" },
+      { label: "vs Typefully", to: "/alternatives/typefully-vs-postspark" },
+      { label: "vs ChatGPT", to: "/alternatives/chatgpt-for-content-repurposing" },
     ],
   },
   {
     head: "Company",
     links: [
-      { label: "About", to: "/about" },
-      { label: "Contact", to: "/contact" },
+      { label: "Roadmap", to: "/roadmap" },
       { label: "Privacy Policy", to: "/privacy" },
       { label: "Terms of Service", to: "/terms" },
-      { label: "DMCA", to: "/dmca" },
+      { label: "Refunds", to: "/refunds" },
       { label: "Data Deletion", to: "/data-deletion" },
     ],
   },
