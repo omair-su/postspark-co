@@ -157,6 +157,7 @@ import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public
 import { Route as ApiPublicWebhooksThreadsUninstallRouteImport } from './routes/api/public/webhooks/threads.uninstall'
 import { Route as ApiPublicWebhooksThreadsDeleteRouteImport } from './routes/api/public/webhooks/threads.delete'
 import { Route as ApiPublicWebhooksMetaDeauthorizeRouteImport } from './routes/api/public/webhooks/meta.deauthorize'
+import { Route as ApiPublicWebhooksInstagramDeleteRouteImport } from './routes/api/public/webhooks/instagram.delete'
 import { Route as ApiPublicOauthYoutubeCallbackRouteImport } from './routes/api/public/oauth.youtube.callback'
 import { Route as ApiPublicOauthXCallbackRouteImport } from './routes/api/public/oauth.x.callback'
 import { Route as ApiPublicOauthTiktokCallbackRouteImport } from './routes/api/public/oauth.tiktok.callback'
@@ -950,6 +951,12 @@ const ApiPublicWebhooksMetaDeauthorizeRoute =
     path: '/deauthorize',
     getParentRoute: () => ApiPublicWebhooksMetaRoute,
   } as any)
+const ApiPublicWebhooksInstagramDeleteRoute =
+  ApiPublicWebhooksInstagramDeleteRouteImport.update({
+    id: '/delete',
+    path: '/delete',
+    getParentRoute: () => ApiPublicWebhooksInstagramRoute,
+  } as any)
 const ApiPublicOauthYoutubeCallbackRoute =
   ApiPublicOauthYoutubeCallbackRouteImport.update({
     id: '/api/public/oauth/youtube/callback',
@@ -1110,7 +1117,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRouteWithChildren
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1124,6 +1131,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/instagram/delete': typeof ApiPublicWebhooksInstagramDeleteRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
   '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
@@ -1263,7 +1271,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRouteWithChildren
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1277,6 +1285,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/instagram/delete': typeof ApiPublicWebhooksInstagramDeleteRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
   '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
@@ -1418,7 +1427,7 @@ export interface FileRoutesById {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
-  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRouteWithChildren
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1432,6 +1441,7 @@ export interface FileRoutesById {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/instagram/delete': typeof ApiPublicWebhooksInstagramDeleteRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
   '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
@@ -1588,6 +1598,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/instagram/delete'
     | '/api/public/webhooks/meta/deauthorize'
     | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
@@ -1741,6 +1752,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/instagram/delete'
     | '/api/public/webhooks/meta/deauthorize'
     | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
@@ -1895,6 +1907,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/instagram/delete'
     | '/api/public/webhooks/meta/deauthorize'
     | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
@@ -1991,7 +2004,7 @@ export interface RootRouteChildren {
   ApiPublicHooksPublishScheduledXRoute: typeof ApiPublicHooksPublishScheduledXRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
-  ApiPublicWebhooksInstagramRoute: typeof ApiPublicWebhooksInstagramRoute
+  ApiPublicWebhooksInstagramRoute: typeof ApiPublicWebhooksInstagramRouteWithChildren
   ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRouteWithChildren
   ApiPublicWebhooksThreadsRoute: typeof ApiPublicWebhooksThreadsRouteWithChildren
   ApiPublicWebhooksTiktokRoute: typeof ApiPublicWebhooksTiktokRoute
@@ -3045,6 +3058,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksMetaDeauthorizeRouteImport
       parentRoute: typeof ApiPublicWebhooksMetaRoute
     }
+    '/api/public/webhooks/instagram/delete': {
+      id: '/api/public/webhooks/instagram/delete'
+      path: '/delete'
+      fullPath: '/api/public/webhooks/instagram/delete'
+      preLoaderRoute: typeof ApiPublicWebhooksInstagramDeleteRouteImport
+      parentRoute: typeof ApiPublicWebhooksInstagramRoute
+    }
     '/api/public/oauth/youtube/callback': {
       id: '/api/public/oauth/youtube/callback'
       path: '/api/public/oauth/youtube/callback'
@@ -3194,6 +3214,21 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface ApiPublicWebhooksInstagramRouteChildren {
+  ApiPublicWebhooksInstagramDeleteRoute: typeof ApiPublicWebhooksInstagramDeleteRoute
+}
+
+const ApiPublicWebhooksInstagramRouteChildren: ApiPublicWebhooksInstagramRouteChildren =
+  {
+    ApiPublicWebhooksInstagramDeleteRoute:
+      ApiPublicWebhooksInstagramDeleteRoute,
+  }
+
+const ApiPublicWebhooksInstagramRouteWithChildren =
+  ApiPublicWebhooksInstagramRoute._addFileChildren(
+    ApiPublicWebhooksInstagramRouteChildren,
+  )
+
 interface ApiPublicWebhooksMetaRouteChildren {
   ApiPublicWebhooksMetaDeauthorizeRoute: typeof ApiPublicWebhooksMetaDeauthorizeRoute
 }
@@ -3320,7 +3355,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPublishScheduledXRoute: ApiPublicHooksPublishScheduledXRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
-  ApiPublicWebhooksInstagramRoute: ApiPublicWebhooksInstagramRoute,
+  ApiPublicWebhooksInstagramRoute: ApiPublicWebhooksInstagramRouteWithChildren,
   ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRouteWithChildren,
   ApiPublicWebhooksThreadsRoute: ApiPublicWebhooksThreadsRouteWithChildren,
   ApiPublicWebhooksTiktokRoute: ApiPublicWebhooksTiktokRoute,
