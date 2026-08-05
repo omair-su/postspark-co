@@ -129,6 +129,7 @@ import { Route as DashboardGuidedCreatorPlaybookRouteImport } from './routes/das
 import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as AuthThreadsCallbackRouteImport } from './routes/auth.threads.callback'
+import { Route as AuthInstagramCallbackRouteImport } from './routes/auth.instagram.callback'
 import { Route as AuthFacebookCallbackRouteImport } from './routes/auth.facebook.callback'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicStockDownloadRouteImport } from './routes/api/public/stock-download'
@@ -795,6 +796,11 @@ const AuthThreadsCallbackRoute = AuthThreadsCallbackRouteImport.update({
   path: '/auth/threads/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthInstagramCallbackRoute = AuthInstagramCallbackRouteImport.update({
+  id: '/auth/instagram/callback',
+  path: '/auth/instagram/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthFacebookCallbackRoute = AuthFacebookCallbackRouteImport.update({
   id: '/auth/facebook/callback',
   path: '/auth/facebook/callback',
@@ -1076,6 +1082,7 @@ export interface FileRoutesByFullPath {
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1227,6 +1234,7 @@ export interface FileRoutesByTo {
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1380,6 +1388,7 @@ export interface FileRoutesById {
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1534,6 +1543,7 @@ export interface FileRouteTypes {
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/facebook/callback'
+    | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1685,6 +1695,7 @@ export interface FileRouteTypes {
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/facebook/callback'
+    | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1837,6 +1848,7 @@ export interface FileRouteTypes {
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/facebook/callback'
+    | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1956,6 +1968,7 @@ export interface RootRouteChildren {
   ApiPublicStockDownloadRoute: typeof ApiPublicStockDownloadRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   AuthFacebookCallbackRoute: typeof AuthFacebookCallbackRoute
+  AuthInstagramCallbackRoute: typeof AuthInstagramCallbackRoute
   AuthThreadsCallbackRoute: typeof AuthThreadsCallbackRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
@@ -2822,6 +2835,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthThreadsCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/instagram/callback': {
+      id: '/auth/instagram/callback'
+      path: '/auth/instagram/callback'
+      fullPath: '/auth/instagram/callback'
+      preLoaderRoute: typeof AuthInstagramCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/facebook/callback': {
       id: '/auth/facebook/callback'
       path: '/auth/facebook/callback'
@@ -3268,6 +3288,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStockDownloadRoute: ApiPublicStockDownloadRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   AuthFacebookCallbackRoute: AuthFacebookCallbackRoute,
+  AuthInstagramCallbackRoute: AuthInstagramCallbackRoute,
   AuthThreadsCallbackRoute: AuthThreadsCallbackRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
