@@ -148,6 +148,7 @@ import { Route as ApiPublicWebhooksXRouteImport } from './routes/api/public/webh
 import { Route as ApiPublicWebhooksTiktokRouteImport } from './routes/api/public/webhooks/tiktok'
 import { Route as ApiPublicWebhooksThreadsRouteImport } from './routes/api/public/webhooks/threads'
 import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
+import { Route as ApiPublicWebhooksInstagramRouteImport } from './routes/api/public/webhooks/instagram'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/api/public/hooks/publish-scheduled-x'
@@ -896,6 +897,12 @@ const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
   path: '/api/public/webhooks/meta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksInstagramRoute =
+  ApiPublicWebhooksInstagramRouteImport.update({
+    id: '/api/public/webhooks/instagram',
+    path: '/api/public/webhooks/instagram',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -1103,6 +1110,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1255,6 +1263,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1409,6 +1418,7 @@ export interface FileRoutesById {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRoute
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1564,6 +1574,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/instagram'
     | '/api/public/webhooks/meta'
     | '/api/public/webhooks/threads'
     | '/api/public/webhooks/tiktok'
@@ -1716,6 +1727,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/instagram'
     | '/api/public/webhooks/meta'
     | '/api/public/webhooks/threads'
     | '/api/public/webhooks/tiktok'
@@ -1869,6 +1881,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/instagram'
     | '/api/public/webhooks/meta'
     | '/api/public/webhooks/threads'
     | '/api/public/webhooks/tiktok'
@@ -1978,6 +1991,7 @@ export interface RootRouteChildren {
   ApiPublicHooksPublishScheduledXRoute: typeof ApiPublicHooksPublishScheduledXRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicWebhooksInstagramRoute: typeof ApiPublicWebhooksInstagramRoute
   ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRouteWithChildren
   ApiPublicWebhooksThreadsRoute: typeof ApiPublicWebhooksThreadsRouteWithChildren
   ApiPublicWebhooksTiktokRoute: typeof ApiPublicWebhooksTiktokRoute
@@ -2968,6 +2982,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksMetaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/instagram': {
+      id: '/api/public/webhooks/instagram'
+      path: '/api/public/webhooks/instagram'
+      fullPath: '/api/public/webhooks/instagram'
+      preLoaderRoute: typeof ApiPublicWebhooksInstagramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -3299,6 +3320,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPublishScheduledXRoute: ApiPublicHooksPublishScheduledXRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicWebhooksInstagramRoute: ApiPublicWebhooksInstagramRoute,
   ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRouteWithChildren,
   ApiPublicWebhooksThreadsRoute: ApiPublicWebhooksThreadsRouteWithChildren,
   ApiPublicWebhooksTiktokRoute: ApiPublicWebhooksTiktokRoute,
