@@ -57,7 +57,7 @@ const navGroups = [
       { to: "/dashboard/publishing", icon: Rocket, label: "Publishing Center" },
       { to: "/dashboard/publish", icon: Megaphone, label: "Publish to X" },
       { to: "/dashboard/publish/facebook", icon: Facebook, label: "Publish to Facebook" },
-      { to: "/dashboard/publish/instagram", icon: Instagram, label: "Publish to Instagram" },
+      { to: "/dashboard/instagram", icon: Instagram, label: "Instagram" },
       { to: "/dashboard/publish/threads", icon: AtSign, label: "Publish to Threads" },
       { to: "/dashboard/calendar", icon: Calendar, label: "Calendar" },
       { to: "/dashboard/history", icon: History, label: "History" },
