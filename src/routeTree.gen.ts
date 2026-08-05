@@ -84,6 +84,7 @@ import { Route as DashboardPublishingRouteImport } from './routes/dashboard.publ
 import { Route as DashboardPublishRouteImport } from './routes/dashboard.publish'
 import { Route as DashboardPodcastRouteImport } from './routes/dashboard.podcast'
 import { Route as DashboardLinkedinRouteImport } from './routes/dashboard.linkedin'
+import { Route as DashboardInstagramRouteImport } from './routes/dashboard.instagram'
 import { Route as DashboardImportRouteImport } from './routes/dashboard.import'
 import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
 import { Route as DashboardHumanizerRouteImport } from './routes/dashboard.humanizer'
@@ -129,6 +130,7 @@ import { Route as DashboardGuidedCreatorPlaybookRouteImport } from './routes/das
 import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$slug'
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as AuthThreadsCallbackRouteImport } from './routes/auth.threads.callback'
+import { Route as AuthInstagramCallbackRouteImport } from './routes/auth.instagram.callback'
 import { Route as AuthFacebookCallbackRouteImport } from './routes/auth.facebook.callback'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicStockDownloadRouteImport } from './routes/api/public/stock-download'
@@ -147,6 +149,7 @@ import { Route as ApiPublicWebhooksXRouteImport } from './routes/api/public/webh
 import { Route as ApiPublicWebhooksTiktokRouteImport } from './routes/api/public/webhooks/tiktok'
 import { Route as ApiPublicWebhooksThreadsRouteImport } from './routes/api/public/webhooks/threads'
 import { Route as ApiPublicWebhooksMetaRouteImport } from './routes/api/public/webhooks/meta'
+import { Route as ApiPublicWebhooksInstagramRouteImport } from './routes/api/public/webhooks/instagram'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/api/public/hooks/publish-scheduled-x'
@@ -155,6 +158,7 @@ import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public
 import { Route as ApiPublicWebhooksThreadsUninstallRouteImport } from './routes/api/public/webhooks/threads.uninstall'
 import { Route as ApiPublicWebhooksThreadsDeleteRouteImport } from './routes/api/public/webhooks/threads.delete'
 import { Route as ApiPublicWebhooksMetaDeauthorizeRouteImport } from './routes/api/public/webhooks/meta.deauthorize'
+import { Route as ApiPublicWebhooksInstagramDeleteRouteImport } from './routes/api/public/webhooks/instagram.delete'
 import { Route as ApiPublicOauthYoutubeCallbackRouteImport } from './routes/api/public/oauth.youtube.callback'
 import { Route as ApiPublicOauthXCallbackRouteImport } from './routes/api/public/oauth.x.callback'
 import { Route as ApiPublicOauthTiktokCallbackRouteImport } from './routes/api/public/oauth.tiktok.callback'
@@ -550,6 +554,11 @@ const DashboardLinkedinRoute = DashboardLinkedinRouteImport.update({
   path: '/linkedin',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardInstagramRoute = DashboardInstagramRouteImport.update({
+  id: '/instagram',
+  path: '/instagram',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardImportRoute = DashboardImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -795,6 +804,11 @@ const AuthThreadsCallbackRoute = AuthThreadsCallbackRouteImport.update({
   path: '/auth/threads/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthInstagramCallbackRoute = AuthInstagramCallbackRouteImport.update({
+  id: '/auth/instagram/callback',
+  path: '/auth/instagram/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthFacebookCallbackRoute = AuthFacebookCallbackRouteImport.update({
   id: '/auth/facebook/callback',
   path: '/auth/facebook/callback',
@@ -890,6 +904,12 @@ const ApiPublicWebhooksMetaRoute = ApiPublicWebhooksMetaRouteImport.update({
   path: '/api/public/webhooks/meta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksInstagramRoute =
+  ApiPublicWebhooksInstagramRouteImport.update({
+    id: '/api/public/webhooks/instagram',
+    path: '/api/public/webhooks/instagram',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -936,6 +956,12 @@ const ApiPublicWebhooksMetaDeauthorizeRoute =
     id: '/deauthorize',
     path: '/deauthorize',
     getParentRoute: () => ApiPublicWebhooksMetaRoute,
+  } as any)
+const ApiPublicWebhooksInstagramDeleteRoute =
+  ApiPublicWebhooksInstagramDeleteRouteImport.update({
+    id: '/delete',
+    path: '/delete',
+    getParentRoute: () => ApiPublicWebhooksInstagramRoute,
   } as any)
 const ApiPublicOauthYoutubeCallbackRoute =
   ApiPublicOauthYoutubeCallbackRouteImport.update({
@@ -1011,6 +1037,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/instagram': typeof DashboardInstagramRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
@@ -1076,6 +1103,7 @@ export interface FileRoutesByFullPath {
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1096,6 +1124,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRouteWithChildren
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1109,6 +1138,7 @@ export interface FileRoutesByFullPath {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/instagram/delete': typeof ApiPublicWebhooksInstagramDeleteRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
   '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
@@ -1162,6 +1192,7 @@ export interface FileRoutesByTo {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/instagram': typeof DashboardInstagramRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
@@ -1227,6 +1258,7 @@ export interface FileRoutesByTo {
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1247,6 +1279,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRouteWithChildren
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1260,6 +1293,7 @@ export interface FileRoutesByTo {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/instagram/delete': typeof ApiPublicWebhooksInstagramDeleteRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
   '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
@@ -1315,6 +1349,7 @@ export interface FileRoutesById {
   '/dashboard/humanizer': typeof DashboardHumanizerRoute
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
+  '/dashboard/instagram': typeof DashboardInstagramRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
@@ -1380,6 +1415,7 @@ export interface FileRoutesById {
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
@@ -1400,6 +1436,7 @@ export interface FileRoutesById {
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/webhooks/instagram': typeof ApiPublicWebhooksInstagramRouteWithChildren
   '/api/public/webhooks/meta': typeof ApiPublicWebhooksMetaRouteWithChildren
   '/api/public/webhooks/threads': typeof ApiPublicWebhooksThreadsRouteWithChildren
   '/api/public/webhooks/tiktok': typeof ApiPublicWebhooksTiktokRoute
@@ -1413,6 +1450,7 @@ export interface FileRoutesById {
   '/api/public/oauth/tiktok/callback': typeof ApiPublicOauthTiktokCallbackRoute
   '/api/public/oauth/x/callback': typeof ApiPublicOauthXCallbackRoute
   '/api/public/oauth/youtube/callback': typeof ApiPublicOauthYoutubeCallbackRoute
+  '/api/public/webhooks/instagram/delete': typeof ApiPublicWebhooksInstagramDeleteRoute
   '/api/public/webhooks/meta/deauthorize': typeof ApiPublicWebhooksMetaDeauthorizeRoute
   '/api/public/webhooks/threads/delete': typeof ApiPublicWebhooksThreadsDeleteRoute
   '/api/public/webhooks/threads/uninstall': typeof ApiPublicWebhooksThreadsUninstallRoute
@@ -1469,6 +1507,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/instagram'
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
@@ -1534,6 +1573,7 @@ export interface FileRouteTypes {
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/facebook/callback'
+    | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1554,6 +1594,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/instagram'
     | '/api/public/webhooks/meta'
     | '/api/public/webhooks/threads'
     | '/api/public/webhooks/tiktok'
@@ -1567,6 +1608,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/instagram/delete'
     | '/api/public/webhooks/meta/deauthorize'
     | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
@@ -1620,6 +1662,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/instagram'
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
@@ -1685,6 +1728,7 @@ export interface FileRouteTypes {
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/facebook/callback'
+    | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1705,6 +1749,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/instagram'
     | '/api/public/webhooks/meta'
     | '/api/public/webhooks/threads'
     | '/api/public/webhooks/tiktok'
@@ -1718,6 +1763,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/instagram/delete'
     | '/api/public/webhooks/meta/deauthorize'
     | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
@@ -1772,6 +1818,7 @@ export interface FileRouteTypes {
     | '/dashboard/humanizer'
     | '/dashboard/image-studio'
     | '/dashboard/import'
+    | '/dashboard/instagram'
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
@@ -1837,6 +1884,7 @@ export interface FileRouteTypes {
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/facebook/callback'
+    | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
     | '/blog/category/$slug'
@@ -1857,6 +1905,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
     | '/api/public/payments/webhook'
+    | '/api/public/webhooks/instagram'
     | '/api/public/webhooks/meta'
     | '/api/public/webhooks/threads'
     | '/api/public/webhooks/tiktok'
@@ -1870,6 +1919,7 @@ export interface FileRouteTypes {
     | '/api/public/oauth/tiktok/callback'
     | '/api/public/oauth/x/callback'
     | '/api/public/oauth/youtube/callback'
+    | '/api/public/webhooks/instagram/delete'
     | '/api/public/webhooks/meta/deauthorize'
     | '/api/public/webhooks/threads/delete'
     | '/api/public/webhooks/threads/uninstall'
@@ -1956,6 +2006,7 @@ export interface RootRouteChildren {
   ApiPublicStockDownloadRoute: typeof ApiPublicStockDownloadRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   AuthFacebookCallbackRoute: typeof AuthFacebookCallbackRoute
+  AuthInstagramCallbackRoute: typeof AuthInstagramCallbackRoute
   AuthThreadsCallbackRoute: typeof AuthThreadsCallbackRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
@@ -1965,6 +2016,7 @@ export interface RootRouteChildren {
   ApiPublicHooksPublishScheduledXRoute: typeof ApiPublicHooksPublishScheduledXRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicWebhooksInstagramRoute: typeof ApiPublicWebhooksInstagramRouteWithChildren
   ApiPublicWebhooksMetaRoute: typeof ApiPublicWebhooksMetaRouteWithChildren
   ApiPublicWebhooksThreadsRoute: typeof ApiPublicWebhooksThreadsRouteWithChildren
   ApiPublicWebhooksTiktokRoute: typeof ApiPublicWebhooksTiktokRoute
@@ -2507,6 +2559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLinkedinRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/instagram': {
+      id: '/dashboard/instagram'
+      path: '/instagram'
+      fullPath: '/dashboard/instagram'
+      preLoaderRoute: typeof DashboardInstagramRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/import': {
       id: '/dashboard/import'
       path: '/import'
@@ -2822,6 +2881,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthThreadsCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/instagram/callback': {
+      id: '/auth/instagram/callback'
+      path: '/auth/instagram/callback'
+      fullPath: '/auth/instagram/callback'
+      preLoaderRoute: typeof AuthInstagramCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/facebook/callback': {
       id: '/auth/facebook/callback'
       path: '/auth/facebook/callback'
@@ -2948,6 +3014,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebhooksMetaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/instagram': {
+      id: '/api/public/webhooks/instagram'
+      path: '/api/public/webhooks/instagram'
+      fullPath: '/api/public/webhooks/instagram'
+      preLoaderRoute: typeof ApiPublicWebhooksInstagramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -3003,6 +3076,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/webhooks/meta/deauthorize'
       preLoaderRoute: typeof ApiPublicWebhooksMetaDeauthorizeRouteImport
       parentRoute: typeof ApiPublicWebhooksMetaRoute
+    }
+    '/api/public/webhooks/instagram/delete': {
+      id: '/api/public/webhooks/instagram/delete'
+      path: '/delete'
+      fullPath: '/api/public/webhooks/instagram/delete'
+      preLoaderRoute: typeof ApiPublicWebhooksInstagramDeleteRouteImport
+      parentRoute: typeof ApiPublicWebhooksInstagramRoute
     }
     '/api/public/oauth/youtube/callback': {
       id: '/api/public/oauth/youtube/callback'
@@ -3084,6 +3164,7 @@ interface DashboardRouteChildren {
   DashboardHumanizerRoute: typeof DashboardHumanizerRoute
   DashboardImageStudioRoute: typeof DashboardImageStudioRoute
   DashboardImportRoute: typeof DashboardImportRoute
+  DashboardInstagramRoute: typeof DashboardInstagramRoute
   DashboardLinkedinRoute: typeof DashboardLinkedinRoute
   DashboardPodcastRoute: typeof DashboardPodcastRoute
   DashboardPublishRoute: typeof DashboardPublishRouteWithChildren
@@ -3125,6 +3206,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHumanizerRoute: DashboardHumanizerRoute,
   DashboardImageStudioRoute: DashboardImageStudioRoute,
   DashboardImportRoute: DashboardImportRoute,
+  DashboardInstagramRoute: DashboardInstagramRoute,
   DashboardLinkedinRoute: DashboardLinkedinRoute,
   DashboardPodcastRoute: DashboardPodcastRoute,
   DashboardPublishRoute: DashboardPublishRouteWithChildren,
@@ -3152,6 +3234,21 @@ const DashboardRouteChildren: DashboardRouteChildren = {
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
+
+interface ApiPublicWebhooksInstagramRouteChildren {
+  ApiPublicWebhooksInstagramDeleteRoute: typeof ApiPublicWebhooksInstagramDeleteRoute
+}
+
+const ApiPublicWebhooksInstagramRouteChildren: ApiPublicWebhooksInstagramRouteChildren =
+  {
+    ApiPublicWebhooksInstagramDeleteRoute:
+      ApiPublicWebhooksInstagramDeleteRoute,
+  }
+
+const ApiPublicWebhooksInstagramRouteWithChildren =
+  ApiPublicWebhooksInstagramRoute._addFileChildren(
+    ApiPublicWebhooksInstagramRouteChildren,
+  )
 
 interface ApiPublicWebhooksMetaRouteChildren {
   ApiPublicWebhooksMetaDeauthorizeRoute: typeof ApiPublicWebhooksMetaDeauthorizeRoute
@@ -3268,6 +3365,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicStockDownloadRoute: ApiPublicStockDownloadRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   AuthFacebookCallbackRoute: AuthFacebookCallbackRoute,
+  AuthInstagramCallbackRoute: AuthInstagramCallbackRoute,
   AuthThreadsCallbackRoute: AuthThreadsCallbackRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
@@ -3278,6 +3376,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksPublishScheduledXRoute: ApiPublicHooksPublishScheduledXRoute,
   ApiPublicHooksWeeklyDigestRoute: ApiPublicHooksWeeklyDigestRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicWebhooksInstagramRoute: ApiPublicWebhooksInstagramRouteWithChildren,
   ApiPublicWebhooksMetaRoute: ApiPublicWebhooksMetaRouteWithChildren,
   ApiPublicWebhooksThreadsRoute: ApiPublicWebhooksThreadsRouteWithChildren,
   ApiPublicWebhooksTiktokRoute: ApiPublicWebhooksTiktokRoute,
