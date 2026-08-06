@@ -20,12 +20,20 @@ export const IG_SCOPES = [
 
 export const INSTAGRAM_ERROR_MESSAGES: Record<string, string> = {
   "190": "Your Instagram session has expired. Please reconnect your account.",
+  "102": "Instagram signed you out. Please reconnect your account.",
+  "463": "Your Instagram access token expired. Please reconnect your account.",
   "200": "You don't have permission to perform this action. Re-connect Instagram and accept all requested permissions.",
   "100": "Invalid request. Please check your content and try again.",
   "4": "You've hit Instagram's rate limit. Please wait a few minutes and try again.",
+  "17": "Too many requests for this Instagram account right now. Try again shortly.",
+  "24": "Instagram is throttling this account. Wait a few minutes before publishing again.",
   "368": "Your post was rejected by Instagram for violating community guidelines.",
+  "9004": "Instagram couldn't download your media. Make sure the URL is public and reachable.",
   "9007": "This Instagram account isn't a Business/Creator account connected to a Business portfolio.",
+  "2207026": "Instagram rejected this video format. Use MP4/MOV with H.264 video and AAC audio.",
+  "2207032": "Instagram couldn't create the post. Check media size, aspect ratio and length.",
 };
+
 
 export function igErrorMessage(json: any, res?: Response, fallback = "Instagram returned an error") {
   const e = json?.error;
@@ -346,4 +354,138 @@ export async function publishIgContainer(igUserId: string, token: string, contai
     await new Promise((r) => setTimeout(r, 4000 * (attempt + 1)));
   }
   return { ok: false as const, error: igErrorMessage(last?.json, last?.res, "Instagram publish failed"), json: last?.json };
+}
+
+/* ------------------------------------------------------------------ *
+ * Token recovery, deauthorization + webhook diagnostics
+ * ------------------------------------------------------------------ */
+
+/** Refresh a long-lived token immediately, regardless of remaining lifetime. */
+export async function forceRefreshIgToken(account: IgAccount) {
+  const url = new URL("https://graph.instagram.com/refresh_access_token");
+  url.searchParams.set("grant_type", "ig_refresh_token");
+  url.searchParams.set("access_token", account.access_token);
+  const res = await fetch(url.toString());
+  const json: any = await readJson(res);
+  if (!res.ok || !json?.access_token) {
+    return { ok: false as const, account, error: igErrorMessage(json, res, "Instagram token refresh failed") };
+  }
+  const expiresIn = (json.expires_in as number) || 60 * 24 * 60 * 60;
+  const nextExpiry = new Date(Date.now() + expiresIn * 1000).toISOString();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin
+    .from("social_accounts")
+    .update({ access_token: json.access_token, token_expires_at: nextExpiry })
+    .eq("id", account.id);
+  return {
+    ok: true as const,
+    account: { ...account, access_token: json.access_token, token_expires_at: nextExpiry } as IgAccount,
+  };
+}
+
+function base64Url(buf: Uint8Array | Buffer) {
+  return Buffer.from(buf).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/**
+ * Call our own deauthorize/data-deletion callback with a properly signed
+ * signed_request, exactly the way Meta would. This keeps a user-initiated
+ * disconnect on the same cleanup path as a Meta-initiated one.
+ */
+export async function callInstagramDeauthorizeCallback(igUserId: string) {
+  const { appSecret } = getInstagramCredentials();
+  const target = `${IG_DEAUTHORIZE_CALLBACK_URL}`;
+  if (!appSecret) return { ok: false as const, error: "Instagram app secret not configured" };
+  const payload = base64Url(
+    Buffer.from(
+      JSON.stringify({
+        user_id: igUserId,
+        algorithm: "HMAC-SHA256",
+        issued_at: Math.floor(Date.now() / 1000),
+      }),
+      "utf8",
+    ),
+  );
+  const { createHmac } = await import("node:crypto");
+  const sig = base64Url(createHmac("sha256", appSecret).update(payload).digest());
+  const form = new URLSearchParams({ signed_request: `${sig}.${payload}` });
+  try {
+    const res = await fetch(target, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form,
+    });
+    const json: any = await readJson(res);
+    if (!res.ok) return { ok: false as const, error: `Deauthorize callback returned HTTP ${res.status}` };
+    return { ok: true as const, confirmationCode: json?.confirmation_code ?? null };
+  } catch (e: any) {
+    return { ok: false as const, error: e?.message || "Could not reach the deauthorize callback" };
+  }
+}
+
+export const IG_WEBHOOK_CALLBACK_URL = "https://postspark.co/api/public/webhooks/instagram";
+export const IG_DEAUTHORIZE_CALLBACK_URL = "https://postspark.co/api/public/webhooks/instagram/delete";
+
+/** Run the Meta subscription handshake against our own webhook endpoint. */
+export async function checkInstagramWebhookVerification() {
+  const token = process.env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN || process.env.META_WEBHOOK_VERIFY_TOKEN;
+  if (!token) {
+    return {
+      verifyTokenConfigured: false as const,
+      ok: false as const,
+      detail: "INSTAGRAM_WEBHOOK_VERIFY_TOKEN is not set, so Meta's handshake will always fail.",
+    };
+  }
+  const challenge = `ps-${Math.random().toString(36).slice(2, 10)}`;
+  const url = new URL(IG_WEBHOOK_CALLBACK_URL);
+  url.searchParams.set("hub.mode", "subscribe");
+  url.searchParams.set("hub.verify_token", token);
+  url.searchParams.set("hub.challenge", challenge);
+  try {
+    const res = await fetch(url.toString());
+    const text = (await res.text()).trim();
+    return {
+      verifyTokenConfigured: true as const,
+      ok: res.ok && text === challenge,
+      detail: res.ok && text === challenge ? "Handshake succeeded." : `Handshake failed — HTTP ${res.status}.`,
+    };
+  } catch (e: any) {
+    return { verifyTokenConfigured: true as const, ok: false as const, detail: e?.message || "Endpoint unreachable." };
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Publish flow (container → poll → publish) as a retryable unit
+ * ------------------------------------------------------------------ */
+
+export type IgFlowResult =
+  | { ok: true; mediaId: string; json: any }
+  | { ok: false; stage: "container" | "processing" | "publish"; error: string; json?: any; authError: boolean };
+
+export async function publishIgFlow(account: IgAccount, input: IgPublishInput): Promise<IgFlowResult> {
+  const container = await createIgContainer(account.platform_user_id, account.access_token, input);
+  if (!container.ok) {
+    return {
+      ok: false,
+      stage: "container",
+      error: container.error,
+      json: (container as any).json,
+      authError: isAuthError((container as any).json),
+    };
+  }
+  if (container.needsPolling) {
+    const ready = await waitForContainer(container.containerId, account.access_token);
+    if (!ready.ok) return { ok: false, stage: "processing", error: ready.error, authError: false };
+  }
+  const published = await publishIgContainer(account.platform_user_id, account.access_token, container.containerId);
+  if (!published.ok) {
+    return {
+      ok: false,
+      stage: "publish",
+      error: published.error,
+      json: published.json,
+      authError: isAuthError(published.json),
+    };
+  }
+  return { ok: true, mediaId: published.mediaId, json: published.json };
 }

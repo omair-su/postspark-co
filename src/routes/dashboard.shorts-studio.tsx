@@ -20,7 +20,7 @@ import { ReelsSearchPanel } from "@/components/shorts/ReelsSearchPanel";
 import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/shorts-studio")({
-  validateSearch: (s: Record<string, unknown>) => ({ yt: typeof s.yt === "string" ? s.yt : undefined }),
+  validateSearch: (s: Record<string, unknown>): { yt?: string } => (typeof s.yt === "string" ? { yt: s.yt } : {}),
   component: ShortsStudioPage,
 });
 

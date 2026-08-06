@@ -9,6 +9,10 @@ import {
   buildInstagramAuthUrl,
   createInstagramState,
   createIgContainer,
+  forceRefreshIgToken,
+  publishIgFlow,
+  callInstagramDeauthorizeCallback,
+  checkInstagramWebhookVerification,
   fetchInstagramProfile,
   getIgAccount,
   getInstagramCredentials,
@@ -132,47 +136,59 @@ export const publishInstagramPost = createServerFn({ method: "POST" })
       return { ok: true as const, scheduled: true as const };
     }
 
-    const container = await createIgContainer(acct.platform_user_id, acct.access_token, {
+    const input = {
       type: data.type,
       caption: data.caption,
       mediaUrl: data.mediaUrl,
       mediaUrls: data.mediaUrls,
       shareToFeed: data.shareToFeed,
-    });
-    if (!container.ok) {
+    };
+
+    let result = await publishIgFlow(acct, input);
+    let refreshed = false;
+
+    // Token trouble mid-publish: force a token refresh and retry once.
+    if (!result.ok && result.authError) {
+      const r = await forceRefreshIgToken(acct);
+      if (r.ok) {
+        acct = r.account;
+        refreshed = true;
+        result = await publishIgFlow(acct, input);
+      }
+    }
+
+    if (!result.ok) {
       await supabase.from("publishing_logs").insert({
         user_id: userId,
         platform: "instagram",
-        action: "container",
+        action: result.stage,
         status: "error",
-        error_message: container.error,
-        response_payload: (container as any).json ?? null,
+        request_payload: { type: data.type, retried_after_refresh: refreshed },
+        response_payload: (result as any).json ?? null,
+        error_message: result.error,
       });
-      return { error: container.error, needsReconnect: isAuthError((container as any).json) };
+      return {
+        error: result.error,
+        stage: result.stage,
+        needsReconnect: result.authError,
+        errorCode: (result as any).json?.error?.code ?? null,
+      };
     }
 
-    if (container.needsPolling) {
-      const ready = await waitForContainer(container.containerId, acct.access_token);
-      if (!ready.ok) return { error: ready.error };
-    }
-
-    const published = await publishIgContainer(acct.platform_user_id, acct.access_token, container.containerId);
+    const published = { mediaId: result.mediaId, json: result.json };
     await supabase.from("publishing_logs").insert({
       user_id: userId,
       platform: "instagram",
       action: "publish",
-      status: published.ok ? "success" : "error",
-      request_payload: { type: data.type },
+      status: "success",
+      request_payload: { type: data.type, retried_after_refresh: refreshed },
       response_payload: published.json ?? null,
-      error_message: published.ok ? null : published.error,
     });
-    if (!published.ok) {
-      return { error: published.error, needsReconnect: isAuthError(published.json) };
-    }
 
     if (data.firstComment?.trim()) {
-      await igPost(`${published.mediaId}/comments`, acct.access_token, { message: data.firstComment.trim() });
+      await igPost(`${published.mediaId}/comments`, acct!.access_token, { message: data.firstComment.trim() });
     }
+
 
     await supabase.from("scheduled_posts").insert({
       user_id: userId,
@@ -295,4 +311,90 @@ export const getInstagramInsights = createServerFn({ method: "POST" })
         mediaCount: acct.metadata?.media_count ?? null,
       },
     };
+  });
+
+/**
+ * User-facing disconnect: calls our deauthorize/data-deletion callback the way
+ * Meta would (so cleanup runs through one code path), then clears the local
+ * connection row even if the callback could not be reached.
+ */
+export const deauthorizeInstagram = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const acct = await getIgAccount(context.supabase, context.userId);
+    if (!acct) return { ok: true as const, alreadyDisconnected: true as const };
+
+    const callback = await callInstagramDeauthorizeCallback(acct.platform_user_id);
+
+    // Safety net: always clear this user's own Instagram data.
+    await context.supabase
+      .from("social_accounts")
+      .delete()
+      .eq("user_id", context.userId)
+      .eq("platform", "instagram");
+
+    const still = await getIgAccount(context.supabase, context.userId);
+    if (still) return { error: "Could not clear the Instagram connection. Please try again." };
+
+    return {
+      ok: true as const,
+      callbackOk: callback.ok,
+      confirmationCode: callback.ok ? callback.confirmationCode : null,
+      callbackError: callback.ok ? null : callback.error,
+    };
+  });
+
+async function assertIgAdmin(supabase: any, userId: string) {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!data) throw new Error("Forbidden: admin only");
+}
+
+export const getInstagramWebhookHealth = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertIgAdmin(context.supabase, context.userId);
+    const verification = await checkInstagramWebhookVerification();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: events } = await supabaseAdmin
+      .from("webhook_events")
+      .select("id, event_type, payload, processed, error_message, created_at")
+      .eq("platform", "instagram")
+      .order("created_at", { ascending: false })
+      .limit(25);
+    const { count } = await supabaseAdmin
+      .from("webhook_events")
+      .select("id", { count: "exact", head: true })
+      .eq("platform", "instagram");
+    return {
+      verification,
+      events: events || [],
+      totalEvents: count ?? 0,
+      appConfigured: !!getInstagramCredentials().appId && !!getInstagramCredentials().appSecret,
+    };
+  });
+
+export const triggerInstagramWebhookTest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertIgAdmin(context.supabase, context.userId);
+    const verification = await checkInstagramWebhookVerification();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("webhook_events").insert({
+      platform: "instagram",
+      event_type: "manual_test",
+      payload: {
+        triggered_by: context.userId,
+        handshake_ok: verification.ok,
+        handshake_detail: verification.detail,
+        at: new Date().toISOString(),
+      },
+      processed: true,
+    });
+    if (error) return { error: error.message };
+    return { ok: true as const, verification };
   });
