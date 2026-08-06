@@ -245,6 +245,12 @@ function InstagramHub() {
                 onDisconnect={disconnect}
               />
               <InstagramSetupGuide />
+              <p className="text-xs text-muted-foreground">
+                Admin?{" "}
+                <a href="/dashboard/instagram-webhooks" className="font-medium text-primary hover:underline">
+                  Open Instagram webhook health
+                </a>
+              </p>
             </div>
           )}
         </>
