@@ -386,7 +386,7 @@ function OverviewTab({ conn, authHeaders }: { conn: any; authHeaders: any }) {
   );
 }
 
-function PublishTab({ authHeaders, userId }: { authHeaders: any; userId: string }) {
+function PublishTab({ authHeaders, userId, onAuthError }: { authHeaders: any; userId: string; onAuthError: (m: string) => void }) {
   const [kind, setKind] = useState<PostKind>("IMAGE");
   const [caption, setCaption] = useState("");
   const [urls, setUrls] = useState<string[]>([]);
@@ -454,7 +454,14 @@ function PublishTab({ authHeaders, userId }: { authHeaders: any; userId: string 
           scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : undefined,
         },
       });
-      if (r?.error) return toast.error(r.error);
+      if (r?.error) {
+        toast.error(r.error, {
+          description: r.errorCode ? `Instagram error code ${r.errorCode}` : undefined,
+          duration: 6000,
+        });
+        if (r.needsReconnect) onAuthError("Instagram rejected your access token, so publishing failed.");
+        return;
+      }
       toast.success(r?.scheduled ? "Scheduled for Instagram" : "Published to Instagram");
       setCaption("");
       setUrls([]);
