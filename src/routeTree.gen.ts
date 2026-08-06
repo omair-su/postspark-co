@@ -84,6 +84,7 @@ import { Route as DashboardPublishingRouteImport } from './routes/dashboard.publ
 import { Route as DashboardPublishRouteImport } from './routes/dashboard.publish'
 import { Route as DashboardPodcastRouteImport } from './routes/dashboard.podcast'
 import { Route as DashboardLinkedinRouteImport } from './routes/dashboard.linkedin'
+import { Route as DashboardInstagramWebhooksRouteImport } from './routes/dashboard.instagram-webhooks'
 import { Route as DashboardInstagramRouteImport } from './routes/dashboard.instagram'
 import { Route as DashboardImportRouteImport } from './routes/dashboard.import'
 import { Route as DashboardImageStudioRouteImport } from './routes/dashboard.image-studio'
@@ -554,6 +555,12 @@ const DashboardLinkedinRoute = DashboardLinkedinRouteImport.update({
   path: '/linkedin',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardInstagramWebhooksRoute =
+  DashboardInstagramWebhooksRouteImport.update({
+    id: '/instagram-webhooks',
+    path: '/instagram-webhooks',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardInstagramRoute = DashboardInstagramRouteImport.update({
   id: '/instagram',
   path: '/instagram',
@@ -1038,6 +1045,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/instagram': typeof DashboardInstagramRoute
+  '/dashboard/instagram-webhooks': typeof DashboardInstagramWebhooksRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
@@ -1193,6 +1201,7 @@ export interface FileRoutesByTo {
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/instagram': typeof DashboardInstagramRoute
+  '/dashboard/instagram-webhooks': typeof DashboardInstagramWebhooksRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
@@ -1350,6 +1359,7 @@ export interface FileRoutesById {
   '/dashboard/image-studio': typeof DashboardImageStudioRoute
   '/dashboard/import': typeof DashboardImportRoute
   '/dashboard/instagram': typeof DashboardInstagramRoute
+  '/dashboard/instagram-webhooks': typeof DashboardInstagramWebhooksRoute
   '/dashboard/linkedin': typeof DashboardLinkedinRoute
   '/dashboard/podcast': typeof DashboardPodcastRoute
   '/dashboard/publish': typeof DashboardPublishRouteWithChildren
@@ -1508,6 +1518,7 @@ export interface FileRouteTypes {
     | '/dashboard/image-studio'
     | '/dashboard/import'
     | '/dashboard/instagram'
+    | '/dashboard/instagram-webhooks'
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
@@ -1663,6 +1674,7 @@ export interface FileRouteTypes {
     | '/dashboard/image-studio'
     | '/dashboard/import'
     | '/dashboard/instagram'
+    | '/dashboard/instagram-webhooks'
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
@@ -1819,6 +1831,7 @@ export interface FileRouteTypes {
     | '/dashboard/image-studio'
     | '/dashboard/import'
     | '/dashboard/instagram'
+    | '/dashboard/instagram-webhooks'
     | '/dashboard/linkedin'
     | '/dashboard/podcast'
     | '/dashboard/publish'
@@ -2559,6 +2572,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLinkedinRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/instagram-webhooks': {
+      id: '/dashboard/instagram-webhooks'
+      path: '/instagram-webhooks'
+      fullPath: '/dashboard/instagram-webhooks'
+      preLoaderRoute: typeof DashboardInstagramWebhooksRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/instagram': {
       id: '/dashboard/instagram'
       path: '/instagram'
@@ -3165,6 +3185,7 @@ interface DashboardRouteChildren {
   DashboardImageStudioRoute: typeof DashboardImageStudioRoute
   DashboardImportRoute: typeof DashboardImportRoute
   DashboardInstagramRoute: typeof DashboardInstagramRoute
+  DashboardInstagramWebhooksRoute: typeof DashboardInstagramWebhooksRoute
   DashboardLinkedinRoute: typeof DashboardLinkedinRoute
   DashboardPodcastRoute: typeof DashboardPodcastRoute
   DashboardPublishRoute: typeof DashboardPublishRouteWithChildren
@@ -3207,6 +3228,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardImageStudioRoute: DashboardImageStudioRoute,
   DashboardImportRoute: DashboardImportRoute,
   DashboardInstagramRoute: DashboardInstagramRoute,
+  DashboardInstagramWebhooksRoute: DashboardInstagramWebhooksRoute,
   DashboardLinkedinRoute: DashboardLinkedinRoute,
   DashboardPodcastRoute: DashboardPodcastRoute,
   DashboardPublishRoute: DashboardPublishRouteWithChildren,

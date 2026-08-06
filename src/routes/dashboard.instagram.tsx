@@ -7,6 +7,7 @@ import {
   getInstagramAuthUrl,
   getInstagramConnection,
   disconnectInstagram,
+  deauthorizeInstagram,
   refreshInstagramProfile,
   publishInstagramPost,
   listInstagramMedia,
@@ -15,6 +16,8 @@ import {
   moderateInstagramComment,
   getInstagramInsights,
 } from "@/lib/instagram.functions";
+import InstagramSetupGuide from "@/components/instagram/InstagramSetupGuide";
+import InstagramStatusPanel from "@/components/instagram/InstagramStatusPanel";
 import {
   Instagram,
   Loader2,
@@ -52,7 +55,7 @@ export const Route = createFileRoute("/dashboard/instagram")({
 });
 
 const MAX_CAPTION = 2200;
-type Tab = "overview" | "publish" | "insights" | "comments";
+type Tab = "overview" | "publish" | "insights" | "comments" | "connect";
 type PostKind = "IMAGE" | "CAROUSEL" | "REELS" | "STORIES";
 
 function InstagramHub() {
@@ -66,6 +69,8 @@ function InstagramHub() {
   const [conn, setConn] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const loadConnection = useCallback(async () => {
     if (!session) return;
@@ -103,17 +108,35 @@ function InstagramHub() {
   };
 
   const disconnect = async () => {
-    const r: any = await disconnectInstagram({ ...authHeaders });
-    if (r?.error) return toast.error(r.error);
-    toast.success("Instagram disconnected");
-    loadConnection();
+    if (typeof window !== "undefined" && !window.confirm("Disconnect Instagram? Scheduled Instagram posts will stop publishing.")) return;
+    setBusy("disconnect");
+    try {
+      const r: any = await deauthorizeInstagram({ ...authHeaders }).catch(async () => {
+        // Fall back to the plain local disconnect if the deauthorize call fails.
+        return await disconnectInstagram({ ...authHeaders });
+      });
+      if (r?.error) return toast.error(r.error);
+      setAuthError(null);
+      if (r?.callbackOk === false) toast.success("Instagram disconnected (revoke notice will retry later)");
+      else toast.success("Instagram disconnected");
+      setTab("connect");
+      loadConnection();
+    } finally {
+      setBusy(null);
+    }
   };
 
   const refresh = async () => {
-    const r: any = await refreshInstagramProfile({ ...authHeaders });
-    if (r?.error) return toast.error(r.error);
-    toast.success("Profile refreshed");
-    loadConnection();
+    setBusy("refresh");
+    try {
+      const r: any = await refreshInstagramProfile({ ...authHeaders });
+      if (r?.error) return toast.error(r.error);
+      setAuthError(null);
+      toast.success("Profile refreshed");
+      loadConnection();
+    } finally {
+      setBusy(null);
+    }
   };
 
   if (!session) return null;
@@ -165,7 +188,20 @@ function InstagramHub() {
           <Loader2 className="h-4 w-4 animate-spin" /> Loading Instagram…
         </div>
       ) : !conn?.connected ? (
-        <NotConnected redirectUri={conn?.redirectUri} onConnect={connect} connecting={connecting} />
+        <div className="space-y-6">
+          <NotConnected redirectUri={conn?.redirectUri} onConnect={connect} connecting={connecting} />
+          <InstagramStatusPanel
+            conn={conn}
+            authError={authError}
+            connecting={connecting}
+            busy={busy}
+            onConnect={connect}
+            onReconnect={connect}
+            onRefresh={refresh}
+            onDisconnect={disconnect}
+          />
+          <InstagramSetupGuide defaultOpen />
+        </div>
       ) : (
         <>
           <nav className="mb-6 flex flex-wrap gap-1.5 rounded-xl border border-border bg-card p-1.5">
@@ -175,6 +211,7 @@ function InstagramHub() {
                 ["publish", "Publish", Send],
                 ["insights", "Insights", BarChart3],
                 ["comments", "Comments", MessageCircle],
+                ["connect", "Connection", Link2],
               ] as const
             ).map(([key, label, Icon]) => (
               <button
@@ -192,9 +229,30 @@ function InstagramHub() {
           </nav>
 
           {tab === "overview" && <OverviewTab conn={conn} authHeaders={authHeaders} />}
-          {tab === "publish" && <PublishTab authHeaders={authHeaders} userId={user?.id || ""} />}
+          {tab === "publish" && <PublishTab authHeaders={authHeaders} userId={user?.id || ""} onAuthError={(m: string) => { setAuthError(m); setTab("connect"); }} />}
           {tab === "insights" && <InsightsTab authHeaders={authHeaders} />}
           {tab === "comments" && <CommentsTab authHeaders={authHeaders} />}
+          {tab === "connect" && (
+            <div className="space-y-6">
+              <InstagramStatusPanel
+                conn={conn}
+                authError={authError}
+                connecting={connecting}
+                busy={busy}
+                onConnect={connect}
+                onReconnect={connect}
+                onRefresh={refresh}
+                onDisconnect={disconnect}
+              />
+              <InstagramSetupGuide />
+              <p className="text-xs text-muted-foreground">
+                Admin?{" "}
+                <a href="/dashboard/instagram-webhooks" className="font-medium text-primary hover:underline">
+                  Open Instagram webhook health
+                </a>
+              </p>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -334,7 +392,7 @@ function OverviewTab({ conn, authHeaders }: { conn: any; authHeaders: any }) {
   );
 }
 
-function PublishTab({ authHeaders, userId }: { authHeaders: any; userId: string }) {
+function PublishTab({ authHeaders, userId, onAuthError }: { authHeaders: any; userId: string; onAuthError: (m: string) => void }) {
   const [kind, setKind] = useState<PostKind>("IMAGE");
   const [caption, setCaption] = useState("");
   const [urls, setUrls] = useState<string[]>([]);
@@ -402,7 +460,14 @@ function PublishTab({ authHeaders, userId }: { authHeaders: any; userId: string 
           scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : undefined,
         },
       });
-      if (r?.error) return toast.error(r.error);
+      if (r?.error) {
+        toast.error(r.error, {
+          description: r.errorCode ? `Instagram error code ${r.errorCode}` : undefined,
+          duration: 6000,
+        });
+        if (r.needsReconnect) onAuthError("Instagram rejected your access token, so publishing failed.");
+        return;
+      }
       toast.success(r?.scheduled ? "Scheduled for Instagram" : "Published to Instagram");
       setCaption("");
       setUrls([]);
