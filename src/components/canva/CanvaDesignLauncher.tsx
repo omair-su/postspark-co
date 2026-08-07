@@ -14,6 +14,7 @@ import {
   exportCanvaDesign,
   listCanvaDesigns,
 } from "@/lib/canva.functions";
+import { CanvaTemplateCategories } from "@/components/canva/CanvaTemplateCategories";
 import type { CanvaFormat } from "@/lib/canvaUrls";
 
 interface Props {
@@ -273,6 +274,13 @@ export function CanvaDesignLauncher({
             ))}
           </div>
         </div>
+      ) : null}
+
+      {status?.connected ? (
+        <CanvaTemplateCategories
+          heading="Or start from a template"
+          description="Browse curated Canva templates by category, then create your design here."
+        />
       ) : null}
     </div>
   );
