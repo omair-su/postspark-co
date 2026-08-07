@@ -94,6 +94,7 @@ import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history
 import { Route as DashboardFunnelRouteImport } from './routes/dashboard.funnel'
 import { Route as DashboardDistributionKitRouteImport } from './routes/dashboard.distribution-kit'
 import { Route as DashboardCarouselRouteImport } from './routes/dashboard.carousel'
+import { Route as DashboardCanvaDesignsRouteImport } from './routes/dashboard.canva-designs'
 import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
 import { Route as DashboardBuildInPublicRouteImport } from './routes/dashboard.build-in-public'
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
@@ -609,6 +610,11 @@ const DashboardCarouselRoute = DashboardCarouselRouteImport.update({
   path: '/carousel',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardCanvaDesignsRoute = DashboardCanvaDesignsRouteImport.update({
+  id: '/canva-designs',
+  path: '/canva-designs',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardCalendarRoute = DashboardCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -1048,6 +1054,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/canva-designs': typeof DashboardCanvaDesignsRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
   '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
@@ -1206,6 +1213,7 @@ export interface FileRoutesByTo {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/canva-designs': typeof DashboardCanvaDesignsRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
   '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
@@ -1366,6 +1374,7 @@ export interface FileRoutesById {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/canva-designs': typeof DashboardCanvaDesignsRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
   '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
@@ -1527,6 +1536,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/build-in-public'
     | '/dashboard/calendar'
+    | '/dashboard/canva-designs'
     | '/dashboard/carousel'
     | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
@@ -1685,6 +1695,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/build-in-public'
     | '/dashboard/calendar'
+    | '/dashboard/canva-designs'
     | '/dashboard/carousel'
     | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
@@ -1844,6 +1855,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/build-in-public'
     | '/dashboard/calendar'
+    | '/dashboard/canva-designs'
     | '/dashboard/carousel'
     | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
@@ -2667,6 +2679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCarouselRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/canva-designs': {
+      id: '/dashboard/canva-designs'
+      path: '/canva-designs'
+      fullPath: '/dashboard/canva-designs'
+      preLoaderRoute: typeof DashboardCanvaDesignsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/calendar': {
       id: '/dashboard/calendar'
       path: '/calendar'
@@ -3217,6 +3236,7 @@ interface DashboardRouteChildren {
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
   DashboardBuildInPublicRoute: typeof DashboardBuildInPublicRoute
   DashboardCalendarRoute: typeof DashboardCalendarRoute
+  DashboardCanvaDesignsRoute: typeof DashboardCanvaDesignsRoute
   DashboardCarouselRoute: typeof DashboardCarouselRoute
   DashboardDistributionKitRoute: typeof DashboardDistributionKitRoute
   DashboardFunnelRoute: typeof DashboardFunnelRoute
@@ -3260,6 +3280,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
   DashboardBuildInPublicRoute: DashboardBuildInPublicRoute,
   DashboardCalendarRoute: DashboardCalendarRoute,
+  DashboardCanvaDesignsRoute: DashboardCanvaDesignsRoute,
   DashboardCarouselRoute: DashboardCarouselRoute,
   DashboardDistributionKitRoute: DashboardDistributionKitRoute,
   DashboardFunnelRoute: DashboardFunnelRoute,
