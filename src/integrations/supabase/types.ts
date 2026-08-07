@@ -522,6 +522,59 @@ export type Database = {
           },
         ]
       }
+      canva_design_versions: {
+        Row: {
+          canva_design_id: string
+          created_at: string
+          design_row_id: string
+          design_title: string | null
+          export_urls: string[]
+          id: string
+          label: string | null
+          slide_count: number
+          source: string
+          thumbnail_url: string | null
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          canva_design_id: string
+          created_at?: string
+          design_row_id: string
+          design_title?: string | null
+          export_urls?: string[]
+          id?: string
+          label?: string | null
+          slide_count?: number
+          source?: string
+          thumbnail_url?: string | null
+          user_id: string
+          version_number?: number
+        }
+        Update: {
+          canva_design_id?: string
+          created_at?: string
+          design_row_id?: string
+          design_title?: string | null
+          export_urls?: string[]
+          id?: string
+          label?: string | null
+          slide_count?: number
+          source?: string
+          thumbnail_url?: string | null
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canva_design_versions_design_row_id_fkey"
+            columns: ["design_row_id"]
+            isOneToOne: false
+            referencedRelation: "user_canva_designs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       copilot_conversations: {
         Row: {
           created_at: string
@@ -1532,6 +1585,8 @@ export type Database = {
           format_width: number | null
           id: string
           platform: string | null
+          published_at: string | null
+          published_urls: string[]
           slide_count: number
           status: string
           thumbnail_url: string | null
@@ -1549,6 +1604,8 @@ export type Database = {
           format_width?: number | null
           id?: string
           platform?: string | null
+          published_at?: string | null
+          published_urls?: string[]
           slide_count?: number
           status?: string
           thumbnail_url?: string | null
@@ -1566,6 +1623,8 @@ export type Database = {
           format_width?: number | null
           id?: string
           platform?: string | null
+          published_at?: string | null
+          published_urls?: string[]
           slide_count?: number
           status?: string
           thumbnail_url?: string | null
