@@ -451,6 +451,15 @@ function ThumbnailPage() {
         </div>
       </section>
 
+      <CanvaDesignLauncher
+        designType="thumbnail"
+        formats={CANVA_FORMATS}
+        defaultTitle={headline || ""}
+        heading="Design in Canva instead"
+        description="Prefer full control? Create this thumbnail or cover in your own Canva account — your templates, fonts and brand assets — then export it back here."
+      />
+
+
       {/* One-click starter templates */}
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="mb-2 flex items-center gap-2">
