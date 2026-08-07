@@ -1520,6 +1520,60 @@ export type Database = {
         }
         Relationships: []
       }
+      user_canva_designs: {
+        Row: {
+          canva_design_id: string
+          canva_edit_url: string | null
+          created_at: string
+          design_title: string | null
+          design_type: string
+          export_urls: string[]
+          format_height: number | null
+          format_width: number | null
+          id: string
+          platform: string | null
+          slide_count: number
+          status: string
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canva_design_id: string
+          canva_edit_url?: string | null
+          created_at?: string
+          design_title?: string | null
+          design_type?: string
+          export_urls?: string[]
+          format_height?: number | null
+          format_width?: number | null
+          id?: string
+          platform?: string | null
+          slide_count?: number
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canva_design_id?: string
+          canva_edit_url?: string | null
+          created_at?: string
+          design_title?: string | null
+          design_type?: string
+          export_urls?: string[]
+          format_height?: number | null
+          format_width?: number | null
+          id?: string
+          platform?: string | null
+          slide_count?: number
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
