@@ -26,6 +26,8 @@ import { trackUnsplashUse } from "@/lib/stockMedia.functions";
 import { Images } from "lucide-react";
 import { Droplet } from "lucide-react";
 import { HeroArt } from "@/components/dashboard/HeroArt";
+import { CanvaDesignLauncher } from "@/components/canva/CanvaDesignLauncher";
+import { CANVA_FORMATS } from "@/lib/canvaUrls";
 import {
   THUMBNAIL_STYLES,
   THUMBNAIL_STARTERS,
@@ -450,6 +452,15 @@ function ThumbnailPage() {
           </div>
         </div>
       </section>
+
+      <CanvaDesignLauncher
+        designType="thumbnail"
+        formats={CANVA_FORMATS}
+        defaultTitle={headline || ""}
+        heading="Design in Canva instead"
+        description="Prefer full control? Create this thumbnail or cover in your own Canva account — your templates, fonts and brand assets — then export it back here."
+      />
+
 
       {/* One-click starter templates */}
       <div className="rounded-2xl border border-border bg-card p-4">

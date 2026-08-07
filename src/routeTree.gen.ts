@@ -94,6 +94,7 @@ import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history
 import { Route as DashboardFunnelRouteImport } from './routes/dashboard.funnel'
 import { Route as DashboardDistributionKitRouteImport } from './routes/dashboard.distribution-kit'
 import { Route as DashboardCarouselRouteImport } from './routes/dashboard.carousel'
+import { Route as DashboardCanvaDesignsRouteImport } from './routes/dashboard.canva-designs'
 import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
 import { Route as DashboardBuildInPublicRouteImport } from './routes/dashboard.build-in-public'
 import { Route as DashboardBrandVoiceRouteImport } from './routes/dashboard.brand-voice'
@@ -121,6 +122,7 @@ import { Route as DashboardSettingsWhatsappRouteImport } from './routes/dashboar
 import { Route as DashboardSettingsThreadsRouteImport } from './routes/dashboard.settings.threads'
 import { Route as DashboardSettingsInstagramRouteImport } from './routes/dashboard.settings.instagram'
 import { Route as DashboardSettingsFacebookRouteImport } from './routes/dashboard.settings.facebook'
+import { Route as DashboardSettingsCanvaRouteImport } from './routes/dashboard.settings.canva'
 import { Route as DashboardPublishThreadsRouteImport } from './routes/dashboard.publish.threads'
 import { Route as DashboardPublishInstagramRouteImport } from './routes/dashboard.publish.instagram'
 import { Route as DashboardPublishFacebookRouteImport } from './routes/dashboard.publish.facebook'
@@ -133,6 +135,7 @@ import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as AuthThreadsCallbackRouteImport } from './routes/auth.threads.callback'
 import { Route as AuthInstagramCallbackRouteImport } from './routes/auth.instagram.callback'
 import { Route as AuthFacebookCallbackRouteImport } from './routes/auth.facebook.callback'
+import { Route as AuthCanvaCallbackRouteImport } from './routes/auth.canva.callback'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicStockDownloadRouteImport } from './routes/api/public/stock-download'
 import { Route as ApiPublicFunnelRouteImport } from './routes/api/public/funnel'
@@ -607,6 +610,11 @@ const DashboardCarouselRoute = DashboardCarouselRouteImport.update({
   path: '/carousel',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardCanvaDesignsRoute = DashboardCanvaDesignsRouteImport.update({
+  id: '/canva-designs',
+  path: '/canva-designs',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardCalendarRoute = DashboardCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -755,6 +763,11 @@ const DashboardSettingsFacebookRoute =
     path: '/facebook',
     getParentRoute: () => DashboardSettingsRoute,
   } as any)
+const DashboardSettingsCanvaRoute = DashboardSettingsCanvaRouteImport.update({
+  id: '/canva',
+  path: '/canva',
+  getParentRoute: () => DashboardSettingsRoute,
+} as any)
 const DashboardPublishThreadsRoute = DashboardPublishThreadsRouteImport.update({
   id: '/threads',
   path: '/threads',
@@ -819,6 +832,11 @@ const AuthInstagramCallbackRoute = AuthInstagramCallbackRouteImport.update({
 const AuthFacebookCallbackRoute = AuthFacebookCallbackRouteImport.update({
   id: '/auth/facebook/callback',
   path: '/auth/facebook/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCanvaCallbackRoute = AuthCanvaCallbackRouteImport.update({
+  id: '/auth/canva/callback',
+  path: '/auth/canva/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
@@ -1036,6 +1054,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/canva-designs': typeof DashboardCanvaDesignsRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
   '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
@@ -1110,6 +1129,7 @@ export interface FileRoutesByFullPath {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
@@ -1122,6 +1142,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
@@ -1192,6 +1213,7 @@ export interface FileRoutesByTo {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/canva-designs': typeof DashboardCanvaDesignsRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
   '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
@@ -1266,6 +1288,7 @@ export interface FileRoutesByTo {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
@@ -1278,6 +1301,7 @@ export interface FileRoutesByTo {
   '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
@@ -1350,6 +1374,7 @@ export interface FileRoutesById {
   '/dashboard/brand-voice': typeof DashboardBrandVoiceRoute
   '/dashboard/build-in-public': typeof DashboardBuildInPublicRoute
   '/dashboard/calendar': typeof DashboardCalendarRoute
+  '/dashboard/canva-designs': typeof DashboardCanvaDesignsRoute
   '/dashboard/carousel': typeof DashboardCarouselRoute
   '/dashboard/distribution-kit': typeof DashboardDistributionKitRoute
   '/dashboard/funnel': typeof DashboardFunnelRoute
@@ -1424,6 +1449,7 @@ export interface FileRoutesById {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
@@ -1436,6 +1462,7 @@ export interface FileRoutesById {
   '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
@@ -1509,6 +1536,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/build-in-public'
     | '/dashboard/calendar'
+    | '/dashboard/canva-designs'
     | '/dashboard/carousel'
     | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
@@ -1583,6 +1611,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/canva/callback'
     | '/auth/facebook/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
@@ -1595,6 +1624,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/facebook'
     | '/dashboard/publish/instagram'
     | '/dashboard/publish/threads'
+    | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
@@ -1665,6 +1695,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/build-in-public'
     | '/dashboard/calendar'
+    | '/dashboard/canva-designs'
     | '/dashboard/carousel'
     | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
@@ -1739,6 +1770,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/canva/callback'
     | '/auth/facebook/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
@@ -1751,6 +1783,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/facebook'
     | '/dashboard/publish/instagram'
     | '/dashboard/publish/threads'
+    | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
@@ -1822,6 +1855,7 @@ export interface FileRouteTypes {
     | '/dashboard/brand-voice'
     | '/dashboard/build-in-public'
     | '/dashboard/calendar'
+    | '/dashboard/canva-designs'
     | '/dashboard/carousel'
     | '/dashboard/distribution-kit'
     | '/dashboard/funnel'
@@ -1896,6 +1930,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/canva/callback'
     | '/auth/facebook/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
@@ -1908,6 +1943,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/facebook'
     | '/dashboard/publish/instagram'
     | '/dashboard/publish/threads'
+    | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
@@ -2018,6 +2054,7 @@ export interface RootRouteChildren {
   ApiPublicFunnelRoute: typeof ApiPublicFunnelRoute
   ApiPublicStockDownloadRoute: typeof ApiPublicStockDownloadRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
+  AuthCanvaCallbackRoute: typeof AuthCanvaCallbackRoute
   AuthFacebookCallbackRoute: typeof AuthFacebookCallbackRoute
   AuthInstagramCallbackRoute: typeof AuthInstagramCallbackRoute
   AuthThreadsCallbackRoute: typeof AuthThreadsCallbackRoute
@@ -2642,6 +2679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCarouselRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/canva-designs': {
+      id: '/dashboard/canva-designs'
+      path: '/canva-designs'
+      fullPath: '/dashboard/canva-designs'
+      preLoaderRoute: typeof DashboardCanvaDesignsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/calendar': {
       id: '/dashboard/calendar'
       path: '/calendar'
@@ -2831,6 +2875,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsFacebookRouteImport
       parentRoute: typeof DashboardSettingsRoute
     }
+    '/dashboard/settings/canva': {
+      id: '/dashboard/settings/canva'
+      path: '/canva'
+      fullPath: '/dashboard/settings/canva'
+      preLoaderRoute: typeof DashboardSettingsCanvaRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
     '/dashboard/publish/threads': {
       id: '/dashboard/publish/threads'
       path: '/threads'
@@ -2913,6 +2964,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/facebook/callback'
       fullPath: '/auth/facebook/callback'
       preLoaderRoute: typeof AuthFacebookCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/canva/callback': {
+      id: '/auth/canva/callback'
+      path: '/auth/canva/callback'
+      fullPath: '/auth/canva/callback'
+      preLoaderRoute: typeof AuthCanvaCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/track': {
@@ -3151,6 +3209,7 @@ const DashboardPublishRouteWithChildren =
   DashboardPublishRoute._addFileChildren(DashboardPublishRouteChildren)
 
 interface DashboardSettingsRouteChildren {
+  DashboardSettingsCanvaRoute: typeof DashboardSettingsCanvaRoute
   DashboardSettingsFacebookRoute: typeof DashboardSettingsFacebookRoute
   DashboardSettingsInstagramRoute: typeof DashboardSettingsInstagramRoute
   DashboardSettingsThreadsRoute: typeof DashboardSettingsThreadsRoute
@@ -3158,6 +3217,7 @@ interface DashboardSettingsRouteChildren {
 }
 
 const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
+  DashboardSettingsCanvaRoute: DashboardSettingsCanvaRoute,
   DashboardSettingsFacebookRoute: DashboardSettingsFacebookRoute,
   DashboardSettingsInstagramRoute: DashboardSettingsInstagramRoute,
   DashboardSettingsThreadsRoute: DashboardSettingsThreadsRoute,
@@ -3176,6 +3236,7 @@ interface DashboardRouteChildren {
   DashboardBrandVoiceRoute: typeof DashboardBrandVoiceRoute
   DashboardBuildInPublicRoute: typeof DashboardBuildInPublicRoute
   DashboardCalendarRoute: typeof DashboardCalendarRoute
+  DashboardCanvaDesignsRoute: typeof DashboardCanvaDesignsRoute
   DashboardCarouselRoute: typeof DashboardCarouselRoute
   DashboardDistributionKitRoute: typeof DashboardDistributionKitRoute
   DashboardFunnelRoute: typeof DashboardFunnelRoute
@@ -3219,6 +3280,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBrandVoiceRoute: DashboardBrandVoiceRoute,
   DashboardBuildInPublicRoute: DashboardBuildInPublicRoute,
   DashboardCalendarRoute: DashboardCalendarRoute,
+  DashboardCanvaDesignsRoute: DashboardCanvaDesignsRoute,
   DashboardCarouselRoute: DashboardCarouselRoute,
   DashboardDistributionKitRoute: DashboardDistributionKitRoute,
   DashboardFunnelRoute: DashboardFunnelRoute,
@@ -3386,6 +3448,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicFunnelRoute: ApiPublicFunnelRoute,
   ApiPublicStockDownloadRoute: ApiPublicStockDownloadRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
+  AuthCanvaCallbackRoute: AuthCanvaCallbackRoute,
   AuthFacebookCallbackRoute: AuthFacebookCallbackRoute,
   AuthInstagramCallbackRoute: AuthInstagramCallbackRoute,
   AuthThreadsCallbackRoute: AuthThreadsCallbackRoute,

@@ -14,6 +14,8 @@ import { LimitReachedModal } from "@/components/image/LimitReachedModal";
 import { getWatermarkState, setWatermarkState } from "@/lib/imageWatermark";
 import { SortableSlideList } from "@/components/carousel/SortableSlideList";
 import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
+import { CanvaDesignLauncher } from "@/components/canva/CanvaDesignLauncher";
+import { CANVA_CAROUSEL_FORMATS } from "@/lib/canvaUrls";
 
 export const Route = createFileRoute("/dashboard/carousel")({
   component: CarouselPage,
@@ -283,6 +285,19 @@ function CarouselPage() {
           </div>
         </div>
       </section>
+
+      <div className="mt-4">
+        <CanvaDesignLauncher
+          designType="carousel"
+          formats={CANVA_CAROUSEL_FORMATS}
+          defaultTitle={topic || ""}
+          slideCount={Math.max(1, slides.length || 5)}
+          heading="Design this carousel in Canva"
+          description="Create a multi-page Canva design with your own brand templates, then export all slides as a PDF or PNG set."
+        />
+      </div>
+
+
 
 
 
