@@ -14,6 +14,8 @@ import { LimitReachedModal } from "@/components/image/LimitReachedModal";
 import { getWatermarkState, setWatermarkState } from "@/lib/imageWatermark";
 import { SortableSlideList } from "@/components/carousel/SortableSlideList";
 import { ModelHealthBadge } from "@/components/image/ModelHealthBadge";
+import { CanvaDesignLauncher } from "@/components/canva/CanvaDesignLauncher";
+import { CANVA_CAROUSEL_FORMATS } from "@/lib/canvaUrls";
 
 export const Route = createFileRoute("/dashboard/carousel")({
   component: CarouselPage,
