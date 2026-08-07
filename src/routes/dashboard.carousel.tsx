@@ -286,6 +286,19 @@ function CarouselPage() {
         </div>
       </section>
 
+      <div className="mt-4">
+        <CanvaDesignLauncher
+          designType="carousel"
+          formats={CANVA_CAROUSEL_FORMATS}
+          defaultTitle={topic || ""}
+          slideCount={Math.max(1, slides.length || 5)}
+          heading="Design this carousel in Canva"
+          description="Create a multi-page Canva design with your own brand templates, then export all slides as a PDF or PNG set."
+        />
+      </div>
+
+
+
 
 
       {/* Watermark toggle */}
