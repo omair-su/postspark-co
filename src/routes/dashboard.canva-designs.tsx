@@ -1,14 +1,41 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Download, ExternalLink, Loader2, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Download,
+  ExternalLink,
+  History,
+  Loader2,
+  RefreshCw,
+  RotateCcw,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   CanvaBadge,
   CanvaConnectButton,
   useCanvaStatus,
 } from "@/components/canva/CanvaConnect";
-import { deleteCanvaDesign, exportCanvaDesign, listCanvaDesigns } from "@/lib/canva.functions";
+import { CanvaTemplateCategories } from "@/components/canva/CanvaTemplateCategories";
+import {
+  deleteCanvaDesign,
+  exportCanvaDesign,
+  importCanvaDesigns,
+  listCanvaDesignVersions,
+  listCanvaDesigns,
+  publishCanvaDesign,
+  restoreCanvaDesignVersion,
+  syncCanvaDesign,
+} from "@/lib/canva.functions";
 
 export const Route = createFileRoute("/dashboard/canva-designs")({
   head: () => ({
@@ -29,6 +56,9 @@ function CanvaDesignsPage() {
   const [designs, setDesigns] = useState<any[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [preview, setPreview] = useState<{ design: any; urls: string[] } | null>(null);
+  const [history, setHistory] = useState<{ design: any; versions: any[] } | null>(null);
 
   const load = async () => {
     if (!status?.connected) return;
@@ -50,15 +80,101 @@ function CanvaDesignsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status?.connected]);
 
-  const doExport = async (designId: string, format: "png" | "pdf") => {
-    setBusy(`${designId}:${format}`);
+  /** Pull new/updated designs from Canva into the gallery. */
+  const importBack = async () => {
+    setImporting(true);
     try {
-      const r: any = await exportCanvaDesign({ data: { designId, format }, ...authHeaders });
+      const r: any = await importCanvaDesigns({ ...authHeaders });
       if (r?.error) throw new Error(r.error);
-      (r.urls as string[]).forEach((u) => window.open(u, "_blank", "noopener,noreferrer"));
-      toast.success("Exported from Canva");
+      const { imported = 0, updated = 0 } = r ?? {};
+      toast.success(
+        imported || updated
+          ? `Imported ${imported} new · refreshed ${updated} design${updated === 1 ? "" : "s"}`
+          : "Everything is already up to date",
+      );
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not import from Canva");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const syncOne = async (d: any) => {
+    setBusy(`${d.id}:sync`);
+    try {
+      const r: any = await syncCanvaDesign({ data: { id: d.id }, ...authHeaders });
+      if (r?.error) throw new Error(r.error);
+      toast.success("Pulled your latest Canva edits");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not sync that design");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  /** Export and show a preview grid (one image per Canva page) before downloading. */
+  const exportPreview = async (d: any, format: "png" | "pdf") => {
+    setBusy(`${d.id}:${format}`);
+    try {
+      const r: any = await exportCanvaDesign({
+        data: { designId: d.canva_design_id, format },
+        ...authHeaders,
+      });
+      if (r?.error) throw new Error(r.error);
+      const urls: string[] = r?.urls ?? [];
+      if (format === "pdf") {
+        urls.forEach((u) => window.open(u, "_blank", "noopener,noreferrer"));
+        toast.success("PDF exported from Canva");
+      } else {
+        setPreview({ design: d, urls });
+      }
+      await load();
     } catch (e: any) {
       toast.error(e?.message || "Canva export failed");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const publish = async (d: any) => {
+    setBusy(`${d.id}:publish`);
+    try {
+      const r: any = await publishCanvaDesign({ data: { id: d.id, format: "png" }, ...authHeaders });
+      if (r?.error) throw new Error(r.error);
+      toast.success("Published — final version saved to your account");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not publish that design");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const openHistory = async (d: any) => {
+    setBusy(`${d.id}:history`);
+    try {
+      const r: any = await listCanvaDesignVersions({ data: { id: d.id }, ...authHeaders });
+      if (r?.error) throw new Error(r.error);
+      setHistory({ design: d, versions: r?.versions ?? [] });
+    } catch (e: any) {
+      toast.error(e?.message || "Could not load version history");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const restore = async (versionId: string) => {
+    setBusy(`restore:${versionId}`);
+    try {
+      const r: any = await restoreCanvaDesignVersion({ data: { versionId }, ...authHeaders });
+      if (r?.error) throw new Error(r.error);
+      toast.success("Version restored");
+      setHistory(null);
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message || "Could not restore that version");
     } finally {
       setBusy(null);
     }
@@ -85,10 +201,23 @@ function CanvaDesignsPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Canva designs</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Everything you created in Canva from PostSpark — reopen to edit, or export as PNG / PDF.
+              Everything you created in Canva from PostSpark — reopen to edit, pull your latest
+              changes back, export slides, or publish a final version.
             </p>
           </div>
-          <CanvaBadge />
+          <div className="flex items-center gap-2">
+            {status?.connected ? (
+              <Button size="sm" variant="outline" onClick={importBack} disabled={importing}>
+                {importing ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Import from Canva
+              </Button>
+            ) : null}
+            <CanvaBadge />
+          </div>
         </div>
       </section>
 
@@ -106,75 +235,244 @@ function CanvaDesignsPage() {
             <CanvaConnectButton label="Connect Canva →" />
           </div>
         </div>
-      ) : designs.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-          {fetching ? "Loading your designs…" : "No Canva designs yet — create one from Thumbnail / Cover or Carousel Generator."}
-        </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {designs.map((d) => (
-            <div key={d.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="aspect-video w-full bg-muted">
-                {d.thumbnail_url ? (
-                  <img
-                    src={d.thumbnail_url}
-                    alt={d.design_title || "Canva design thumbnail"}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                ) : null}
-              </div>
-              <div className="space-y-3 p-4">
-                <div>
-                  <div className="truncate text-sm font-semibold text-foreground">
-                    {d.design_title || "Untitled design"}
+        <>
+          <CanvaTemplateCategories />
+
+          {designs.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+              {fetching
+                ? "Loading your designs…"
+                : "No Canva designs yet — create one from Thumbnail / Cover or Carousel Generator, or use “Import from Canva”."}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {designs.map((d) => {
+                const published = d.status === "published";
+                return (
+                  <div
+                    key={d.id}
+                    className="overflow-hidden rounded-2xl border border-border bg-card"
+                  >
+                    <div className="relative aspect-video w-full bg-muted">
+                      {d.thumbnail_url ? (
+                        <img
+                          src={d.thumbnail_url}
+                          alt={d.design_title || "Canva design thumbnail"}
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : null}
+                      {published ? (
+                        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[11px] font-semibold text-white shadow">
+                          <CheckCircle2 className="h-3 w-3" /> Published
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="space-y-3 p-4">
+                      <div>
+                        <div className="truncate text-sm font-semibold text-foreground">
+                          {d.design_title || "Untitled design"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {d.design_type}
+                          {d.format_width ? ` · ${d.format_width}×${d.format_height}` : ""}
+                          {d.slide_count > 1 ? ` · ${d.slide_count} slides` : ""}
+                        </div>
+                        {published && d.published_at ? (
+                          <div className="mt-0.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+                            Published {new Date(d.published_at).toLocaleDateString()}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={d.canva_edit_url} target="_blank" rel="noreferrer">
+                            <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Edit
+                          </a>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => syncOne(d)}
+                          disabled={busy === `${d.id}:sync`}
+                          title="Pull the latest edits from Canva"
+                        >
+                          {busy === `${d.id}:sync` ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => exportPreview(d, "png")}
+                          disabled={busy === `${d.id}:png`}
+                        >
+                          {busy === `${d.id}:png` ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Download className="h-3.5 w-3.5" />
+                          )}
+                          <span className="ml-1.5">
+                            {d.slide_count > 1 ? "Slides" : "PNG"}
+                          </span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => exportPreview(d, "pdf")}
+                          disabled={busy === `${d.id}:pdf`}
+                        >
+                          PDF
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openHistory(d)}
+                          disabled={busy === `${d.id}:history`}
+                          title="Version history"
+                        >
+                          <History className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => publish(d)}
+                          disabled={busy === `${d.id}:publish`}
+                        >
+                          {busy === `${d.id}:publish` ? (
+                            <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                          )}
+                          {published ? "Re-publish" : "Publish"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => remove(d.id)}
+                          disabled={busy === d.id}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {d.design_type} · {d.format_width}×{d.format_height}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Slide preview grid before download */}
+      <Dialog open={Boolean(preview)} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {preview?.design?.design_title || "Exported design"}
+            </DialogTitle>
+            <DialogDescription>
+              {preview?.urls?.length === 1
+                ? "Preview your export, then download it."
+                : `${preview?.urls?.length ?? 0} slides exported — preview them, then download individually or all at once.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(preview?.urls ?? []).map((u, i) => (
+              <div key={u} className="overflow-hidden rounded-xl border border-border bg-muted">
+                <img
+                  src={u}
+                  alt={`Slide ${i + 1}`}
+                  loading="lazy"
+                  className="w-full object-contain"
+                />
+                <div className="flex items-center justify-between gap-2 p-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Slide {i + 1}
+                  </span>
                   <Button size="sm" variant="outline" asChild>
-                    <a href={d.canva_edit_url} target="_blank" rel="noreferrer">
-                      <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Edit
+                    <a href={u} target="_blank" rel="noreferrer" download>
+                      <Download className="mr-1.5 h-3.5 w-3.5" /> Download
                     </a>
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => doExport(d.canva_design_id, "png")}
-                    disabled={busy === `${d.canva_design_id}:png`}
-                  >
-                    {busy === `${d.canva_design_id}:png` ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Download className="h-3.5 w-3.5" />
-                    )}
-                    <span className="ml-1.5">PNG</span>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => doExport(d.canva_design_id, "pdf")}
-                    disabled={busy === `${d.canva_design_id}:pdf`}
-                  >
-                    PDF
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive"
-                    onClick={() => remove(d.id)}
-                    disabled={busy === d.id}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+          {(preview?.urls?.length ?? 0) > 1 ? (
+            <Button
+              onClick={() =>
+                preview?.urls.forEach((u) => window.open(u, "_blank", "noopener,noreferrer"))
+              }
+            >
+              <Download className="mr-1.5 h-4 w-4" /> Download all slides
+            </Button>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Version history */}
+      <Dialog open={Boolean(history)} onOpenChange={(o) => !o && setHistory(null)}>
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Version history</DialogTitle>
+            <DialogDescription>
+              {history?.design?.design_title || "This design"} — every import, export and publish
+              is snapshotted so you can restore an earlier version.
+            </DialogDescription>
+          </DialogHeader>
+          {(history?.versions?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No versions yet. Export, import or publish this design to create the first snapshot.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {history?.versions.map((v) => (
+                <li
+                  key={v.id}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                >
+                  <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+                    {v.thumbnail_url ? (
+                      <img
+                        src={v.thumbnail_url}
+                        alt={`Version ${v.version_number} thumbnail`}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold text-foreground">
+                      v{v.version_number} · {v.label || v.source}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(v.created_at).toLocaleString()}
+                      {v.slide_count > 1 ? ` · ${v.slide_count} slides` : ""}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => restore(v.id)}
+                    disabled={busy === `restore:${v.id}`}
+                  >
+                    {busy === `restore:${v.id}` ? (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                    )}
+                    Restore
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
