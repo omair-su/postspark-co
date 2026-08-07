@@ -35,6 +35,7 @@ const navGroups = [
       { to: "/dashboard/image-studio", icon: ImageIcon, label: "Image Studio" },
       { to: "/dashboard/thumbnail", icon: ImageIcon, label: "Thumbnail / Cover" },
       { to: "/dashboard/carousel", icon: Layers, label: "Carousel Generator" },
+      { to: "/dashboard/canva-designs", icon: Palette, label: "Canva Designs" },
       { to: "/dashboard/shorts-studio", icon: Video, label: "Shorts Studio" },
       { to: "/dashboard/shorts-series", icon: Layers, label: "Shorts Series", search: undefined as any },
       { to: "/dashboard/shorts-editor", icon: Video, label: "Shorts Editor" },
