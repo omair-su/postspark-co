@@ -212,7 +212,7 @@ function BrandKitPage() {
       </Link>
 
       {/* Header */}
-      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+      <section className="psx-hero ps-elev-2 ds-fade-up relative overflow-hidden p-6 sm:p-7" data-page="brand">
         <span className="ps-ambient" aria-hidden />
         <HeroArt art="upgrade" />
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -221,13 +221,14 @@ function BrandKitPage() {
               <Sparkles className="h-5 w-5 text-white" />
             </div>
             <div>
+              <p className="psx-hero-eyebrow mb-1">Brand Kit</p>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-slate-50">Brand Kit</h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+                <h1 className="psx-hero-title">Your identity, <em>everywhere</em></h1>
+                <span className="psx-pill-pro psx-pill">
                   <Crown className="h-3 w-3" /> Pro
                 </span>
               </div>
-              <p className="text-sm text-slate-400">
+              <p className="psx-hero-desc mt-1">
                 Logo, palette, typography, watermark — auto-applied to every generation.
               </p>
             </div>

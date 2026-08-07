@@ -432,7 +432,8 @@ function RepurposePage() {
     <div className="mx-auto max-w-4xl pb-24 md:pb-8">
       {/* ============== HERO ============== */}
       <section
-        className="relative overflow-hidden rounded-2xl px-6 py-7 sm:px-8 sm:py-9 shadow-2xl"
+        data-page="repurpose"
+        className="psx-hero relative overflow-hidden rounded-2xl px-6 py-7 sm:px-8 sm:py-9 shadow-2xl"
         style={{
           background:
             "radial-gradient(120% 140% at 0% 0%, #2a1b54 0%, transparent 55%), radial-gradient(120% 140% at 100% 100%, #0F3460 0%, transparent 55%), linear-gradient(135deg, #0B0B1F 0%, #16213E 60%, #0F1B3D 100%)",
@@ -475,34 +476,13 @@ function RepurposePage() {
 
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]"
-              style={{
-                background: "rgba(167,139,250,0.14)",
-                border: "1px solid rgba(167,139,250,0.35)",
-                color: "#DDD6FE",
-              }}
-            >
+            <span className="psx-hero-eyebrow">
               <Repeat className="h-3 w-3" /> Repurpose Studio
             </span>
-            <h1
-              className="ps-display mt-3 text-[26px] leading-[1.1] sm:text-[32px]"
-              style={{ color: "#FFFFFF" }}
-            >
-              One source.{" "}
-              <span
-                style={{
-                  background: "linear-gradient(135deg, #C9A87C 0%, #F0D78C 50%, #A78BFA 100%)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  color: "transparent",
-                }}
-              >
-                Every platform.
-              </span>
+            <h1 className="psx-hero-title mt-3 text-[26px] sm:text-[32px]">
+              One source. <em>Every platform.</em>
             </h1>
-            <p className="mt-2.5 max-w-md text-sm" style={{ color: "rgba(255,255,255,0.72)" }}>
+            <p className="psx-hero-desc mt-2.5 max-w-md">
               Paste a blog, YouTube video, podcast, or URL — PostSpark turns it into a full content drop in seconds.
             </p>
           </div>

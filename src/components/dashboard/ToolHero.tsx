@@ -15,19 +15,22 @@ export function ToolHero({
   actions,
   accent = "#7C3AED",
   icon,
+  dataPage,
 }: {
   eyebrow?: string;
-  title: string;
+  title: ReactNode;
   subtitle?: string;
   art?: PremiumArtKey;
   steps?: string[];
   actions?: ReactNode;
   accent?: string;
   icon?: ReactNode;
+  dataPage?: string;
 }) {
   return (
     <section
-      className="ps-tool-hero ps-elev-2 ds-fade-up"
+      className="psx-hero ps-elev-2 ds-fade-up p-6 sm:p-7"
+      data-page={dataPage}
       style={{ ["--cat" as any]: accent }}
     >
       <span className="ps-ambient" aria-hidden />
@@ -43,17 +46,15 @@ export function ToolHero({
       <div className="relative flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 max-w-2xl">
           {eyebrow && (
-            <p className="ds-eyebrow mb-2">
+            <p className="psx-hero-eyebrow mb-2">
               {icon || <Sparkles className="h-3 w-3" />} {eyebrow}
             </p>
           )}
-          <h1
-            className="ds-gradient-text ps-title-sweep text-[24px] font-bold leading-tight tracking-tight sm:text-[30px]"
-          >
+          <h1 className="psx-hero-title ps-title-sweep mt-1 sm:text-[30px]">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--ds-muted)" }}>
+            <p className="psx-hero-desc mt-2">
               {subtitle}
             </p>
           )}

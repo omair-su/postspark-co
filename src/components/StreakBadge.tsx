@@ -3,7 +3,7 @@ import { Flame } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { pingStreak, getStreak } from "@/lib/streak.functions";
 
-export function StreakBadge({ compact = false }: { compact?: boolean }) {
+export function StreakBadge({ compact = false, variant }: { compact?: boolean; variant?: "stat" }) {
   const { session } = useAuth();
   const [streak, setStreak] = useState<number | null>(null);
   const [longest, setLongest] = useState<number>(0);
@@ -29,6 +29,19 @@ export function StreakBadge({ compact = false }: { compact?: boolean }) {
   }, [session]);
 
   if (streak === null) return null;
+
+  if (variant === "stat") {
+    return (
+      <div className="min-w-0">
+        <p className="psx-stat-label">Streak</p>
+        <p className="psx-stat-number mt-1">{streak}</p>
+        <p className="mt-1 text-xs" style={{ color: "var(--psx-text-2)" }}>
+          {activeToday ? "Active today 🔥" : "Create today to extend"}
+          {longest > 0 && <> · best {longest}</>}
+        </p>
+      </div>
+    );
+  }
 
   if (compact) {
     return (
