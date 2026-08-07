@@ -18,8 +18,13 @@ import {
   createDesign,
   exportDesign,
   fetchBrandTemplates,
+  importRecentDesigns,
   listDesigns,
+  listVersions,
+  publishDesign,
   removeDesign,
+  restoreVersion,
+  syncDesign,
   uploadAsset,
 } from "@/lib/canvaOps.server";
 
@@ -119,3 +124,33 @@ export const deleteCanvaDesign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => removeDesign(context.userId, data.id));
+
+export const syncCanvaDesign = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => syncDesign(context.userId, data.id));
+
+export const importCanvaDesigns = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => importRecentDesigns(context.userId));
+
+export const listCanvaDesignVersions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => listVersions(context.userId, data.id));
+
+export const restoreCanvaDesignVersion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { versionId: string }) =>
+    z.object({ versionId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => restoreVersion(context.userId, data.versionId));
+
+export const publishCanvaDesign = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({ id: z.string().uuid(), format: z.enum(["png", "pdf", "jpg"]).default("png") })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => publishDesign(context.userId, data.id, data.format));
