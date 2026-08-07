@@ -27,7 +27,7 @@ import { Images } from "lucide-react";
 import { Droplet } from "lucide-react";
 import { HeroArt } from "@/components/dashboard/HeroArt";
 import { CanvaDesignLauncher } from "@/components/canva/CanvaDesignLauncher";
-import { CANVA_FORMATS, CANVA_CAROUSEL_FORMATS } from "@/lib/canvaUrls";
+import { CANVA_FORMATS } from "@/lib/canvaUrls";
 import {
   THUMBNAIL_STYLES,
   THUMBNAIL_STARTERS,
