@@ -133,6 +133,7 @@ import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as AuthThreadsCallbackRouteImport } from './routes/auth.threads.callback'
 import { Route as AuthInstagramCallbackRouteImport } from './routes/auth.instagram.callback'
 import { Route as AuthFacebookCallbackRouteImport } from './routes/auth.facebook.callback'
+import { Route as AuthCanvaCallbackRouteImport } from './routes/auth.canva.callback'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicStockDownloadRouteImport } from './routes/api/public/stock-download'
 import { Route as ApiPublicFunnelRouteImport } from './routes/api/public/funnel'
@@ -821,6 +822,11 @@ const AuthFacebookCallbackRoute = AuthFacebookCallbackRouteImport.update({
   path: '/auth/facebook/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCanvaCallbackRoute = AuthCanvaCallbackRouteImport.update({
+  id: '/auth/canva/callback',
+  path: '/auth/canva/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   id: '/api/public/track',
   path: '/api/public/track',
@@ -1110,6 +1116,7 @@ export interface FileRoutesByFullPath {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
@@ -1266,6 +1273,7 @@ export interface FileRoutesByTo {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
@@ -1424,6 +1432,7 @@ export interface FileRoutesById {
   '/api/public/funnel': typeof ApiPublicFunnelRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
@@ -1583,6 +1592,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/canva/callback'
     | '/auth/facebook/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
@@ -1739,6 +1749,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/canva/callback'
     | '/auth/facebook/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
@@ -1896,6 +1907,7 @@ export interface FileRouteTypes {
     | '/api/public/funnel'
     | '/api/public/stock-download'
     | '/api/public/track'
+    | '/auth/canva/callback'
     | '/auth/facebook/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
@@ -2018,6 +2030,7 @@ export interface RootRouteChildren {
   ApiPublicFunnelRoute: typeof ApiPublicFunnelRoute
   ApiPublicStockDownloadRoute: typeof ApiPublicStockDownloadRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
+  AuthCanvaCallbackRoute: typeof AuthCanvaCallbackRoute
   AuthFacebookCallbackRoute: typeof AuthFacebookCallbackRoute
   AuthInstagramCallbackRoute: typeof AuthInstagramCallbackRoute
   AuthThreadsCallbackRoute: typeof AuthThreadsCallbackRoute
@@ -2915,6 +2928,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthFacebookCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/canva/callback': {
+      id: '/auth/canva/callback'
+      path: '/auth/canva/callback'
+      fullPath: '/auth/canva/callback'
+      preLoaderRoute: typeof AuthCanvaCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/track': {
       id: '/api/public/track'
       path: '/api/public/track'
@@ -3386,6 +3406,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicFunnelRoute: ApiPublicFunnelRoute,
   ApiPublicStockDownloadRoute: ApiPublicStockDownloadRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
+  AuthCanvaCallbackRoute: AuthCanvaCallbackRoute,
   AuthFacebookCallbackRoute: AuthFacebookCallbackRoute,
   AuthInstagramCallbackRoute: AuthInstagramCallbackRoute,
   AuthThreadsCallbackRoute: AuthThreadsCallbackRoute,
