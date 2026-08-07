@@ -589,7 +589,7 @@ function CarouselPage() {
 
 
 import { forwardRef } from "react";
-import { HeroArt } from "@/components/dashboard/HeroArt";
+import { ToolHero } from "@/components/dashboard/ToolHero";
 const SlideCanvas = forwardRef<HTMLDivElement, {
   slide: Slide;
   index: number;
