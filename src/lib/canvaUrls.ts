@@ -45,3 +45,75 @@ export const CANVA_CAROUSEL_FORMATS: CanvaFormat[] = [
   { key: "instagram_post", label: "Instagram (1:1)", width: 1080, height: 1080, platform: "instagram" },
   { key: "x_carousel", label: "X (16:9)", width: 1600, height: 900, platform: "twitter" },
 ];
+
+export interface CanvaTemplateCategory {
+  key: string;
+  label: string;
+  description: string;
+  query: string;
+  accent: string;
+}
+
+/** Curated Canva template searches — each opens canva.com/templates in a new tab. */
+export const CANVA_TEMPLATE_CATEGORIES: CanvaTemplateCategory[] = [
+  {
+    key: "youtube_thumbnails",
+    label: "YouTube thumbnails",
+    description: "High-contrast, click-worthy 16:9 covers.",
+    query: "youtube thumbnail",
+    accent: "#FF4D4D",
+  },
+  {
+    key: "linkedin_carousels",
+    label: "LinkedIn carousels",
+    description: "Swipeable 4:5 document decks.",
+    query: "linkedin carousel",
+    accent: "#0A66C2",
+  },
+  {
+    key: "instagram_posts",
+    label: "Instagram posts",
+    description: "Square posts built for the feed.",
+    query: "instagram post",
+    accent: "#E1306C",
+  },
+  {
+    key: "instagram_stories",
+    label: "Reels & Stories",
+    description: "Full-bleed 9:16 vertical frames.",
+    query: "instagram story",
+    accent: "#8B5CF6",
+  },
+  {
+    key: "quote_graphics",
+    label: "Quote graphics",
+    description: "Typographic quote cards for any platform.",
+    query: "quote",
+    accent: "#F59E0B",
+  },
+  {
+    key: "podcast_covers",
+    label: "Podcast covers",
+    description: "3000×3000 artwork for episodes and shows.",
+    query: "podcast cover",
+    accent: "#10B981",
+  },
+  {
+    key: "x_headers",
+    label: "X headers",
+    description: "Profile banners with room for your hook.",
+    query: "twitter header",
+    accent: "#111827",
+  },
+  {
+    key: "infographics",
+    label: "Infographics",
+    description: "Data-led explainers that get saved.",
+    query: "infographic",
+    accent: "#06B6D4",
+  },
+];
+
+export function canvaTemplateSearchUrl(query: string): string {
+  return `https://www.canva.com/templates/?query=${encodeURIComponent(query)}`;
+}
