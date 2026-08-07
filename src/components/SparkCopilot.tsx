@@ -13,6 +13,7 @@ import {
 } from "@/lib/copilot.functions";
 import { useAuth } from "@/hooks/useAuth";
 import ReactMarkdown from "react-markdown";
+import { AssistantOrb } from "@/components/AssistantOrb";
 
 interface Msg { role: "user" | "assistant"; content: string }
 interface Conv { id: string; title: string; updated_at: string }
@@ -55,27 +56,6 @@ const TOOL_WELCOME: Record<string, string> = {
 function getToolKey(pathname: string): string | null {
   const m = pathname.match(/\/dashboard\/([a-z-]+)/);
   return m?.[1] ?? null;
-}
-
-function SparkOrb({ size = 36 }: { size?: number }) {
-  return (
-    <div
-      className="relative shrink-0 rounded-full"
-      style={{ width: size, height: size }}
-    >
-      <div
-        className="absolute inset-0 rounded-full animate-spark-pulse"
-        style={{
-          background: "radial-gradient(circle at 30% 30%, #a78bfa 0%, #7c3aed 45%, #5b21b6 100%)",
-          boxShadow: "0 0 24px rgba(124, 58, 237, 0.55), inset 0 0 12px rgba(255,255,255,0.25)",
-        }}
-      />
-      <div
-        className="absolute rounded-full bg-[#14142B]/60 blur-[1px]"
-        style={{ width: size * 0.18, height: size * 0.18, top: size * 0.22, left: size * 0.26 }}
-      />
-    </div>
-  );
 }
 
 function TypingDots() {
@@ -260,58 +240,52 @@ export function SparkCopilot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="spark-copilot-trigger group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full bg-[#14142B] border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 hover:-translate-y-0.5 transition-all"
+          className="psx-spark-fab group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2.5 rounded-full bg-[var(--psx-card)] border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 transition-all"
           aria-label="Open Spark Copilot"
         >
-          <SparkOrb size={32} />
-          <span className="text-sm font-semibold text-white">Spark</span>
-          <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-white/55">Ask AI</span>
+          <AssistantOrb size={36} />
+          <span className="text-sm font-semibold" style={{ color: "#7c3aed" }}>Spark</span>
         </button>
       )}
 
       {open && (
         <div
-          className="spark-copilot-panel fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden bg-[#14142B]"
+          className="psx-spark-panel fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden"
           style={{
             width: "min(380px, calc(100vw - 2rem))",
             height: "min(560px, calc(100vh - 3rem))",
-            borderRadius: 16,
-            boxShadow: "0 25px 60px -15px rgba(124, 58, 237, 0.35), 0 10px 30px rgba(15,23,42,0.12)",
-            border: "1px solid rgba(124,58,237,0.12)",
+            borderRadius: 20,
           }}
         >
-          {/* Header — dark gradient */}
-          <div
-            className="spark-copilot-header px-4 pt-3.5 pb-3"
-            style={{ background: "linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)" }}
-          >
+          {/* Header */}
+          <div className="psx-spark-header px-4 pt-3.5 pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <SparkOrb size={36} />
+                <AssistantOrb size={36} thinking={loading} />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[15px] font-semibold text-white leading-tight">Spark</span>
-                    <span className="text-[9.5px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(124,58,237,0.18)", color: "#c4b5fd", border: "0.5px solid rgba(124,58,237,0.3)" }}>
+                    <span className="psx-spark-title text-[15px] font-semibold leading-tight">Spark</span>
+                    <span className="psx-model-badge psx-model-claude !py-0.5 !px-1.5 !text-[9.5px]">
                       Claude 5
                     </span>
                   </div>
-                  <div className="text-[11.5px] text-white/55 truncate">
-                    {toolLabel ? `Helping with ${toolLabel}` : "PostSpark's AI creative brain"}
+                  <div className="psx-spark-subtitle text-[11.5px] truncate">
+                    {toolLabel ? `Helping with ${toolLabel}` : "Your AI creative director"}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-0.5">
-                <button onClick={newChat} title="New chat" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/70 hover:bg-[#14142B]/10 hover:text-white transition-colors">
+                <button onClick={newChat} title="New chat" className="psx-spark-icon-btn h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors">
                   <Plus className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setShowHistory((v) => !v)}
                   title="History"
-                  className={`h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors ${showHistory ? "bg-[#14142B]/15 text-white" : "text-white/70 hover:bg-[#14142B]/10 hover:text-white"}`}
+                  className={`psx-spark-icon-btn h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors ${showHistory ? "psx-spark-icon-btn-active" : ""}`}
                 >
                   <HistoryIcon className="h-4 w-4" />
                 </button>
-                <button onClick={() => setOpen(false)} title="Close" className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/70 hover:bg-[#14142B]/10 hover:text-white transition-colors">
+                <button onClick={() => setOpen(false)} title="Close" className="psx-spark-icon-btn h-8 w-8 inline-flex items-center justify-center rounded-lg transition-colors">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -321,21 +295,21 @@ export function SparkCopilot() {
           <div className="h-[2px] w-full" style={{ background: "linear-gradient(90deg, transparent, #7c3aed 50%, transparent)" }} />
 
           {showHistory ? (
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="psx-spark-body flex-1 flex flex-col overflow-hidden">
               <div className="px-3 pt-3 pb-2">
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/45" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--psx-text-muted)]" />
                   <input
                     value={historyQuery}
                     onChange={(e) => setHistoryQuery(e.target.value)}
-                    placeholder="Search conversations"
-                    className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-white/10 bg-[#14142B] focus:outline-none focus:border-[#7c3aed]/50 focus:ring-2 focus:ring-[#7c3aed]/10"
+                    placeholder="Search conversations..."
+                    className="psx-input w-full pl-8 pr-3 py-2 !text-xs"
                   />
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-1">
                 {filteredConvs.length === 0 ? (
-                  <div className="text-xs text-white/45 p-6 text-center">No saved conversations yet.</div>
+                  <div className="text-xs text-[var(--psx-text-muted)] p-6 text-center">No saved conversations yet.</div>
                 ) : (
                   filteredConvs.map((c) => {
                     const tag = platformTag(c.title);
@@ -344,22 +318,22 @@ export function SparkCopilot() {
                       <div
                         key={c.id}
                         onClick={() => loadConversation(c.id)}
-                        className={`group flex items-start gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${convId === c.id ? "bg-[#7c3aed]/15" : "hover:bg-white/5"}`}
+                        className={`group flex items-start gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${convId === c.id ? "bg-[#7c3aed]/15" : "hover:bg-[var(--psx-card-hover)]"}`}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-medium text-white/90 truncate">{title}</div>
+                          <div className="text-[13px] font-medium text-[var(--psx-text)] truncate">{title}</div>
                           <div className="flex items-center gap-2 mt-0.5">
                             {tag && (
                               <span className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-[#7c3aed]/10 text-[#7c3aed] font-medium">
                                 {tag}
                               </span>
                             )}
-                            <span className="text-[10px] text-white/45">{new Date(c.updated_at).toLocaleDateString()}</span>
+                            <span className="text-[10px] text-[var(--psx-text-muted)]">{new Date(c.updated_at).toLocaleDateString()}</span>
                           </div>
                         </div>
                         <button
                           onClick={(e) => removeConversation(c.id, e)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded text-white/45 hover:text-red-400 hover:bg-red-500/15 transition"
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded text-[var(--psx-text-muted)] hover:text-red-400 hover:bg-red-500/15 transition"
                           aria-label="Delete"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -372,12 +346,12 @@ export function SparkCopilot() {
             </div>
           ) : (
             <>
-              <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-[#14142B]">
+              <div ref={scrollRef} className="psx-spark-body flex-1 overflow-y-auto px-4 py-3 space-y-3">
                 {messages.length === 0 && (
                   <div className="space-y-3 animate-spark-in">
                     <div className="flex gap-2.5">
-                      <SparkOrb size={28} />
-                      <div className="flex-1 rounded-2xl rounded-tl-sm border border-white/8 bg-[#14142B] px-3.5 py-2.5 text-[13px] text-white/85 leading-relaxed shadow-sm">
+                      <AssistantOrb size={28} />
+                      <div className="psx-spark-greet flex-1 rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-[13px] leading-relaxed shadow-sm">
                         {welcome}
                       </div>
                     </div>
@@ -386,7 +360,7 @@ export function SparkCopilot() {
                         <button
                           key={a.label}
                           onClick={() => applyQuickAction(a.prompt)}
-                          className="group flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 bg-[#14142B] text-left text-[11.5px] font-medium text-white/85 hover:border-[#7c3aed]/40 hover:bg-[#7c3aed]/10 hover:-translate-y-0.5 hover:shadow-md hover:shadow-[#7c3aed]/10 transition-all"
+                          className="psx-spark-tile group flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-left text-[11.5px] font-medium transition-all"
                         >
                           <a.icon className="h-3.5 w-3.5 text-[#7c3aed] shrink-0" />
                           <span className="truncate">{a.label}</span>
@@ -397,7 +371,7 @@ export function SparkCopilot() {
                     <div className="pt-1">
                       <button
                         onClick={() => setShowContext((v) => !v)}
-                        className="text-[10.5px] uppercase tracking-wider font-semibold text-white/45 hover:text-[#7c3aed] transition"
+                        className="text-[10.5px] uppercase tracking-wider font-semibold text-[var(--psx-text-muted)] hover:text-[#7c3aed] transition"
                       >
                         {showContext ? "− Hide content context" : "+ Add content context (optional)"}
                       </button>
@@ -407,7 +381,7 @@ export function SparkCopilot() {
                           onChange={(e) => setContextContent(e.target.value.slice(0, 4000))}
                           placeholder="Paste any content here for Spark to work with…"
                           rows={3}
-                          className="mt-1.5 w-full text-[12px] rounded-lg border border-white/10 bg-[#14142B] px-3 py-2 placeholder:text-white/45 focus:outline-none focus:border-[#7c3aed]/50 focus:ring-2 focus:ring-[#7c3aed]/10 resize-y"
+                          className="psx-input mt-1.5 w-full !text-[12px] px-3 py-2 resize-y"
                         />
                       )}
                     </div>
@@ -418,39 +392,39 @@ export function SparkCopilot() {
                   const isUser = m.role === "user";
                   const isLastAssistant = !isUser && i === messages.length - 1 && !loading;
                   return (
-                    <div key={i} className={`flex gap-2 animate-spark-in ${isUser ? "flex-row-reverse" : ""}`}>
+                    <div key={i} className={`group/msg flex gap-2 animate-spark-in ${isUser ? "flex-row-reverse" : ""}`}>
                       {isUser ? (
-                        <div className="h-7 w-7 rounded-full shrink-0 flex items-center justify-center bg-white/10">
-                          <UserIcon className="h-3.5 w-3.5 text-white/70" />
+                        <div className="h-7 w-7 rounded-full shrink-0 flex items-center justify-center bg-[#7c3aed]/15">
+                          <UserIcon className="h-3.5 w-3.5 text-[#7c3aed]" />
                         </div>
                       ) : (
-                        <SparkOrb size={28} />
+                        <AssistantOrb size={28} />
                       )}
                       <div className={`max-w-[82%] ${isUser ? "" : "space-y-1.5"}`}>
                         <div
                           className={
                             isUser
-                              ? "rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-[13px] text-white/90 bg-[#7c3aed]/20 border border-[#7c3aed]/10"
-                              : "rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-[13px] text-white/90 bg-[#14142B] border border-white/8 shadow-sm"
+                              ? "psx-spark-bubble-user px-3.5 py-2.5 text-[13px]"
+                              : "psx-spark-bubble-assistant px-3.5 py-2.5 text-[13px] shadow-sm"
                           }
                         >
                           {isUser ? (
                             <div className="whitespace-pre-wrap">{m.content}</div>
                           ) : (
-                            <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-headings:my-1.5 text-[13px]">
+                            <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-headings:my-1.5 dark:prose-invert text-[13px]">
                               <ReactMarkdown>{m.content}</ReactMarkdown>
                             </div>
                           )}
                         </div>
                         {isLastAssistant && (
-                          <div className="flex items-center gap-1 pl-1">
-                            <button onClick={() => copyMessage(m.content)} className="inline-flex items-center gap-1 text-[10.5px] text-white/55 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#7c3aed]/15 transition">
+                          <div className="flex items-center gap-1 pl-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
+                            <button onClick={() => copyMessage(m.content)} className="psx-spark-action-btn inline-flex items-center gap-1 text-[10.5px] px-1.5 py-1 rounded transition">
                               <Copy className="h-3 w-3" /> Copy
                             </button>
-                            <button onClick={() => insertIntoEditor(m.content)} className="inline-flex items-center gap-1 text-[10.5px] text-white/55 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#7c3aed]/15 transition">
+                            <button onClick={() => insertIntoEditor(m.content)} className="psx-spark-action-btn inline-flex items-center gap-1 text-[10.5px] px-1.5 py-1 rounded transition">
                               <ArrowDownToLine className="h-3 w-3" /> Insert
                             </button>
-                            <button onClick={regenerate} className="inline-flex items-center gap-1 text-[10.5px] text-white/55 hover:text-[#7c3aed] px-1.5 py-1 rounded hover:bg-[#7c3aed]/15 transition">
+                            <button onClick={regenerate} className="psx-spark-action-btn inline-flex items-center gap-1 text-[10.5px] px-1.5 py-1 rounded transition">
                               <RotateCcw className="h-3 w-3" /> Regenerate
                             </button>
                           </div>
@@ -462,8 +436,8 @@ export function SparkCopilot() {
 
                 {loading && (
                   <div className="flex gap-2 animate-spark-in">
-                    <SparkOrb size={28} />
-                    <div className="rounded-2xl rounded-tl-sm bg-[#14142B] border border-white/8 shadow-sm">
+                    <AssistantOrb size={28} thinking />
+                    <div className="psx-spark-bubble-assistant shadow-sm">
                       <TypingDots />
                     </div>
                   </div>
@@ -471,11 +445,11 @@ export function SparkCopilot() {
               </div>
 
               {/* Input */}
-              <div className="p-3 border-t border-white/8 bg-[#14142B]">
-                <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#14142B] px-2.5 py-1.5 focus-within:border-[#7c3aed]/50 focus-within:ring-2 focus-within:ring-[#7c3aed]/10 transition">
+              <div className="psx-spark-inputbar p-3">
+                <div className="psx-spark-textarea-wrap flex items-end gap-2 rounded-2xl px-2.5 py-1.5">
                   <button
                     title="Attach (coming soon)"
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-white/45 hover:text-[#7c3aed] hover:bg-[#7c3aed]/15 transition shrink-0"
+                    className="psx-spark-action-btn h-8 w-8 inline-flex items-center justify-center rounded-lg transition shrink-0"
                     disabled
                   >
                     <Paperclip className="h-4 w-4" />
@@ -487,9 +461,9 @@ export function SparkCopilot() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
                     }}
-                    placeholder="Ask Spark anything…"
+                    placeholder="Ask Spark anything..."
                     rows={1}
-                    className="flex-1 resize-none bg-transparent py-1.5 text-[13px] text-white/90 placeholder:text-white/45 focus:outline-none max-h-[96px]"
+                    className="flex-1 resize-none bg-transparent py-1.5 text-[13px] text-[var(--psx-text)] placeholder:text-[var(--psx-text-muted)] focus:outline-none max-h-[96px]"
                     disabled={loading}
                   />
                   <button
@@ -501,7 +475,7 @@ export function SparkCopilot() {
                     {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                   </button>
                 </div>
-                <div className="mt-1.5 px-1 text-[10px] text-white/45 flex items-center justify-between">
+                <div className="mt-1.5 px-1 text-[10px] text-[var(--psx-text-muted)] flex items-center justify-between">
                   <span>Press Enter to send · Shift+Enter for new line</span>
                   {toolLabel && <span className="text-[#7c3aed]/70 font-medium">{toolLabel}</span>}
                 </div>

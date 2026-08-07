@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Bookmark, Plus, Trash2, X, Loader2, Play, Globe, Lock, Store, Sparkles, Search } from "lucide-react";
+import { Bookmark, Plus, Trash2, X, Loader2, Play, Globe, Lock, Store, Sparkles, Search, LayoutGrid } from "lucide-react";
 import { getTemplates, createTemplate, deleteTemplate } from "@/lib/templates.functions";
 import { togglePublishTemplate, listPublicTemplates, cloneTemplate } from "@/lib/marketplace.functions";
 import { HeroArt } from "@/components/dashboard/HeroArt";
@@ -59,40 +59,61 @@ const categoryColor: Record<string, string> = {
   other: "#6B7280",
 };
 
+const filterCategories = ["all", "social", "thread", "newsletter", "video", "launch", "other"];
+
+const platformTagClass: Record<string, string> = {
+  "twitter/x": "bg-black/5 text-foreground border-black/10 dark:bg-white/10 dark:text-white dark:border-white/15",
+  linkedin: "bg-[#e8f0fe] text-[#1d4ed8] border-[#bfdbfe] dark:bg-[#0a66c2]/15 dark:text-[#8ab4f8] dark:border-[#0a66c2]/40",
+  instagram: "bg-[#fce7f3] text-[#be185d] border-[#fbcfe8] dark:bg-[#be185d]/15 dark:text-[#f9a8d4] dark:border-[#be185d]/40",
+  email: "bg-[#fef3c7] text-[#92400e] border-[#fde68a] dark:bg-[#92400e]/20 dark:text-[#fcd34d] dark:border-[#92400e]/40",
+};
+
 function TemplateCard({
   t,
+  index,
   onUse,
   onDelete,
   onPublishToggle,
 }: {
   t: Template;
+  index: number;
   onUse: (t: Template) => void;
   onDelete?: (t: Template) => void;
   onPublishToggle?: (t: Template) => void;
 }) {
   const cat = (t.category || "other").toLowerCase();
+  const accent = categoryColor[cat] || categoryColor.other;
+  const tagClass = t.platform ? platformTagClass[t.platform.toLowerCase()] : undefined;
   return (
     <div
-      className="relative flex flex-col rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(107,78,255,0.08)] hover:border-[rgba(107,78,255,0.3)]"
-      style={{ borderTopWidth: 3, borderTopColor: categoryColor[cat] || categoryColor.other }}
+      className="psx-card psx-card-interactive psx-card-animate relative flex flex-col overflow-hidden p-4"
+      style={{ "--psx-delay": `${Math.min(index, 8) * 40}ms` } as any}
     >
-      {t.is_official && (
-        <span className="absolute right-3 top-3 rounded-md bg-[rgba(107,78,255,0.1)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#6B4EFF]">
-          Official
-        </span>
-      )}
-      <h3 className="pr-16 text-sm font-semibold text-foreground line-clamp-1">{t.name}</h3>
+      <span className="absolute inset-x-0 top-0 h-[3px]" style={{ background: accent }} aria-hidden />
+      <div className="flex items-start justify-between gap-2">
+        <div className="psx-icon-wrap psx-icon-wrap-sm" style={{ "--psx-accent": accent } as any}>
+          <Bookmark className="h-4 w-4" />
+        </div>
+        {t.is_official && (
+          <span className="official-badge rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+            Official
+          </span>
+        )}
+      </div>
+      <h3 className="mt-2.5 text-sm font-semibold text-foreground line-clamp-1">{t.name}</h3>
       {t.description && (
         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.description}</p>
       )}
       {t.preview_text && (
-        <p className="mt-2 line-clamp-2 rounded-md bg-muted/50 px-2 py-1.5 text-[11px] italic text-muted-foreground/80">
+        <p className="template-preview mt-2 rounded-md bg-muted/50 px-2.5 py-2 text-[11px] italic text-muted-foreground/80">
           {t.preview_text}
         </p>
       )}
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
         {t.platform && (
-          <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] text-muted-foreground">{t.platform}</span>
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${tagClass || "bg-accent text-muted-foreground border-transparent"}`}>
+            {t.platform}
+          </span>
         )}
         <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] capitalize text-muted-foreground">{t.tone}</span>
       </div>
@@ -105,7 +126,7 @@ function TemplateCard({
               title={t.is_public ? "Public — click to unpublish" : "Publish to marketplace"}
               className="rounded-md p-1.5 text-muted-foreground hover:text-foreground"
             >
-              {t.is_public ? <Globe className="h-3.5 w-3.5 text-[#6B4EFF]" /> : <Lock className="h-3.5 w-3.5" />}
+              {t.is_public ? <Globe className="h-3.5 w-3.5 text-[#7c3aed]" /> : <Lock className="h-3.5 w-3.5" />}
             </button>
           )}
           {onDelete && !t.is_official && (
@@ -113,10 +134,7 @@ function TemplateCard({
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
-          <button
-            onClick={() => onUse(t)}
-            className="ml-1 rounded-lg bg-gradient-to-r from-[#6B4EFF] to-[#8B6FFF] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:shadow-md"
-          >
+          <button onClick={() => onUse(t)} className="psx-btn-primary ml-1 px-3 py-1.5 text-xs">
             Use
           </button>
         </div>
@@ -258,44 +276,38 @@ function TemplatesPage() {
     setSelectedTypes(next);
   };
 
-  const visible = tab === "mine" ? mine : officials;
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const byTab = tab === "mine" ? mine : officials;
+  const visible = categoryFilter === "all" ? byTab : byTab.filter((t) => (t.category || "other").toLowerCase() === categoryFilter);
 
   return (
     <div className="mx-auto max-w-6xl animate-fade-in p-4 md:p-6">
       {/* HERO */}
-      <div
-        className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border px-6 py-5"
-        style={{
-          background: "linear-gradient(135deg, hsl(var(--card)) 0%, rgba(107,78,255,0.06) 100%)",
-          borderColor: "rgba(107,78,255,0.18)",
-        }}
-      >
+      <div className="psx-hero relative mb-6 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-2xl px-6 py-6" data-page="templates">
         <HeroArt art="carousel" />
         <div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgba(107,78,255,0.12)]">
-              <Bookmark className="h-4 w-4 text-[#6B4EFF]" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">Templates</h1>
+          <div className="psx-hero-eyebrow">
+            <Bookmark className="h-3 w-3" /> Templates
           </div>
-          <p className="mt-1.5 text-sm text-muted-foreground">Save your format & tone combos. One click to reuse.</p>
-          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="rounded-full bg-[rgba(107,78,255,0.1)] px-2 py-0.5 font-medium text-[#6B4EFF]">
-              {officials.length} Official
-            </span>
-            <span className="rounded-full bg-accent px-2 py-0.5">{mine.length} Mine</span>
+          <h1 className="psx-hero-title mt-1.5">
+            Your formats, <em>one click away</em>
+          </h1>
+          <p className="psx-hero-desc mt-1.5">Save your format & tone combos. One click to reuse.</p>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="count-badge official">{officials.length} Official</span>
+            <span className="count-badge mine">{mine.length} Mine</span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to="/templates/gallery"
-            className="flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-semibold hover:border-[#6B4EFF] hover:text-[#6B4EFF]"
+            className="flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3.5 py-2 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/20"
           >
             <Store className="h-4 w-4" /> Marketplace
           </Link>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#6B4EFF] to-[#8B6FFF] px-4 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg"
+            className="psx-btn-primary px-4 py-2"
           >
             <Plus className="h-4 w-4" /> New Template
           </button>
@@ -303,60 +315,75 @@ function TemplatesPage() {
       </div>
 
       {/* TABS */}
-      <div className="mb-4 flex gap-1 border-b border-border">
-        {([
-          ["official", `PostSpark Official (${officials.length})`],
-          ["mine", `My Templates (${mine.length})`],
-        ] as const).map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`px-4 py-2.5 text-sm font-semibold transition-colors ${
-              tab === id
-                ? "border-b-2 border-[#6B4EFF] text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2">
+          {([
+            ["official", "PostSpark Official", officials.length],
+            ["mine", "My Templates", mine.length],
+          ] as const).map(([id, label, count]) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={`psx-filter-chip ${tab === id ? "psx-filter-chip-active" : ""}`}
+            >
+              {label}
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                  tab === id ? "bg-white/25" : "bg-accent"
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* CATEGORY FILTER CHIPS */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
+          {filterCategories.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategoryFilter(c)}
+              className={`psx-filter-chip ${categoryFilter === c ? "psx-filter-chip-active" : ""}`}
+            >
+              {c === "all" ? "All" : c}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* GRID */}
       {loading ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-44 animate-pulse rounded-xl border border-border bg-card" />
+            <div key={i} className="psx-shimmer h-44 rounded-xl" />
           ))}
         </div>
       ) : visible.length === 0 ? (
         tab === "mine" ? (
-          <div
-            className="rounded-2xl border-2 border-dashed py-12 text-center"
-            style={{
-              background: "linear-gradient(135deg, rgba(107,78,255,0.04), rgba(139,111,255,0.02))",
-              borderColor: "rgba(107,78,255,0.2)",
-            }}
-          >
-            <Sparkles className="mx-auto h-8 w-8 text-[#6B4EFF]" />
+          <div className="psx-empty">
+            <Sparkles className="psx-empty-illustration mx-auto h-8 w-8" />
             <p className="mt-3 text-base font-semibold">No personal templates yet</p>
             <p className="mt-1 text-xs text-muted-foreground">Browse PostSpark Official or build your own custom one.</p>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#6B4EFF] to-[#8B6FFF] px-4 py-2 text-sm font-semibold text-white"
-            >
+            <button onClick={() => setShowCreate(true)} className="psx-btn-primary mt-5 px-4 py-2">
               <Plus className="h-4 w-4" /> Create your first template
             </button>
           </div>
         ) : (
-          <p className="py-12 text-center text-sm text-muted-foreground">No official templates available.</p>
+          <div className="psx-empty">
+            <Bookmark className="psx-empty-illustration mx-auto h-8 w-8" />
+            <p className="mt-3 text-base font-semibold">No templates in this category</p>
+            <p className="mt-1 text-xs text-muted-foreground">Try a different filter.</p>
+          </div>
         )
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((t) => (
+          {visible.map((t, i) => (
             <TemplateCard
               key={t.id}
               t={t}
+              index={i}
               onUse={handleUse}
               onDelete={tab === "mine" ? handleDelete : undefined}
               onPublishToggle={tab === "mine" ? handlePublishToggle : undefined}

@@ -145,7 +145,8 @@ function HookLabPage() {
         icon={<Flame className="h-3 w-3" />}
         accent="#F97316"
         art="hook"
-        title="Hooks that stop the scroll"
+        dataPage="hooklab"
+        title={<>Hooks that stop <em>the scroll</em></>}
         subtitle="Generate 20 scroll-stopping hooks using proven viral frameworks. Scored, ranked, and platform-native."
         steps={["Set topic & niche", "Generate 20 hooks", "Score & A/B test"]}
       />
@@ -269,6 +270,18 @@ function HookLabPage() {
           <><Sparkles className="h-4 w-4" /> Generate 20 Viral Hooks</>
         )}
       </button>
+
+      {hooks.length === 0 && !loading && (
+        <div className="psx-empty">
+          <Zap className="psx-empty-illustration h-16 w-16" />
+          <p className="text-[15px] font-semibold text-[color:var(--ds-text)]">Your hooks will appear here</p>
+          <p className="mt-1 text-[13px] text-[color:var(--ds-muted)]">Fill in your topic and hit "Generate 20 Viral Hooks"</p>
+          <div className="mt-5 w-full max-w-sm space-y-2">
+            <div className="psx-shimmer h-14 w-full" />
+            <div className="psx-shimmer h-14 w-full" />
+          </div>
+        </div>
+      )}
 
       {hooks.length > 0 && (
         <>

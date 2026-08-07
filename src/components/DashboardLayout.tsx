@@ -187,30 +187,37 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         className={`relative shrink-0 border-b border-white/5 ${
           isCollapsed
             ? "flex flex-col items-center gap-2 py-3 px-1"
-            : "flex h-16 items-center justify-between gap-1 px-2"
+            : "flex flex-col gap-1 px-2 py-2.5"
         }`}
       >
-        <Link
-          to="/dashboard"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="PostSpark — Dashboard home"
-          className={`ps-sidebar-logo group flex items-center rounded-xl transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A87C]/60 ${
-            isCollapsed ? "h-10 w-10 justify-center" : "h-12 flex-1 px-2"
-          }`}
-        >
-          <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 26 : 34} tone="auto" />
-        </Link>
-        <button
-          type="button"
-          className="lux-collapse-btn hidden md:inline-flex shrink-0"
-          onClick={() => setCollapsed((v) => !v)}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={isCollapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
-        >
-          {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
-        </button>
-        {/* Mobile: no extra close button — tap outside the drawer to dismiss */}
-
+        <div className={`flex items-center ${isCollapsed ? "flex-col gap-2" : "h-11 justify-between gap-1"}`}>
+          <Link
+            to="/dashboard"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="PostSpark — Dashboard home"
+            className={`ps-sidebar-logo group flex items-center rounded-xl transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A87C]/60 ${
+              isCollapsed ? "h-10 w-10 justify-center" : "h-12 flex-1 px-2"
+            }`}
+          >
+            <PostSparkLogo variant={isCollapsed ? "icon" : "wordmark"} size={isCollapsed ? 26 : 34} tone="auto" />
+          </Link>
+          <button
+            type="button"
+            className="lux-collapse-btn hidden md:inline-flex shrink-0"
+            onClick={() => setCollapsed((v) => !v)}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={isCollapsed ? "Expand sidebar (⌘\\)" : "Collapse sidebar (⌘\\)"}
+          >
+            {isCollapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+          </button>
+          {/* Mobile: no extra close button — tap outside the drawer to dismiss */}
+        </div>
+        <div className={`lux-ai-status flex items-center gap-1.5 ${isCollapsed ? "" : "px-2 pb-0.5"}`} title="AI online">
+          <span className="psx-dot-live" aria-hidden />
+          <span className="lux-collapse-hide text-[10px] font-medium uppercase tracking-[0.12em] text-emerald-300/80">
+            AI online
+          </span>
+        </div>
       </div>
 
 
@@ -296,7 +303,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         ].map((group, gi) => (
           <div key={group.label} className={gi === 0 ? "" : isCollapsed ? "lux-group-spacer mt-3" : "mt-5"}>
             {gi !== 0 && (
-              <p className="lux-group-label px-3 pb-2 text-[10px] uppercase tracking-[0.2em]">
+              <p className="psx-nav-section lux-group-label px-3 pb-2 text-[10px] uppercase tracking-[0.2em]">
                 {group.label}
               </p>
             )}
@@ -318,7 +325,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                       active ? "lux-nav-active" : "text-sidebar-foreground/65"
                     }`}
                   >
-                    <item.icon className="lux-nav-icon h-4 w-4 shrink-0" />
+                    <item.icon className="lux-nav-icon h-5 w-5 shrink-0" />
                     <span className="lux-collapse-hide truncate">{item.label}</span>
                   </Link>
                 );
@@ -351,19 +358,24 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           )}
           <div className="lux-collapse-hide min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <p className="truncate text-xs font-semibold text-sidebar-foreground">{displayName}</p>
-              <span className="ds-plan-chip">{planLabel}</span>
+              <p className="truncate text-[13px] font-medium text-sidebar-foreground">{displayName}</p>
+              <span className={planLabel === "Free" ? "ds-plan-chip" : "ds-plan-chip ds-plan-chip-pro"}>
+                {planLabel !== "Free" && <span aria-hidden>✦</span>}
+                {planLabel}
+              </span>
             </div>
-            <p className="truncate text-[10px] text-sidebar-foreground/55 mt-0.5">{displayEmail}</p>
+            <div className="mt-0.5 flex items-center justify-between gap-2">
+              <p className="truncate text-[10px] text-sidebar-foreground/55">{displayEmail}</p>
+              <Link
+                to="/dashboard/settings"
+                onClick={() => setSidebarOpen(false)}
+                className="lux-manage-link shrink-0 text-[11px] font-medium"
+                title="Manage account"
+              >
+                Manage
+              </Link>
+            </div>
           </div>
-          <Link
-            to="/dashboard/settings"
-            onClick={() => setSidebarOpen(false)}
-            className="lux-collapse-hide ml-auto rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium text-white/75 hover:text-white hover:bg-white/10 transition"
-            title="Manage account"
-          >
-            Manage
-          </Link>
         </div>
 
         <button
@@ -371,7 +383,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           title={isCollapsed ? "Sign out" : undefined}
           className="lux-nav-item flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/65"
         >
-          <LogOut className="lux-nav-icon h-4 w-4 shrink-0" />
+          <LogOut className="lux-nav-icon h-5 w-5 shrink-0" />
           <span className="lux-collapse-hide">Sign Out</span>
         </button>
       </div>

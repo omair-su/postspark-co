@@ -436,13 +436,14 @@ function ThumbnailPage() {
 
   return (
     <div className="space-y-6">
-      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+      <section className="psx-hero ps-elev-2 ds-fade-up relative overflow-hidden p-6 sm:p-7" data-page="thumbnail">
         <span className="ps-ambient" aria-hidden />
         <HeroArt art="image" />
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Thumbnail &amp; Cover Generator</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="psx-hero-eyebrow mb-1">Thumbnail Studio</p>
+            <h1 className="psx-hero-title">Covers that <em>get the click</em></h1>
+            <p className="psx-hero-desc mt-1">
               AI background + crisp text overlay. Optimized sizes for YouTube, X, LinkedIn, blog &amp; podcast.
             </p>
           </div>
