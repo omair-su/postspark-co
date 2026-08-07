@@ -693,18 +693,17 @@ function ImageStudioPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <section className="psx-hero ps-elev-2 ds-fade-up relative overflow-hidden p-6 sm:p-7" data-page="image">
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
         <span className="ps-ambient" aria-hidden />
         <HeroArt art="image" />
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <span className="psx-icon-wrap" style={{ background: "rgba(255,255,255,0.14)", color: "#fff" }}>
-              <ImageIcon className="h-5 w-5" />
-            </span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-electric">
+              <ImageIcon className="h-5 w-5 text-primary-foreground" />
+            </div>
             <div>
-              <p className="psx-hero-eyebrow mb-1">Image Studio</p>
-              <h1 className="psx-hero-title">Visuals that <em>stop the feed</em></h1>
-              <p className="psx-hero-desc mt-1">
+              <h1 className="text-2xl font-bold tracking-tight">AI Image Studio Pro</h1>
+              <p className="text-sm text-muted-foreground">
                 Generate, edit, vary, and save share-worthy social visuals.
               </p>
             </div>
@@ -1007,22 +1006,9 @@ function ImageStudioPage() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="psx-empty h-full w-full !min-h-0 border-0 !bg-transparent">
-                      <ImageIcon className="psx-empty-illustration h-12 w-12" />
-                      <p className="text-sm font-semibold text-[color:var(--ds-text)]">Your image will appear here</p>
-                      <p className="mt-1 text-xs text-[color:var(--ds-muted)]">Choose a model above and click Generate</p>
-                      <div className="mt-3 flex flex-wrap justify-center gap-1.5">
-                        {["Photorealistic", "Artistic", "Minimal"].map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => setStyle(s === "Photorealistic" ? "photorealistic" : s === "Artistic" ? "illustration" : "minimal")}
-                            className="psx-pill"
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
+                    <div className="flex h-full w-full flex-col items-center justify-center text-muted-foreground">
+                      <ImageIcon className="mb-2 h-10 w-10 opacity-40" />
+                      <p className="text-xs">Your image will appear here</p>
                     </div>
                   )}
                   {imageUrl && stockAttribution && (
@@ -1111,9 +1097,9 @@ function ImageStudioPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="psx-empty h-64 !min-h-0">
-                    <Wand2 className="psx-empty-illustration h-12 w-12" />
-                    <p className="text-sm font-semibold text-[color:var(--ds-text)]">4 variations will appear here</p>
+                  <div className="flex h-64 flex-col items-center justify-center text-muted-foreground">
+                    <Wand2 className="mb-2 h-10 w-10 opacity-40" />
+                    <p className="text-xs">4 variations will appear here</p>
                   </div>
                 )}
               </div>
@@ -1355,9 +1341,9 @@ function ImageStudioPage() {
               ) : editedUrl ? (
                 <img src={editedUrl} alt="Resulting image after AI studio processing" className="h-full w-full object-contain" />
               ) : (
-                <div className="psx-empty h-full w-full !min-h-0 border-0 !bg-transparent">
-                  <Wand2 className="psx-empty-illustration h-12 w-12" />
-                  <p className="text-sm font-semibold text-[color:var(--ds-text)]">Edited image will appear here</p>
+                <div className="flex h-full w-full flex-col items-center justify-center text-muted-foreground">
+                  <Wand2 className="mb-2 h-10 w-10 opacity-40" />
+                  <p className="text-xs">Edited image will appear here</p>
                 </div>
               )}
             </div>

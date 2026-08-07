@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, Loader2, Copy, Check, Wand2, Save, Repeat, AudioWaveform } from "lucide-react";
+import { Sparkles, Loader2, Copy, Check, Wand2, Save, Repeat } from "lucide-react";
 import { humanize } from "@/lib/copilot.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { toast } from "sonner";
@@ -79,20 +79,31 @@ function HumanizerPage() {
   return (
     <div className="mx-auto max-w-[1100px] px-6 pb-20 pt-6 space-y-6">
       {/* HERO */}
-      <div className="psx-hero flex items-start gap-4 p-5 sm:p-6" data-page="humanizer">
+      <div
+        className="flex items-start gap-4 rounded-2xl p-5"
+        style={{
+          background: "linear-gradient(135deg, #161F33 0%, rgba(124,58,237,0.14) 100%)",
+          border: "1px solid #243047",
+        }}
+      >
         <HeroArt art="hook" />
-        <span className="psx-icon-wrap shrink-0" style={{ background: "rgba(255,255,255,0.14)", color: "#fff", width: 52, height: 52, borderRadius: 14 }}>
-          <Wand2 className="h-6 w-6" />
-        </span>
+        <div
+          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[14px]"
+          style={{
+            background: "linear-gradient(135deg, #8B6FFF 0%, #6B4EFF 100%)",
+            boxShadow: "0 2px 8px rgba(107,78,255,0.25)",
+          }}
+        >
+          <Wand2 className="h-6 w-6 text-white" />
+        </div>
         <div className="flex-1">
-          <p className="psx-hero-eyebrow mb-1">AI Humanizer</p>
-          <h1 className="psx-hero-title">Write like a <em>human</em>, every time</h1>
-          <p className="psx-hero-desc mt-1 mb-2.5">
+          <h1 className="m-0 text-[22px] font-bold tracking-tight text-[#1A1A2E]">AI Humanizer</h1>
+          <p className="m-0 mb-2.5 mt-1 text-[13px] leading-relaxed text-[#6B7280]">
             Rewrite AI text so it sounds genuinely human — varying rhythm, dropping corporate patterns, preserving your meaning 100%.
           </p>
           <div className="flex flex-wrap gap-1.5">
             {["Rhythm variation", "Filler removed", "Meaning preserved", "Fast"].map((t) => (
-              <span key={t} className="psx-pill">
+              <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px] font-medium" style={{ background: "rgba(107,78,255,0.08)", color: "#6B4EFF", border: "0.5px solid rgba(107,78,255,0.15)" }}>
                 {t}
               </span>
             ))}
@@ -203,11 +214,7 @@ function HumanizerPage() {
             ) : output ? (
               output
             ) : (
-              <div className="psx-empty !min-h-[240px] w-full border-0 !bg-transparent">
-                <AudioWaveform className="psx-empty-illustration h-12 w-12" />
-                <p className="text-sm font-semibold text-[color:var(--ds-text)]">Humanized output appears here</p>
-                <p className="mt-1 text-xs text-[color:var(--ds-muted)]">Paste AI text on the left and click Humanize</p>
-              </div>
+              <div className="text-[#9CA3AF]">Your humanized text will appear here.</div>
             )}
           </div>
         </div>

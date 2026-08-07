@@ -126,19 +126,18 @@ function BrandVoicePage() {
   return (
     <div className="mx-auto max-w-7xl">
       {/* Header */}
-      <section className="psx-hero ps-elev-2 ds-fade-up relative overflow-hidden p-6 sm:p-7" data-page="brand">
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
         <span className="ps-ambient" aria-hidden />
         <HeroArt art="hook" />
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="psx-hero-eyebrow mb-1">Brand Voice</p>
             <div className="flex items-center gap-2">
-              <h1 className="psx-hero-title">Sound like <em>you</em>, always</h1>
-              <span className="psx-pill-pro psx-pill">
+              <h1 className="text-2xl font-bold text-white">Brand Voice</h1>
+              <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-300 border border-violet-500/30">
                 <Crown className="h-3 w-3" /> Pro
               </span>
             </div>
-            <p className="psx-hero-desc mt-1">
+            <p className="mt-1 text-sm text-slate-400">
               Train, tune, and test how PostSpark writes for you. Every generation with an active voice follows these rules.
             </p>
           </div>
@@ -169,9 +168,9 @@ function BrandVoicePage() {
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : voices.length === 0 && !showHub ? (
-            <div className="psx-empty">
-              <Mic className="psx-empty-illustration h-14 w-14" />
-              <p className="mt-3 text-sm font-semibold text-[color:var(--ds-text)]">No brand voices yet. Create your first one.</p>
+            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-12 text-center">
+              <Mic className="mx-auto h-8 w-8 text-slate-600" />
+              <p className="mt-3 text-sm text-slate-400">No brand voices yet. Create your first one.</p>
               <button
                 onClick={() => setShowHub(true)}
                 className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-bold text-white hover:opacity-90"

@@ -6,13 +6,15 @@ import {
   Send,
   Calendar as CalendarIcon,
   Loader2,
+  Facebook,
+  Instagram,
   AtSign,
+  Twitter,
+  Linkedin,
+  Youtube,
+  Music2,
   Sparkles,
-  Image as ImageIcon,
-  Check,
-  Radio,
 } from "lucide-react";
-import { BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 import { publishToX } from "@/lib/socialPublish.functions";
 import { publishToFacebook, publishToInstagram, publishToThreads } from "@/lib/metaPublish.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
@@ -43,21 +45,18 @@ type PlatformId = "facebook" | "instagram" | "threads" | "x" | "linkedin" | "tik
 const PLATFORMS: {
   id: PlatformId;
   label: string;
-  brand: BrandKey;
-  psxClass: string;
+  icon: any;
   limit: number;
   color: string;
 }[] = [
-  { id: "facebook", label: "Facebook", brand: "facebook", psxClass: "psx-platform-facebook", limit: 63206, color: "#1877F2" },
-  { id: "instagram", label: "Instagram", brand: "instagram", psxClass: "psx-platform-instagram", limit: 2200, color: "#DD2A7B" },
-  { id: "threads", label: "Threads", brand: "threads", psxClass: "psx-platform-threads", limit: 500, color: "#4b5563" },
-  { id: "x", label: "X", brand: "x", psxClass: "psx-platform-twitter", limit: 280, color: "#4b5563" },
-  { id: "linkedin", label: "LinkedIn", brand: "linkedin", psxClass: "psx-platform-linkedin", limit: 3000, color: "#0A66C2" },
-  { id: "tiktok", label: "TikTok", brand: "tiktok", psxClass: "psx-platform-tiktok", limit: 2200, color: "#4b5563" },
-  { id: "youtube", label: "YouTube", brand: "youtube", psxClass: "psx-platform-youtube", limit: 5000, color: "#FF0000" },
+  { id: "facebook", label: "Facebook", icon: Facebook, limit: 63206, color: "bg-[#1877F2]" },
+  { id: "instagram", label: "Instagram", icon: Instagram, limit: 2200, color: "bg-gradient-to-br from-[#F58529] via-[#DD2A7B] to-[#8134AF]" },
+  { id: "threads", label: "Threads", icon: AtSign, limit: 500, color: "bg-black" },
+  { id: "x", label: "X", icon: Twitter, limit: 280, color: "bg-black" },
+  { id: "linkedin", label: "LinkedIn", icon: Linkedin, limit: 3000, color: "bg-[#0A66C2]" },
+  { id: "tiktok", label: "TikTok", icon: Music2, limit: 2200, color: "bg-black" },
+  { id: "youtube", label: "YouTube", icon: Youtube, limit: 5000, color: "bg-[#FF0000]" },
 ];
-
-type PublishState = "idle" | "publishing" | "success" | "error";
 
 function PublishingCenter() {
   const { session } = useAuth();
@@ -68,13 +67,10 @@ function PublishingCenter() {
   const [text, setText] = useState("");
   const [selected, setSelected] = useState<Set<PlatformId>>(new Set(["x"]));
   const [mediaUrl, setMediaUrl] = useState("");
-  const [publishState, setPublishState] = useState<PublishState>("idle");
-  const [publishResults, setPublishResults] = useState<string[]>([]);
+  const [publishing, setPublishing] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
   const [previewPlatform, setPreviewPlatform] = useState<PlatformId>("x");
-
-  const publishing = publishState === "publishing";
 
   const toggle = (id: PlatformId) => {
     setSelected((prev) => {
@@ -89,10 +85,7 @@ function PublishingCenter() {
   };
 
   const activeLimit = useMemo(
-    () =>
-      selected.size > 0
-        ? Math.min(...Array.from(selected).map((p) => PLATFORMS.find((x) => x.id === p)!.limit))
-        : 280,
+    () => Math.min(...Array.from(selected).map((p) => PLATFORMS.find((x) => x.id === p)!.limit)),
     [selected],
   );
 
@@ -102,17 +95,15 @@ function PublishingCenter() {
   const publishNow = async () => {
     if (!text.trim()) return toast.error("Write something first");
     if (selected.size === 0) return toast.error("Pick at least one platform");
-    setPublishState("publishing");
+    setPublishing(true);
     const results: string[] = [];
-    let anyFail = false;
-    const fmt = (label: string, r: any) => {
-      if (!r?.ok) anyFail = true;
-      return r?.ok ? `${label}: ✅` : `${label}: ❌ ${r?.error || "failed"}`;
-    };
+    const fmt = (label: string, r: any) =>
+      r?.ok ? `${label}: ✅` : `${label}: ❌ ${r?.error || "failed"}`;
     for (const id of selected) {
       try {
         if (id === "x") {
           const r = await publishToX({ data: { text, mediaUrls: mediaUrl ? [mediaUrl] : [] }, ...authHeaders } as any);
+          // publishToX returns { ok: true, tweetId } or { error }
           results.push(fmt("X", r));
         } else if (id === "facebook") {
           const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
@@ -127,7 +118,6 @@ function PublishingCenter() {
         } else if (id === "instagram") {
           if (!mediaUrl) {
             results.push("Instagram: ❌ media required");
-            anyFail = true;
             continue;
           }
           const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
@@ -151,14 +141,11 @@ function PublishingCenter() {
           results.push(`${id}: not wired for direct publish yet — use dedicated page`);
         }
       } catch (e: any) {
-        anyFail = true;
         results.push(`${id}: ❌ ${e?.message || "error"}`);
       }
     }
-    setPublishResults(results);
-    setPublishState(anyFail ? "error" : "success");
+    setPublishing(false);
     toast.message("Publish results", { description: results.join("\n") });
-    setTimeout(() => setPublishState("idle"), 4000);
   };
 
   const scheduleAll = async () => {
@@ -187,67 +174,52 @@ function PublishingCenter() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
-      {/* HERO */}
-      <div className="psx-hero relative mb-6 overflow-hidden rounded-2xl px-6 py-6" data-page="publishing">
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+        <span className="ps-ambient" aria-hidden />
         <HeroArt art="upgrade" />
-        <div className="psx-hero-eyebrow">
-          <Radio className="h-3 w-3" /> Publishing Center
-        </div>
-        <h1 className="psx-hero-title mt-1.5">
-          One composer, <em>every network</em>
-        </h1>
-        <p className="psx-hero-desc mt-1.5">
-          One place to write, preview, and publish to 7 platforms simultaneously.
-        </p>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {["1 Write caption", "2 Choose platforms", "3 Preview", "4 Publish"].map((step, i) => (
-            <span key={step} className="psx-pill" style={{ background: "rgba(255,255,255,0.12)", borderColor: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.9)" }}>
-              {step}
-              {i < 3 && <span className="text-white/40">→</span>}
-            </span>
-          ))}
-        </div>
-      </div>
+        <header className="mb-6 flex items-start gap-3">
+          <div className="rounded-lg bg-primary/10 p-2 text-primary">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Publishing Center</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              One composer for every network. Toggle platforms, preview, then publish or schedule.
+            </p>
+          </div>
+        </header>
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_260px_1fr]">
         {/* Composer */}
-        <section className="psx-card p-4">
+        <section className="rounded-xl border border-border bg-card p-4">
           <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Caption
           </label>
-          <div className="psx-card-input mt-2 overflow-hidden">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={10}
-              placeholder="What do you want to share?"
-              className="w-full resize-y border-none bg-transparent p-3 text-sm outline-none"
-            />
-          </div>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={10}
+            placeholder="What do you want to share?"
+            className="mt-2 w-full resize-y rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary"
+          />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span
-              className={`font-mono ${over ? "font-semibold text-destructive" : "text-muted-foreground"}`}
-            >
+            <span className={over ? "text-destructive font-medium" : "text-muted-foreground"}>
               {count}/{activeLimit} chars
             </span>
             <div className="flex flex-wrap gap-2 text-[11px]">
               {Array.from(selected).map((id) => {
                 const p = PLATFORMS.find((x) => x.id === id)!;
                 const bad = count > p.limit;
-                const pct = Math.min(100, (count / p.limit) * 100);
                 return (
                   <span
                     key={id}
-                    className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono ${
-                      bad ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
+                    className={`rounded-full px-2 py-0.5 ${
+                      bad
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    <span className="relative inline-block h-1.5 w-8 overflow-hidden rounded-full bg-border">
-                      <span
-                        className="absolute inset-y-0 left-0 rounded-full"
-                        style={{ width: `${pct}%`, background: bad ? "var(--destructive)" : p.color }}
-                      />
-                    </span>
                     {p.label} {count}/{p.limit}
                   </span>
                 );
@@ -255,14 +227,14 @@ function PublishingCenter() {
             </div>
           </div>
 
-          <label className="mt-4 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            <ImageIcon className="h-3.5 w-3.5" /> Attach media
+          <label className="mt-4 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Media URL (image or video)
           </label>
           <input
             value={mediaUrl}
             onChange={(e) => setMediaUrl(e.target.value)}
-            placeholder="Paste an image or video URL…"
-            className="psx-input mt-2 px-3 py-2 text-sm"
+            placeholder="https://…"
+            className="mt-2 w-full rounded-lg border border-border bg-background p-2 text-sm outline-none focus:border-primary"
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
             Attach an image or video from Image Studio, Stock Gallery, or paste any public URL.
@@ -272,28 +244,26 @@ function PublishingCenter() {
             <button
               onClick={publishNow}
               disabled={publishing || over || selected.size === 0}
-              className="psx-btn-primary px-4 py-2 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
             >
               {publishing ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
-              ) : publishState === "success" ? (
-                <Check className="h-4 w-4" />
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              {publishing ? "Publishing…" : publishState === "success" ? "Published!" : "Publish now"}
+              Publish now
             </button>
             <div className="flex items-center gap-2">
               <input
                 type="datetime-local"
                 value={scheduleAt}
                 onChange={(e) => setScheduleAt(e.target.value)}
-                className="psx-input px-3 py-2 text-sm"
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
               />
               <button
                 onClick={scheduleAll}
                 disabled={scheduling || !scheduleAt || selected.size === 0}
-                className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:border-[var(--psx-purple)] hover:text-[var(--psx-purple)] disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:bg-accent disabled:opacity-50"
               >
                 {scheduling ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -307,41 +277,34 @@ function PublishingCenter() {
         </section>
 
         {/* Platform toggles */}
-        <section className="psx-card p-4">
+        <section className="rounded-xl border border-border bg-card p-4">
           <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Platforms
           </div>
           <div className="grid gap-2">
             {PLATFORMS.map((p) => {
               const active = selected.has(p.id);
+              const Icon = p.icon;
               return (
                 <button
                   key={p.id}
                   onClick={() => toggle(p.id)}
-                  className="flex items-center justify-between rounded-xl border-2 px-3 py-2 text-sm transition-all"
-                  style={{
-                    borderColor: active ? p.color : "var(--psx-border)",
-                    background: active ? `color-mix(in srgb, ${p.color} 8%, transparent)` : "transparent",
-                  }}
+                  className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
+                    active
+                      ? "border-primary bg-primary/10"
+                      : "border-border hover:bg-accent"
+                  }`}
                 >
-                  <span className="flex items-center gap-2.5">
-                    <span className={`psx-platform-icon ${p.psxClass}`}>
-                      <BrandGlyph brand={p.brand} size={16} />
-                    </span>
-                    <span className="font-medium">{p.label}</span>
-                  </span>
                   <span className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-muted-foreground">{p.limit}</span>
                     <span
-                      className="flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all"
-                      style={{
-                        borderColor: active ? p.color : "var(--psx-border)",
-                        background: active ? p.color : "transparent",
-                      }}
+                      data-brand-tile="true"
+                      className={`flex h-6 w-6 items-center justify-center rounded ${p.color} text-white`}
                     >
-                      {active && <Check className="h-3 w-3 text-white" />}
+                      <Icon className="h-3.5 w-3.5" />
                     </span>
+                    {p.label}
                   </span>
+                  <span className="text-[10px] text-muted-foreground">{p.limit}</span>
                 </button>
               );
             })}
@@ -349,40 +312,24 @@ function PublishingCenter() {
         </section>
 
         {/* Live preview */}
-        <section className="psx-card overflow-hidden">
-          {selected.size > 0 ? (
-            <>
-              <div className="flex gap-1 overflow-x-auto border-b border-border px-3 pt-2">
-                {PLATFORMS.filter((p) => selected.has(p.id)).map((p) => {
-                  const isActive = previewPlatform === p.id;
-                  return (
-                    <button
-                      key={p.id}
-                      onClick={() => setPreviewPlatform(p.id)}
-                      className="flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-xs transition-colors"
-                      style={{
-                        borderColor: isActive ? p.color : "transparent",
-                        color: isActive ? p.color : "var(--psx-text-2)",
-                        fontWeight: isActive ? 600 : 400,
-                      }}
-                    >
-                      <BrandGlyph brand={p.brand} size={12} />
-                      {p.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="p-4">
-                <PostPreview platform={previewPlatform} text={text} mediaUrl={mediaUrl} />
-              </div>
-            </>
-          ) : (
-            <div className="psx-empty m-3">
-              <AtSign className="psx-empty-illustration mx-auto h-8 w-8" />
-              <p className="mt-3 text-sm font-semibold">No platform selected</p>
-              <p className="mt-1 text-xs text-muted-foreground">Choose at least one platform to see a live preview.</p>
+        <section className="rounded-xl border border-border bg-card p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Preview
             </div>
-          )}
+            <select
+              value={previewPlatform}
+              onChange={(e) => setPreviewPlatform(e.target.value as PlatformId)}
+              className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
+            >
+              {PLATFORMS.filter((p) => selected.has(p.id)).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <PostPreview platform={previewPlatform} text={text} mediaUrl={mediaUrl} />
         </section>
       </div>
     </div>
@@ -399,12 +346,13 @@ function PostPreview({
   mediaUrl: string;
 }) {
   const P = PLATFORMS.find((p) => p.id === platform)!;
+  const Icon = P.icon;
   return (
     <div className="rounded-xl border border-border bg-background p-4">
       <div className="flex items-center gap-2">
-        <span className={`psx-platform-icon ${P.psxClass}`} style={{ width: 32, height: 32 }}>
-          <BrandGlyph brand={P.brand} size={16} />
-        </span>
+        <div data-brand-tile="true" className={`flex h-8 w-8 items-center justify-center rounded-full ${P.color} text-white`}>
+          <Icon className="h-4 w-4" />
+        </div>
         <div className="text-sm font-semibold">Your Brand</div>
         <span className="text-xs text-muted-foreground">· now</span>
       </div>

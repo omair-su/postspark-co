@@ -266,22 +266,25 @@ function CarouselPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <ToolHero
-        dataPage="carousel"
-        art="carousel"
-        accent="#ec4899"
-        eyebrow="Carousel generator"
-        icon={<Layers className="h-3 w-3" />}
-        title={<>Branded <em>swipeable slides</em>, generated</>}
-        subtitle="Turn any idea into a multi-slide carousel — edit, rewrite and export in your brand style."
-        actions={
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+        <span className="ps-ambient" aria-hidden />
+        <HeroArt art="carousel" />
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl gradient-electric glow-electric">
+              <Layers className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Carousel Generator</h1>
+              <p className="text-sm text-muted-foreground">Branded swipeable slides — edit, rewrite, export.</p>
+            </div>
+          </div>
           <div className="flex flex-col items-end gap-2">
             <UsageMeter refreshKey={slides.length} />
             <ModelHealthBadge compact />
           </div>
-        }
-      />
-
+        </div>
+      </section>
 
       <div className="mt-4">
         <CanvaDesignLauncher
@@ -589,7 +592,7 @@ function CarouselPage() {
 
 
 import { forwardRef } from "react";
-import { ToolHero } from "@/components/dashboard/ToolHero";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 const SlideCanvas = forwardRef<HTMLDivElement, {
   slide: Slide;
   index: number;

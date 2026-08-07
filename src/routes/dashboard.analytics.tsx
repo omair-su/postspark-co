@@ -106,13 +106,12 @@ function AnalyticsPage() {
 
   return (
     <div className="mx-auto max-w-3xl animate-fade-in">
-      <section className="psx-hero ps-elev-2 ds-fade-up relative overflow-hidden p-6 sm:p-7" data-page="analytics">
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden">
         <span className="ps-ambient" aria-hidden />
         <HeroArt art="hero" />
         <div className="relative">
-          <p className="psx-hero-eyebrow mb-1">Analytics</p>
-          <h1 className="psx-hero-title">Know what's <em>working</em></h1>
-          <p className="psx-hero-desc mt-1">Track your content creation performance.</p>
+          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Track your content creation performance.</p>
         </div>
       </section>
 

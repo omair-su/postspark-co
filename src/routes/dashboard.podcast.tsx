@@ -11,7 +11,7 @@ import { transcribeAudio } from "@/lib/import.functions";
 import { generatePodcastContentPack } from "@/lib/podcast.functions";
 import { fileToBase64 } from "@/lib/clientImport";
 import { withAIProgress } from "@/lib/aiProgress";
-import { ToolHero } from "@/components/dashboard/ToolHero";
+import { HeroArt } from "@/components/dashboard/HeroArt";
 
 export const Route = createFileRoute("/dashboard/podcast")({
   component: PodcastPage,
@@ -208,16 +208,22 @@ function PodcastPage() {
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <ToolHero
-        dataPage="podcast"
-        art="shorts"
-        accent="#f59e0b"
-        eyebrow="Podcast & voice engine"
-        icon={<Headphones className="h-3 w-3" />}
-        title={<>Turn one episode into a <em>full content pack</em></>}
-        subtitle="Upload one episode. Get show notes, a blog post and a social pack in 60 seconds."
-      />
-
+      <div className="pod-hero">
+        <HeroArt art="shorts" />
+        <div className="flex items-start gap-3">
+          <div className="pod-hero-badge"><Headphones className="h-4 w-4" /></div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-[#1a1a2e]">Podcast & Voice → Content Engine</h1>
+            <p className="mt-1 text-sm text-[#4B5563]">Upload one episode. Get a full content pack in 60 seconds.</p>
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              <span className="pod-hero-chip">🎙️ ElevenLabs transcription</span>
+              <span className="pod-hero-chip">📝 Show notes</span>
+              <span className="pod-hero-chip">📰 Blog post</span>
+              <span className="pod-hero-chip">📦 Social pack</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* LEFT — Input */}
@@ -385,14 +391,10 @@ function PodcastPage() {
               </div>
             </>
           ) : (
-            <div className="psx-empty m-4">
-              <Mic className="psx-empty-illustration mb-4 h-14 w-14" />
-              <p className="text-base font-semibold text-foreground">Your content pack appears here</p>
-              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                Upload or record an episode, then pick the formats you want generated.
-              </p>
+            <div className="flex h-96 flex-col items-center justify-center text-[#9CA3AF]">
+              <Mic className="mb-2 h-10 w-10 opacity-40" />
+              <p className="text-xs">Your repurposed content pack will appear here</p>
             </div>
-
           )}
         </div>
       </div>

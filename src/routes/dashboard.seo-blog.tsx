@@ -176,8 +176,7 @@ function SeoBlogPage() {
         icon={<FileText className="h-3 w-3" />}
         accent="#10B981"
         art="seo"
-        dataPage="seo"
-        title={<>Rank higher with <em>AI content</em></>}
+        title="Long-form articles that rank"
         subtitle="Search-optimized blogs with meta, structure and FAQ included."
         steps={["Pick keyword", "Generate draft", "Publish & rank"]}
       />
@@ -295,14 +294,6 @@ function SeoBlogPage() {
           <button onClick={generate} disabled={loading} className="ps-generate-btn">
             {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Writing your article…</> : <><Sparkles className="h-4 w-4" /> Generate SEO Blog</>}
           </button>
-
-          {!blog && !loading && (
-            <div className="psx-empty">
-              <FileText className="psx-empty-illustration h-16 w-16" />
-              <p className="text-[15px] font-semibold text-[color:var(--ds-text)]">Your blog will appear here</p>
-              <p className="mt-1 text-[13px] text-[color:var(--ds-muted)]">Enter your topic and target keyword, then click Generate</p>
-            </div>
-          )}
         </>
       )}
 

@@ -1,16 +1,15 @@
 import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Sparkles, ArrowRight, Flame, Image as ImageIcon, FileText, Layers, Repeat, Clapperboard } from "lucide-react";
+import { Sparkles, ArrowRight, Flame, Image as ImageIcon, FileText, Layers, Repeat } from "lucide-react";
 
-type SuggestionId = "repurpose" | "hook" | "image" | "seo" | "carousel" | "short";
+type SuggestionId = "repurpose" | "hook" | "image" | "seo" | "carousel";
 
 const SUGGESTIONS: Array<{ id: SuggestionId; label: string; icon: any; to: string; accent: string }> = [
-  { id: "repurpose", label: "Repurpose a post", icon: Repeat, to: "/dashboard/repurpose", accent: "var(--psx-repurpose)" },
-  { id: "hook", label: "Write 10 hooks", icon: Flame, to: "/dashboard/hook-lab", accent: "var(--psx-hook)" },
-  { id: "image", label: "Generate an image", icon: ImageIcon, to: "/dashboard/image-studio", accent: "var(--psx-image)" },
-  { id: "seo", label: "Write an SEO blog", icon: FileText, to: "/dashboard/seo-blog", accent: "var(--psx-seo)" },
-  { id: "carousel", label: "Build a carousel", icon: Layers, to: "/dashboard/carousel", accent: "var(--psx-carousel)" },
-  { id: "short" as any, label: "Create a short", icon: Clapperboard, to: "/dashboard/shorts-studio", accent: "var(--psx-shorts)" },
+  { id: "repurpose", label: "Repurpose a post", icon: Repeat, to: "/dashboard/repurpose", accent: "repurpose" },
+  { id: "hook", label: "Write 10 hooks", icon: Flame, to: "/dashboard/hook-lab", accent: "hook" },
+  { id: "image", label: "Generate an image", icon: ImageIcon, to: "/dashboard/image-studio", accent: "image" },
+  { id: "seo", label: "Write an SEO blog", icon: FileText, to: "/dashboard/seo-blog", accent: "seo" },
+  { id: "carousel", label: "Build a carousel", icon: Layers, to: "/dashboard/carousel", accent: "carousel" },
 ];
 
 /**
@@ -49,9 +48,9 @@ export function AskBar() {
   }
 
   return (
-    <div>
-      <label htmlFor="ds-askbar" className="psx-card-input flex items-center gap-2.5 px-4 py-3">
-        <Sparkles className="h-4 w-4 shrink-0" style={{ color: "var(--psx-purple)" }} />
+    <div className="ds-fade-up-1">
+      <label className="ds-askbar" htmlFor="ds-askbar">
+        <Sparkles className="h-4 w-4 shrink-0 text-[#c4b5fd]" />
         <input
           id="ds-askbar"
           value={value}
@@ -59,24 +58,27 @@ export function AskBar() {
           onKeyDown={onKey}
           placeholder="What do you want to create today? e.g. Repurpose my latest blog into a LinkedIn post…"
           aria-label="Ask PostSpark"
-          className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none placeholder:text-[color:var(--psx-text-muted)]"
-          style={{ color: "var(--psx-text)" }}
         />
-        <button type="button" onClick={submit} className="psx-btn-primary shrink-0 px-4 py-2 text-[13px]" aria-label="Run">
+        <button
+          type="button"
+          onClick={submit}
+          className="ds-cta-pill !py-2 !px-4 text-[13px]"
+          aria-label="Run"
+        >
           Run <ArrowRight className="h-4 w-4" />
         </button>
       </label>
-
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="mt-3 flex flex-wrap gap-2">
         {SUGGESTIONS.map((s) => (
           <button
             key={s.id}
             type="button"
+            data-accent={s.accent}
             onClick={() => navigate({ to: s.to })}
-            className="psx-quick-tile"
+            className="ds-chip hover:border-[#a78bfa]/55 hover:bg-white/10 transition-colors"
           >
-            <s.icon className="psx-quick-tile-icon h-4 w-4" style={{ color: s.accent }} />
-            <span className="psx-quick-tile-label">{s.label}</span>
+            <s.icon className="h-3 w-3 text-[#c4b5fd]" />
+            <span>{s.label}</span>
           </button>
         ))}
       </div>
