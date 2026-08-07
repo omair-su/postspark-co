@@ -152,12 +152,15 @@ export async function exportDesign(
     if (job?.status === "success") {
       const urls: string[] = job.urls ?? [];
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      await supabaseAdmin
+      const { data: row } = await supabaseAdmin
         .from("user_canva_designs")
-        .update({ export_urls: urls, status: "exported" })
+        .update({ export_urls: urls, status: "exported", updated_at: new Date().toISOString() })
         .eq("user_id", userId)
-        .eq("canva_design_id", designId);
-      return { urls };
+        .eq("canva_design_id", designId)
+        .select("*")
+        .maybeSingle();
+      if (row) await snapshotVersion(userId, row, "export", `Exported ${format.toUpperCase()}`);
+      return { urls, pages: urls.length, row };
     }
     if (job?.status === "failed") {
       return { error: job?.error?.message || "Canva export failed. Please try again." };
@@ -165,6 +168,226 @@ export async function exportDesign(
   }
   return { error: "Canva export timed out. Try exporting again from Canva." };
 }
+
+/** Append an immutable snapshot of a design row to its version history. */
+export async function snapshotVersion(
+  userId: string,
+  row: any,
+  source: "export" | "import" | "publish" | "restore",
+  label?: string,
+) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: last } = await supabaseAdmin
+    .from("canva_design_versions")
+    .select("version_number")
+    .eq("design_row_id", row.id)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const next = (last?.version_number ?? 0) + 1;
+  const { error } = await supabaseAdmin.from("canva_design_versions").insert({
+    user_id: userId,
+    design_row_id: row.id,
+    canva_design_id: row.canva_design_id,
+    version_number: next,
+    label: label ?? null,
+    source,
+    design_title: row.design_title,
+    thumbnail_url: row.thumbnail_url,
+    export_urls: row.export_urls ?? [],
+    slide_count: row.slide_count ?? 1,
+  });
+  if (error) console.error("[canva] snapshot failed", error.message);
+  return next;
+}
+
+/** Pull the latest Canva state (title, thumbnail, page count) back into PostSpark. */
+export async function syncDesign(userId: string, rowId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: row } = await supabaseAdmin
+    .from("user_canva_designs")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", rowId)
+    .maybeSingle();
+  if (!row) return { error: "That design is no longer in your PostSpark library." };
+
+  const res = await withToken<any>(userId, (t) => canvaFetch(`/designs/${row.canva_design_id}`, t));
+  if (res.error) return { error: res.error };
+
+  const design = res.data?.design ?? res.data;
+  const patch = {
+    design_title: design?.title || row.design_title,
+    thumbnail_url: design?.thumbnail?.url ?? row.thumbnail_url,
+    slide_count: design?.page_count ?? row.slide_count,
+    canva_edit_url: design?.urls?.edit_url || row.canva_edit_url,
+    updated_at: new Date().toISOString(),
+  };
+  const { data: updated } = await supabaseAdmin
+    .from("user_canva_designs")
+    .update(patch)
+    .eq("user_id", userId)
+    .eq("id", rowId)
+    .select("*")
+    .maybeSingle();
+
+  if (updated) await snapshotVersion(userId, updated, "import", "Imported latest Canva edits");
+  return { row: updated };
+}
+
+/** Import designs that exist in Canva but aren't tracked in PostSpark yet. */
+export async function importRecentDesigns(userId: string, designType = "imported") {
+  const res = await withToken<any>(userId, (t) => canvaFetch(`/designs?limit=50`, t));
+  if (res.error) return { error: res.error };
+  const items: any[] = res.data?.items ?? [];
+  if (items.length === 0) return { imported: 0, updated: 0 };
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: existing } = await supabaseAdmin
+    .from("user_canva_designs")
+    .select("id, canva_design_id, design_title, thumbnail_url, slide_count, export_urls")
+    .eq("user_id", userId);
+  const byId = new Map((existing ?? []).map((r: any) => [r.canva_design_id, r]));
+
+  let imported = 0;
+  let updated = 0;
+  for (const item of items) {
+    const designId = item?.id;
+    if (!designId) continue;
+    const title = item?.title || "Untitled Canva design";
+    const thumb = item?.thumbnail?.url ?? null;
+    const pages = item?.page_count ?? 1;
+    const editUrl = item?.urls?.edit_url || canvaEditUrl(designId);
+    const known = byId.get(designId);
+
+    if (known) {
+      const changed =
+        known.design_title !== title ||
+        known.thumbnail_url !== thumb ||
+        known.slide_count !== pages;
+      if (!changed) continue;
+      const { data: row } = await supabaseAdmin
+        .from("user_canva_designs")
+        .update({
+          design_title: title,
+          thumbnail_url: thumb,
+          slide_count: pages,
+          canva_edit_url: editUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId)
+        .eq("id", known.id)
+        .select("*")
+        .maybeSingle();
+      if (row) {
+        await snapshotVersion(userId, row, "import", "Imported latest Canva edits");
+        updated++;
+      }
+      continue;
+    }
+
+    const { data: row } = await supabaseAdmin
+      .from("user_canva_designs")
+      .insert({
+        user_id: userId,
+        canva_design_id: designId,
+        design_title: title,
+        design_type: pages > 1 ? "carousel" : designType,
+        thumbnail_url: thumb,
+        slide_count: pages,
+        canva_edit_url: editUrl,
+        status: "draft",
+      })
+      .select("*")
+      .maybeSingle();
+    if (row) {
+      await snapshotVersion(userId, row, "import", "Imported from Canva");
+      imported++;
+    }
+  }
+  return { imported, updated };
+}
+
+export async function listVersions(userId: string, rowId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("canva_design_versions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("design_row_id", rowId)
+    .order("version_number", { ascending: false })
+    .limit(50);
+  if (error) return { error: error.message };
+  return { versions: data ?? [] };
+}
+
+export async function restoreVersion(userId: string, versionId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: version } = await supabaseAdmin
+    .from("canva_design_versions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", versionId)
+    .maybeSingle();
+  if (!version) return { error: "That version no longer exists." };
+
+  const { data: row } = await supabaseAdmin
+    .from("user_canva_designs")
+    .update({
+      design_title: version.design_title,
+      thumbnail_url: version.thumbnail_url,
+      export_urls: version.export_urls ?? [],
+      slide_count: version.slide_count ?? 1,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId)
+    .eq("id", version.design_row_id)
+    .select("*")
+    .maybeSingle();
+  if (!row) return { error: "That design is no longer in your library." };
+
+  await snapshotVersion(userId, row, "restore", `Restored v${version.version_number}`);
+  return { row };
+}
+
+/** Export a final version, store it on the account and mark the design published. */
+export async function publishDesign(
+  userId: string,
+  rowId: string,
+  format: "png" | "pdf" | "jpg" = "png",
+) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: row } = await supabaseAdmin
+    .from("user_canva_designs")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", rowId)
+    .maybeSingle();
+  if (!row) return { error: "That design is no longer in your library." };
+
+  const exported = await exportDesign(userId, row.canva_design_id, format);
+  if (exported.error) return { error: exported.error };
+  const urls = exported.urls ?? [];
+
+  const { data: published } = await supabaseAdmin
+    .from("user_canva_designs")
+    .update({
+      status: "published",
+      published_at: new Date().toISOString(),
+      published_urls: urls,
+      export_urls: urls,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId)
+    .eq("id", rowId)
+    .select("*")
+    .maybeSingle();
+
+  if (published) await snapshotVersion(userId, published, "publish", "Published version");
+  return { urls, row: published };
+}
+
 
 export async function uploadAsset(userId: string, imageUrl: string, name: string) {
   const imgRes = await fetch(imageUrl);
