@@ -121,6 +121,7 @@ import { Route as DashboardSettingsWhatsappRouteImport } from './routes/dashboar
 import { Route as DashboardSettingsThreadsRouteImport } from './routes/dashboard.settings.threads'
 import { Route as DashboardSettingsInstagramRouteImport } from './routes/dashboard.settings.instagram'
 import { Route as DashboardSettingsFacebookRouteImport } from './routes/dashboard.settings.facebook'
+import { Route as DashboardSettingsCanvaRouteImport } from './routes/dashboard.settings.canva'
 import { Route as DashboardPublishThreadsRouteImport } from './routes/dashboard.publish.threads'
 import { Route as DashboardPublishInstagramRouteImport } from './routes/dashboard.publish.instagram'
 import { Route as DashboardPublishFacebookRouteImport } from './routes/dashboard.publish.facebook'
@@ -756,6 +757,11 @@ const DashboardSettingsFacebookRoute =
     path: '/facebook',
     getParentRoute: () => DashboardSettingsRoute,
   } as any)
+const DashboardSettingsCanvaRoute = DashboardSettingsCanvaRouteImport.update({
+  id: '/canva',
+  path: '/canva',
+  getParentRoute: () => DashboardSettingsRoute,
+} as any)
 const DashboardPublishThreadsRoute = DashboardPublishThreadsRouteImport.update({
   id: '/threads',
   path: '/threads',
@@ -1129,6 +1135,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
@@ -1286,6 +1293,7 @@ export interface FileRoutesByTo {
   '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
@@ -1445,6 +1453,7 @@ export interface FileRoutesById {
   '/dashboard/publish/facebook': typeof DashboardPublishFacebookRoute
   '/dashboard/publish/instagram': typeof DashboardPublishInstagramRoute
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
+  '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
@@ -1605,6 +1614,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/facebook'
     | '/dashboard/publish/instagram'
     | '/dashboard/publish/threads'
+    | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
@@ -1762,6 +1772,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/facebook'
     | '/dashboard/publish/instagram'
     | '/dashboard/publish/threads'
+    | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
@@ -1920,6 +1931,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/facebook'
     | '/dashboard/publish/instagram'
     | '/dashboard/publish/threads'
+    | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
@@ -2844,6 +2856,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsFacebookRouteImport
       parentRoute: typeof DashboardSettingsRoute
     }
+    '/dashboard/settings/canva': {
+      id: '/dashboard/settings/canva'
+      path: '/canva'
+      fullPath: '/dashboard/settings/canva'
+      preLoaderRoute: typeof DashboardSettingsCanvaRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
     '/dashboard/publish/threads': {
       id: '/dashboard/publish/threads'
       path: '/threads'
@@ -3171,6 +3190,7 @@ const DashboardPublishRouteWithChildren =
   DashboardPublishRoute._addFileChildren(DashboardPublishRouteChildren)
 
 interface DashboardSettingsRouteChildren {
+  DashboardSettingsCanvaRoute: typeof DashboardSettingsCanvaRoute
   DashboardSettingsFacebookRoute: typeof DashboardSettingsFacebookRoute
   DashboardSettingsInstagramRoute: typeof DashboardSettingsInstagramRoute
   DashboardSettingsThreadsRoute: typeof DashboardSettingsThreadsRoute
@@ -3178,6 +3198,7 @@ interface DashboardSettingsRouteChildren {
 }
 
 const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
+  DashboardSettingsCanvaRoute: DashboardSettingsCanvaRoute,
   DashboardSettingsFacebookRoute: DashboardSettingsFacebookRoute,
   DashboardSettingsInstagramRoute: DashboardSettingsInstagramRoute,
   DashboardSettingsThreadsRoute: DashboardSettingsThreadsRoute,
