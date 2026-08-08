@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { BoltMark } from "@/components/BoltMark";
 
 /**
@@ -29,7 +30,7 @@ export function MobileSplash() {
 
   if (state === "hidden") return null;
 
-  return (
+  const node = (
     <div className={`ps-splash ${state === "out" ? "ps-splash-out" : ""}`} role="presentation">
       <div className="ps-splash-glow" aria-hidden />
       <div className="ps-splash-inner">
@@ -46,6 +47,8 @@ export function MobileSplash() {
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(node, document.body) : null;
 }
 
 export default MobileSplash;

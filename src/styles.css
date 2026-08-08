@@ -4503,3 +4503,9 @@ html:not(.dark) .lux-sidebar [class*="uppercase"] {
   .ps-splash, .ps-splash-badge, .ps-splash-word, .ps-splash-tag { animation: none !important; opacity: 1 }
   .ps-splash-bar i { animation: none }
 }
+
+/* Splash must sit above every app chrome layer and ignore inherited color resets. */
+.ps-splash { z-index: 2147483000 !important; }
+.ps-splash .ps-splash-word { color: #0F0F1A !important; -webkit-text-fill-color: #0F0F1A !important; }
+.ps-splash .ps-splash-word span { -webkit-text-fill-color: transparent !important; }
+.ps-splash .ps-splash-tag { color: #5B5B6B !important; -webkit-text-fill-color: #5B5B6B !important; }
