@@ -4361,3 +4361,16 @@ html:not(.dark) .lux-workspace-pill {
 html:not(.dark) .lux-workspace-pill span { color: var(--pw-ink) !important; }
 html:not(.dark) .lux-workspace-pill span span:first-child { color: var(--pw-muted) !important; }
 html:not(.dark) .lux-sidebar .border-white\/5 { border-color: var(--pw-line) !important; }
+
+/* ---------- Phase 5.7: touch tap targets (coarse pointers only) ---------- */
+@media (pointer: coarse) {
+  .dashboard-shell button,
+  .dashboard-shell a[href],
+  .dashboard-shell [role="tab"] {
+    min-height: 44px;
+  }
+  .dashboard-shell .lux-nav-link,
+  .dashboard-shell .ds-topbar-avatar {
+    min-height: 44px;
+  }
+}
