@@ -347,12 +347,14 @@ function RepurposePage() {
         headers: authHeaders,
       });
       if (!startRes.ok) {
-        if (startRes.error === "LIMIT_REACHED") setShowUpgradeModal(true);
-        else toast.error(startRes.error || "Could not start this pack");
+        const startErr = String(startRes.error || "");
+        if (startErr === "LIMIT_REACHED") setShowUpgradeModal(true);
+        else toast.error(startErr || "Could not start this pack");
         setStatuses({});
         setLoading(false);
         return;
       }
+
 
       // Every format runs independently — one failure never blocks the others.
       await withAIProgress(Promise.all(selectedIds.map((id) => runOne(id))));
