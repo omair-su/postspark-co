@@ -4230,3 +4230,27 @@ html:not(.dark) .lux-nav-active {
 }
 html:not(.dark) .lux-nav-active .lux-nav-icon { color: var(--pw-violet) !important; }
 html:not(.dark) .lux-mobile-drawer { background: #FFFFFF !important; }
+
+/* --- Phase 5 corrections: gradient text clip + CTA contrast --- */
+html:not(.dark) .dashboard-shell .ds-gradient-text,
+html:not(.dark) .dashboard-shell .ps-hero-username,
+html:not(.dark) .dashboard-shell .pw-grad-text,
+html:not(.dark) .dashboard-shell .ds-page-hero-title .grad {
+  background: var(--pw-grad) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+html:not(.dark) .dashboard-shell a.pw-cta,
+html:not(.dark) .dashboard-shell button.pw-cta,
+html:not(.dark) .dashboard-shell a.pw-cta *,
+html:not(.dark) .dashboard-shell .ds-cta-pill,
+html:not(.dark) .dashboard-shell .ds-cta-pill * {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+html:not(.dark) .dashboard-shell a.pw-cta-ghost,
+html:not(.dark) .dashboard-shell a.pw-cta-ghost * {
+  color: var(--pw-ink) !important;
+}
