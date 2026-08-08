@@ -190,6 +190,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || "User";
   const displayEmail = user?.email || "";
   const planLabel = tier === "free" ? "Free" : tier === "pro" ? "Pro" : "Agency";
+  const breadcrumb: string[] = [
+    "PostSpark",
+    ...location.pathname
+      .split("/")
+      .filter(Boolean)
+      .map((seg) => seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())),
+  ];
+
   const wsInitial = (ws.workspace?.name || "W").trim().charAt(0).toUpperCase();
   const activeKit = ws.brandKits.find((k) => k.id === ws.activeBrandKitId);
 
