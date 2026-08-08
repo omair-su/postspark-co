@@ -57,26 +57,23 @@ function getToolKey(pathname: string): string | null {
   return m?.[1] ?? null;
 }
 
-function SparkOrb({ size = 36 }: { size?: number }) {
+/**
+ * Animated assistant mark — layered gradient orb with slow aurora drift.
+ * `busy` speeds up the breathing and adds a listening pulse ring.
+ * All motion is CSS-only and disabled under prefers-reduced-motion.
+ */
+function SparkOrb({ size = 36, busy = false }: { size?: number; busy?: boolean }) {
   return (
-    <div
-      className="relative shrink-0 rounded-full"
+    <span
+      className={`pw-orb relative block shrink-0 ${busy ? "pw-orb-busy" : ""}`}
       style={{ width: size, height: size }}
+      aria-hidden
     >
-      <div
-        className="absolute inset-0 rounded-full animate-spark-pulse"
-        style={{
-          background: "radial-gradient(circle at 30% 30%, #a78bfa 0%, #7c3aed 45%, #5b21b6 100%)",
-          boxShadow: "0 0 24px rgba(124, 58, 237, 0.55), inset 0 0 12px rgba(255,255,255,0.25)",
-        }}
-      />
-      <div
-        className="absolute rounded-full bg-[#14142B]/60 blur-[1px]"
-        style={{ width: size * 0.18, height: size * 0.18, top: size * 0.22, left: size * 0.26 }}
-      />
-    </div>
+      {busy && <span className="pw-orb-ring" />}
+    </span>
   );
 }
+
 
 function TypingDots() {
   return (
@@ -263,9 +260,8 @@ export function SparkCopilot() {
           className="spark-copilot-trigger pw-surface group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-4 shadow-lg transition-all hover:-translate-y-0.5"
           aria-label="Open Spark Copilot"
         >
-          <span className="pw-orb relative block h-8 w-8">
-            <span className="pw-orb-ring" aria-hidden />
-          </span>
+          <SparkOrb size={32} busy={loading} />
+
           <span className="pw-ink text-sm font-semibold">Spark</span>
           <span className="pw-muted-text hidden text-[10px] uppercase tracking-[0.18em] sm:inline">Ask AI</span>
         </button>
@@ -289,7 +285,7 @@ export function SparkCopilot() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <SparkOrb size={36} />
+                <SparkOrb size={36} busy={loading} />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[15px] font-semibold text-white leading-tight">Spark</span>

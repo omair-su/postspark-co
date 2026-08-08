@@ -49,7 +49,7 @@ export function PanelCard({
 }: BaseProps & { as?: ElementType } & Record<string, any>) {
   const Comp: ElementType = as ?? "div";
   return (
-    <Comp className={cn("pw-surface p-5", as && "pw-hoverable block", className)} {...rest}>
+    <Comp className={cn("pw-surface p-5", as && "pw-hoverable pw-sheen block", className)} {...rest}>
       {children}
     </Comp>
   );
@@ -75,7 +75,7 @@ export function StatCard({
   className?: string;
 }) {
   return (
-    <div className={cn("pw-surface pw-hoverable p-5", className)}>
+    <div className={cn("pw-surface pw-hoverable pw-sheen p-5", className)}>
       <div className="flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] pw-muted-text">{label}</p>
         {icon ? <span className="pw-chip h-9 w-9">{icon}</span> : null}
