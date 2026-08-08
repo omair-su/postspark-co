@@ -1,77 +1,143 @@
+# PostSpark Recovery Plan — Reliability, Activation, Revenue
 
-# PostSpark — Interior UI Premium Upgrade
+## Honest recommendation
 
-Goal: make the logged-in app (dashboard home + all tool pages) feel like a million-dollar AI product — richer visual layers, real imagery, tasteful motion — **without changing a single color token, gradient value, or font**. Everything reuses the existing `ds-*` / `lv3-*` tokens in `src/styles.css`.
+Do not quit the product yet, but stop expanding it. PostSpark has enough working infrastructure to recover, and it can reach the visual quality of the references. The current problem is scope and execution order: roughly 50 dashboard routes and 46 server-function modules have grown faster than the core journeys were validated. The next release should be a focused product rescue, not another broad redesign or integration.
 
-## Guardrails
+The success target is simple: a new user can enter, generate valuable content, see their brand applied, publish it, and understand why upgrading is worth paying for—without encountering a dead button, false success, or prerequisite revealed only after failure.
 
-- No edits to color variables, palettes, or font stacks. New CSS only composes existing tokens (`--ds-*`, `--cat`, existing violet/cyan gradients).
-- Frontend/presentation only — no business logic, no server functions, no schema.
-- All motion respects `prefers-reduced-motion` and stays GPU-cheap (transform/opacity only). No framer-motion (Worker SSR constraint) — pure CSS + tiny IntersectionObserver hook (`useReveal` already exists).
+## Verified current state
 
-## 1. Shared visual primitive layer (new CSS block in `src/styles.css`)
+- The sender domain is active, auth emails are enabled, and recent signup/reset requests reached the email provider. The latest recovery request was recorded as accepted by the provider, but that status does not prove inbox delivery.
+- Seven older emails are dead-lettered and will not retry automatically. The observed historical error is a missing run/idempotency identifier.
+- The live `/`, `/signup`, and `/login` routes render without browser errors.
+- Signup currently blocks email/password users on confirmation when no session is returned. You chose temporary instant signup.
+- Password reset has the required public reset page and recovery-session handling.
+- Reels Search currently looks only for an Instagram Business account connected through a Facebook Page. It does not recognize the newer standalone Instagram connection, which explains why an already-connected user can still see “connect Instagram.”
+- Repurpose shows a TikTok action even though it never supplies the video required by that action, and it exposes both external publishing links and separate native publishing buttons.
+- Billing currently presents only Pro on the main billing page; Agency purchase and upgrade paths are inconsistent.
+- Brand Kit persistence is substantial, and Repurpose uses brand name, tagline, preferred tone, and Brand Voice. It does not consistently select the active kit and does not apply the full visual kit across all generation tools.
+- Canva create/import/export/version/publish infrastructure exists, but studio copy and placement currently position Canva as a replacement editor rather than a downstream finishing step for PostSpark-generated assets.
+- The visual system is fragmented: 81 dashboard/component files contain hardcoded visual colors, while custom premium classes and base design-system components use different interaction and radius rules.
 
-A single "premium kit" section, used everywhere so the app feels designed, not patched:
+## Phase 0 — Freeze and measurement
 
-- **Aurora canvas**: soft drifting radial glow behind page content (already used on landing `lv3-aurora`) ported to an interior variant with lower intensity, plus a fine grain overlay so flat surfaces stop looking flat.
-- **Spotlight cards**: pointer-tracked highlight on cards/tiles (CSS custom props updated by one small `useSpotlight` hook), giving the Linear/Cursor "light follows cursor" feel.
-- **Conic gradient borders**: 1px animated ring on hero/primary cards and on active sidebar item, using existing accent colors only.
-- **Glass tiers**: `ds-glass-1/2/3` — consistent blur + border + inner-highlight recipes so nested surfaces read as layers.
-- **Depth & elevation scale**: 4 shadow steps derived from existing shadow tokens, applied consistently (page header → cards → popovers).
-- **Noise/mesh section dividers** and a reusable `ds-orb` decorative blob for empty corners.
-- **Micro-interactions**: press-scale on buttons, magnetic hover on tiles, icon pop on hover, animated underline for links, count-up numbers for stats.
-- **Skeleton shimmer refresh**: replace flat skeletons with gradient-sweep shimmer matching brand.
+- Freeze new tools, integrations, and decorative redesign work until the release gates below pass.
+- Define five monitored journeys: signup, password reset, first repurpose, first export/publish, and checkout.
+- Add a small admin reliability view for funnel events and actionable failures: request accepted, email dispatched, generation completed, publish completed, checkout opened/completed.
+- Replace generic success messages with success only after the final operation has actually succeeded.
 
-## 2. Dashboard home (`src/routes/dashboard.index.tsx`)
+**Exit gate:** each journey has an observable start, success, and failure reason.
 
-- **Hero band**: aurora + grain backdrop, greeting with time-of-day line, the AskBar promoted into a glowing "command console" (animated focus ring, typewriter placeholder cycling through real prompts, suggestion chips with staggered entrance).
-- **Stat tiles**: count-up animation, tiny inline sparkline (SVG, generated from existing data), plan-usage ring gauge instead of plain text, trend arrow.
-- **Bento "Studio" grid**: replace uniform tool grid with a mixed-size bento — 1 large featured tool card (with real generated illustration/thumbnail), 2 medium, rest compact. Category accent per tile already supported via `--cat`.
-- **Live activity rail**: recent generations as a stacked "receipt" list with platform BrandIcons, hover preview popover.
-- **Streak / momentum module**: 7-day dot strip with fill animation, subtle confetti-free pulse on today.
-- **Empty states**: illustrated (real image + ghost rows) instead of text-only.
+## Phase 1 — Restore access and email conversion
 
-## 3. Tools pages — one shared premium shell
+1. Enable temporary auto-confirm for new email/password signups, as approved. Successful signup must create a real session and enter onboarding immediately.
+2. Keep password-reset email enabled; instant signup must not remove reset or account-security email flows.
+3. Re-run the managed email infrastructure setup to refresh the queue processor, cron configuration, and backend credential used by the processor.
+4. Correct all queued payloads so every email has a stable idempotency identifier before it can be accepted.
+5. Add queue health reconciliation: stale pending emails become visible failures, dead-letter counts are surfaced, and provider acceptance is labeled “sent to provider,” not “delivered.”
+6. Improve signup/reset UX with resend, change-email, delivery delay/spam guidance, and a support path. Do not display a confirmation-only screen while auto-confirm is enabled.
+7. Remove optimistic Google OAuth success/navigation; wait for the public callback to confirm the session.
+8. Verify signup, login, sign-out, Google login, reset request, recovery link, and password update against the published domain.
 
-Introduce `ToolShell` (wraps `PageHeader` + hero art + content):
+**Exit gate:** five fresh email/password accounts can enter immediately; five reset emails are accepted and their links complete password changes; Google auth completes without false success states.
 
-- Every tool page gets a **hero strip**: eyebrow chip, gradient title, subtitle, and a right-side decorative visual (per-tool image or animated graphic), plus an "how it works in 3 steps" micro-row.
-- **Two-pane pattern** standardized: input panel left (glass tier 2), live output/preview right (glass tier 1 with device/platform frame). Applies to Repurpose, Hook Lab, Image Studio, Carousel, SEO Blog, Humanizer, Podcast, Shorts, LinkedIn, Publishing.
-- **Generation experience**: replace plain spinners with a premium progress theatre — animated gradient bar, streaming skeleton lines, rotating status copy ("analysing voice…", "drafting hooks…"), and a soft glow pulse on the output pane. Result cards animate in staggered.
-- **Result cards**: platform-accurate mock frames (LinkedIn/X/Threads/Instagram previews already partly exist) reused across tools so output always looks like the real feed.
-- **Sticky action bar** at bottom of tool panes (Generate / Regenerate / Copy / Publish) with press physics.
+## Phase 2 — Make one complete activation loop
 
-## 4. Real imagery (generated assets, brand-consistent)
+Build one flagship workflow around Repurpose instead of trying to perfect every tool simultaneously:
 
-Generate a small, deliberate set (each optimized, lazy-loaded, alt text, uploaded as CDN assets):
+```text
+Source → Generate formats → Edit/preview → Apply active brand → Export/publish → Saved history
+```
 
-1. Dashboard hero abstract — dark navy/violet flowing mesh (matches existing palette).
-2. 8–10 tool hero illustrations (Repurpose, Hook Lab, Image Studio, Carousel, SEO Blog, Shorts, Podcast, Publishing, Brand Kit, Analytics) — same abstract-3D visual language, per-tool accent.
-3. 3 empty-state illustrations (no content yet / no connections / no schedule).
-4. Upgrade/pricing module backdrop.
-5. Onboarding & referral card art.
+- Make the active Brand Kit query deterministic and use the same active profile across Repurpose, image, thumbnail, carousel, and publishing outputs.
+- Apply the useful brand fields—not only tone/name/tagline—where the output supports them: logo, colors, fonts, watermark, voice rules, and platform defaults.
+- Make per-format failures independent and retryable so one failed format does not strand the rest of a generation pack.
+- Replace the current mixed publishing actions with one native PostSpark action surface. Hide TikTok unless a valid video exists; show LinkedIn only for relevant content; route Threads/X/Facebook/Instagram through their real integrations.
+- Preserve generated content and edits before navigation or publishing.
+- Add an activation checklist based on real completion events, not page visits.
 
-All use existing brand colors only, single cohesive style so it reads as one art direction (not stock-mixed).
+**Exit gate:** ten end-to-end runs from source to saved/published output complete without dead controls or ambiguous status.
 
-## 5. Animated things (no new heavy deps)
+## Phase 3 — Repair the highest-value supporting workflows
 
-- Aurora drift + grain (CSS keyframes).
-- Scroll-reveal stagger on every section via existing `useReveal`.
-- Count-up stats, ring gauges, sparkline draw-in.
-- Animated gradient text sweep on page titles (subtle, once on mount).
-- Sidebar: active-item glow slide, icon micro-bounce, collapsible width spring.
-- Toast/notification entrance polish; success state with animated check.
-- Optional lightweight canvas particle field (~40 dots, paused off-screen) only on dashboard hero — behind reduced-motion + mobile off.
+### Instagram and Reels
 
-## 6. Sidebar, header, mobile
+- Resolve account capability from both supported connection models: standalone Instagram and Facebook-Page-linked Instagram.
+- Show connection/capability status before search, not after a failed query.
+- If hashtag discovery genuinely requires the Facebook-linked Business API, say so explicitly and do not treat a standalone connection as disconnected; provide the correct action for the missing capability.
+- Share token health and reconnect state across Instagram publishing and Reels Search.
 
-- Sidebar: grouped sections with tiny labels, gradient active pill, hover reveal descriptions, plan badge module at the bottom with usage ring.
-- Header: glass blur on scroll, compact search with ⌘K hint, avatar ring.
-- Mobile: full-height sheet nav with staggered items, tool cards single-column with larger art, tap feedback; no layout regressions on 360px width.
+### Brand Kit and Brand Voice
 
-## Technical notes
+- Add a “Test my brand” acceptance flow that generates one text sample and one visual sample from the active profile.
+- Validate saved values by reloading them and showing where each is used.
+- Ensure changing the active profile changes subsequent output without silently modifying another profile.
+- Treat Brand Kit as complete only when the same active profile affects core generation and exported assets.
 
-- New files: `src/components/dashboard/ToolShell.tsx`, `HeroBand.tsx`, `SpotlightCard.tsx`, `StatRing.tsx`, `Sparkline.tsx`, `CountUp.tsx`, `GenerationProgress.tsx`, `IllustratedEmpty.tsx`, `hooks/useSpotlight.ts`.
-- One additive CSS block in `src/styles.css` (`/* === PREMIUM VISUAL KIT === */`) composing existing variables; zero token edits.
-- Images generated then externalized via `lovable-assets`, imported as `.asset.json` pointers.
-- Rollout order: (1) CSS kit + primitives, (2) dashboard home, (3) ToolShell + top 5 tools, (4) remaining tools, (5) imagery pass, (6) sidebar/header/mobile polish, (7) light-mode verification + reduced-motion + Playwright screenshot QA at 360px and 1440px in both themes.
+### Thumbnail, Carousel, and Canva
+
+- Restore PostSpark as the generator: source/video upload or URL → AI concepts → generated thumbnail/carousel draft.
+- Position Canva as “Edit this PostSpark design in Canva,” passing the generated asset/content into the handoff rather than offering Canva as the primary creation replacement.
+- Import edits back, show per-page previews, retain version history, and mark a final exported version as published.
+- Remove or clearly label the legacy editor if it cannot reliably produce/export assets; do not present two competing creation paths.
+
+### Shorts and video editing
+
+- Narrow Shorts to one dependable workflow: script → scenes/B-roll → captions/voice → preview → export.
+- Verify actual trim/cut behavior with real uploaded video and exported duration, not only UI manipulation.
+- Keep Instagram discovery optional; it must never block creating or editing a Short.
+
+**Exit gate:** each retained workflow passes a written happy-path test and at least three critical failure cases.
+
+## Phase 4 — Monetization correction
+
+- Make the billing page the single source of truth for Free, Pro, Agency, monthly/annual pricing, trials, and entitlements.
+- Add Agency to billing and preserve billing cadence during upgrades unless the user explicitly chooses another cadence.
+- Handle checkout exceptions with visible errors; no silent button failures.
+- Verify server-side limits and UI entitlements agree for every paid feature.
+- Instrument trial start, checkout open, checkout completion, cancellation, and upgrade failure.
+- Delay aggressive upsells until the user has produced a useful result; use contextual upgrade prompts tied to a blocked paid capability.
+
+**Exit gate:** sandbox purchase, upgrade, cancellation, renewal state, and entitlement sync all pass for Pro and Agency.
+
+## Phase 5 — Premium visual rebuild, after reliability gates
+
+Use the user’s references as the target: bright, cohesive, image-led, spacious, and product-focused—not another dark gradient/glass pass.
+
+- Unify dashboard navigation, form controls, cards, spacing, elevation, radius, icon treatment, and interaction states under one token/component system.
+- Remove hardcoded component colors and duplicated premium/base primitives.
+- Use a cohesive light workspace shell with subtle separation rather than the current split dark-sidebar/light-content visual weight.
+- Redesign only the validated core surfaces first: onboarding, dashboard, Repurpose, output preview, Brand Kit, publishing, and billing.
+- Use real product states and real generated media in heroes and empty states; no decorative mockups that promise unsupported functionality.
+- Keep dark mode supported, but do not let it dictate the premium light-mode composition.
+- Validate text contrast, overflow, touch targets, loading, empty, error, and success states at 360px, tablet, and desktop widths.
+
+**Exit gate:** screenshot review plus keyboard/mobile accessibility checks pass for every core surface, and no UI claims a capability the workflow cannot complete.
+
+## Phase 6 — Controlled launch and customer learning
+
+- Recruit 10–15 target creators/marketers into a concierge beta instead of broadly marketing all 50 tools.
+- Personally observe the first-source-to-publish session and record where users hesitate or leave.
+- Market one sharp promise: turn one source into a branded, publish-ready content pack. Do not position PostSpark as a simultaneous replacement for Buffer, CapCut, Canva, Repurpose.io, and every native network.
+- Offer founder-assisted onboarding and collect payment intent after the activation loop succeeds.
+- Use weekly release decisions based on activation, successful exports/publishes, retention, and paid conversion—not route count.
+
+## Technical implementation order
+
+1. Auth configuration and signup/reset UI.
+2. Email infrastructure refresh, payload consistency, and health visibility.
+3. Reels account resolver and preflight UI.
+4. Repurpose active-kit selection, failure isolation, and unified publishing actions.
+5. Billing/Agency corrections and checkout error handling.
+6. Canva repositioning and core Thumbnail/Carousel handoff.
+7. Shorts workflow verification and repair.
+8. Token/component consolidation and core-surface redesign.
+9. Published-domain browser tests, database assertions, and a small regression suite for each release gate.
+
+## Scope discipline
+
+- No new social network, AI studio, or editor until Phases 1–4 pass.
+- Do not declare a feature complete because a page or button exists.
+- Do not redesign an unverified workflow; simplify or remove it first.
+- Ship in small milestones, verify on the published domain, then continue.
