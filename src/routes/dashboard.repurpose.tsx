@@ -1035,11 +1035,12 @@ function RepurposePage() {
 function HeroStat({ num, label }: { num: string; label: string }) {
   return (
     <div className="text-center">
-      <div className="text-2xl font-bold leading-none text-white">{num}</div>
-      <div className="mt-1 text-[11px] text-white/55">{label}</div>
+      <div className="pw-grad-text pw-stat-value text-2xl font-bold leading-none">{num}</div>
+      <div className="pw-muted-text mt-1 text-[11px]">{label}</div>
     </div>
   );
 }
+
 
 function StepCard({ step, title, icon, children }: { step: string; title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
