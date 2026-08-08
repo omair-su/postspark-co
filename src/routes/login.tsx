@@ -75,7 +75,12 @@ function LoginPage() {
       return;
     }
     if (result.redirected) return;
-    toast.success("Welcome back!");
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) {
+      toast.error("Google sign-in did not complete. Please try again.");
+      setGoogleLoading(false);
+      return;
+    }
     window.location.assign(dest);
   };
 
