@@ -10,7 +10,7 @@
  *  - "badge"     → alias of icon (kept for API compatibility)
  */
 
-import iconAsset from "@/assets/postspark-icon-v2.png.asset.json";
+import { BoltMark } from "@/components/BoltMark";
 
 type Variant = "icon" | "wordmark" | "stacked" | "badge";
 
@@ -24,19 +24,9 @@ interface PostSparkLogoProps {
 }
 
 function Mark({ size }: { size: number }) {
-  return (
-    <img
-      src={iconAsset.url}
-      alt=""
-      width={size}
-      height={size}
-      className="block shrink-0 select-none"
-      style={{ width: size, height: size }}
-      draggable={false}
-      decoding="async"
-    />
-  );
+  return <BoltMark size={size} />;
 }
+
 
 export function PostSparkLogo({
   variant = "wordmark",
@@ -86,13 +76,24 @@ export function PostSparkLogo({
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <Mark size={size} />
       <span
-        className={`font-display font-semibold tracking-tight ${textColor}`}
+        className={`font-display font-bold tracking-tight ${textColor}`}
         style={{ fontSize: size * 0.58, lineHeight: 1, letterSpacing: "-0.02em" }}
       >
-        PostSpark
+        Post
+        <span
+          style={{
+            background: "linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          Spark
+        </span>
       </span>
     </span>
   );
 }
+
 
 export default PostSparkLogo;
