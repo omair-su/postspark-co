@@ -206,7 +206,7 @@ function BrandKitPage() {
     <div className="mx-auto max-w-4xl animate-fade-in space-y-4 pb-16">
       <Link
         to="/dashboard/settings"
-        className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-100"
+        className="inline-flex items-center gap-1 text-xs pw-muted-text hover:pw-ink"
       >
         <ArrowLeft className="h-3 w-3" /> Back to settings
       </Link>
@@ -223,8 +223,8 @@ function BrandKitPage() {
 
 
       {/* Identity */}
-      <section className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-xl">
-        <h2 className="text-sm font-semibold text-slate-100">Identity</h2>
+      <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
+        <h2 className="text-sm font-semibold pw-ink">Identity</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field label="Brand name" value={brandName} onChange={setBrandName} placeholder="Acme Co." />
           <Field label="Handle" value={brandHandle} onChange={setBrandHandle} placeholder="@acme" />
@@ -235,13 +235,13 @@ function BrandKitPage() {
       </section>
 
       {/* Logo Vault */}
-      <section className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-xl">
+      <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+            <h2 className="flex items-center gap-2 text-sm font-semibold pw-ink">
               <ImageIcon className="h-4 w-4 text-violet-400" /> Logo vault
             </h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs pw-muted-text">
               Four slots — primary lockup, icon, and background-optimized variants. Previewed on both light and dark.
             </p>
           </div>
@@ -250,12 +250,12 @@ function BrandKitPage() {
       </section>
 
       {/* Color system */}
-      <section className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-xl">
+      <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
         <div className="mb-4">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+          <h2 className="flex items-center gap-2 text-sm font-semibold pw-ink">
             <Palette className="h-4 w-4 text-violet-400" /> Color system
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs pw-muted-text">
             Five brand roles + tint ramps + saved swatches. Extract palettes from any image.
           </p>
         </div>
@@ -310,11 +310,11 @@ function BrandKitPage() {
       />
 
       {/* Typography */}
-      <section className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-xl">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+      <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
+        <h2 className="flex items-center gap-2 text-sm font-semibold pw-ink">
           <Type className="h-4 w-4 text-violet-400" /> Typography
         </h2>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs pw-muted-text">
           Full Google Fonts library + custom font upload. Suggested body pairings for every heading choice.
         </p>
         <div className="mt-4 grid gap-6 lg:grid-cols-2">
@@ -346,11 +346,11 @@ function BrandKitPage() {
       <WatermarkControls value={watermark} onChange={setWatermark} brandHandle={brandHandle} />
 
       {/* Tone */}
-      <section className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-xl">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+      <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
+        <h2 className="flex items-center gap-2 text-sm font-semibold pw-ink">
           <Sparkles className="h-4 w-4 text-violet-400" /> Preferred tone
         </h2>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs pw-muted-text">
           Auto-applied to every Repurpose, Hook Lab, and SEO Blog generation.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -360,8 +360,8 @@ function BrandKitPage() {
               onClick={() => setTone(t.id)}
               className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                 tone === t.id
-                  ? "border-violet-500/60 bg-violet-500/10 text-slate-100"
-                  : "border-slate-800 text-slate-400 hover:border-violet-500/30 hover:text-slate-200"
+                  ? "border-violet-500/60 bg-violet-500/10 pw-ink"
+                  : "border-slate-800 pw-muted-text hover:border-violet-500/30 hover:text-slate-200"
               }`}
             >
               <span>{t.emoji}</span> {t.label}
@@ -371,8 +371,8 @@ function BrandKitPage() {
       </section>
 
       {/* Live preview */}
-      <section className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-xl">
-        <h2 className="text-sm font-semibold text-slate-100">Live preview</h2>
+      <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
+        <h2 className="text-sm font-semibold pw-ink">Live preview</h2>
         <div
           className="mt-4 rounded-xl p-6"
           style={{ background: `linear-gradient(135deg, ${secondary}, ${primary})` }}
@@ -408,7 +408,7 @@ function BrandKitPage() {
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-violet-500/60 hover:text-white disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-semibold pw-ink transition hover:border-violet-500/60 hover:text-white disabled:opacity-60"
         >
           {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
           Export brand guide (PDF)
@@ -431,12 +431,12 @@ function Field({
 }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wider pw-muted-text">{label}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-violet-500"
+        className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm pw-ink outline-none placeholder:text-slate-600 focus:border-violet-500"
       />
     </label>
   );
