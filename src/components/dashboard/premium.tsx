@@ -147,7 +147,7 @@ export function ArtLayer({
         aria-hidden
         loading="lazy"
         decoding="async"
-        className={cn(base, srcDark && "dark:hidden")}
+        className={cn(base, srcDark && "dark:!hidden")}
         style={style}
       />
       {srcDark && (
@@ -157,10 +157,11 @@ export function ArtLayer({
           aria-hidden
           loading="lazy"
           decoding="async"
-          className={cn(base, "hidden dark:md:block")}
+          className={cn(base, "!hidden dark:md:!block")}
           style={style}
         />
       )}
+
     </>
   );
 }
