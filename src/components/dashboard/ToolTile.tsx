@@ -25,9 +25,10 @@ export function ToolTile({ item }: { item: ToolTileItem }) {
     <Link
       to={item.to}
       onPointerMove={onPointerMove}
-      className="ds-tool-tile ps-spot ps-lift ps-press group"
-      style={{ ["--cat" as any]: cat }}
+      className="ds-tool-tile ps-spot ps-press lux-glow lux-shimmer lux-spring group"
+      style={{ ["--cat" as any]: cat, ["--brand" as any]: cat }}
     >
+
       <div className="relative flex items-start justify-between gap-2">
         <div className="ds-icon-disc ps-icon-pop h-10 w-10">
           <Icon className="h-4 w-4" />

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Sparkles } from "lucide-react";
-import { PREMIUM_ART, type PremiumArtKey } from "./premiumArt";
+import { PREMIUM_ART, PREMIUM_ART_DARK, type PremiumArtKey } from "./premiumArt";
 import { ArtLayer, Pill } from "./premium";
 
 /**
@@ -27,7 +27,7 @@ export function PageHeader({
 }) {
   return (
     <div className="ds-page-header pw-hero p-5 sm:p-7">
-      {art && <ArtLayer src={PREMIUM_ART[art]} width="34%" opacity={0.9} />}
+      {art && <ArtLayer src={PREMIUM_ART[art]} srcDark={PREMIUM_ART_DARK[art]} width="34%" opacity={0.9} />}
       <div className="relative flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           {eyebrow && (

@@ -20,7 +20,7 @@ import { StatRing } from "@/components/dashboard/StatRing";
 import { Sparkline } from "@/components/dashboard/Sparkline";
 import { IllustratedEmpty } from "@/components/dashboard/IllustratedEmpty";
 import { SpotlightCard } from "@/components/dashboard/SpotlightCard";
-import { PREMIUM_ART } from "@/components/dashboard/premiumArt";
+import { PREMIUM_ART, PREMIUM_ART_DARK } from "@/components/dashboard/premiumArt";
 import { ArtLayer, FloatingGlyphs, GhostCTA, GradientCTA, Pill, StatCard, useReveal } from "@/components/dashboard/premium";
 
 
@@ -144,7 +144,7 @@ function DashboardHome() {
     <div ref={revealRef} className="mx-auto max-w-6xl space-y-6">
       {/* Hero — bright, image-led command band */}
       <section className="pw-hero pw-reveal p-6 sm:p-8">
-        <ArtLayer src={PREMIUM_ART.hero} width="46%" opacity={0.95} />
+        <ArtLayer src={PREMIUM_ART.hero} srcDark={PREMIUM_ART_DARK.hero} width="46%" opacity={0.95} />
         <FloatingGlyphs
           items={[
             { icon: <Repeat className="h-4 w-4 text-[color:var(--pw-violet)]" />, top: "16%", left: "62%" },

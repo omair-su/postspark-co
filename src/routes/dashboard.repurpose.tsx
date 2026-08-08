@@ -23,6 +23,9 @@ import { PublishMenu } from "@/components/PublishMenu";
 import { HookABTester } from "@/components/HookABTester";
 import { Link } from "@tanstack/react-router";
 import { ToolHero } from "@/components/dashboard/ToolHero";
+import { LiquidTabs } from "@/components/dashboard/LiquidTabs";
+import { brandColor } from "@/lib/brandColors";
+
 
 // -------- Format catalog (the new world-class spec) --------------------
 
@@ -536,13 +539,22 @@ function RepurposePage() {
 
       {/* ============== STEP 1 — SOURCE ============== */}
       <StepCard step="1" title="Your Source Content">
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <SourceTab active={sourceTab==="text"}    onClick={() => setSourceTab("text")}    emoji="📄" label="Paste Text" />
-          <SourceTab active={sourceTab==="url"}     onClick={() => setSourceTab("url")}     emoji="🔗" label="URL / Article" />
-          <SourceTab active={sourceTab==="youtube"} onClick={() => setSourceTab("youtube")} emoji="▶"  label="YouTube" />
-          <SourceTab active={sourceTab==="pdf"}     onClick={() => { setSourceTab("pdf"); setImportSubTab("pdf"); }}   emoji="📎" label="PDF / Doc" />
-          <SourceTab active={sourceTab==="voice"}   onClick={() => { setSourceTab("voice"); setImportSubTab("audio"); }} emoji="🎤" label="Voice / Audio" />
-        </div>
+        <LiquidTabs
+          value={sourceTab}
+          onChange={(id) => {
+            setSourceTab(id as typeof sourceTab);
+            if (id === "pdf") setImportSubTab("pdf");
+            if (id === "voice") setImportSubTab("audio");
+          }}
+          tabs={[
+            { id: "text", label: "Paste Text", icon: <span>📄</span> },
+            { id: "url", label: "URL / Article", icon: <span>🔗</span> },
+            { id: "youtube", label: "YouTube", icon: <span>▶</span> },
+            { id: "pdf", label: "PDF / Doc", icon: <span>📎</span> },
+            { id: "voice", label: "Voice / Audio", icon: <span>🎤</span> },
+          ]}
+        />
+
 
         {sourceTab === "text" && (
           <>
@@ -1043,7 +1055,7 @@ function HeroStat({ num, label }: { num: string; label: string }) {
 
 function StepCard({ step, title, icon, children }: { step: string; title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="mt-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+    <section className="pw-surface lux-glass lux-enter mt-5 p-5 sm:p-6">
       <div className="mb-3 flex items-center gap-2.5">
         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">{step}</span>
         {icon}
@@ -1054,18 +1066,8 @@ function StepCard({ step, title, icon, children }: { step: string; title: string
   );
 }
 
-function SourceTab({ active, onClick, emoji, label }: { active: boolean; onClick: () => void; emoji: string; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border-[1.5px] px-3.5 py-2 text-xs font-medium transition-all ${
-        active ? "border-primary bg-primary/10 font-semibold text-primary" : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
-      }`}
-    >
-      <span>{emoji}</span>{label}
-    </button>
-  );
-}
+
+
 
 function UrlFetchRow({ value, onChange, placeholder, busy, onFetch }: {
   value: string; onChange: (v: string) => void; placeholder: string; busy: boolean; onFetch: () => void;
@@ -1096,16 +1098,26 @@ function FormatCard({ def, pick, onToggle, onUpdate }: {
 }) {
   const selected = !!pick;
   return (
-    <div className={`group relative rounded-xl border-[1.5px] p-3 transition-all ${
-      selected ? "border-primary bg-primary/[0.04] shadow-sm" : "border-border bg-card hover:border-primary/40"
-    }`}>
-      <button onClick={onToggle} className="block w-full text-left">
+    <div
+      data-selected={selected}
+      style={{ ["--brand" as any]: brandColor(def.id) }}
+      className={`group relative rounded-xl border p-3 lux-glow lux-shimmer lux-spring ${
+        selected ? "border-transparent bg-card shadow-sm" : "border-border bg-card"
+      }`}
+    >
+      <button onClick={onToggle} className="relative z-[1] block w-full text-left">
         {selected && (
-          <span className="absolute right-2 top-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">✓</span>
+          <span
+            className="absolute right-1.5 top-1.5 flex h-[20px] w-[20px] items-center justify-center rounded-full border border-white/25 text-[10px] font-bold text-white shadow-md backdrop-blur-sm"
+            style={{ background: "color-mix(in oklab, var(--brand) 78%, #0A0A0C)" }}
+          >
+            ✓
+          </span>
         )}
         <BrandIcon brand={def.id as BrandKey} size={40} />
         <div className="mt-1.5 text-[13px] font-semibold text-foreground">{def.name}</div>
       </button>
+
 
       {selected && (def.quantities || def.styles || def.lengths) && (
         <div className="mt-2.5 space-y-1.5 border-t border-border/60 pt-2.5">
