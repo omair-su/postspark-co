@@ -22,7 +22,7 @@ import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
 import { HookABTester } from "@/components/HookABTester";
 import { Link } from "@tanstack/react-router";
-import { HeroArt } from "@/components/dashboard/HeroArt";
+import { ToolHero } from "@/components/dashboard/ToolHero";
 
 // -------- Format catalog (the new world-class spec) --------------------
 
