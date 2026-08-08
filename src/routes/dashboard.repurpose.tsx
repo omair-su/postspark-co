@@ -22,7 +22,7 @@ import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
 import { HookABTester } from "@/components/HookABTester";
 import { Link } from "@tanstack/react-router";
-import { HeroArt } from "@/components/dashboard/HeroArt";
+import { ToolHero } from "@/components/dashboard/ToolHero";
 
 // -------- Format catalog (the new world-class spec) --------------------
 
@@ -482,90 +482,23 @@ function RepurposePage() {
 
   // -------- Render --------
   return (
-    <div className="mx-auto max-w-4xl pb-24 md:pb-8">
+    <div className="mx-auto max-w-5xl pb-24 md:pb-8">
       {/* ============== HERO ============== */}
-      <section
-        className="relative overflow-hidden rounded-2xl px-6 py-7 sm:px-8 sm:py-9 shadow-2xl"
-        style={{
-          background:
-            "radial-gradient(120% 140% at 0% 0%, #2a1b54 0%, transparent 55%), radial-gradient(120% 140% at 100% 100%, #0F3460 0%, transparent 55%), linear-gradient(135deg, #0B0B1F 0%, #16213E 60%, #0F1B3D 100%)",
-          color: "#FFFFFF",
-          border: "1px solid rgba(167,139,250,0.18)",
-        }}
-      >
-        {/* subtle grid texture */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full opacity-70 blur-2xl"
-          style={{
-            background: "radial-gradient(circle, rgba(167,139,250,0.55) 0%, transparent 70%)",
-            animation: "rs-drift 15s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute -left-24 bottom-[-120px] h-96 w-96 rounded-full opacity-50 blur-2xl"
-          style={{
-            background: "radial-gradient(circle, rgba(56,189,248,0.38) 0%, transparent 70%)",
-            animation: "rs-drift 22s ease-in-out infinite reverse",
-          }}
-        />
-        {/* gold hairline shimmer */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-6 top-0 h-px"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,124,0.6), transparent)" }}
-        />
-        <style>{`@keyframes rs-drift { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-20px,15px)} 66%{transform:translate(10px,-10px)} }`}</style>
-          <HeroArt art="repurpose" />
+      <ToolHero
+        eyebrow="Repurpose Studio"
+        icon={<Repeat className="h-3 w-3" />}
+        title="One source. Every platform."
+        subtitle="Paste a blog, YouTube video, podcast, or URL — PostSpark turns it into a full content drop in seconds."
+        art="repurpose"
+        steps={["Add source", "Pick formats", "Generate & publish"]}
+      />
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="pw-surface p-4"><HeroStat num="10+" label="Formats" /></div>
+        <div className="pw-surface p-4"><HeroStat num="30+" label="Languages" /></div>
+        <div className="pw-surface p-4"><HeroStat num="1" label="Source" /></div>
+      </div>
 
-        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]"
-              style={{
-                background: "rgba(167,139,250,0.14)",
-                border: "1px solid rgba(167,139,250,0.35)",
-                color: "#DDD6FE",
-              }}
-            >
-              <Repeat className="h-3 w-3" /> Repurpose Studio
-            </span>
-            <h1
-              className="ps-display mt-3 text-[26px] leading-[1.1] sm:text-[32px]"
-              style={{ color: "#FFFFFF" }}
-            >
-              One source.{" "}
-              <span
-                style={{
-                  background: "linear-gradient(135deg, #C9A87C 0%, #F0D78C 50%, #A78BFA 100%)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  color: "transparent",
-                }}
-              >
-                Every platform.
-              </span>
-            </h1>
-            <p className="mt-2.5 max-w-md text-sm" style={{ color: "rgba(255,255,255,0.72)" }}>
-              Paste a blog, YouTube video, podcast, or URL — PostSpark turns it into a full content drop in seconds.
-            </p>
-          </div>
-          <div className="flex flex-shrink-0 gap-5 sm:gap-7">
-            <HeroStat num="10+" label="Formats" />
-            <HeroStat num="30+" label="Languages" />
-            <HeroStat num="1" label="Source" />
-          </div>
-        </div>
-      </section>
+
 
       {/* ============== USAGE PILL ============== */}
       {usage && (
@@ -1101,11 +1034,12 @@ function RepurposePage() {
 function HeroStat({ num, label }: { num: string; label: string }) {
   return (
     <div className="text-center">
-      <div className="text-2xl font-bold leading-none text-white">{num}</div>
-      <div className="mt-1 text-[11px] text-white/55">{label}</div>
+      <div className="pw-grad-text pw-stat-value text-2xl font-bold leading-none">{num}</div>
+      <div className="pw-muted-text mt-1 text-[11px]">{label}</div>
     </div>
   );
 }
+
 
 function StepCard({ step, title, icon, children }: { step: string; title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (

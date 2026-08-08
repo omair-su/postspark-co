@@ -109,6 +109,23 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     activeBrandKitId: string | null;
   }>({ workspace: null, brandKits: [], activeBrandKitId: null });
   const [isAdmin, setIsAdmin] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      return JSON.parse(window.localStorage.getItem("ps_nav_groups") || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => {
+      const next = { ...prev, [label]: prev[label] === false };
+      try { window.localStorage.setItem("ps_nav_groups", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -173,6 +190,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || "User";
   const displayEmail = user?.email || "";
   const planLabel = tier === "free" ? "Free" : tier === "pro" ? "Pro" : "Agency";
+  const breadcrumb: string[] = [
+    "PostSpark",
+    ...location.pathname
+      .split("/")
+      .filter(Boolean)
+      .map((seg) => seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())),
+  ];
+
   const wsInitial = (ws.workspace?.name || "W").trim().charAt(0).toUpperCase();
   const activeKit = ws.brandKits.find((k) => k.id === ws.activeBrandKitId);
 
@@ -293,14 +318,28 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 items: [{ to: "/dashboard/blog-admin", icon: Shield, label: "Blog Admin" }],
               } as const]
             : []),
-        ].map((group, gi) => (
-          <div key={group.label} className={gi === 0 ? "" : isCollapsed ? "lux-group-spacer mt-3" : "mt-5"}>
-            {gi !== 0 && (
-              <p className="lux-group-label px-3 pb-2 text-[10px] uppercase tracking-[0.2em]">
-                {group.label}
-              </p>
+        ].map((group, gi) => {
+          const groupActive = group.items.some((it: any) =>
+            it.to === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(it.to),
+          );
+          const open = isCollapsed || groupActive || openGroups[group.label] !== false;
+          return (
+          <div key={group.label} className={gi === 0 ? "" : isCollapsed ? "lux-group-spacer mt-3" : "mt-4"}>
+            {gi !== 0 && !isCollapsed && (
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.label)}
+                aria-expanded={open}
+                className="lux-group-toggle flex w-full items-center justify-between rounded-lg px-3 py-1.5"
+              >
+                <span className="lux-group-label text-[10px] uppercase tracking-[0.2em]">{group.label}</span>
+                <ChevronDown
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+                />
+              </button>
             )}
-            <div className="space-y-0.5">
+            {open && (
+            <div className="space-y-0.5 pt-1">
               {group.items.map((item: any) => {
                 const isDashboardHome = item.to === "/dashboard" && !item.search;
                 const pathMatch = isDashboardHome
@@ -335,10 +374,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 return link;
               })}
             </div>
-
+            )}
           </div>
-        ))}
+          );
+        })}
       </nav>
+
 
       <div className="relative shrink-0 border-t border-white/5 p-3">
         <div className="ds-user-card mb-3 flex items-center gap-3 px-3 py-2.5">
@@ -407,13 +448,25 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="ds-header relative z-20 grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4">
-          <button
-            className="md:hidden inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-card/70 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              className="md:hidden inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-card/70 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <nav aria-label="Breadcrumb" className="ds-breadcrumb hidden min-w-0 lg:flex">
+              {breadcrumb.map((crumb, i) => (
+                <span key={crumb} className="flex min-w-0 items-center gap-1.5">
+                  {i > 0 && <span className="ds-breadcrumb-sep" aria-hidden>/</span>}
+                  <span className={i === breadcrumb.length - 1 ? "ds-breadcrumb-current truncate" : "truncate"}>
+                    {crumb}
+                  </span>
+                </span>
+              ))}
+            </nav>
+          </div>
 
           <button
             type="button"
@@ -432,9 +485,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </button>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-            <span className="ds-chip hidden lg:inline-flex">
-              <span className="ds-status-dot" aria-hidden /> AI online
-            </span>
             <span className="ds-chip ds-chip-accent hidden sm:inline-flex capitalize">{planLabel}</span>
             <Link
               to="/dashboard/repurpose"
@@ -445,6 +495,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <span className="hidden sm:inline">New</span>
             </Link>
             <ThemeToggle />
+            <Link
+              to="/dashboard/settings"
+              aria-label="Account settings"
+              className="ds-topbar-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
+              title={displayName}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
+            </Link>
           </div>
         </header>
 
@@ -453,8 +515,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="ds-orb ds-orb-violet" aria-hidden />
           <div className="ds-orb ds-orb-pink" aria-hidden />
           <div className="ds-orb ds-orb-indigo" aria-hidden />
-          <div className="relative z-10">{children}</div>
+          <div className="relative z-10 mx-auto w-full max-w-[1280px]">{children}</div>
         </main>
+
       </div>
       
       <AIProgressBar />
