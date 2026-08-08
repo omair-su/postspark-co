@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Sparkles } from "lucide-react";
-import { PREMIUM_ART, type PremiumArtKey } from "./premiumArt";
+import { PREMIUM_ART, PREMIUM_ART_DARK, type PremiumArtKey } from "./premiumArt";
 import { ArtLayer, Pill } from "./premium";
+
 
 /**
  * Premium hero band for any tool page: eyebrow, gradient title, subtitle,
@@ -28,7 +29,7 @@ export function ToolHero({
 }) {
   return (
     <section className="pw-hero p-5 sm:p-7" style={{ ["--cat" as any]: accent }}>
-      {art && <ArtLayer src={PREMIUM_ART[art]} width="38%" opacity={0.9} />}
+      {art && <ArtLayer src={PREMIUM_ART[art]} srcDark={PREMIUM_ART_DARK[art]} width="38%" opacity={0.9} />}
       <div className="relative flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 max-w-2xl">
           {eyebrow && (

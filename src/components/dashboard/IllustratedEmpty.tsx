@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
-import { PREMIUM_ART, type PremiumArtKey } from "./premiumArt";
+import { PREMIUM_ART, PREMIUM_ART_DARK, type PremiumArtKey } from "./premiumArt";
 
 /** Illustrated empty state — real brand imagery instead of text-only. */
 export function IllustratedEmpty({
@@ -25,8 +25,18 @@ export function IllustratedEmpty({
           loading="lazy"
           width={1024}
           height={768}
-          className="h-28 w-40 shrink-0 rounded-xl object-cover opacity-90"
+          className="h-28 w-40 shrink-0 rounded-xl object-cover opacity-90 dark:hidden"
         />
+        <img
+          src={PREMIUM_ART_DARK[art]}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          width={1280}
+          height={960}
+          className="hidden h-28 w-40 shrink-0 rounded-xl object-cover opacity-90 dark:block"
+        />
+
         <div className="min-w-0">
           <p className="text-base font-semibold" style={{ color: "var(--ds-text)" }}>{title}</p>
           {description && (

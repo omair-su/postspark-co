@@ -121,32 +121,51 @@ export function GhostCTA({
 /** Decorative bright art layer for hero bands. Parent must be relative + overflow-hidden. */
 export function ArtLayer({
   src,
+  srcDark,
   className,
   width = "44%",
   opacity = 0.9,
 }: {
   src: string;
+  srcDark?: string;
   className?: string;
   width?: string;
   opacity?: number;
 }) {
+  const base = cn("pointer-events-none absolute right-0 top-0 hidden h-full object-cover md:block", className);
+  const style = {
+    width,
+    opacity,
+    maskImage: "linear-gradient(to left, rgba(0,0,0,1) 30%, transparent 100%)",
+    WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 30%, transparent 100%)",
+  } as const;
   return (
-    <img
-      src={src}
-      alt=""
-      aria-hidden
-      loading="lazy"
-      decoding="async"
-      className={cn("pointer-events-none absolute right-0 top-0 hidden h-full object-cover md:block", className)}
-      style={{
-        width,
-        opacity,
-        maskImage: "linear-gradient(to left, rgba(0,0,0,1) 30%, transparent 100%)",
-        WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 30%, transparent 100%)",
-      }}
-    />
+    <>
+      <img
+        src={src}
+        alt=""
+        aria-hidden
+        loading="lazy"
+        decoding="async"
+        className={cn(base, srcDark && "dark:!hidden")}
+        style={style}
+      />
+      {srcDark && (
+        <img
+          src={srcDark}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          decoding="async"
+          className={cn(base, "!hidden dark:md:!block")}
+          style={style}
+        />
+      )}
+
+    </>
   );
 }
+
 
 /** Floating platform/tool glyph cluster for hero bands. */
 export function FloatingGlyphs({ items }: { items: Array<{ icon: ReactNode; top: string; left: string }> }) {
