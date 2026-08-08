@@ -293,14 +293,28 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 items: [{ to: "/dashboard/blog-admin", icon: Shield, label: "Blog Admin" }],
               } as const]
             : []),
-        ].map((group, gi) => (
-          <div key={group.label} className={gi === 0 ? "" : isCollapsed ? "lux-group-spacer mt-3" : "mt-5"}>
-            {gi !== 0 && (
-              <p className="lux-group-label px-3 pb-2 text-[10px] uppercase tracking-[0.2em]">
-                {group.label}
-              </p>
+        ].map((group, gi) => {
+          const groupActive = group.items.some((it: any) =>
+            it.to === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(it.to),
+          );
+          const open = isCollapsed || groupActive || openGroups[group.label] !== false;
+          return (
+          <div key={group.label} className={gi === 0 ? "" : isCollapsed ? "lux-group-spacer mt-3" : "mt-4"}>
+            {gi !== 0 && !isCollapsed && (
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.label)}
+                aria-expanded={open}
+                className="lux-group-toggle flex w-full items-center justify-between rounded-lg px-3 py-1.5"
+              >
+                <span className="lux-group-label text-[10px] uppercase tracking-[0.2em]">{group.label}</span>
+                <ChevronDown
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${open ? "" : "-rotate-90"}`}
+                />
+              </button>
             )}
-            <div className="space-y-0.5">
+            {open && (
+            <div className="space-y-0.5 pt-1">
               {group.items.map((item: any) => {
                 const isDashboardHome = item.to === "/dashboard" && !item.search;
                 const pathMatch = isDashboardHome
@@ -335,10 +349,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 return link;
               })}
             </div>
-
+            )}
           </div>
-        ))}
+          );
+        })}
       </nav>
+
 
       <div className="relative shrink-0 border-t border-white/5 p-3">
         <div className="ds-user-card mb-3 flex items-center gap-3 px-3 py-2.5">
