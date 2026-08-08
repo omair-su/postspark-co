@@ -16,7 +16,7 @@ import { GoogleFontSelector, FontPairingSuggestions, type CustomFontEntry } from
 import { WatermarkControls, type WatermarkSettings } from "@/components/brandkit/WatermarkControls";
 import { setWatermarkState } from "@/lib/imageWatermark";
 import { exportBrandGuide } from "@/lib/exportBrandGuide";
-import { HeroArt } from "@/components/dashboard/HeroArt";
+import { ToolHero } from "@/components/dashboard/ToolHero";
 
 export const Route = createFileRoute("/dashboard/brand-kit")({
   component: BrandKitPage,
