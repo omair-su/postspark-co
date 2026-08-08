@@ -1,35 +1,18 @@
-import iconAsset from "@/assets/postspark-icon-v2.png.asset.json";
+import { BoltMark } from "@/components/BoltMark";
 
 interface Props {
   size?: number;
   className?: string;
-  /** Kept for API compatibility — the new mark ships without a halo. */
+  /** Kept for API compatibility — the mark ships without a halo. */
   glow?: boolean;
 }
 
-/**
- * Official PostSpark brand mark — v2 solid squircle style
- * (Claude / Perplexity / Gemini / Apple family). No glass, no glow.
- */
+/** Official PostSpark brand mark — gradient spark bolt. */
 export function PostSparkMark({ size = 32, className = "" }: Props) {
-  return (
-    <img
-      src={iconAsset.url}
-      alt=""
-      width={size}
-      height={size}
-      className={`block shrink-0 select-none ${className}`}
-      style={{ width: size, height: size }}
-      draggable={false}
-      decoding="async"
-      aria-hidden
-    />
-  );
+  return <BoltMark size={size} className={className} />;
 }
 
-/**
- * Wordmark: mark + "PostSpark" text using the display font.
- */
+/** Wordmark: mark + "PostSpark" text using the display font. */
 export function PostSparkWordmark({
   size = 28,
   tone = "light",
@@ -44,7 +27,7 @@ export function PostSparkWordmark({
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <PostSparkMark size={size} />
       <span
-        className="font-display font-semibold"
+        className="font-display font-bold"
         style={{
           color,
           fontSize: size * 0.78,
@@ -52,7 +35,17 @@ export function PostSparkWordmark({
           letterSpacing: "-0.025em",
         }}
       >
-        PostSpark
+        Post
+        <span
+          style={{
+            background: "linear-gradient(135deg, #A78BFA 0%, #60A5FA 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          Spark
+        </span>
       </span>
     </span>
   );
