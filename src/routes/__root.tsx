@@ -109,8 +109,11 @@ export const Route = createRootRoute({
       // Non-render-blocking: loaded as a preload and flipped to a stylesheet by the
       // inline script at the end of <body> (a <noscript> fallback covers no-JS).
       { rel: "preload", as: "style", href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.json" },
+
     ],
     scripts: [
       { type: "application/ld+json", children: JSON.stringify(ORG_JSONLD) },
