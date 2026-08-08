@@ -285,6 +285,8 @@ const FORMAT_ID = z.enum([
   "tweets","linkedin","instagram","facebook","thread","email","video","tiktok","podcast","seo","carousel",
 ]);
 
+type PackBrandKit = { id: string; name: string | null; preferred_tone: string | null } | null;
+
 /** Creates the pack row if it isn't there yet. Safe to call from every format. */
 async function ensurePackRow(
   supabase: any,
@@ -350,7 +352,7 @@ export const startRepurposePack = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .gte("created_at", startOfMonth.toISOString());
       if ((count ?? 0) >= FREE_MONTHLY_LIMIT) {
-        return { ok: false as const, error: "LIMIT_REACHED", packId: null, brandKit: null };
+        return { ok: false, error: "LIMIT_REACHED", packId: null as string | null, brandKit: null as PackBrandKit };
       }
     }
 
@@ -371,12 +373,12 @@ export const startRepurposePack = createServerFn({ method: "POST" })
     });
 
     return {
-      ok: true as const,
+      ok: true,
       error: undefined as string | undefined,
-      packId: data.packId,
-      brandKit: kit
+      packId: data.packId as string | null,
+      brandKit: (kit
         ? { id: kit.id, name: kit.name || kit.brand_name, preferred_tone: kit.preferred_tone }
-        : null,
+        : null) as PackBrandKit,
     };
   });
 
