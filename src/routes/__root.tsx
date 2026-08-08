@@ -4,6 +4,8 @@ import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { lazy, Suspense, useEffect } from "react";
 import { captureUTMs, track } from "@/lib/analytics";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { MobileSplash } from "@/components/MobileSplash";
+
 
 const Toaster = lazy(() => import("sonner").then(m => ({ default: m.Toaster })));
 
