@@ -35,6 +35,8 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [referralCode, setReferralCode] = useState<string>("");
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -71,12 +73,65 @@ function SignupPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     if (!data.session) {
-      return toast.error("Your account was created, but sign-in could not start. Please sign in with your new password.");
+      // Email confirmation is required for this account — show a real next step
+      // instead of a dead-end error.
+      setAwaitingConfirm(true);
+      return;
     }
     try { localStorage.removeItem("postspark_ref"); } catch {}
     toast.success("Account created!");
     navigate({ to: "/dashboard", replace: true });
   };
+
+  const handleResend = async () => {
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setResending(false);
+    if (error) toast.error(error.message);
+    else toast.success("Confirmation email sent again.");
+  };
+
+  if (awaitingConfirm) {
+    return (
+      <AuthShell
+        title="Confirm your email"
+        subtitle="One quick step to finish"
+        altPrompt="Already confirmed?"
+        altLinkText="Sign In"
+        altTo="/login"
+      >
+        <div className="space-y-4 text-sm text-[#475569]">
+          <p>
+            We sent a confirmation link to <span className="font-semibold text-[#1F1F1F]">{email}</span>.
+            Open it to activate your account.
+          </p>
+          <ul className="list-disc space-y-1 pl-5 text-[13px]">
+            <li>Delivery usually takes under a minute.</li>
+            <li>Check spam / promotions if it isn't there.</li>
+            <li>Wrong address? Change it and sign up again.</li>
+          </ul>
+          <AuthPrimaryButton type="button" loading={resending} onClick={handleResend}>
+            Resend confirmation email
+          </AuthPrimaryButton>
+          <button
+            type="button"
+            onClick={() => setAwaitingConfirm(false)}
+            className="w-full text-[12px] font-medium text-[#7C3AED] hover:underline"
+          >
+            Use a different email
+          </button>
+          <p className="text-center text-[12px] text-[#94A3B8]">
+            Still stuck? Email support@postspark.co and we'll activate it manually.
+          </p>
+        </div>
+      </AuthShell>
+    );
+  }
+
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
