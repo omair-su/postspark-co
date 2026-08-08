@@ -8,7 +8,7 @@ import {
   Youtube, Link as LinkIcon, Calendar as CalendarIcon, Save, X, Repeat, Type as TypeIcon,
   Languages, Bookmark, Wand2, Circle, ChevronDown,
 } from "lucide-react";
-import { repurposeOneFormat, getMonthlyUsage, saveToSwipeFile } from "@/lib/repurpose.functions";
+import { repurposeOneFormat, startRepurposePack, getMonthlyUsage, saveToSwipeFile } from "@/lib/repurpose.functions";
 import { importFromUrl } from "@/lib/import.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
@@ -66,6 +66,8 @@ const FORMATS: FormatDef[] = [
 
   { id: "carousel",  name: "Carousel",       emoji: "🖼️", group: "Visual", quantities: [5,7,8,10,12,15], defaultQty: 8, qtyLabel: "Slides" },
 ];
+
+const DRAFT_KEY = "postspark.repurpose.draft.v1";
 
 const FORMAT_BY_ID = Object.fromEntries(FORMATS.map((f) => [f.id, f])) as Record<FormatId, FormatDef>;
 
@@ -160,6 +162,7 @@ function RepurposePage() {
   const [loading, setLoading] = useState(false);
   const [activeOutputTab, setActiveOutputTab] = useState<FormatId | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [restoredDraft, setRestoredDraft] = useState(false);
 
   // Modals
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -208,6 +211,21 @@ function RepurposePage() {
         }
         if (instr) setCustomInstructions(instr);
       }
+      const draftRaw = localStorage.getItem(DRAFT_KEY);
+      if (draftRaw) {
+        const d = JSON.parse(draftRaw);
+        if (d?.results && Object.keys(d.results).length) {
+          setPackId(d.packId || null);
+          setResults(d.results);
+          if (d.inputText) setInputText(d.inputText);
+          if (d.picks) setPicks(d.picks);
+          const st: Partial<Record<FormatId, FormatStatus>> = {};
+          Object.keys(d.results).forEach((k) => { st[k as FormatId] = "done"; });
+          setStatuses(st);
+          setActiveOutputTab(Object.keys(d.results)[0] as FormatId);
+          setRestoredDraft(true);
+        }
+      }
       const imported = sessionStorage.getItem("postspark.import.text");
       if (imported) {
         setInputText(imported); setSourceTab("text");
@@ -215,6 +233,24 @@ function RepurposePage() {
       }
     } catch {}
   }, []);
+
+  // Persist the working pack (including manual edits) so a refresh never loses work
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (Object.keys(results).length === 0) return;
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ packId, inputText, picks, results, savedAt: Date.now() }),
+      );
+    } catch {}
+  }, [results, packId, inputText, picks]);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    setRestoredDraft(false);
+    setResults({}); setStatuses({}); setTimings({}); setPackId(null); setActiveOutputTab(null);
+  };
 
   // -------- Derived state --------
   const selectedIds = useMemo(() => Object.keys(picks) as FormatId[], [picks]);
@@ -303,7 +339,7 @@ function RepurposePage() {
 
     const authHeaders = { Authorization: `Bearer ${session.access_token}` };
 
-    const runOne = async (formatId: FormatId, isFirst: boolean): Promise<void> => {
+    const runOne = async (formatId: FormatId): Promise<void> => {
       setStatuses((s) => ({ ...s, [formatId]: "generating" }));
       const start = Date.now();
       try {
@@ -311,7 +347,6 @@ function RepurposePage() {
         const res = await repurposeOneFormat({
           data: {
             packId: newPackId,
-            isFirstInPack: isFirst,
             inputText: inputText.slice(0, 50000),
             format: formatId,
             count: pick.count,
@@ -342,12 +377,24 @@ function RepurposePage() {
     };
 
     try {
-      await withAIProgress((async () => {
-        // First call must complete first (creates the pack row), then parallelize the rest.
-        const [first, ...rest] = selectedIds;
-        await runOne(first, true);
-        await Promise.all(rest.map((id) => runOne(id, false)));
-      })());
+      // Create the pack (and check the monthly limit) once, up-front.
+      const startRes = await startRepurposePack({
+        data: { packId: newPackId, inputText: inputText.slice(0, 50000) },
+        headers: authHeaders,
+      });
+      if (!startRes.ok) {
+        const startErr = String(startRes.error || "");
+        if (startErr === "LIMIT_REACHED") setShowUpgradeModal(true);
+        else toast.error(startErr || "Could not start this pack");
+        setStatuses({});
+        setLoading(false);
+        return;
+      }
+
+
+      // Every format runs independently — one failure never blocks the others.
+      await withAIProgress(Promise.all(selectedIds.map((id) => runOne(id))));
+
 
       if (session) {
         getMonthlyUsage({ headers: authHeaders }).then(setUsage).catch(()=>{});
@@ -358,7 +405,14 @@ function RepurposePage() {
           window.dispatchEvent(new Event("postspark:pwa-ready"));
         }
       } catch {}
-      toast.success("Content pack ready");
+      setResults((r) => {
+        const done = Object.keys(r).length;
+        if (done === 0) toast.error("No formats generated — retry any card below");
+        else if (done < selectedIds.length)
+          toast.warning(`${done}/${selectedIds.length} formats ready — retry the rest individually`);
+        else toast.success("Content pack ready");
+        return r;
+      });
     } finally {
       setLoading(false);
     }
@@ -855,6 +909,31 @@ function RepurposePage() {
             </div>
           </div>
 
+          {restoredDraft && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2 text-xs">
+              <span className="text-foreground">Restored your last pack (including edits).</span>
+              <button onClick={clearDraft} className="font-semibold text-primary hover:underline">
+                Start fresh
+              </button>
+            </div>
+          )}
+
+          {/* Failed formats — retry individually */}
+          {selectedIds.some((id) => statuses[id] === "error") && (
+            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs">
+              <span className="text-foreground">Some formats failed:</span>
+              {selectedIds.filter((id) => statuses[id] === "error").map((id) => (
+                <button
+                  key={id}
+                  onClick={() => regenerateOne(id)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1 font-medium text-foreground hover:border-primary hover:text-primary"
+                >
+                  <RefreshCw className="h-3 w-3" /> Retry {FORMAT_BY_ID[id].name}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Format tabs */}
           <div className="-mx-1 flex gap-1 overflow-x-auto border-b-[1.5px] border-border px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {selectedIds.filter((id) => results[id]).map((id) => {
@@ -885,6 +964,7 @@ function RepurposePage() {
                 onRegenerate={() => regenerateOne(activeOutputTab)}
                 onSaveSwipe={() => handleSaveToSwipe(activeOutputTab)}
                 regenerating={statuses[activeOutputTab] === "generating"}
+                onEdit={(value) => setResults((r) => ({ ...r, [activeOutputTab]: value }))}
               />
             </div>
           )}
@@ -1144,9 +1224,10 @@ function SelectRow({ label, value, onChange, options }: {
   );
 }
 
-function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating }: {
+function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit }: {
   formatId: FormatId; content: string; onCopy: (text: string, id: string) => void; copied: string | null;
   onRegenerate: () => void; onSaveSwipe: () => void; regenerating: boolean;
+  onEdit: (value: string) => void;
 }) {
   const def = FORMAT_BY_ID[formatId];
   const previewable = ["tweets","thread","linkedin","instagram","facebook","tiktok","email"].includes(formatId);
@@ -1184,9 +1265,6 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
             <RefreshCw className={`h-3 w-3 ${regenerating ? "animate-spin" : ""}`} /> {regenerating ? "Regenerating…" : "Regenerate"}
           </button>
           <PublishMenu content={edited} formatId={formatId} />
-          {formatId === "linkedin" && (
-            <PostToLinkedInButton content={edited} label="LinkedIn" className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary" />
-          )}
         </div>
       </div>
 
@@ -1201,7 +1279,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
       ) : (
         <textarea
           value={edited}
-          onChange={(e) => setEdited(e.target.value)}
+          onChange={(e) => { setEdited(e.target.value); onEdit(e.target.value); }}
           className="mt-4 min-h-[260px] w-full resize-y rounded-xl border border-input bg-muted/30 p-4 text-sm leading-relaxed text-foreground focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
         />
       )}

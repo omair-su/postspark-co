@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { resolveActiveBrandKit } from "@/lib/activeBrandKit.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const HEX = z.string().regex(/^#[0-9a-fA-F]{6}$/);
@@ -93,22 +94,9 @@ export const getBrandKit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => wrap(async () => {
     const { supabase, userId } = context;
-    // Prefer active kit; fall back to any
-    const { data: active } = await supabase
-      .from("brand_kits")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (active) return { kit: active };
-    const { data: any1 } = await supabase
-      .from("brand_kits")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    return { kit: any1 || null };
+    // Single deterministic resolver shared with every generation surface
+    const kit = await resolveActiveBrandKit(supabase, userId);
+    return { kit: kit as any };
   }));
 
 // ---------- Update fields on a specific (or the active) kit ----------

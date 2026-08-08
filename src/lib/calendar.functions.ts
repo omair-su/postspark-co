@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { resolveActiveBrandKit } from "@/lib/activeBrandKit.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateContentPlan } from "@/lib/calendar.server";
 
@@ -218,9 +219,9 @@ export const generateAIPlan = createServerFn({ method: "POST" })
     }
 
     // Pull active brand voice + tone
-    const [voiceRes, kitRes] = await Promise.all([
+    const [voiceRes, kit] = await Promise.all([
       supabase.from("brand_voices").select("style_summary").eq("user_id", userId).eq("is_active", true).maybeSingle(),
-      supabase.from("brand_kits").select("preferred_tone").eq("user_id", userId).maybeSingle(),
+      resolveActiveBrandKit(supabase, userId),
     ]);
 
     const result = await generateContentPlan(
@@ -229,7 +230,7 @@ export const generateAIPlan = createServerFn({ method: "POST" })
       data.cadence,
       data.days,
       voiceRes.data?.style_summary || "",
-      (kitRes.data as any)?.preferred_tone || "professional",
+      kit?.preferred_tone || "professional",
     );
 
     if (result.error || result.posts.length === 0) {

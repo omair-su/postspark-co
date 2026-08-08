@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
@@ -71,6 +71,22 @@ function PublishingCenter() {
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
   const [previewPlatform, setPreviewPlatform] = useState<PlatformId>("x");
+
+  // Prefill from Repurpose ("Publish" menu handoff)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("postspark.publish.draft");
+      if (!raw) return;
+      sessionStorage.removeItem("postspark.publish.draft");
+      const d = JSON.parse(raw) as { text?: string; platform?: string | null };
+      if (d?.text) setText(d.text);
+      const valid = PLATFORMS.some((p) => p.id === d?.platform);
+      if (valid) {
+        setSelected(new Set([d.platform as PlatformId]));
+        setPreviewPlatform(d.platform as PlatformId);
+      }
+    } catch {}
+  }, []);
 
   const toggle = (id: PlatformId) => {
     setSelected((prev) => {

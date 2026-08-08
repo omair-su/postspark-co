@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateRepurposedContent, generateOneFormat } from "@/lib/repurpose.server";
+import { resolveActiveBrandKit, brandKitPromptContext } from "@/lib/activeBrandKit.server";
+
 
 const FREE_MONTHLY_LIMIT = 3;
 
@@ -155,25 +157,16 @@ export const repurposeContent = createServerFn({ method: "POST" })
       }
     }
 
-    // Auto-apply Brand Kit preferred tone if user didn't explicitly choose one
+    // Auto-apply the deterministic ACTIVE Brand Kit (tone + brand context)
     let effectiveTone = data.tone || "professional";
-    let brandContext = "";
     let brandKitId: string | null = null;
-    const { data: kit } = await supabase
-      .from("brand_kits")
-      .select("id, brand_name, tagline, preferred_tone")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .maybeSingle();
+    const kit = await resolveActiveBrandKit(supabase, userId);
     if (kit) {
-      const k = kit as any;
-      brandKitId = k.id ?? null;
-      if (!data.tone && k.preferred_tone) effectiveTone = k.preferred_tone;
-      const parts: string[] = [];
-      if (k.brand_name) parts.push(`Brand: ${k.brand_name}`);
-      if (k.tagline) parts.push(`Tagline: ${k.tagline}`);
-      if (parts.length) brandContext = parts.join(" | ");
+      brandKitId = kit.id ?? null;
+      if (!data.tone && kit.preferred_tone) effectiveTone = kit.preferred_tone;
     }
+    const brandContext = brandKitPromptContext(kit);
+
 
     // Resolve active workspace (Agency users)
     let workspaceId: string | null = null;
@@ -292,12 +285,110 @@ const FORMAT_ID = z.enum([
   "tweets","linkedin","instagram","facebook","thread","email","video","tiktok","podcast","seo","carousel",
 ]);
 
+type PackBrandKit = { id: string; name: string | null; preferred_tone: string | null } | null;
+
+/** Creates the pack row if it isn't there yet. Safe to call from every format. */
+async function ensurePackRow(
+  supabase: any,
+  opts: {
+    packId: string;
+    userId: string;
+    inputText: string;
+    title: string;
+    brandKitId: string | null;
+    workspaceId: string | null;
+  },
+) {
+  const { data: existing } = await supabase
+    .from("repurpose_jobs")
+    .select("id")
+    .eq("id", opts.packId)
+    .eq("user_id", opts.userId)
+    .maybeSingle();
+  if (existing) return;
+
+  const { error } = await supabase.from("repurpose_jobs").insert({
+    id: opts.packId,
+    user_id: opts.userId,
+    input_text: opts.inputText,
+    title: opts.title,
+    outputs: {},
+    brand_kit_id: opts.brandKitId,
+    workspace_id: opts.workspaceId,
+    tool: "repurpose",
+  } as any);
+  // A duplicate-key error just means a sibling format won the race — fine.
+  if (error && !`${error.message}`.toLowerCase().includes("duplicate")) {
+    console.error("repurpose pack insert error:", error);
+  }
+}
+
+/**
+ * Creates the pack row up-front and enforces the monthly limit once per pack,
+ * so a failing first format can no longer strand the whole run.
+ */
+export const startRepurposePack = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      packId: z.string().uuid(),
+      inputText: z.string().min(1).max(50000),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: profile } = await supabase
+      .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+    const plan = profile?.plan || "free";
+    const isPro = plan === "pro" || plan === "agency";
+
+    if (!isPro) {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from("repurpose_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", startOfMonth.toISOString());
+      if ((count ?? 0) >= FREE_MONTHLY_LIMIT) {
+        return { ok: false, error: "LIMIT_REACHED", packId: null as string | null, brandKit: null as PackBrandKit };
+      }
+    }
+
+    const kit = await resolveActiveBrandKit(supabase, userId);
+
+    let workspaceId: string | null = null;
+    const { data: membership } = await supabase
+      .from("workspace_members").select("workspace_id").eq("user_id", userId).limit(1).maybeSingle();
+    if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
+
+    await ensurePackRow(supabase, {
+      packId: data.packId,
+      userId,
+      inputText: data.inputText,
+      title: data.inputText.replace(/\s+/g, " ").trim().slice(0, 120),
+      brandKitId: kit?.id ?? null,
+      workspaceId,
+    });
+
+    return {
+      ok: true,
+      error: undefined as string | undefined,
+      packId: data.packId as string | null,
+      brandKit: (kit
+        ? { id: kit.id, name: kit.name || kit.brand_name, preferred_tone: kit.preferred_tone }
+        : null) as PackBrandKit,
+    };
+  });
+
 export const repurposeOneFormat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       packId: z.string().uuid(),
-      isFirstInPack: z.boolean(),
+      isFirstInPack: z.boolean().optional().default(false),
+
       inputText: z.string().min(1).max(50000),
       format: FORMAT_ID,
       count: z.number().int().min(1).max(30).optional(),
@@ -317,7 +408,8 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
     }
 
     const { data: profile } = await supabase
-      .from("profiles").select("plan").eq("user_id", userId).single();
+      .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+
     const plan = profile?.plan || "free";
     const isPro = plan === "pro" || plan === "agency";
 
@@ -357,23 +449,15 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
       }
     }
 
-    // Brand Kit (auto tone + context)
+    // Brand Kit (deterministic active kit → auto tone + context)
     let effectiveTone = data.tone || "professional";
-    let brandContext = "";
     let brandKitId: string | null = null;
-    const { data: kit } = await supabase
-      .from("brand_kits")
-      .select("id, brand_name, tagline, preferred_tone")
-      .eq("user_id", userId).eq("is_active", true).maybeSingle();
+    const kit = await resolveActiveBrandKit(supabase, userId);
     if (kit) {
-      const k = kit as any;
-      brandKitId = k.id ?? null;
-      if (!data.tone && k.preferred_tone) effectiveTone = k.preferred_tone;
-      const parts: string[] = [];
-      if (k.brand_name) parts.push(`Brand: ${k.brand_name}`);
-      if (k.tagline) parts.push(`Tagline: ${k.tagline}`);
-      if (parts.length) brandContext = parts.join(" | ");
+      brandKitId = kit.id ?? null;
+      if (!data.tone && kit.preferred_tone) effectiveTone = kit.preferred_tone;
     }
+    const brandContext = brandKitPromptContext(kit);
 
     const mergedInstructions = brandContext
       ? `${data.customInstructions || ""}${data.customInstructions ? " " : ""}Brand context — ${brandContext}.`.trim()
@@ -405,40 +489,36 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
 
     const packTitle = data.inputText.replace(/\s+/g, " ").trim().slice(0, 120);
 
-    // First format of pack → insert job row with packId
-    if (data.isFirstInPack) {
-      const { error: insErr } = await supabase
+    // Ensure the pack row exists regardless of which format finishes first, so
+    // one failed format can never strand the rest of the pack.
+    await ensurePackRow(supabase, {
+      packId: data.packId,
+      userId,
+      inputText: data.inputText,
+      title: packTitle,
+      brandKitId,
+      workspaceId,
+    });
+
+    // Atomic JSONB merge via RPC — avoids parallel-write race that drops formats
+    const { error: rpcErr } = await (supabase as any).rpc("append_repurpose_outputs", {
+      _job_id: data.packId,
+      _user_id: userId,
+      _patch: { [data.format]: result.output },
+      _title: packTitle,
+    });
+    if (rpcErr) {
+      console.error("append_repurpose_outputs RPC error, falling back:", rpcErr);
+      const { data: existing } = await supabase
+        .from("repurpose_jobs").select("outputs").eq("id", data.packId).eq("user_id", userId).maybeSingle();
+      const prev = ((existing as any)?.outputs as Record<string, unknown>) || {};
+      await supabase
         .from("repurpose_jobs")
-        .insert({
-          id: data.packId,
-          user_id: userId,
-          input_text: data.inputText,
-          title: packTitle,
-          outputs: { [data.format]: result.output },
-          brand_kit_id: brandKitId,
-          workspace_id: workspaceId,
-          tool: "repurpose",
-        } as any);
-      if (insErr) console.error("repurpose pack insert error:", insErr);
-    } else {
-      // Atomic JSONB merge via RPC — avoids parallel-write race that drops formats
-      const { error: rpcErr } = await (supabase as any).rpc("append_repurpose_outputs", {
-        _job_id: data.packId,
-        _user_id: userId,
-        _patch: { [data.format]: result.output },
-        _title: packTitle,
-      });
-      if (rpcErr) {
-        console.error("append_repurpose_outputs RPC error, falling back:", rpcErr);
-        const { data: existing } = await supabase
-          .from("repurpose_jobs").select("outputs").eq("id", data.packId).eq("user_id", userId).maybeSingle();
-        const prev = ((existing as any)?.outputs as Record<string, unknown>) || {};
-        await supabase
-          .from("repurpose_jobs")
-          .update({ outputs: { ...prev, [data.format]: result.output } as any, title: packTitle })
-          .eq("id", data.packId).eq("user_id", userId);
-      }
+        .update({ outputs: { ...prev, [data.format]: result.output } as any, title: packTitle })
+        .eq("id", data.packId).eq("user_id", userId);
     }
+
+
 
     return { output: result.output, error: undefined as string | undefined, jobId: data.packId };
   });
