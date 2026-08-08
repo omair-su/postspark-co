@@ -67,6 +67,8 @@ const FORMATS: FormatDef[] = [
   { id: "carousel",  name: "Carousel",       emoji: "🖼️", group: "Visual", quantities: [5,7,8,10,12,15], defaultQty: 8, qtyLabel: "Slides" },
 ];
 
+const DRAFT_KEY = "postspark.repurpose.draft.v1";
+
 const FORMAT_BY_ID = Object.fromEntries(FORMATS.map((f) => [f.id, f])) as Record<FormatId, FormatDef>;
 
 const STYLE_MODIFIERS: { id: string; label: string }[] = [
@@ -906,6 +908,31 @@ function RepurposePage() {
               </button>
             </div>
           </div>
+
+          {restoredDraft && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2 text-xs">
+              <span className="text-foreground">Restored your last pack (including edits).</span>
+              <button onClick={clearDraft} className="font-semibold text-primary hover:underline">
+                Start fresh
+              </button>
+            </div>
+          )}
+
+          {/* Failed formats — retry individually */}
+          {selectedIds.some((id) => statuses[id] === "error") && (
+            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs">
+              <span className="text-foreground">Some formats failed:</span>
+              {selectedIds.filter((id) => statuses[id] === "error").map((id) => (
+                <button
+                  key={id}
+                  onClick={() => regenerateOne(id)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1 font-medium text-foreground hover:border-primary hover:text-primary"
+                >
+                  <RefreshCw className="h-3 w-3" /> Retry {FORMAT_BY_ID[id].name}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Format tabs */}
           <div className="-mx-1 flex gap-1 overflow-x-auto border-b-[1.5px] border-border px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
