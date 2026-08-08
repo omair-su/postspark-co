@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { searchReelsByHashtag } from "@/lib/reelsSearch.functions";
-import { Search, Loader2, ExternalLink, Video, AlertCircle } from "lucide-react";
+import { searchReelsByHashtag, getReelsCapability } from "@/lib/reelsSearch.functions";
+import { Search, Loader2, ExternalLink, Video, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 
 type Reel = {
   id: string;
@@ -17,6 +18,24 @@ interface Props {
   onSelect?: (r: Reel) => void;
 }
 
+type Capability = { mode: string; canSearch: boolean; username: string | null } | null;
+
+const CAPABILITY_COPY: Record<string, { text: string; action?: { label: string; to: string } }> = {
+  NO_IG_ACCOUNT: {
+    text: "No Instagram connection yet. Hashtag discovery needs an Instagram Business account linked to a Facebook Page.",
+    action: { label: "Connect Facebook", to: "/dashboard/settings/facebook" },
+  },
+  NO_IG_BUSINESS_ON_PAGE: {
+    text: "Facebook is connected, but none of your Pages has a linked Instagram Business account. Link one in Meta, then pick the Page here.",
+    action: { label: "Choose a Page", to: "/dashboard/settings/facebook" },
+  },
+  IG_STANDALONE_ONLY: {
+    text: "Your Instagram account is connected for publishing. Hashtag discovery is a separate Meta capability that requires an Instagram Business account linked to a Facebook Page — your existing connection stays intact.",
+    action: { label: "Connect Facebook Page", to: "/dashboard/settings/facebook" },
+  },
+  HASHTAG_NOT_FOUND: { text: "No results for that hashtag." },
+};
+
 export function ReelsSearchPanel({ onSelect }: Props) {
   const { session } = useAuth();
   const authHeaders = session
@@ -27,27 +46,36 @@ export function ReelsSearchPanel({ onSelect }: Props) {
   const [results, setResults] = useState<Reel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorAction, setErrorAction] = useState<{ label: string; to: string } | null>(null);
+  const [capability, setCapability] = useState<Capability>(null);
+
+  useEffect(() => {
+    if (!session) return;
+    let alive = true;
+    getReelsCapability({ headers: { Authorization: `Bearer ${session.access_token}` } } as any)
+      .then((c: any) => { if (alive) setCapability(c); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [session]);
+
+  const showError = (code: string) => {
+    const copy = CAPABILITY_COPY[code];
+    setError(copy?.text || code || "Search failed");
+    setErrorAction(copy?.action ?? null);
+  };
 
   const doSearch = async () => {
     if (!q.trim()) return;
     setLoading(true);
     setError(null);
+    setErrorAction(null);
     try {
       const res = await searchReelsByHashtag({
         data: { hashtag: q.trim(), type },
         ...authHeaders,
       } as any);
       if (!(res as any).success) {
-        const err = (res as any).error;
-        if (err === "NO_IG_ACCOUNT") {
-          setError("Connect an Instagram Business account through a Facebook Page to use hashtag discovery.");
-        } else if (err === "IG_STANDALONE_ONLY") {
-          setError("Your Instagram account is connected for publishing. Hashtag discovery is a separate Meta capability that requires an Instagram Business account linked to a Facebook Page.");
-        } else if (err === "HASHTAG_NOT_FOUND") {
-          setError("No results for that hashtag.");
-        } else {
-          setError(err || "Search failed");
-        }
+        showError((res as any).error);
         setResults([]);
       } else {
         setResults((res as any).results as Reel[]);
@@ -59,6 +87,7 @@ export function ReelsSearchPanel({ onSelect }: Props) {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
