@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 import { Sparkles } from "lucide-react";
 import { PREMIUM_ART, type PremiumArtKey } from "./premiumArt";
+import { ArtLayer, Pill } from "./premium";
 
 /**
- * Premium hero strip for any tool page: eyebrow, gradient title, subtitle,
- * decorative brand art on the right and an optional 3-step micro-row.
+ * Premium hero band for any tool page: eyebrow, gradient title, subtitle,
+ * bright brand art on the right and an optional 3-step micro-row.
  */
 export function ToolHero({
   eyebrow,
@@ -26,43 +27,25 @@ export function ToolHero({
   icon?: ReactNode;
 }) {
   return (
-    <section
-      className="ps-tool-hero ps-elev-2 ds-fade-up"
-      style={{ ["--cat" as any]: accent }}
-    >
-      <span className="ps-ambient" aria-hidden />
-      {art && (
-        <img
-          src={PREMIUM_ART[art]}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          className="ps-tool-hero-art hidden sm:block"
-        />
-      )}
+    <section className="pw-hero p-5 sm:p-7" style={{ ["--cat" as any]: accent }}>
+      {art && <ArtLayer src={PREMIUM_ART[art]} width="38%" opacity={0.9} />}
       <div className="relative flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 max-w-2xl">
           {eyebrow && (
-            <p className="ds-eyebrow mb-2">
+            <Pill accent className="mb-3">
               {icon || <Sparkles className="h-3 w-3" />} {eyebrow}
-            </p>
+            </Pill>
           )}
-          <h1
-            className="ds-gradient-text ps-title-sweep text-[24px] font-bold leading-tight tracking-tight sm:text-[30px]"
-          >
+          <h1 className="pw-grad-text text-[26px] font-bold leading-tight tracking-tight sm:text-[32px]">
             {title}
           </h1>
-          {subtitle && (
-            <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--ds-muted)" }}>
-              {subtitle}
-            </p>
-          )}
+          {subtitle && <p className="pw-muted-text mt-2 max-w-xl text-[13.5px] leading-relaxed">{subtitle}</p>}
           {steps && steps.length > 0 && (
-            <div className="ps-steps mt-4">
+            <div className="mt-4 flex flex-wrap gap-2">
               {steps.map((s, i) => (
-                <span key={s} className="ps-step">
-                  <b>{i + 1}</b> {s}
-                </span>
+                <Pill key={s}>
+                  <b className="pw-grad-text">{i + 1}</b> {s}
+                </Pill>
               ))}
             </div>
           )}
