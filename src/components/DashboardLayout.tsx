@@ -9,6 +9,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { MobileSplash } from "@/components/MobileSplash";
 import { AIProgressBar } from "@/components/AIProgressBar";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { CommandPaletteRoot } from "@/components/CommandPalette";
@@ -522,6 +523,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       
       <AIProgressBar />
       <CommandPaletteRoot />
+      <MobileSplash />
       <SparkCopilot />
       <UpgradeNudgeModal />
       {/* Mobile bottom nav removed */}
