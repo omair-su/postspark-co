@@ -4148,11 +4148,62 @@ html:not(.dark) .ps-dot[data-on="1"] { background: linear-gradient(180deg, #7FB3
   animation: pw-ping 1.6s var(--pw-ease) infinite;
 }
 
+/* gradient sheen sweep on hover (cards, tiles) */
+.pw-sheen { position: relative; overflow: hidden; isolation: isolate; }
+.pw-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, color-mix(in oklab, var(--pw-violet) 18%, transparent) 48%, transparent 66%);
+  transform: translateX(-120%);
+  transition: transform 0.85s var(--pw-ease);
+  z-index: 1;
+}
+.pw-sheen:hover::after,
+.pw-sheen:focus-visible::after { transform: translateX(120%); }
+
+/* staggered list entrance — children animate in sequence */
+.pw-stagger > * { animation: pw-rise var(--pw-slow) var(--pw-ease) both; }
+.pw-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.pw-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.pw-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.pw-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.pw-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.pw-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.pw-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.pw-stagger > *:nth-child(8) { animation-delay: 420ms; }
+.pw-stagger > *:nth-child(n + 9) { animation-delay: 480ms; }
+
+/* spring-y tabs / segmented pills */
+.pw-springy {
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.22s var(--pw-ease), color 0.22s var(--pw-ease), box-shadow 0.22s var(--pw-ease);
+}
+.pw-springy:hover { transform: translateY(-1px) scale(1.02); }
+.pw-springy:active { transform: scale(0.97); }
+.pw-springy[data-state="active"],
+.pw-springy[aria-selected="true"] { transform: scale(1.03); }
+
+/* focus rings for every new primitive */
+.pw-cta:focus-visible,
+.pw-cta-ghost:focus-visible,
+.pw-springy:focus-visible,
+.pw-hoverable:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--pw-violet) 70%, transparent);
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pw-reveal, .pw-reveal.pw-in { opacity: 1; animation: none; }
   .pw-float, .pw-orb, .pw-orb::before, .pw-skeleton, .pw-orb-ring { animation: none !important; }
   .pw-hoverable:hover { transform: none; }
+  .pw-stagger > * { animation: none !important; opacity: 1; }
+  .pw-sheen::after { display: none; }
+  .pw-springy, .pw-springy:hover, .pw-springy:active,
+  .pw-springy[data-state="active"], .pw-springy[aria-selected="true"] { transform: none; transition: none; }
 }
+
 
 /* ---------- light shell settle (calmer canvas + white sidebar) ---------- */
 html:not(.dark) .dashboard-shell .ds-canvas {
