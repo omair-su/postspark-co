@@ -196,8 +196,8 @@ function BrandKitPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl">
-        <div className="h-7 w-40 animate-pulse rounded bg-slate-800/60" />
-        <div className="mt-6 h-96 animate-pulse rounded-xl bg-slate-800/60" />
+        <div className="h-7 w-40 animate-pulse rounded pw-skeleton" />
+        <div className="mt-6 h-96 animate-pulse rounded-xl pw-skeleton" />
       </div>
     );
   }
@@ -280,7 +280,7 @@ function BrandKitPage() {
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-4">
+          <div className="rounded-xl pw-hairline border bg-[color:var(--pw-section)] p-4">
             <div className="space-y-3">
               <TintShadeRamp color={primary} label="Primary" />
               <TintShadeRamp color={secondary} label="Secondary" />
@@ -361,7 +361,7 @@ function BrandKitPage() {
               className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                 tone === t.id
                   ? "border-violet-500/60 bg-violet-500/10 pw-ink"
-                  : "border-slate-800 pw-muted-text hover:border-violet-500/30 hover:text-slate-200"
+                  : "pw-hairline pw-muted-text hover:border-violet-500/40"
               }`}
             >
               <span>{t.emoji}</span> {t.label}
@@ -404,11 +404,11 @@ function BrandKitPage() {
       </section>
 
       {/* Sticky action bar */}
-      <div className="sticky bottom-4 z-30 flex flex-wrap justify-end gap-2 rounded-2xl border border-slate-800/80 bg-slate-950/80 p-2 backdrop-blur-xl">
+      <div className="sticky bottom-4 z-30 flex flex-wrap justify-end gap-2 rounded-2xl pw-hairline border bg-[color:var(--pw-surface)] p-2 backdrop-blur-xl">
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-semibold pw-ink transition hover:border-violet-500/60 hover:text-white disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg pw-hairline border bg-[color:var(--pw-surface)] px-4 py-2 text-sm font-semibold pw-ink transition hover:border-violet-500/60 hover:opacity-90 disabled:opacity-60"
         >
           {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
           Export brand guide (PDF)
@@ -436,7 +436,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm pw-ink outline-none placeholder:text-slate-600 focus:border-violet-500"
+        className="mt-1 w-full rounded-lg pw-hairline border bg-[color:var(--pw-surface)] px-3 py-2 text-sm pw-ink outline-none placeholder:opacity-60 focus:border-violet-500"
       />
     </label>
   );
