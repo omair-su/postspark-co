@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  planFromProductId,
+  cadenceFromPriceId,
+  isLifetimePrice,
+  can as canDo,
+  type PlanId,
+  type Capability,
+} from "@/lib/plans";
+
 
 export type SubscriptionRow = {
   id: string;
