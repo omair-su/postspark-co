@@ -160,6 +160,7 @@ function RepurposePage() {
   const [loading, setLoading] = useState(false);
   const [activeOutputTab, setActiveOutputTab] = useState<FormatId | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [restoredDraft, setRestoredDraft] = useState(false);
 
   // Modals
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -208,6 +209,21 @@ function RepurposePage() {
         }
         if (instr) setCustomInstructions(instr);
       }
+      const draftRaw = localStorage.getItem(DRAFT_KEY);
+      if (draftRaw) {
+        const d = JSON.parse(draftRaw);
+        if (d?.results && Object.keys(d.results).length) {
+          setPackId(d.packId || null);
+          setResults(d.results);
+          if (d.inputText) setInputText(d.inputText);
+          if (d.picks) setPicks(d.picks);
+          const st: Partial<Record<FormatId, FormatStatus>> = {};
+          Object.keys(d.results).forEach((k) => { st[k as FormatId] = "done"; });
+          setStatuses(st);
+          setActiveOutputTab(Object.keys(d.results)[0] as FormatId);
+          setRestoredDraft(true);
+        }
+      }
       const imported = sessionStorage.getItem("postspark.import.text");
       if (imported) {
         setInputText(imported); setSourceTab("text");
@@ -215,6 +231,24 @@ function RepurposePage() {
       }
     } catch {}
   }, []);
+
+  // Persist the working pack (including manual edits) so a refresh never loses work
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (Object.keys(results).length === 0) return;
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ packId, inputText, picks, results, savedAt: Date.now() }),
+      );
+    } catch {}
+  }, [results, packId, inputText, picks]);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    setRestoredDraft(false);
+    setResults({}); setStatuses({}); setTimings({}); setPackId(null); setActiveOutputTab(null);
+  };
 
   // -------- Derived state --------
   const selectedIds = useMemo(() => Object.keys(picks) as FormatId[], [picks]);
@@ -369,7 +403,14 @@ function RepurposePage() {
           window.dispatchEvent(new Event("postspark:pwa-ready"));
         }
       } catch {}
-      toast.success("Content pack ready");
+      setResults((r) => {
+        const done = Object.keys(r).length;
+        if (done === 0) toast.error("No formats generated — retry any card below");
+        else if (done < selectedIds.length)
+          toast.warning(`${done}/${selectedIds.length} formats ready — retry the rest individually`);
+        else toast.success("Content pack ready");
+        return r;
+      });
     } finally {
       setLoading(false);
     }
