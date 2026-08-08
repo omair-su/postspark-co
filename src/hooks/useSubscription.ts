@@ -58,7 +58,10 @@ export function useSubscription() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  const lifetime = isLifetimePrice(subscription?.price_id);
+
   const isActive = !!subscription && (
+    lifetime ||
     (["active", "trialing", "past_due"].includes(subscription.status) &&
       (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date())) ||
     (subscription.status === "canceled" &&
@@ -66,11 +69,23 @@ export function useSubscription() {
       new Date(subscription.current_period_end) > new Date())
   );
 
-  const tier: "free" | "pro" | "agency" = !isActive
+  const tier: PlanId = !isActive
     ? "free"
-    : subscription?.product_id === "agency_plan"
-      ? "agency"
-      : "pro";
+    : lifetime
+      ? "pro"
+      : planFromProductId(subscription?.product_id);
 
-  return { subscription, isActive, tier, loading };
+  const cadence = lifetime ? null : cadenceFromPriceId(subscription?.price_id);
+
+  return {
+    subscription,
+    isActive,
+    tier,
+    plan: tier,
+    cadence,
+    lifetime,
+    loading,
+    can: (capability: Capability) => canDo(tier, capability),
+  };
 }
+
