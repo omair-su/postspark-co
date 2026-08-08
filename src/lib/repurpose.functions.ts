@@ -285,12 +285,108 @@ const FORMAT_ID = z.enum([
   "tweets","linkedin","instagram","facebook","thread","email","video","tiktok","podcast","seo","carousel",
 ]);
 
+/** Creates the pack row if it isn't there yet. Safe to call from every format. */
+async function ensurePackRow(
+  supabase: any,
+  opts: {
+    packId: string;
+    userId: string;
+    inputText: string;
+    title: string;
+    brandKitId: string | null;
+    workspaceId: string | null;
+  },
+) {
+  const { data: existing } = await supabase
+    .from("repurpose_jobs")
+    .select("id")
+    .eq("id", opts.packId)
+    .eq("user_id", opts.userId)
+    .maybeSingle();
+  if (existing) return;
+
+  const { error } = await supabase.from("repurpose_jobs").insert({
+    id: opts.packId,
+    user_id: opts.userId,
+    input_text: opts.inputText,
+    title: opts.title,
+    outputs: {},
+    brand_kit_id: opts.brandKitId,
+    workspace_id: opts.workspaceId,
+    tool: "repurpose",
+  } as any);
+  // A duplicate-key error just means a sibling format won the race — fine.
+  if (error && !`${error.message}`.toLowerCase().includes("duplicate")) {
+    console.error("repurpose pack insert error:", error);
+  }
+}
+
+/**
+ * Creates the pack row up-front and enforces the monthly limit once per pack,
+ * so a failing first format can no longer strand the whole run.
+ */
+export const startRepurposePack = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      packId: z.string().uuid(),
+      inputText: z.string().min(1).max(50000),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: profile } = await supabase
+      .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+    const plan = profile?.plan || "free";
+    const isPro = plan === "pro" || plan === "agency";
+
+    if (!isPro) {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from("repurpose_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", startOfMonth.toISOString());
+      if ((count ?? 0) >= FREE_MONTHLY_LIMIT) {
+        return { ok: false as const, error: "LIMIT_REACHED", packId: null, brandKit: null };
+      }
+    }
+
+    const kit = await resolveActiveBrandKit(supabase, userId);
+
+    let workspaceId: string | null = null;
+    const { data: membership } = await supabase
+      .from("workspace_members").select("workspace_id").eq("user_id", userId).limit(1).maybeSingle();
+    if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
+
+    await ensurePackRow(supabase, {
+      packId: data.packId,
+      userId,
+      inputText: data.inputText,
+      title: data.inputText.replace(/\s+/g, " ").trim().slice(0, 120),
+      brandKitId: kit?.id ?? null,
+      workspaceId,
+    });
+
+    return {
+      ok: true as const,
+      error: undefined as string | undefined,
+      packId: data.packId,
+      brandKit: kit
+        ? { id: kit.id, name: kit.name || kit.brand_name, preferred_tone: kit.preferred_tone }
+        : null,
+    };
+  });
+
 export const repurposeOneFormat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       packId: z.string().uuid(),
-      isFirstInPack: z.boolean(),
+      isFirstInPack: z.boolean().optional().default(false),
+
       inputText: z.string().min(1).max(50000),
       format: FORMAT_ID,
       count: z.number().int().min(1).max(30).optional(),
