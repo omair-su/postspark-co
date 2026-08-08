@@ -8,7 +8,7 @@ import {
   Youtube, Link as LinkIcon, Calendar as CalendarIcon, Save, X, Repeat, Type as TypeIcon,
   Languages, Bookmark, Wand2, Circle, ChevronDown,
 } from "lucide-react";
-import { repurposeOneFormat, getMonthlyUsage, saveToSwipeFile } from "@/lib/repurpose.functions";
+import { repurposeOneFormat, startRepurposePack, getMonthlyUsage, saveToSwipeFile } from "@/lib/repurpose.functions";
 import { importFromUrl } from "@/lib/import.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
