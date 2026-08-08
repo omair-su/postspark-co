@@ -303,7 +303,7 @@ function RepurposePage() {
 
     const authHeaders = { Authorization: `Bearer ${session.access_token}` };
 
-    const runOne = async (formatId: FormatId, isFirst: boolean): Promise<void> => {
+    const runOne = async (formatId: FormatId): Promise<void> => {
       setStatuses((s) => ({ ...s, [formatId]: "generating" }));
       const start = Date.now();
       try {
@@ -311,7 +311,6 @@ function RepurposePage() {
         const res = await repurposeOneFormat({
           data: {
             packId: newPackId,
-            isFirstInPack: isFirst,
             inputText: inputText.slice(0, 50000),
             format: formatId,
             count: pick.count,
@@ -342,12 +341,22 @@ function RepurposePage() {
     };
 
     try {
-      await withAIProgress((async () => {
-        // First call must complete first (creates the pack row), then parallelize the rest.
-        const [first, ...rest] = selectedIds;
-        await runOne(first, true);
-        await Promise.all(rest.map((id) => runOne(id, false)));
-      })());
+      // Create the pack (and check the monthly limit) once, up-front.
+      const startRes = await startRepurposePack({
+        data: { packId: newPackId, inputText: inputText.slice(0, 50000) },
+        headers: authHeaders,
+      });
+      if (!startRes.ok) {
+        if (startRes.error === "LIMIT_REACHED") setShowUpgradeModal(true);
+        else toast.error(startRes.error || "Could not start this pack");
+        setStatuses({});
+        setLoading(false);
+        return;
+      }
+
+      // Every format runs independently — one failure never blocks the others.
+      await withAIProgress(Promise.all(selectedIds.map((id) => runOne(id))));
+
 
       if (session) {
         getMonthlyUsage({ headers: authHeaders }).then(setUsage).catch(()=>{});
