@@ -285,7 +285,7 @@ export function SparkCopilot() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <SparkOrb size={36} />
+                <SparkOrb size={36} busy={loading} />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[15px] font-semibold text-white leading-tight">Spark</span>
