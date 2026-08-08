@@ -157,25 +157,16 @@ export const repurposeContent = createServerFn({ method: "POST" })
       }
     }
 
-    // Auto-apply Brand Kit preferred tone if user didn't explicitly choose one
+    // Auto-apply the deterministic ACTIVE Brand Kit (tone + brand context)
     let effectiveTone = data.tone || "professional";
-    let brandContext = "";
     let brandKitId: string | null = null;
-    const { data: kit } = await supabase
-      .from("brand_kits")
-      .select("id, brand_name, tagline, preferred_tone")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .maybeSingle();
+    const kit = await resolveActiveBrandKit(supabase, userId);
     if (kit) {
-      const k = kit as any;
-      brandKitId = k.id ?? null;
-      if (!data.tone && k.preferred_tone) effectiveTone = k.preferred_tone;
-      const parts: string[] = [];
-      if (k.brand_name) parts.push(`Brand: ${k.brand_name}`);
-      if (k.tagline) parts.push(`Tagline: ${k.tagline}`);
-      if (parts.length) brandContext = parts.join(" | ");
+      brandKitId = kit.id ?? null;
+      if (!data.tone && kit.preferred_tone) effectiveTone = kit.preferred_tone;
     }
+    const brandContext = brandKitPromptContext(kit);
+
 
     // Resolve active workspace (Agency users)
     let workspaceId: string | null = null;
