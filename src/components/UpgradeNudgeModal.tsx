@@ -4,6 +4,7 @@ import { Sparkles, X, Check } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { track } from "@/lib/analytics";
 import {
   PRICE_PRO_MONTHLY_LABEL,
   PRICE_PRO_ANNUAL_PER_MONTH,
@@ -12,8 +13,6 @@ import {
 
 const STORAGE_KEY = "postspark.upgrade_nudge.shown_at";
 const COOLDOWN_DAYS = 7;
-// Fallback timer if we can't read usage — long enough that we don't interrupt.
-const FALLBACK_DELAY_MS = 120_000;
 
 const ANNUAL_SAVINGS = (PRICE_PRO_MONTHLY - PRICE_PRO_ANNUAL_PER_MONTH) * 12;
 
@@ -51,14 +50,13 @@ export function UpgradeNudgeModal() {
         });
         if (cancelled) return;
         // Trigger only when the user has felt real value — 2+ generations this month.
+        // Only nudge once the user has produced real results this month.
         if (usage && usage.used >= 2) {
           timer = window.setTimeout(() => setOpen(true), 1500);
-          return;
         }
       } catch {
-        // ignore — fall through to fallback delay
+        // Usage unknown — never interrupt.
       }
-      timer = window.setTimeout(() => setOpen(true), FALLBACK_DELAY_MS);
     })();
 
     return () => {
@@ -73,6 +71,10 @@ export function UpgradeNudgeModal() {
       localStorage.setItem(STORAGE_KEY, String(Date.now()));
     } catch {}
   };
+
+  useEffect(() => {
+    if (open) track("upgrade_nudge_shown", {});
+  }, [open]);
 
   if (!open) return null;
 
@@ -121,8 +123,11 @@ export function UpgradeNudgeModal() {
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <Link
-            to="/pricing"
-            onClick={dismiss}
+            to="/dashboard/billing"
+            onClick={() => {
+              track("upgrade_nudge_cta_click", {});
+              dismiss();
+            }}
             className="flex-1 rounded-lg gradient-electric px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90"
           >
             Upgrade to Pro →

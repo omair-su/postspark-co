@@ -6,9 +6,8 @@ import { toast } from "sonner";
 import { Loader2, Crown, User, Sparkles, ArrowRight, ExternalLink, Trash2, Mic } from "lucide-react";
 import { getMonthlyUsage } from "@/lib/repurpose.functions";
 import { useSubscription } from "@/hooks/useSubscription";
-import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { createPortalSession, previewPlanChange, applyPlanChange, deleteAccount } from "@/lib/payments.functions";
-import { getPaddleEnvironment } from "@/lib/paddle";
+import { deleteAccount } from "@/lib/payments.functions";
+import { PLANS } from "@/lib/plans";
 import { PublicShowcaseSettings } from "@/components/PublicShowcaseSettings";
 import { ConnectedAccountsCard } from "@/components/ConnectedAccountsCard";
 import { XAnalyticsCard } from "@/components/publish/XAnalyticsCard";
@@ -192,36 +191,10 @@ function SettingsPage() {
     </div>
   );
 }
-
 function SubscriptionCard({ usage }: { usage: { used: number; limit: number; plan?: string } | null }) {
-  const { user, session } = useAuth();
-  const { subscription, tier, isActive } = useSubscription();
-  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
-  const [portalLoading, setPortalLoading] = useState(false);
-
-  const plan = tier ?? usage?.plan ?? "free";
+  const { subscription, plan, cadence, lifetime, isActive } = useSubscription();
   const isUnlimited = plan !== "free";
-
-  const handleUpgrade = async (priceId: string) => {
-    if (!user) return;
-    await openCheckout({ priceId, userId: user.id, customerEmail: user.email });
-  };
-
-  const handleManageBilling = async () => {
-    if (!user || !session) return;
-    setPortalLoading(true);
-    try {
-      const result = await createPortalSession({
-        data: { environment: getPaddleEnvironment() },
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      window.open(result.overviewUrl, "_blank");
-    } catch (e: any) {
-      toast.error(e?.message || "Could not open billing portal");
-    } finally {
-      setPortalLoading(false);
-    }
-  };
+  const renewal = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
 
   return (
     <div className="mt-4 rounded-xl border border-border bg-card p-5">
@@ -229,14 +202,17 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
         <Crown className="h-4 w-4 text-primary" />
         <h2 className="text-sm font-semibold text-foreground">Subscription</h2>
       </div>
-      <div className="mt-3 flex items-center gap-3">
-        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
-          plan === "free"
-            ? "bg-accent text-accent-foreground"
-            : "gradient-electric text-primary-foreground"
-        }`}>
-          {plan.toUpperCase()}
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <span
+          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
+            plan === "free" ? "bg-accent text-accent-foreground" : "gradient-electric text-primary-foreground"
+          }`}
+        >
+          {PLANS[plan].name.toUpperCase()}
         </span>
+        {cadence && !lifetime && (
+          <span className="text-xs capitalize text-muted-foreground">{cadence} billing</span>
+        )}
         {isUnlimited ? (
           <span className="text-xs text-muted-foreground">Unlimited repurposes</span>
         ) : (
@@ -246,148 +222,40 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
         )}
       </div>
 
-      {subscription?.status === "trialing" && subscription.current_period_end && (
+      {subscription?.status === "trialing" && renewal && (
         <p className="mt-3 text-xs font-medium text-primary">
-          🎉 Free trial — ends {new Date(subscription.current_period_end).toLocaleDateString()}. You'll be charged automatically unless you cancel.
+          Free trial — ends {renewal.toLocaleDateString()}. You'll be charged unless you cancel before then.
         </p>
       )}
 
       {subscription?.status === "past_due" && (
         <p className="mt-3 text-xs font-medium text-destructive">
-          ⚠️ Payment failed. Update your card via Manage billing to keep your subscription active.
+          Payment failed. Update your card on the billing page to keep your subscription active.
         </p>
       )}
 
-      {subscription && subscription.cancel_at_period_end && subscription.current_period_end && (
+      {isActive && subscription?.cancel_at_period_end && renewal && (
         <p className="mt-3 text-xs text-orange-600 dark:text-orange-400">
-          Subscription ends on {new Date(subscription.current_period_end).toLocaleDateString()}.
+          Subscription ends on {renewal.toLocaleDateString()} — you keep access until then.
         </p>
       )}
 
-      {plan === "free" ? (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-            <p className="text-sm font-semibold text-foreground">Pro</p>
-            <p className="mt-1 text-xs text-muted-foreground">Unlimited repurposes & priority generation.</p>
-            <button
-              onClick={() => handleUpgrade("pro_monthly_trial")}
-              disabled={checkoutLoading}
-              className="mt-3 flex items-center justify-center gap-2 w-full rounded-lg gradient-electric px-3 py-2 text-sm font-semibold text-primary-foreground glow-electric disabled:opacity-50"
-            >
-              {checkoutLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-              Start 14-day free trial
-            </button>
-            <p className="mt-2 text-center text-[10px] text-muted-foreground">Then $24/mo · cancel anytime</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-sm font-semibold text-foreground">Agency</p>
-            <p className="mt-1 text-xs text-muted-foreground">Team seats, multi-brand & white-label.</p>
-            <button
-              onClick={() => handleUpgrade("agency_monthly_trial")}
-              disabled={checkoutLoading}
-              className="mt-3 flex items-center justify-center gap-2 w-full rounded-lg border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent disabled:opacity-50"
-            >
-              {checkoutLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-              Start 14-day free trial
-            </button>
-            <p className="mt-2 text-center text-[10px] text-muted-foreground">Then $49/mo · cancel anytime</p>
-          </div>
-        </div>
-      ) : (
-        <div className="mt-4 space-y-2">
-          {plan === "pro" && isActive && <UpgradeToAgencyButton />}
-          <button
-            onClick={handleManageBilling}
-            disabled={portalLoading}
-            className="flex items-center justify-center gap-2 w-full rounded-lg border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent disabled:opacity-50"
-          >
-            {portalLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <ExternalLink className="h-3 w-3" />}
-            Manage billing
-          </button>
-        </div>
-      )}
+      <Link
+        to="/dashboard/billing"
+        className={`mt-4 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${
+          plan === "free"
+            ? "gradient-electric text-primary-foreground glow-electric"
+            : "border border-border text-foreground hover:bg-accent"
+        }`}
+      >
+        {plan === "free" ? <Sparkles className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
+        {plan === "free" ? "See plans & start free trial" : "Manage plan & billing"}
+      </Link>
+      <p className="mt-2 text-center text-[10px] text-muted-foreground">
+        Plans, pricing, upgrades and invoices all live on the billing page.
+      </p>
       <DangerZone />
     </div>
-  );
-}
-
-function UpgradeToAgencyButton() {
-  const { session } = useAuth();
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [preview, setPreview] = useState<{ amountCents: number; currency: string; nextBilledAt: string | null } | null>(null);
-  const [applying, setApplying] = useState(false);
-
-  const startUpgrade = async () => {
-    if (!session) return;
-    setLoading(true);
-    setOpen(true);
-    try {
-      const result = await previewPlanChange({
-        data: { environment: getPaddleEnvironment(), targetPriceId: "agency_monthly" },
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      setPreview(result);
-    } catch (e: any) {
-      toast.error(e?.message || "Couldn't preview the upgrade");
-      setOpen(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const confirm = async () => {
-    if (!session) return;
-    setApplying(true);
-    try {
-      await applyPlanChange({
-        data: { environment: getPaddleEnvironment(), targetPriceId: "agency_monthly" },
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      toast.success("Upgraded to Agency!");
-      setOpen(false);
-    } catch (e: any) {
-      toast.error(e?.message || "Upgrade failed");
-    } finally {
-      setApplying(false);
-    }
-  };
-
-  return (
-    <>
-      <button
-        onClick={startUpgrade}
-        className="flex items-center justify-center gap-2 w-full rounded-lg gradient-electric px-3 py-2 text-sm font-semibold text-primary-foreground"
-      >
-        Upgrade to Agency — $49/mo
-      </button>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !applying && setOpen(false)}>
-          <div className="w-full max-w-sm rounded-xl border border-border bg-card p-5" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-foreground">Upgrade to Agency</h3>
-            {loading || !preview ? (
-              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Calculating prorated charge…</div>
-            ) : (
-              <div className="mt-3 space-y-2 text-sm text-foreground">
-                <p>You'll be charged a prorated amount today for the remainder of this billing period:</p>
-                <p className="text-2xl font-bold text-primary">
-                  {(preview.amountCents / 100).toLocaleString(undefined, { style: "currency", currency: preview.currency })}
-                </p>
-                {preview.nextBilledAt && (
-                  <p className="text-xs text-muted-foreground">Next full charge of $49 on {new Date(preview.nextBilledAt).toLocaleDateString()}.</p>
-                )}
-              </div>
-            )}
-            <div className="mt-5 flex gap-2">
-              <button onClick={() => setOpen(false)} disabled={applying} className="flex-1 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:bg-accent disabled:opacity-50">Cancel</button>
-              <button onClick={confirm} disabled={applying || loading || !preview} className="flex-1 flex items-center justify-center gap-2 rounded-lg gradient-electric px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
-                {applying && <Loader2 className="h-3 w-3 animate-spin" />}Confirm upgrade
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
   );
 }
 
