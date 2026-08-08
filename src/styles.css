@@ -4374,3 +4374,132 @@ html:not(.dark) .lux-sidebar .border-white\/5 { border-color: var(--pw-line) !im
     min-height: 44px;
   }
 }
+
+/* ============================================================
+   Brand refresh — light sidebar ink + branded mobile splash
+   ============================================================ */
+
+/* Sidebar nav text in light mode: dark charcoal, not purple. */
+html:not(.dark) .lux-sidebar .lux-nav-item,
+html:not(.dark) .lux-sidebar .lux-nav-item span,
+html:not(.dark) .lux-sidebar .lux-nav-link,
+html:not(.dark) .lux-sidebar .lux-group-toggle {
+  color: #1F1F1F !important;
+  -webkit-text-fill-color: #1F1F1F !important;
+}
+html:not(.dark) .lux-sidebar .lux-nav-item .lux-nav-icon,
+html:not(.dark) .lux-sidebar .lux-group-toggle svg {
+  color: #4A4A55 !important;
+}
+html:not(.dark) .lux-sidebar .lux-nav-item:hover,
+html:not(.dark) .lux-sidebar .lux-nav-item:hover span {
+  color: #0F0F1A !important;
+  -webkit-text-fill-color: #0F0F1A !important;
+  background: #FFFFFF;
+}
+html:not(.dark) .lux-sidebar .lux-nav-active,
+html:not(.dark) .lux-sidebar .lux-nav-active span {
+  color: #14142B !important;
+  -webkit-text-fill-color: #14142B !important;
+}
+html:not(.dark) .lux-sidebar .lux-nav-active {
+  background: linear-gradient(90deg, color-mix(in oklab, #7C3AED 12%, #FFFFFF), #FFFFFF) !important;
+}
+html:not(.dark) .lux-sidebar .lux-nav-active .lux-nav-icon { color: #7C3AED !important; }
+html:not(.dark) .lux-sidebar .lux-group-label,
+html:not(.dark) .lux-sidebar [class*="uppercase"] {
+  color: rgba(31, 31, 31, 0.55) !important;
+  -webkit-text-fill-color: rgba(31, 31, 31, 0.55) !important;
+}
+
+/* Branded mobile launch screen */
+.ps-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F7F6FF 45%, #EEF2FF 100%);
+  animation: ps-splash-fade 0.35s ease both;
+}
+.ps-splash-out { animation: ps-splash-leave 0.6s ease forwards; }
+.ps-splash-glow {
+  position: absolute;
+  top: -22%;
+  left: 50%;
+  width: 130vw;
+  height: 70vh;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(45% 55% at 30% 40%, rgba(139, 92, 246, 0.28), transparent 70%),
+    radial-gradient(40% 50% at 72% 30%, rgba(6, 182, 212, 0.22), transparent 72%),
+    radial-gradient(35% 45% at 55% 75%, rgba(236, 72, 153, 0.18), transparent 72%);
+  filter: blur(6px);
+}
+.ps-splash-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 28px;
+}
+.ps-splash-badge {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  border-radius: 30px;
+  background: #FFFFFF;
+  box-shadow:
+    0 24px 60px -22px rgba(80, 60, 200, 0.45),
+    inset 0 0 0 1px rgba(15, 15, 26, 0.06);
+  animation: ps-splash-pop 0.7s cubic-bezier(0.2, 1.3, 0.5, 1) both;
+}
+.ps-splash-word {
+  margin-top: 22px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0F0F1A;
+  animation: ps-splash-rise 0.6s 0.12s ease both;
+}
+.ps-splash-word span {
+  background: linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.ps-splash-tag {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #5B5B6B;
+  animation: ps-splash-rise 0.6s 0.2s ease both;
+}
+.ps-splash-bar {
+  margin-top: 26px;
+  display: block;
+  width: 132px;
+  height: 3px;
+  border-radius: 99px;
+  background: rgba(15, 15, 26, 0.08);
+  overflow: hidden;
+}
+.ps-splash-bar i {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #EC4899, #8B5CF6, #06B6D4);
+  animation: ps-splash-slide 1.1s ease-in-out infinite;
+}
+@keyframes ps-splash-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes ps-splash-leave { to { opacity: 0; visibility: hidden } }
+@keyframes ps-splash-pop { from { opacity: 0; transform: scale(0.82) } to { opacity: 1; transform: scale(1) } }
+@keyframes ps-splash-rise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes ps-splash-slide { 0% { transform: translateX(-110%) } 100% { transform: translateX(260%) } }
+@media (prefers-reduced-motion: reduce) {
+  .ps-splash, .ps-splash-badge, .ps-splash-word, .ps-splash-tag { animation: none !important; opacity: 1 }
+  .ps-splash-bar i { animation: none }
+}
