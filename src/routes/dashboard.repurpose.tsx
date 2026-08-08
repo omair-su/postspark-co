@@ -547,12 +547,13 @@ function RepurposePage() {
             if (id === "voice") setImportSubTab("audio");
           }}
           tabs={[
-            { id: "text", label: "Paste Text", icon: <span>📄</span> },
-            { id: "url", label: "URL / Article", icon: <span>🔗</span> },
-            { id: "youtube", label: "YouTube", icon: <span>▶</span> },
-            { id: "pdf", label: "PDF / Doc", icon: <span>📎</span> },
-            { id: "voice", label: "Voice / Audio", icon: <span>🎤</span> },
+            { id: "text", label: "Paste Text", icon: <TypeIcon className="h-3.5 w-3.5" /> },
+            { id: "url", label: "URL / Article", icon: <LinkIcon className="h-3.5 w-3.5" /> },
+            { id: "youtube", label: "YouTube", icon: <Youtube className="h-3.5 w-3.5" /> },
+            { id: "pdf", label: "PDF / Doc", icon: <FileText className="h-3.5 w-3.5" /> },
+            { id: "voice", label: "Voice / Audio", icon: <Circle className="h-3 w-3" /> },
           ]}
+
         />
 
 
