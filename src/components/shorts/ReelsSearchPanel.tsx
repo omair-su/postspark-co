@@ -98,6 +98,32 @@ export function ReelsSearchPanel({ onSelect }: Props) {
           Instagram
         </span>
       </div>
+
+      {capability ? (
+        capability.canSearch ? (
+          <div className="mb-3 flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Hashtag discovery is ready{capability.username ? ` (@${capability.username})` : ""}.</span>
+          </div>
+        ) : (
+          <div className="mb-3 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 text-amber-500" />
+            <div className="space-y-1">
+              <p>
+                {capability.mode === "standalone_instagram"
+                  ? CAPABILITY_COPY.IG_STANDALONE_ONLY.text
+                  : capability.mode === "facebook_no_ig"
+                    ? CAPABILITY_COPY.NO_IG_BUSINESS_ON_PAGE.text
+                    : CAPABILITY_COPY.NO_IG_ACCOUNT.text}
+              </p>
+              <Link to="/dashboard/settings/facebook" className="font-medium text-primary hover:underline">
+                Connect a Facebook Page →
+              </Link>
+            </div>
+          </div>
+        )
+      ) : null}
+
       <div className="flex flex-wrap gap-2">
         <div className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 min-w-[200px]">
           <Search className="h-4 w-4 text-muted-foreground" />
@@ -119,7 +145,7 @@ export function ReelsSearchPanel({ onSelect }: Props) {
         </select>
         <button
           onClick={doSearch}
-          disabled={loading || !q.trim()}
+          disabled={loading || !q.trim() || capability?.canSearch === false}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
@@ -130,9 +156,19 @@ export function ReelsSearchPanel({ onSelect }: Props) {
       {error ? (
         <div className="mt-3 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
           <AlertCircle className="h-3.5 w-3.5 mt-0.5 text-amber-500" />
-          <span>{error}</span>
+          <div className="space-y-1">
+            <span>{error}</span>
+            {errorAction ? (
+              <div>
+                <Link to={errorAction.to} className="font-medium text-primary hover:underline">
+                  {errorAction.label} →
+                </Link>
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
+
 
       {results.length > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
