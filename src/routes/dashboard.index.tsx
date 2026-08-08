@@ -21,6 +21,7 @@ import { Sparkline } from "@/components/dashboard/Sparkline";
 import { IllustratedEmpty } from "@/components/dashboard/IllustratedEmpty";
 import { SpotlightCard } from "@/components/dashboard/SpotlightCard";
 import { PREMIUM_ART } from "@/components/dashboard/premiumArt";
+import { ArtLayer, FloatingGlyphs, GhostCTA, GradientCTA, Pill, StatCard, useReveal } from "@/components/dashboard/premium";
 
 
 const WIDGETS: Array<{ to: string; title: string; emoji: string; description: string; outputs: string[]; accent: string; badge?: string; badgeKind?: "popular" | "new" }> = [
@@ -137,96 +138,84 @@ function DashboardHome() {
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const plan = usage?.plan || "free";
   const isUnlimited = usage?.limit === -1;
+  const revealRef = useReveal<HTMLDivElement>();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      {/* Hero — million-dollar premium card */}
-      <section className="ps-hero ps-ring ps-elev-3">
-        {/* Ambient layers */}
-        <span className="ps-hero-orb ps-hero-orb-1" aria-hidden />
-        <span className="ps-hero-orb ps-hero-orb-2" aria-hidden />
-        <span className="ps-hero-orb ps-hero-orb-3" aria-hidden />
-        <span className="ps-hero-orb ps-hero-orb-4" aria-hidden />
-        <span className="ps-hero-grid" aria-hidden />
-        <span className="ps-hero-top-glow" aria-hidden />
-        <img
-          src={PREMIUM_ART.hero}
-          alt=""
-          aria-hidden
-          width={1600}
-          height={912}
-          className="ps-tool-hero-art hidden md:block"
-          style={{ width: "46%", opacity: 0.4 }}
+    <div ref={revealRef} className="mx-auto max-w-6xl space-y-6">
+      {/* Hero — bright, image-led command band */}
+      <section className="pw-hero pw-reveal p-6 sm:p-8">
+        <ArtLayer src={PREMIUM_ART.hero} width="46%" opacity={0.95} />
+        <FloatingGlyphs
+          items={[
+            { icon: <Repeat className="h-4 w-4 text-[color:var(--pw-violet)]" />, top: "16%", left: "62%" },
+            { icon: <ImageIcon className="h-4 w-4 text-[color:var(--pw-blue)]" />, top: "58%", left: "70%" },
+            { icon: <Send className="h-4 w-4 text-[color:var(--pw-mint)]" />, top: "34%", left: "86%" },
+          ]}
         />
 
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 max-w-xl">
+            <Pill accent>
+              <Cpu className="h-3.5 w-3.5" /> AI Content Operating System
+            </Pill>
+            <p className="pw-muted-text mt-4 text-sm font-medium">Welcome back,</p>
+            <h1 className="pw-grad-text mt-1 text-4xl font-bold leading-[1.05] sm:text-5xl">
+              {name.split(" ")[0]}
+            </h1>
+            <p className="pw-muted-text mt-3 text-sm leading-relaxed">
+              One source in, a full branded content pack out. Pick up where you left off or start something new.
+            </p>
 
-        <div className="relative flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <span className="ps-hero-badge">
-              <span className="ps-hero-badge-dot" />
-              <Cpu className="h-3.5 w-3.5" />
-              AI Content Operating System
-            </span>
-            <span className="ps-hero-greeting">Welcome back,</span>
-            <h1 className="ps-hero-username">{name.split(" ")[0]}</h1>
-
-            <div className="ps-status-row">
-              <span className="ps-status-pill ps-status-pill-ai">
-                <span className="ps-status-dot-green" />
-                Claude Sonnet 5 online
-              </span>
-              {latencyMs && (
-                <>
-                  <span className="ps-status-sep" />
-                  <span className="font-mono text-[12px] text-white/65">{(latencyMs / 1000).toFixed(1)}s avg</span>
-                </>
-              )}
-              <span className="ps-status-sep" />
-              <span className={`ps-status-pill ps-status-pill-plan ${plan === "free" ? "ps-plan-free" : "ps-plan-pro"}`}>
-                {plan} Plan
-              </span>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Pill>
+                <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--pw-mint)]" /> Claude Sonnet 5 online
+              </Pill>
+              {latencyMs ? <Pill>{(latencyMs / 1000).toFixed(1)}s avg</Pill> : null}
+              <Pill accent className="capitalize">{plan} plan</Pill>
               {usage && (
-                <>
-                  <span className="ps-status-sep" />
-                  <span className="ps-status-usage">
-                    {usage.used}{isUnlimited ? "" : `/${usage.limit}`} this month
-                    {!isUnlimited && (
-                      <span className="ps-usage-bar">
-                        <span
-                          className="ps-usage-fill block"
-                          style={{ width: `${Math.min(100, (usage.used / Math.max(1, usage.limit)) * 100)}%` }}
-                        />
-                      </span>
-                    )}
-                  </span>
-                </>
+                <Pill>
+                  {usage.used}
+                  {isUnlimited ? "" : `/${usage.limit}`} this month
+                  {!isUnlimited && (
+                    <span className="ml-1.5 inline-block h-1.5 w-14 overflow-hidden rounded-full bg-[color:var(--pw-line)]">
+                      <span
+                        className="block h-full rounded-full"
+                        style={{
+                          width: `${Math.min(100, (usage.used / Math.max(1, usage.limit)) * 100)}%`,
+                          background: "var(--pw-grad)",
+                        }}
+                      />
+                    </span>
+                  )}
+                </Pill>
               )}
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2">
-            <Link to="/dashboard/templates" className="ds-cta-ghost">
+          <div className="flex flex-wrap items-center gap-2">
+            <GhostCTA as={Link} to="/dashboard/templates">
               <Bookmark className="h-4 w-4" /> Templates
-            </Link>
-            <Link to="/dashboard/repurpose" className="ds-cta-pill">
+            </GhostCTA>
+            <GradientCTA as={Link} to="/dashboard/repurpose">
               <Sparkles className="h-4 w-4" /> New Repurpose
-            </Link>
+            </GradientCTA>
           </div>
         </div>
 
-        <div className="mt-2">
+        <div className="relative mt-6">
           <AskBar />
         </div>
       </section>
 
+
       {/* Today rail */}
-      <section className="grid gap-3 sm:grid-cols-3 ds-fade-up-2">
+      <section className="grid gap-3 sm:grid-cols-3 pw-reveal">
         <SpotlightCard className="ds-card p-4 flex items-center gap-3">
           <div className="ds-icon-disc ps-icon-pop h-10 w-10"><Activity className="h-4 w-4" /></div>
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] ds-muted-text">Today</p>
             <p className="ds-stat-num text-xl">
-              <CountUp value={todayCount} /> <span className="text-xs font-normal text-white/50">generations</span>
+              <CountUp value={todayCount} /> <span className="text-xs font-normal pw-muted-text">generations</span>
             </p>
           </div>
         </SpotlightCard>
@@ -238,14 +227,14 @@ function DashboardHome() {
           <div className="ds-icon-disc ps-icon-pop h-10 w-10"><Calendar className="h-4 w-4" /></div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] uppercase tracking-[0.18em] ds-muted-text">Calendar</p>
-            <p className="text-sm font-medium text-white">Plan your next drop</p>
+            <p className="text-sm font-medium pw-ink">Plan your next drop</p>
           </div>
-          <ArrowUpRight className="h-4 w-4 text-white/30 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#c4b5fd]" />
+          <ArrowUpRight className="h-4 w-4 pw-muted-text transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[color:var(--pw-violet)]" />
         </SpotlightCard>
       </section>
 
       {/* Momentum — last 14 days */}
-      <section className="ds-fade-up-2">
+      <section className="pw-reveal">
         <SpotlightCard className="ds-card p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-[11px] uppercase tracking-[0.18em] ds-muted-text">Momentum · last 14 days</p>
@@ -268,7 +257,7 @@ function DashboardHome() {
       </section>
 
       {/* Stats v2 */}
-      <section className="grid gap-4 sm:grid-cols-3 ds-fade-up-3">
+      <section className="grid gap-4 sm:grid-cols-3 pw-reveal">
         {loading ? (
           <>
             <div className="ps-skel h-32" />
@@ -290,7 +279,7 @@ function DashboardHome() {
                       {usage.used >= usage.limit && (
                         <>
                           {" · "}
-                          <Link to="/dashboard/settings" className="font-medium text-[#c4b5fd] underline">Upgrade</Link>
+                          <Link to="/dashboard/settings" className="font-medium text-[color:var(--pw-violet)] underline">Upgrade</Link>
                         </>
                       )}
                     </p>
@@ -318,7 +307,7 @@ function DashboardHome() {
               value={<span className="capitalize">{plan}</span>}
               icon={<Zap className="h-4 w-4" />}
               footer={
-                <Link to="/dashboard/settings" className="inline-flex items-center gap-1 text-xs font-medium text-[#c4b5fd] hover:underline">
+                <Link to="/dashboard/settings" className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--pw-violet)] hover:underline">
                   Manage subscription <ArrowUpRight className="h-3 w-3" />
                 </Link>
               }
@@ -328,11 +317,11 @@ function DashboardHome() {
       </section>
 
       {/* Premium tool grid — bento with featured studio */}
-      <section className="ds-fade-up-4">
+      <section className="pw-reveal">
         <div className="mb-3 flex items-end justify-between">
           <div>
             <p className="ds-eyebrow"><Wand2 className="h-3 w-3" /> Studios</p>
-            <h2 className="mt-1 text-lg font-semibold text-white">Pick your superpower</h2>
+            <h2 className="mt-1 text-lg font-semibold pw-ink">Pick your superpower</h2>
           </div>
         </div>
         <div className="grid gap-3 lg:grid-cols-4">
@@ -351,10 +340,10 @@ function DashboardHome() {
               </div>
               <div>
                 <p className="ds-gradient-text text-xl font-bold">Repurpose Studio</p>
-                <p className="mt-1.5 max-w-sm text-[12px] leading-relaxed text-white/70">
+                <p className="mt-1.5 max-w-sm text-[12px] leading-relaxed pw-muted-text">
                   Drop in a video, podcast or blog — get 30+ platform-ready pieces in your voice, in under a minute.
                 </p>
-                <span className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#c4b5fd]">
+                <span className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[color:var(--pw-violet)]">
                   Start a repurpose <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
               </div>
@@ -369,20 +358,20 @@ function DashboardHome() {
 
 
       {/* Command Center — premium ops snapshot */}
-      <section className="ds-card-hero p-5 sm:p-6 ds-fade-up-5">
+      <section className="ds-card-hero p-5 sm:p-6 pw-reveal">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="ds-eyebrow"><Activity className="h-3 w-3" /> Command Center</p>
-            <h2 className="mt-2 text-xl font-semibold text-white sm:text-2xl">Your AI operations this month</h2>
+            <h2 className="mt-2 text-xl font-semibold pw-ink sm:text-2xl">Your AI operations this month</h2>
           </div>
-          <Link to="/dashboard/history" className="text-xs font-medium text-[#c4b5fd] hover:underline">
+          <Link to="/dashboard/history" className="text-xs font-medium text-[color:var(--pw-violet)] hover:underline">
             View history →
           </Link>
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
           {/* 30-day sparkline */}
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="rounded-xl border pw-hairline border bg-white/[0.03] p-4">
             <div className="flex items-baseline justify-between">
               <p className="text-xs uppercase tracking-wider ds-muted-text">Generations · last 30 days</p>
               <p className="text-2xl font-bold ds-gradient-text">{monthSpark.total}</p>
@@ -394,14 +383,14 @@ function DashboardHome() {
 
           {/* Latency + avg formats */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border pw-hairline border bg-white/[0.03] p-4">
               <p className="text-[11px] uppercase tracking-wider ds-muted-text">Avg latency</p>
-              <p className="mt-1 text-2xl font-bold text-white">{latencyMs ? `${(latencyMs / 1000).toFixed(1)}s` : "—"}</p>
+              <p className="mt-1 text-2xl font-bold pw-ink">{latencyMs ? `${(latencyMs / 1000).toFixed(1)}s` : "—"}</p>
               <p className="mt-1 text-[10px] ds-muted-text">Rolling avg, last 20 runs</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border pw-hairline border bg-white/[0.03] p-4">
               <p className="text-[11px] uppercase tracking-wider ds-muted-text">Avg formats / job</p>
-              <p className="mt-1 text-2xl font-bold text-white">{avgFormats || "—"}</p>
+              <p className="mt-1 text-2xl font-bold pw-ink">{avgFormats || "—"}</p>
               <p className="mt-1 text-[10px] ds-muted-text">From recent generations</p>
             </div>
           </div>
@@ -418,21 +407,21 @@ function DashboardHome() {
                   <Link
                     key={j.id}
                     to="/dashboard/history"
-                    className="group flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5 hover:border-[#a78bfa]/40 hover:bg-white/[0.05]"
+                    className="group flex items-center justify-between gap-3 rounded-lg border pw-hairline border bg-white/[0.02] px-3 py-2.5 hover:border-[#a78bfa]/40 hover:bg-white/[0.05]"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-white/90">
+                      <p className="truncate text-xs font-medium pw-muted-text">
                         {j.input_text.slice(0, 60)}{j.input_text.length > 60 ? "…" : ""}
                       </p>
                       <p className="mt-0.5 flex flex-wrap gap-1">
                         {formats.slice(0, 4).map((f) => (
-                          <span key={f} className="rounded-sm bg-[#7c3aed]/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#c4b5fd]">
+                          <span key={f} className="rounded-sm bg-[#7c3aed]/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[color:var(--pw-violet)]">
                             {f.replace(/_/g, " ").slice(0, 10)}
                           </span>
                         ))}
                       </p>
                     </div>
-                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/40 transition-colors group-hover:text-[#c4b5fd]" />
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 pw-muted-text transition-colors group-hover:text-[color:var(--pw-violet)]" />
                   </Link>
                 );
               })}
@@ -442,19 +431,19 @@ function DashboardHome() {
       </section>
 
       {/* Momentum row — Referral + Daily Spark */}
-      <section className="grid gap-4 lg:grid-cols-2 ds-fade-up-6">
+      <section className="grid gap-4 lg:grid-cols-2 pw-reveal">
         <ReferralBanner />
         <DailySpark />
       </section>
 
-      <div className="ds-fade-up-6"><ActivationChecklist /></div>
+      <div className="pw-reveal"><ActivationChecklist /></div>
 
       {/* Guided studios */}
-      <section className="ds-fade-up-6">
+      <section className="pw-reveal">
         <div className="mb-3 flex items-end justify-between">
           <div>
             <p className="ds-eyebrow"><Mic className="h-3 w-3" /> Guided Studios</p>
-            <h2 className="mt-1 text-lg font-semibold text-white">Answer a few prompts — get a full drop</h2>
+            <h2 className="mt-1 text-lg font-semibold pw-ink">Answer a few prompts — get a full drop</h2>
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -462,7 +451,7 @@ function DashboardHome() {
             <Link
               key={w.to}
               to={w.to}
-              className="ps-spot ps-lift ps-press group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
+              className="ps-spot ps-lift ps-press group relative overflow-hidden rounded-2xl border pw-hairline border bg-white/[0.03] p-5 transition-all hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
             >
               <span aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ background: w.accent }} />
               <div className="flex items-start justify-between gap-2">
@@ -474,16 +463,16 @@ function DashboardHome() {
                 )}
               </div>
               <div className="mt-3">
-                <p className="text-sm font-semibold text-white">{w.title}</p>
+                <p className="text-sm font-semibold pw-ink">{w.title}</p>
                 <p className="mt-1 text-[11px] ds-muted-text leading-relaxed">{w.description}</p>
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap gap-1">
                   {w.outputs.map(o => (
-                    <span key={o} className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-white/60">{o}</span>
+                    <span key={o} className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] pw-muted-text">{o}</span>
                   ))}
                 </div>
-                <span className="text-[11px] font-medium text-[#c4b5fd] group-hover:underline">Start →</span>
+                <span className="text-[11px] font-medium text-[color:var(--pw-violet)] group-hover:underline">Start →</span>
               </div>
             </Link>
           ))}
@@ -493,7 +482,7 @@ function DashboardHome() {
 
       {/* Recent activity */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Recent Activity</h2>
+        <h2 className="text-lg font-semibold pw-ink mb-3">Recent Activity</h2>
         {loading ? (
           <div className="ds-skeleton h-40" />
         ) : recentJobs.length === 0 ? (
@@ -511,10 +500,10 @@ function DashboardHome() {
                 to="/dashboard/history"
                 className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-white/[0.04]"
               >
-                <p className="truncate text-sm text-white/85 max-w-xl">
+                <p className="truncate text-sm pw-muted-text max-w-xl">
                   {job.input_text.slice(0, 80)}{job.input_text.length > 80 ? "…" : ""}
                 </p>
-                <span className="whitespace-nowrap font-mono text-[11px] text-white/40">
+                <span className="whitespace-nowrap font-mono text-[11px] pw-muted-text">
                   {new Date(job.created_at).toLocaleDateString()}
                 </span>
               </Link>
