@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { resolveActiveBrandKit } from "@/lib/activeBrandKit.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateCarousel, rewriteSlideClaude } from "@/lib/carousel.server";
 
@@ -58,19 +59,15 @@ export const createCarousel = createServerFn({ method: "POST" })
     const usage = await checkPlan(supabase, userId);
     if (!usage.ok) return { slides: [], hashtags: [], caption: "", error: "LIMIT_REACHED" };
 
-    // Pull brand name for personalization
-    const { data: kit } = await supabase
-      .from("brand_kits")
-      .select("brand_name")
-      .eq("user_id", userId)
-      .maybeSingle();
+    // Pull the deterministic ACTIVE brand kit for personalization
+    const kit = await resolveActiveBrandKit(supabase, userId);
 
     const result = await generateCarousel({
       topic: data.topic,
       audience: data.audience,
       tone: data.tone,
       slideCount: data.slideCount,
-      brandName: (kit as any)?.brand_name || null,
+      brandName: kit?.brand_name || null,
     });
 
     if (result.error) return result;
