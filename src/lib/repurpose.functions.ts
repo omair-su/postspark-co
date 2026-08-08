@@ -163,6 +163,7 @@ export const repurposeContent = createServerFn({ method: "POST" })
       .from("brand_kits")
       .select("id, brand_name, tagline, preferred_tone")
       .eq("user_id", userId)
+      .eq("is_active", true)
       .maybeSingle();
     if (kit) {
       const k = kit as any;
@@ -363,7 +364,7 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
     const { data: kit } = await supabase
       .from("brand_kits")
       .select("id, brand_name, tagline, preferred_tone")
-      .eq("user_id", userId).maybeSingle();
+      .eq("user_id", userId).eq("is_active", true).maybeSingle();
     if (kit) {
       const k = kit as any;
       brandKitId = k.id ?? null;

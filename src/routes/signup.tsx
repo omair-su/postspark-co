@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -35,7 +35,6 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [referralCode, setReferralCode] = useState<string>("");
-  const [pendingConfirmEmail, setPendingConfirmEmail] = useState<string>("");
 
   useEffect(() => {
     let mounted = true;
@@ -71,14 +70,12 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    if (data.session) {
-      try { localStorage.removeItem("postspark_ref"); } catch {}
-      toast.success("Account created!");
-      navigate({ to: "/dashboard", replace: true });
-    } else {
-      setPendingConfirmEmail(email);
-      toast.success("Check your email to confirm your account.");
+    if (!data.session) {
+      return toast.error("Your account was created, but sign-in could not start. Please sign in with your new password.");
     }
+    try { localStorage.removeItem("postspark_ref"); } catch {}
+    toast.success("Account created!");
+    navigate({ to: "/dashboard", replace: true });
   };
 
   const handleGoogle = async () => {
@@ -92,36 +89,14 @@ function SignupPage() {
       return;
     }
     if (result.redirected) return;
-    toast.success("Account created!");
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) {
+      toast.error("Google sign-in did not complete. Please try again.");
+      setGoogleLoading(false);
+      return;
+    }
     navigate({ to: "/dashboard", replace: true });
   };
-
-  if (pendingConfirmEmail) {
-    return (
-      <AuthShell title="Confirm your email">
-        <p className="text-center text-sm text-[#475569]">
-          We sent a confirmation link to{" "}
-          <span className="font-semibold text-[#0F172A]">{pendingConfirmEmail}</span>.
-          Click the link to activate your account, then sign in.
-        </p>
-        <p className="mt-3 text-center text-xs text-[#94A3B8]">
-          Didn't get it? Check spam, or wait a minute and try again.
-        </p>
-        <Link
-          to="/login"
-          className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-[#7C3AED] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#6D28D9]"
-        >
-          Go to sign in
-        </Link>
-        <button
-          onClick={() => setPendingConfirmEmail("")}
-          className="mt-3 block w-full text-center text-xs font-medium text-[#7C3AED] hover:underline"
-        >
-          Use a different email
-        </button>
-      </AuthShell>
-    );
-  }
 
   return (
     <AuthShell

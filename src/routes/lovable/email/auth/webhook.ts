@@ -149,7 +149,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         const text = await render(element, { plainText: true })
 
         // Enqueue email for async processing by the dispatcher (process-email-queue).
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseUrl = process.env.SUPABASE_URL
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
         if (!supabaseUrl || !supabaseServiceKey) {
@@ -161,7 +161,9 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         }
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
-        const messageId = crypto.randomUUID()
+        // A webhook retry for the same auth event must resolve to the same
+        // provider idempotency key instead of sending a duplicate email.
+        const messageId = `auth:${run_id}`
 
         // Log pending BEFORE enqueue so we have a record even if enqueue crashes
         await supabase.from('email_send_log').insert({
@@ -175,6 +177,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           queue_name: 'auth_emails',
           payload: {
             run_id,
+            idempotency_key: messageId,
             message_id: messageId,
             to: payload.data.email,
             from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
