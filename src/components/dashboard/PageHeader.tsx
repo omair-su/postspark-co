@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Sparkles } from "lucide-react";
 import { PREMIUM_ART, type PremiumArtKey } from "./premiumArt";
+import { ArtLayer, Pill } from "./premium";
 
 /**
  * Standardized premium page header for any dashboard route.
