@@ -440,13 +440,25 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="ds-header relative z-20 grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4">
-          <button
-            className="md:hidden inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-card/70 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              className="md:hidden inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-card/70 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <nav aria-label="Breadcrumb" className="ds-breadcrumb hidden min-w-0 lg:flex">
+              {breadcrumb.map((crumb, i) => (
+                <span key={crumb} className="flex min-w-0 items-center gap-1.5">
+                  {i > 0 && <span className="ds-breadcrumb-sep" aria-hidden>/</span>}
+                  <span className={i === breadcrumb.length - 1 ? "ds-breadcrumb-current truncate" : "truncate"}>
+                    {crumb}
+                  </span>
+                </span>
+              ))}
+            </nav>
+          </div>
 
           <button
             type="button"
@@ -465,9 +477,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </button>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-            <span className="ds-chip hidden lg:inline-flex">
-              <span className="ds-status-dot" aria-hidden /> AI online
-            </span>
             <span className="ds-chip ds-chip-accent hidden sm:inline-flex capitalize">{planLabel}</span>
             <Link
               to="/dashboard/repurpose"
@@ -478,6 +487,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <span className="hidden sm:inline">New</span>
             </Link>
             <ThemeToggle />
+            <Link
+              to="/dashboard/settings"
+              aria-label="Account settings"
+              className="ds-topbar-avatar inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
+              title={displayName}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
+            </Link>
           </div>
         </header>
 
@@ -486,8 +507,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="ds-orb ds-orb-violet" aria-hidden />
           <div className="ds-orb ds-orb-pink" aria-hidden />
           <div className="ds-orb ds-orb-indigo" aria-hidden />
-          <div className="relative z-10">{children}</div>
+          <div className="relative z-10 mx-auto w-full max-w-[1280px]">{children}</div>
         </main>
+
       </div>
       
       <AIProgressBar />
