@@ -260,12 +260,14 @@ export function SparkCopilot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="spark-copilot-trigger group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full bg-[#14142B] border border-[#7c3aed]/20 pl-1.5 pr-4 py-1.5 shadow-xl shadow-[#7c3aed]/20 hover:shadow-[#7c3aed]/40 hover:-translate-y-0.5 transition-all"
+          className="spark-copilot-trigger pw-surface group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-4 shadow-lg transition-all hover:-translate-y-0.5"
           aria-label="Open Spark Copilot"
         >
-          <SparkOrb size={32} />
-          <span className="text-sm font-semibold text-white">Spark</span>
-          <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-white/55">Ask AI</span>
+          <span className="pw-orb relative block h-8 w-8">
+            <span className="pw-orb-ring" aria-hidden />
+          </span>
+          <span className="pw-ink text-sm font-semibold">Spark</span>
+          <span className="pw-muted-text hidden text-[10px] uppercase tracking-[0.18em] sm:inline">Ask AI</span>
         </button>
       )}
 
