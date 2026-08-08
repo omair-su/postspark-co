@@ -491,14 +491,13 @@ function RepurposePage() {
         subtitle="Paste a blog, YouTube video, podcast, or URL — PostSpark turns it into a full content drop in seconds."
         art="repurpose"
         steps={["Add source", "Pick formats", "Generate & publish"]}
-        actions={
-          <div className="flex flex-shrink-0 gap-5 sm:gap-7">
-            <HeroStat num="10+" label="Formats" />
-            <HeroStat num="30+" label="Languages" />
-            <HeroStat num="1" label="Source" />
-          </div>
-        }
       />
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="pw-surface p-4"><HeroStat num="10+" label="Formats" /></div>
+        <div className="pw-surface p-4"><HeroStat num="30+" label="Languages" /></div>
+        <div className="pw-surface p-4"><HeroStat num="1" label="Source" /></div>
+      </div>
+
 
 
       {/* ============== USAGE PILL ============== */}
