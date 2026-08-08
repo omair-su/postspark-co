@@ -1,43 +1,41 @@
 import { useState } from "react";
-import { Send, Twitter, Linkedin, ChevronDown } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Send, ChevronDown, CalendarClock, Rocket } from "lucide-react";
+import { BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 
 interface Props {
   content: string;
   formatId: string;
 }
 
+/** Repurpose format → native publishing platform. */
+const PLATFORM_FOR_FORMAT: Record<string, BrandKey[]> = {
+  tweets: ["x"],
+  thread: ["threads", "x"],
+  linkedin: ["linkedin"],
+  instagram: ["instagram"],
+  facebook: ["facebook"],
+  tiktok: ["tiktok"],
+};
+
+export const PUBLISH_HANDOFF_KEY = "postspark.publish.draft";
+
 export function PublishMenu({ content, formatId }: Props) {
   const [open, setOpen] = useState(false);
-  const text = content.trim().slice(0, 4000);
-  const enc = encodeURIComponent(text);
+  const navigate = useNavigate();
+  const text = content.trim();
+  const platforms = PLATFORM_FOR_FORMAT[formatId] ?? [];
 
-  const links: { label: string; url: string; icon?: any; hint?: string }[] = [
-    {
-      label: "Schedule on Typefully",
-      url: `https://typefully.com/?content=${enc}`,
-      hint: "Opens Typefully composer with your draft",
-    },
-    {
-      label: "Schedule on Buffer",
-      url: `https://buffer.com/add?text=${enc}`,
-      hint: "Opens Buffer with this content prefilled",
-    },
-  ];
-
-  if (formatId === "tweets" || formatId === "thread") {
-    links.push({
-      label: "Post to X (Twitter)",
-      icon: Twitter,
-      url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text.slice(0, 280))}`,
-    });
-  }
-  if (formatId === "linkedin") {
-    links.push({
-      label: "Open LinkedIn composer",
-      icon: Linkedin,
-      url: `https://www.linkedin.com/feed/?shareActive=true&text=${enc}`,
-    });
-  }
+  const handoff = (platform: BrandKey | null, target: "publishing" | "calendar") => {
+    try {
+      sessionStorage.setItem(
+        PUBLISH_HANDOFF_KEY,
+        JSON.stringify({ text, platform, formatId, at: Date.now() }),
+      );
+    } catch {}
+    setOpen(false);
+    navigate({ to: target === "publishing" ? "/dashboard/publishing" : "/dashboard/calendar" });
+  };
 
   return (
     <div className="relative">
@@ -51,19 +49,35 @@ export function PublishMenu({ content, formatId }: Props) {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 z-50 mt-1 w-64 rounded-xl border border-border bg-card p-1 shadow-lg">
-            {links.map((l) => (
-              <a
-                key={l.label}
-                href={l.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setOpen(false)}
-                className="block rounded-lg px-3 py-2 text-xs text-foreground hover:bg-muted"
+            <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Publish from PostSpark
+            </div>
+            {platforms.map((p) => (
+              <button
+                key={p}
+                onClick={() => handoff(p, "publishing")}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-foreground hover:bg-muted"
               >
-                <div className="font-medium">{l.label}</div>
-                {l.hint && <div className="text-[10px] text-muted-foreground">{l.hint}</div>}
-              </a>
+                <BrandGlyph brand={p} size={14} />
+                <span className="font-medium capitalize">
+                  {p === "x" ? "Post to X" : `Post to ${p}`}
+                </span>
+              </button>
             ))}
+            <button
+              onClick={() => handoff(platforms[0] ?? null, "publishing")}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-foreground hover:bg-muted"
+            >
+              <Rocket className="h-3.5 w-3.5 text-primary" />
+              <span className="font-medium">Open Publishing Center</span>
+            </button>
+            <button
+              onClick={() => handoff(platforms[0] ?? null, "calendar")}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-foreground hover:bg-muted"
+            >
+              <CalendarClock className="h-3.5 w-3.5 text-primary" />
+              <span className="font-medium">Schedule in Calendar</span>
+            </button>
           </div>
         </>
       )}
