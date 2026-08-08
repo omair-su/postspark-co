@@ -164,7 +164,9 @@ function RootComponent() {
     <AuthProvider>
       <PaymentTestModeBanner />
       <Outlet />
+      <MobileSplash />
       <PWAInstallPrompt />
+
       <Suspense fallback={null}><Toaster position="top-right" richColors /></Suspense>
     </AuthProvider>
   );
