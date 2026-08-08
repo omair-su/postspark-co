@@ -10,6 +10,7 @@ import {
   updateWorkspace,
 } from "@/lib/workspace.functions";
 import { Loader2, Users, Crown, Mail, Trash2, Copy, Check, Sparkles, Building2, Eye, EyeOff } from "lucide-react";
+import { PaywallPrompt } from "@/components/PaywallPrompt";
 import { toast } from "sonner";
 import { sendTransactionalEmail } from "@/lib/email/send";
 
@@ -148,10 +149,13 @@ function TeamPage() {
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
             </button>
           </div>
-          <p className="mt-3 text-[11px] text-muted-foreground">
-            Requires the Agency plan. Free/Pro: <a href="/dashboard/settings" className="text-primary underline">upgrade your plan</a>.
-          </p>
         </div>
+
+        <PaywallPrompt
+          capability="team_workspaces"
+          description="Workspaces let you invite up to 5 teammates and share brand kits, history and scheduled posts."
+          className="mt-4"
+        />
       </div>
     );
   }

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getAgencyAnalytics } from "@/lib/agencyAnalytics.functions";
 import { Loader2, BarChart3, Building2, Calendar, CheckCircle2 } from "lucide-react";
+import { PaywallPrompt } from "@/components/PaywallPrompt";
 
 export const Route = createFileRoute("/dashboard/agency-analytics")({
   component: AgencyAnalyticsPage,
@@ -24,14 +25,16 @@ function AgencyAnalyticsPage() {
 
   if (data?.error === "AGENCY_REQUIRED") {
     return (
-      <div className="mx-auto max-w-xl text-center mt-12">
+      <div className="mx-auto mt-12 max-w-xl">
         <h1 className="text-xl font-bold text-foreground">Agency Analytics</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          A per-client rollup of generated content, scheduled posts, and approval turnaround. Available on the Agency plan.
+          A per-client rollup of generated content, scheduled posts, and approval turnaround.
         </p>
-        <Link to="/dashboard/settings" className="mt-4 inline-block rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground">
-          Upgrade to Agency
-        </Link>
+        <PaywallPrompt
+          capability="agency_analytics"
+          description="See output, scheduling and approval turnaround per client brand across your whole workspace."
+          className="mt-5"
+        />
       </div>
     );
   }
