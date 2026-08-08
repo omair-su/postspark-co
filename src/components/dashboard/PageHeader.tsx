@@ -25,30 +25,23 @@ export function PageHeader({
   steps?: string[];
 }) {
   return (
-    <div className="ds-page-header ps-tool-hero ps-elev-2 ds-fade-up">
-      <span className="ps-ambient" aria-hidden />
-      {art && (
-        <img
-          src={PREMIUM_ART[art]}
-          alt=""
-          aria-hidden
-          loading="lazy"
-          className="ps-tool-hero-art hidden sm:block"
-        />
-      )}
+    <div className="ds-page-header pw-hero p-5 sm:p-7">
+      {art && <ArtLayer src={PREMIUM_ART[art]} width="34%" opacity={0.9} />}
       <div className="relative flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           {eyebrow && (
-            <p className="ds-eyebrow mb-2">
+            <Pill accent className="mb-3">
               {icon || <Sparkles className="h-3 w-3" />} {eyebrow}
-            </p>
+            </Pill>
           )}
-          <h1 className="ds-page-title ds-gradient-text ps-title-sweep">{title}</h1>
-          {subtitle && <p className="mt-1.5 max-w-2xl text-sm" style={{ color: "var(--ds-muted)" }}>{subtitle}</p>}
+          <h1 className="pw-grad-text text-[24px] font-bold leading-tight tracking-tight sm:text-[30px]">{title}</h1>
+          {subtitle && <p className="pw-muted-text mt-2 max-w-2xl text-sm leading-relaxed">{subtitle}</p>}
           {steps && steps.length > 0 && (
-            <div className="ps-steps mt-4">
+            <div className="mt-4 flex flex-wrap gap-2">
               {steps.map((s, i) => (
-                <span key={s} className="ps-step"><b>{i + 1}</b> {s}</span>
+                <Pill key={s}>
+                  <b className="pw-grad-text">{i + 1}</b> {s}
+                </Pill>
               ))}
             </div>
           )}
