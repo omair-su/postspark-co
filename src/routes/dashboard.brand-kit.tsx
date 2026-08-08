@@ -212,29 +212,15 @@ function BrandKitPage() {
       </Link>
 
       {/* Header */}
-      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
-        <span className="ps-ambient" aria-hidden />
-        <HeroArt art="upgrade" />
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-900/40">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-slate-50">Brand Kit</h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-300">
-                  <Crown className="h-3 w-3" /> Pro
-                </span>
-              </div>
-              <p className="text-sm text-slate-400">
-                Logo, palette, typography, watermark — auto-applied to every generation.
-              </p>
-            </div>
-          </div>
-          <BrandProfileSwitcher onActiveChange={() => setReloadKey((k) => k + 1)} />
-        </div>
-      </section>
+      <ToolHero
+        eyebrow="Pro · Brand Kit"
+        icon={<Crown className="h-3 w-3" />}
+        title="Brand Kit"
+        subtitle="Logo, palette, typography, watermark — auto-applied to every generation."
+        art="upgrade"
+        actions={<BrandProfileSwitcher onActiveChange={() => setReloadKey((k) => k + 1)} />}
+      />
+
 
       {/* Identity */}
       <section className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 backdrop-blur-xl">
