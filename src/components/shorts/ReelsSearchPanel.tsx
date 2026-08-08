@@ -40,7 +40,9 @@ export function ReelsSearchPanel({ onSelect }: Props) {
       if (!(res as any).success) {
         const err = (res as any).error;
         if (err === "NO_IG_ACCOUNT") {
-          setError("Connect an Instagram Business account first to search Reels by hashtag.");
+          setError("Connect an Instagram Business account through a Facebook Page to use hashtag discovery.");
+        } else if (err === "IG_STANDALONE_ONLY") {
+          setError("Your Instagram account is connected for publishing. Hashtag discovery is a separate Meta capability that requires an Instagram Business account linked to a Facebook Page.");
         } else if (err === "HASHTAG_NOT_FOUND") {
           setError("No results for that hashtag.");
         } else {
