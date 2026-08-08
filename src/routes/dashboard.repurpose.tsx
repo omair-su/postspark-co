@@ -894,6 +894,7 @@ function RepurposePage() {
                 onRegenerate={() => regenerateOne(activeOutputTab)}
                 onSaveSwipe={() => handleSaveToSwipe(activeOutputTab)}
                 regenerating={statuses[activeOutputTab] === "generating"}
+                onEdit={(value) => setResults((r) => ({ ...r, [activeOutputTab]: value }))}
               />
             </div>
           )}
@@ -1153,9 +1154,10 @@ function SelectRow({ label, value, onChange, options }: {
   );
 }
 
-function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating }: {
+function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit }: {
   formatId: FormatId; content: string; onCopy: (text: string, id: string) => void; copied: string | null;
   onRegenerate: () => void; onSaveSwipe: () => void; regenerating: boolean;
+  onEdit: (value: string) => void;
 }) {
   const def = FORMAT_BY_ID[formatId];
   const previewable = ["tweets","thread","linkedin","instagram","facebook","tiktok","email"].includes(formatId);
@@ -1193,9 +1195,6 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
             <RefreshCw className={`h-3 w-3 ${regenerating ? "animate-spin" : ""}`} /> {regenerating ? "Regenerating…" : "Regenerate"}
           </button>
           <PublishMenu content={edited} formatId={formatId} />
-          {formatId === "linkedin" && (
-            <PostToLinkedInButton content={edited} label="LinkedIn" className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary" />
-          )}
         </div>
       </div>
 
@@ -1210,7 +1209,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
       ) : (
         <textarea
           value={edited}
-          onChange={(e) => setEdited(e.target.value)}
+          onChange={(e) => { setEdited(e.target.value); onEdit(e.target.value); }}
           className="mt-4 min-h-[260px] w-full resize-y rounded-xl border border-input bg-muted/30 p-4 text-sm leading-relaxed text-foreground focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
         />
       )}
