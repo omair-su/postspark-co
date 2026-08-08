@@ -406,7 +406,8 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
     }
 
     const { data: profile } = await supabase
-      .from("profiles").select("plan").eq("user_id", userId).single();
+      .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+
     const plan = profile?.plan || "free";
     const isPro = plan === "pro" || plan === "agency";
 
