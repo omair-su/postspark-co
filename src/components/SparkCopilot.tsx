@@ -260,9 +260,8 @@ export function SparkCopilot() {
           className="spark-copilot-trigger pw-surface group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-4 shadow-lg transition-all hover:-translate-y-0.5"
           aria-label="Open Spark Copilot"
         >
-          <span className="pw-orb relative block h-8 w-8">
-            <span className="pw-orb-ring" aria-hidden />
-          </span>
+          <SparkOrb size={32} busy={loading} />
+
           <span className="pw-ink text-sm font-semibold">Spark</span>
           <span className="pw-muted-text hidden text-[10px] uppercase tracking-[0.18em] sm:inline">Ask AI</span>
         </button>
