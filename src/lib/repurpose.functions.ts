@@ -270,47 +270,6 @@ export const bulkDeleteJobs = createServerFn({ method: "POST" })
  * so usage is counted per pack, not per format.
  * ------------------------------------------------------------------------ */
 
-const FORMAT_ID = z.enum([
-  "tweets","linkedin","instagram","facebook","thread","email","video","tiktok","podcast","seo","carousel",
-]);
-
-type PackBrandKit = { id: string; name: string | null; preferred_tone: string | null } | null;
-
-/** Creates the pack row if it isn't there yet. Safe to call from every format. */
-async function ensurePackRow(
-  supabase: any,
-  opts: {
-    packId: string;
-    userId: string;
-    inputText: string;
-    title: string;
-    brandKitId: string | null;
-    workspaceId: string | null;
-  },
-) {
-  const { data: existing } = await supabase
-    .from("repurpose_jobs")
-    .select("id")
-    .eq("id", opts.packId)
-    .eq("user_id", opts.userId)
-    .maybeSingle();
-  if (existing) return;
-
-  const { error } = await supabase.from("repurpose_jobs").insert({
-    id: opts.packId,
-    user_id: opts.userId,
-    input_text: opts.inputText,
-    title: opts.title,
-    outputs: {},
-    brand_kit_id: opts.brandKitId,
-    workspace_id: opts.workspaceId,
-    tool: "repurpose",
-  } as any);
-  // A duplicate-key error just means a sibling format won the race — fine.
-  if (error && !`${error.message}`.toLowerCase().includes("duplicate")) {
-    console.error("repurpose pack insert error:", error);
-  }
-}
 
 /**
  * Creates the pack row up-front and enforces the monthly limit once per pack,
