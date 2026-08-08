@@ -18,7 +18,7 @@ import {
 import { publishToX } from "@/lib/socialPublish.functions";
 import { publishToFacebook, publishToInstagram, publishToThreads } from "@/lib/metaPublish.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
-import { HeroArt } from "@/components/dashboard/HeroArt";
+import { ToolHero } from "@/components/dashboard/ToolHero";
 
 export const Route = createFileRoute("/dashboard/publishing")({
   head: () => ({
