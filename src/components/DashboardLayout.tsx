@@ -109,6 +109,23 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     activeBrandKitId: string | null;
   }>({ workspace: null, brandKits: [], activeBrandKitId: null });
   const [isAdmin, setIsAdmin] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      return JSON.parse(window.localStorage.getItem("ps_nav_groups") || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => {
+      const next = { ...prev, [label]: prev[label] === false };
+      try { window.localStorage.setItem("ps_nav_groups", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
