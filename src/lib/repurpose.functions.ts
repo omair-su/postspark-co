@@ -31,22 +31,8 @@ export const getMonthlyUsage = createServerFn({ method: "POST" })
       return { used: 0, limit: -1, plan };
     }
 
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const { count, error } = await supabase
-      .from("repurpose_jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .gte("created_at", startOfMonth.toISOString());
-
-    if (error) {
-      console.error("Usage count error:", error);
-      return { used: 0, limit: FREE_MONTHLY_LIMIT, plan };
-    }
-
-    return { used: count ?? 0, limit: FREE_MONTHLY_LIMIT, plan };
+    const used = await countMonthlyUsedJobs(supabase, userId);
+    return { used, limit: FREE_MONTHLY_LIMIT, plan };
   });
 
 export const repurposeContent = createServerFn({ method: "POST" })
