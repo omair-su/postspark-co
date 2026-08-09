@@ -1101,8 +1101,8 @@ function FormatCard({ def, pick, onToggle, onUpdate }: {
   return (
     <div
       data-selected={selected}
-      style={{ ["--brand" as any]: brandColor(def.id) }}
-      className={`group relative rounded-xl border p-3 lux-glow lux-shimmer lux-spring ${
+      style={{ ["--brand" as any]: brandColor(def.id), ["--cat" as any]: brandColor(def.id) }}
+      className={`group relative rounded-xl border p-3 lux-brand-card lux-glow lux-shimmer lux-spring ${
         selected ? "border-transparent bg-card shadow-sm" : "border-border bg-card"
       }`}
     >

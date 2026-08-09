@@ -1,3 +1,4 @@
+import { brandColor } from "@/lib/brandColors";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -299,7 +300,9 @@ function PublishingCenter() {
                 <button
                   key={p.id}
                   onClick={() => toggle(p.id)}
-                  className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
+                  data-selected={active ? "true" : undefined}
+                  style={{ ["--cat" as any]: brandColor(p.id) }}
+                  className={`lux-brand-card flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
                     active
                       ? "border-primary bg-primary/10"
                       : "border-border hover:bg-accent"

@@ -516,7 +516,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="ds-orb ds-orb-violet" aria-hidden />
           <div className="ds-orb ds-orb-pink" aria-hidden />
           <div className="ds-orb ds-orb-indigo" aria-hidden />
-          <div className="relative z-10 mx-auto w-full max-w-[1280px]">{children}</div>
+          <div key={location.pathname} className="lux-route relative z-10 mx-auto w-full max-w-[1280px]">
+            <div>{children}</div>
+          </div>
         </main>
 
       </div>

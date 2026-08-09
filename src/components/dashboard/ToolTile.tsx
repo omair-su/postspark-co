@@ -17,7 +17,7 @@ export type ToolTileItem = {
   isNew?: boolean;
 };
 
-export function ToolTile({ item }: { item: ToolTileItem }) {
+export function ToolTile({ item, selected = false }: { item: ToolTileItem; selected?: boolean }) {
   const Icon = item.icon;
   const cat = item.category || "#7C3AED";
   const { onPointerMove } = useSpotlight();
@@ -25,9 +25,11 @@ export function ToolTile({ item }: { item: ToolTileItem }) {
     <Link
       to={item.to}
       onPointerMove={onPointerMove}
-      className="ds-tool-tile ps-spot ps-press lux-glow lux-shimmer lux-spring group"
+      data-selected={selected ? "true" : undefined}
+      className="ds-tool-tile ps-spot ps-press lux-brand-card lux-glow lux-shimmer lux-spring group"
       style={{ ["--cat" as any]: cat, ["--brand" as any]: cat }}
     >
+
 
       <div className="relative flex items-start justify-between gap-2">
         <div className="ds-icon-disc ps-icon-pop h-10 w-10">

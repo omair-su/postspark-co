@@ -36,7 +36,7 @@ export function GenerationProgress({
         <p className="text-sm font-semibold" style={{ color: "var(--ds-text)" }}>{title}</p>
         <span className="ml-auto text-[11px]" style={{ color: "var(--ds-muted)" }}>{stages[i]}</span>
       </div>
-      <div className="ps-gen-bar mt-3"><span /></div>
+      <div className="lux-progress mt-3" />
       <div className="mt-4 space-y-2.5">
         {Array.from({ length: lines }).map((_, n) => (
           <div
