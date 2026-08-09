@@ -5059,3 +5059,74 @@ html:not(.dark) .dashboard-shell .rounded-3xl.border {
   .dashboard-shell .pw-skeleton { animation: none !important; }
   .lux-brand-card:hover { transform: none; }
 }
+
+/* ---------- 6. One hero language for every interior page ---------- */
+.dashboard-shell .ps-tool-hero,
+.dashboard-shell .ds-page-hero,
+.dashboard-shell .pod-hero,
+.dashboard-shell .rg-hero,
+.dashboard-shell .shorts-hero,
+.dashboard-shell .pw-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--pw-r-xl, 28px);
+  padding: 1.25rem 1.25rem;
+  border: 1px solid var(--ds-border);
+  background:
+    radial-gradient(120% 140% at 85% -20%, color-mix(in oklab, var(--ds-accent) 26%, transparent), transparent 62%),
+    radial-gradient(90% 120% at 8% 110%, color-mix(in oklab, var(--ds-accent-pink, #EC4899) 16%, transparent), transparent 60%),
+    color-mix(in oklab, var(--ds-card) 92%, transparent);
+  box-shadow: var(--ds-glow);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+@media (min-width: 640px) {
+  .dashboard-shell .ps-tool-hero,
+  .dashboard-shell .ds-page-hero,
+  .dashboard-shell .pod-hero,
+  .dashboard-shell .rg-hero,
+  .dashboard-shell .shorts-hero,
+  .dashboard-shell .pw-hero { padding: 1.75rem; }
+}
+/* Contrast safety: hero copy always follows the theme, never a hardcoded hex */
+.dashboard-shell .ps-tool-hero h1,
+.dashboard-shell .ds-page-hero h1,
+.dashboard-shell .pod-hero h1,
+.dashboard-shell .rg-hero h1,
+.dashboard-shell .shorts-hero h1,
+.dashboard-shell .pw-hero h1,
+.dashboard-shell .ps-tool-hero h2,
+.dashboard-shell .pod-hero h2 {
+  color: var(--ds-text) !important;
+  -webkit-text-fill-color: var(--ds-text);
+}
+.dashboard-shell .ps-tool-hero > * > p,
+.dashboard-shell .ds-page-hero p,
+.dashboard-shell .pod-hero p,
+.dashboard-shell .rg-hero p,
+.dashboard-shell .shorts-hero p,
+.dashboard-shell .pw-hero > * > p {
+  color: var(--ds-muted) !important;
+}
+/* Ambient sheen sweep shared by every hero band */
+.dashboard-shell .ps-tool-hero::after,
+.dashboard-shell .ds-page-hero::after,
+.dashboard-shell .pod-hero::after,
+.dashboard-shell .rg-hero::after,
+.dashboard-shell .shorts-hero::after,
+.dashboard-shell .pw-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 35%, rgba(255, 255, 255, 0.07) 50%, transparent 65%);
+  background-size: 220% 100%;
+  animation: lux-flow 9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-shell .ps-tool-hero::after,
+  .dashboard-shell .ds-page-hero::after,
+  .dashboard-shell .pod-hero::after,
+  .dashboard-shell .rg-hero::after,
+  .dashboard-shell .shorts-hero::after,
+  .dashboard-shell .pw-hero::after { animation: none; }
+}
