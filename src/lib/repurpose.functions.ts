@@ -293,14 +293,8 @@ export const startRepurposePack = createServerFn({ method: "POST" })
     const isPro = plan === "pro" || plan === "agency";
 
     if (!isPro) {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0);
-      const { count } = await supabase
-        .from("repurpose_jobs")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .gte("created_at", startOfMonth.toISOString());
-      if ((count ?? 0) >= FREE_MONTHLY_LIMIT) {
+      const used = await countMonthlyUsedJobs(supabase, userId);
+      if (used >= FREE_MONTHLY_LIMIT) {
         return { ok: false, error: "LIMIT_REACHED", packId: null as string | null, brandKit: null as PackBrandKit };
       }
     }
