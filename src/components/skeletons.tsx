@@ -1,16 +1,14 @@
-import { Skeleton } from "@/components/ui/skeleton";
-
 /** Card-shaped skeleton — use for stat tiles, recent items, empty placeholders. */
 export function CardSkeleton({ lines = 2, className = "" }: { lines?: number; className?: string }) {
   return (
     <div className={`rounded-xl border border-border bg-card p-5 ${className}`}>
       <div className="flex items-center gap-3">
-        <Skeleton className="h-9 w-9 rounded-lg" />
-        <div className="flex-1 space-y-2">
+        <div className="lux-shimmer-fill h-9 w-9 rounded-lg" />
+        <div className="min-w-0 flex-1 space-y-2">
           {Array.from({ length: lines }).map((_, i) => (
-            <Skeleton
+            <div
               key={i}
-              className={i === 0 ? "h-4 w-1/2" : "h-3 w-1/3"}
+              className={`lux-shimmer-fill rounded-md ${i === 0 ? "h-4 w-1/2" : "h-3 w-1/3"}`}
             />
           ))}
         </div>
@@ -23,8 +21,8 @@ export function CardSkeleton({ lines = 2, className = "" }: { lines?: number; cl
 export function RowSkeleton({ className = "" }: { className?: string }) {
   return (
     <div className={`rounded-xl border border-border bg-card px-4 py-4 ${className}`}>
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="mt-2 h-3 w-1/4" />
+      <div className="lux-shimmer-fill h-4 w-3/4 rounded-md" />
+      <div className="lux-shimmer-fill mt-2 h-3 w-1/4 rounded-md" />
     </div>
   );
 }
