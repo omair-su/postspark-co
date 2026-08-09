@@ -5130,3 +5130,30 @@ html:not(.dark) .dashboard-shell .rounded-3xl.border {
   .dashboard-shell .shorts-hero::after,
   .dashboard-shell .pw-hero::after { animation: none; }
 }
+
+/* ---------- 7. Contrast net: legacy hardcoded ink follows the theme ---------- */
+html.dark .dashboard-shell [class*="text-[#1A1A2E]"],
+html.dark .dashboard-shell [class*="text-[#1a1a2e]"],
+html.dark .dashboard-shell [class*="text-[#0F172A]"],
+html.dark .dashboard-shell [class*="text-[#111827]"],
+html.dark .dashboard-shell [class*="text-[#1F1F1F]"] {
+  color: var(--ds-text) !important;
+  -webkit-text-fill-color: var(--ds-text);
+}
+html.dark .dashboard-shell [class*="text-[#4B5563]"],
+html.dark .dashboard-shell [class*="text-[#6B7280]"],
+html.dark .dashboard-shell [class*="text-[#374151]"] {
+  color: var(--ds-muted) !important;
+}
+html:not(.dark) .dashboard-shell [class*="text-[#9CA3AF]"],
+html:not(.dark) .dashboard-shell [class*="text-[#c4b5fd]"],
+html:not(.dark) .dashboard-shell [class*="text-[#a78bfa]"],
+html:not(.dark) .dashboard-shell [class*="text-[#A78BFA]"],
+html:not(.dark) .dashboard-shell [class*="text-white/70"],
+html:not(.dark) .dashboard-shell [class*="text-white/60"] {
+  color: var(--ds-muted) !important;
+}
+html:not(.dark) .dashboard-shell .shorts-hero h1,
+html:not(.dark) .dashboard-shell [class*="text-white"]:not([class*="bg-"]):not(button):not(.pw-cta) {
+  color: var(--ds-text);
+}
