@@ -5154,6 +5154,6 @@ html:not(.dark) .dashboard-shell [class*="text-white/60"] {
   color: var(--ds-muted) !important;
 }
 html:not(.dark) .dashboard-shell .shorts-hero h1,
-html:not(.dark) .dashboard-shell [class*="text-white"]:not([class*="bg-"]):not(button):not(.pw-cta) {
+html:not(.dark) .dashboard-shell .pod-hero h1 {
   color: var(--ds-text);
 }
