@@ -25,6 +25,54 @@ export const FORMAT_ID = z.enum([
 
 export type PackBrandKit = { id: string; name: string | null; preferred_tone: string | null } | null;
 
+const EMPTY_PACK_TTL_MS = 15 * 60 * 1000;
+
+function startOfMonthISO() {
+  const d = new Date();
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+/**
+ * Counts this month's repurpose jobs that actually produced output.
+ * Packs whose generation fully failed (outputs = {}) must NOT burn a free credit;
+ * stale empty packs are cleaned up opportunistically.
+ */
+export async function countMonthlyUsedJobs(supabase: any, userId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from("repurpose_jobs")
+    .select("id, outputs, created_at")
+    .eq("user_id", userId)
+    .gte("created_at", startOfMonthISO());
+
+  if (error) {
+    console.error("countMonthlyUsedJobs error:", error);
+    return 0;
+  }
+
+  const rows = (data || []) as Array<{ id: string; outputs: unknown; created_at: string }>;
+  const now = Date.now();
+  const stale: string[] = [];
+  let used = 0;
+
+  for (const row of rows) {
+    const o = row.outputs;
+    const hasOutput = !!o && typeof o === "object" && Object.keys(o as object).length > 0;
+    if (hasOutput) {
+      used += 1;
+    } else if (now - new Date(row.created_at).getTime() > EMPTY_PACK_TTL_MS) {
+      stale.push(row.id);
+    }
+  }
+
+  if (stale.length) {
+    await supabase.from("repurpose_jobs").delete().in("id", stale).eq("user_id", userId);
+  }
+
+  return used;
+}
+
 /** Creates the pack row if it isn't there yet. Safe to call from every format. */
 export async function ensurePackRow(
   supabase: any,
