@@ -5157,3 +5157,72 @@ html:not(.dark) .dashboard-shell .shorts-hero h1,
 html:not(.dark) .dashboard-shell .pod-hero h1 {
   color: var(--ds-text);
 }
+
+/* =====================================================================
+   Cinematic view transitions — applied at the router root so every
+   marketing, tool, feature, settings and history page shares one timing.
+   ===================================================================== */
+@keyframes lux-view-in {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+.lux-view { animation: lux-view-in 0.34s var(--pw-ease, cubic-bezier(0.22, 1, 0.36, 1)) both; }
+
+/* =====================================================================
+   Accessibility — global reduced-motion mode.
+   One authoritative block: kills every cinematic transition, stagger,
+   shimmer loader, aurora orb and hover lift across the whole app while
+   keeping all content fully visible and legible.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* View / route transitions: show final state instantly */
+  .lux-view,
+  .lux-route,
+  .lux-route > * > *,
+  .lux-enter,
+  [data-radix-popper-content-wrapper] > * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  /* Shimmer / glow loaders become calm static surfaces */
+  .lux-progress,
+  .lux-progress::after,
+  .lux-shimmer-fill,
+  .lux-shimmer::after,
+  .lux-skeleton,
+  .ps-skel,
+  .ps-gen-line,
+  .pw-skeleton,
+  .animate-pulse,
+  .pulse {
+    animation: none !important;
+    background-image: none !important;
+    background: color-mix(in oklab, var(--ds-border, #243047) 60%, transparent) !important;
+    opacity: 1 !important;
+  }
+  .lux-progress { background: color-mix(in oklab, var(--ds-accent, #7c3aed) 32%, transparent) !important; }
+
+  /* Ambient background motion off */
+  .ds-orb,
+  .ps-aurora,
+  .lux-glow,
+  .lux-brand-card::after { animation: none !important; }
+
+  /* No hover/selected lifts or scale */
+  .lux-brand-card:hover,
+  .lux-spring:hover,
+  .lux-spring:active,
+  .hover-scale:hover { transform: none !important; }
+}
