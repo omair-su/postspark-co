@@ -78,22 +78,14 @@ export const repurposeContent = createServerFn({ method: "POST" })
     const isPro = plan === "pro" || plan === "agency";
 
     if (!isPro) {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
+      const count = await countMonthlyUsedJobs(supabase, userId);
 
-      const { count, error: countError } = await supabase
-        .from("repurpose_jobs")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .gte("created_at", startOfMonth.toISOString());
-
-      if (!countError && (count ?? 0) >= FREE_MONTHLY_LIMIT) {
+      if (count >= FREE_MONTHLY_LIMIT) {
         return { output: "", error: "LIMIT_REACHED" };
       }
 
       // Fire-and-forget: warn the user when they hit 2/3.
-      if (!countError && (count ?? 0) === FREE_MONTHLY_LIMIT - 1) {
+      if (count === FREE_MONTHLY_LIMIT - 1) {
         try {
           const [{ supabaseAdmin }, { renderAndEnqueueEmail }] = await Promise.all([
             import("@/integrations/supabase/client.server"),
