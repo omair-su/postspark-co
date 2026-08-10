@@ -624,6 +624,30 @@ function RepurposePage() {
             />
           </div>
         )}
+        {sourceTab === "drive" && (
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
+            <GoogleDriveIcon size={22} />
+            <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+              Pull a Google Doc, PDF or Word file straight from your Drive — we convert it to
+              editable text.
+            </p>
+            <button
+              onClick={() => setDrivePickerOpen(true)}
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+            >
+              Browse Drive
+            </button>
+          </div>
+        )}
+        <GoogleDriveFilePicker
+          open={drivePickerOpen}
+          onOpenChange={setDrivePickerOpen}
+          onImported={({ text, title }) => {
+            setInputText(text);
+            setImportMeta(`Google Drive · ${title}`);
+            setSourceTab("text");
+          }}
+        />
       </StepCard>
 
       {/* ============== STEP 2 — FORMATS ============== */}
