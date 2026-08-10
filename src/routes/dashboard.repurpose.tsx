@@ -130,7 +130,8 @@ function RepurposePage() {
   const { tier } = useSubscription();
 
   // Source
-  const [sourceTab, setSourceTab] = useState<"text"|"url"|"youtube"|"pdf"|"voice">("text");
+  const [sourceTab, setSourceTab] = useState<"text"|"url"|"youtube"|"pdf"|"voice"|"drive">("text");
+  const [drivePickerOpen, setDrivePickerOpen] = useState(false);
   const [importSubTab, setImportSubTab] = useState<"url"|"pdf"|"docx"|"audio">("url");
   const [inputText, setInputText] = useState("");
   const [importMeta, setImportMeta] = useState("");
