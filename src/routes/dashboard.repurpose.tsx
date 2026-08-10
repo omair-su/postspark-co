@@ -25,6 +25,9 @@ import { Link } from "@tanstack/react-router";
 import { ToolHero } from "@/components/dashboard/ToolHero";
 import { LiquidTabs } from "@/components/dashboard/LiquidTabs";
 import { brandColor } from "@/lib/brandColors";
+import { GoogleDriveFilePicker } from "@/components/google/GoogleDriveFilePicker";
+import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
+import { GoogleDriveIcon } from "@/components/google/GoogleIcons";
 
 
 // -------- Format catalog (the new world-class spec) --------------------
@@ -1211,6 +1214,11 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
           <button onClick={onRegenerate} disabled={regenerating} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-60">
             <RefreshCw className={`h-3 w-3 ${regenerating ? "animate-spin" : ""}`} /> {regenerating ? "Regenerating…" : "Regenerate"}
           </button>
+          <ExportToGoogleDocs
+            content={edited}
+            defaultTitle={`PostSpark — ${formatId}`}
+            sourceTool="repurpose"
+          />
           <PublishMenu content={edited} formatId={formatId} />
         </div>
       </div>
