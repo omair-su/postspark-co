@@ -789,6 +789,42 @@ export type Database = {
           },
         ]
       }
+      google_doc_exports: {
+        Row: {
+          content_preview: string | null
+          created_at: string
+          document_title: string | null
+          google_doc_id: string
+          google_doc_url: string
+          id: string
+          source_tool: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content_preview?: string | null
+          created_at?: string
+          document_title?: string | null
+          google_doc_id: string
+          google_doc_url: string
+          id?: string
+          source_tool?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content_preview?: string | null
+          created_at?: string
+          document_title?: string | null
+          google_doc_id?: string
+          google_doc_url?: string
+          id?: string
+          source_tool?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           account_connected: boolean
