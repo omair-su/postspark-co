@@ -25,6 +25,9 @@ import { Link } from "@tanstack/react-router";
 import { ToolHero } from "@/components/dashboard/ToolHero";
 import { LiquidTabs } from "@/components/dashboard/LiquidTabs";
 import { brandColor } from "@/lib/brandColors";
+import { GoogleDriveFilePicker } from "@/components/google/GoogleDriveFilePicker";
+import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
+import { GoogleDriveIcon } from "@/components/google/GoogleIcons";
 
 
 // -------- Format catalog (the new world-class spec) --------------------
@@ -127,7 +130,8 @@ function RepurposePage() {
   const { tier } = useSubscription();
 
   // Source
-  const [sourceTab, setSourceTab] = useState<"text"|"url"|"youtube"|"pdf"|"voice">("text");
+  const [sourceTab, setSourceTab] = useState<"text"|"url"|"youtube"|"pdf"|"voice"|"drive">("text");
+  const [drivePickerOpen, setDrivePickerOpen] = useState(false);
   const [importSubTab, setImportSubTab] = useState<"url"|"pdf"|"docx"|"audio">("url");
   const [inputText, setInputText] = useState("");
   const [importMeta, setImportMeta] = useState("");
@@ -545,6 +549,7 @@ function RepurposePage() {
             setSourceTab(id as typeof sourceTab);
             if (id === "pdf") setImportSubTab("pdf");
             if (id === "voice") setImportSubTab("audio");
+            if (id === "drive") setDrivePickerOpen(true);
           }}
           tabs={[
             { id: "text", label: "Paste Text", icon: <TypeIcon className="h-3.5 w-3.5" /> },
@@ -552,6 +557,7 @@ function RepurposePage() {
             { id: "youtube", label: "YouTube", icon: <Youtube className="h-3.5 w-3.5" /> },
             { id: "pdf", label: "PDF / Doc", icon: <FileText className="h-3.5 w-3.5" /> },
             { id: "voice", label: "Voice / Audio", icon: <Circle className="h-3 w-3" /> },
+            { id: "drive", label: "Google Drive", icon: <GoogleDriveIcon size={14} /> },
           ]}
 
         />
@@ -618,6 +624,30 @@ function RepurposePage() {
             />
           </div>
         )}
+        {sourceTab === "drive" && (
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
+            <GoogleDriveIcon size={22} />
+            <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+              Pull a Google Doc, PDF or Word file straight from your Drive — we convert it to
+              editable text.
+            </p>
+            <button
+              onClick={() => setDrivePickerOpen(true)}
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+            >
+              Browse Drive
+            </button>
+          </div>
+        )}
+        <GoogleDriveFilePicker
+          open={drivePickerOpen}
+          onOpenChange={setDrivePickerOpen}
+          onImported={({ text, title }) => {
+            setInputText(text);
+            setImportMeta(`Google Drive · ${title}`);
+            setSourceTab("text");
+          }}
+        />
       </StepCard>
 
       {/* ============== STEP 2 — FORMATS ============== */}
@@ -1211,6 +1241,11 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
           <button onClick={onRegenerate} disabled={regenerating} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-60">
             <RefreshCw className={`h-3 w-3 ${regenerating ? "animate-spin" : ""}`} /> {regenerating ? "Regenerating…" : "Regenerate"}
           </button>
+          <ExportToGoogleDocs
+            content={edited}
+            defaultTitle={`PostSpark — ${formatId}`}
+            sourceTool="repurpose"
+          />
           <PublishMenu content={edited} formatId={formatId} />
         </div>
       </div>

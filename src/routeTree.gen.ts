@@ -121,6 +121,7 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as DashboardSettingsWhatsappRouteImport } from './routes/dashboard.settings.whatsapp'
 import { Route as DashboardSettingsThreadsRouteImport } from './routes/dashboard.settings.threads'
 import { Route as DashboardSettingsInstagramRouteImport } from './routes/dashboard.settings.instagram'
+import { Route as DashboardSettingsGoogleRouteImport } from './routes/dashboard.settings.google'
 import { Route as DashboardSettingsFacebookRouteImport } from './routes/dashboard.settings.facebook'
 import { Route as DashboardSettingsCanvaRouteImport } from './routes/dashboard.settings.canva'
 import { Route as DashboardPublishThreadsRouteImport } from './routes/dashboard.publish.threads'
@@ -134,6 +135,7 @@ import { Route as BlogCategorySlugRouteImport } from './routes/blog.category.$sl
 import { Route as BlogAuthorSlugRouteImport } from './routes/blog.author.$slug'
 import { Route as AuthThreadsCallbackRouteImport } from './routes/auth.threads.callback'
 import { Route as AuthInstagramCallbackRouteImport } from './routes/auth.instagram.callback'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google.callback'
 import { Route as AuthFacebookCallbackRouteImport } from './routes/auth.facebook.callback'
 import { Route as AuthCanvaCallbackRouteImport } from './routes/auth.canva.callback'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
@@ -757,6 +759,11 @@ const DashboardSettingsInstagramRoute =
     path: '/instagram',
     getParentRoute: () => DashboardSettingsRoute,
   } as any)
+const DashboardSettingsGoogleRoute = DashboardSettingsGoogleRouteImport.update({
+  id: '/google',
+  path: '/google',
+  getParentRoute: () => DashboardSettingsRoute,
+} as any)
 const DashboardSettingsFacebookRoute =
   DashboardSettingsFacebookRouteImport.update({
     id: '/facebook',
@@ -827,6 +834,11 @@ const AuthThreadsCallbackRoute = AuthThreadsCallbackRouteImport.update({
 const AuthInstagramCallbackRoute = AuthInstagramCallbackRouteImport.update({
   id: '/auth/instagram/callback',
   path: '/auth/instagram/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google/callback',
+  path: '/auth/google/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthFacebookCallbackRoute = AuthFacebookCallbackRouteImport.update({
@@ -1131,6 +1143,7 @@ export interface FileRoutesByFullPath {
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
@@ -1144,6 +1157,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
   '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
+  '/dashboard/settings/google': typeof DashboardSettingsGoogleRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
@@ -1290,6 +1304,7 @@ export interface FileRoutesByTo {
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
@@ -1303,6 +1318,7 @@ export interface FileRoutesByTo {
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
   '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
+  '/dashboard/settings/google': typeof DashboardSettingsGoogleRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
@@ -1451,6 +1467,7 @@ export interface FileRoutesById {
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/canva/callback': typeof AuthCanvaCallbackRoute
   '/auth/facebook/callback': typeof AuthFacebookCallbackRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/auth/instagram/callback': typeof AuthInstagramCallbackRoute
   '/auth/threads/callback': typeof AuthThreadsCallbackRoute
   '/blog/author/$slug': typeof BlogAuthorSlugRoute
@@ -1464,6 +1481,7 @@ export interface FileRoutesById {
   '/dashboard/publish/threads': typeof DashboardPublishThreadsRoute
   '/dashboard/settings/canva': typeof DashboardSettingsCanvaRoute
   '/dashboard/settings/facebook': typeof DashboardSettingsFacebookRoute
+  '/dashboard/settings/google': typeof DashboardSettingsGoogleRoute
   '/dashboard/settings/instagram': typeof DashboardSettingsInstagramRoute
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
@@ -1613,6 +1631,7 @@ export interface FileRouteTypes {
     | '/api/public/track'
     | '/auth/canva/callback'
     | '/auth/facebook/callback'
+    | '/auth/google/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
@@ -1626,6 +1645,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/threads'
     | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
+    | '/dashboard/settings/google'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
     | '/dashboard/settings/whatsapp'
@@ -1772,6 +1792,7 @@ export interface FileRouteTypes {
     | '/api/public/track'
     | '/auth/canva/callback'
     | '/auth/facebook/callback'
+    | '/auth/google/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
@@ -1785,6 +1806,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/threads'
     | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
+    | '/dashboard/settings/google'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
     | '/dashboard/settings/whatsapp'
@@ -1932,6 +1954,7 @@ export interface FileRouteTypes {
     | '/api/public/track'
     | '/auth/canva/callback'
     | '/auth/facebook/callback'
+    | '/auth/google/callback'
     | '/auth/instagram/callback'
     | '/auth/threads/callback'
     | '/blog/author/$slug'
@@ -1945,6 +1968,7 @@ export interface FileRouteTypes {
     | '/dashboard/publish/threads'
     | '/dashboard/settings/canva'
     | '/dashboard/settings/facebook'
+    | '/dashboard/settings/google'
     | '/dashboard/settings/instagram'
     | '/dashboard/settings/threads'
     | '/dashboard/settings/whatsapp'
@@ -2056,6 +2080,7 @@ export interface RootRouteChildren {
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   AuthCanvaCallbackRoute: typeof AuthCanvaCallbackRoute
   AuthFacebookCallbackRoute: typeof AuthFacebookCallbackRoute
+  AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
   AuthInstagramCallbackRoute: typeof AuthInstagramCallbackRoute
   AuthThreadsCallbackRoute: typeof AuthThreadsCallbackRoute
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
@@ -2868,6 +2893,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsInstagramRouteImport
       parentRoute: typeof DashboardSettingsRoute
     }
+    '/dashboard/settings/google': {
+      id: '/dashboard/settings/google'
+      path: '/google'
+      fullPath: '/dashboard/settings/google'
+      preLoaderRoute: typeof DashboardSettingsGoogleRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
     '/dashboard/settings/facebook': {
       id: '/dashboard/settings/facebook'
       path: '/facebook'
@@ -2957,6 +2989,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/instagram/callback'
       fullPath: '/auth/instagram/callback'
       preLoaderRoute: typeof AuthInstagramCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/google/callback': {
+      id: '/auth/google/callback'
+      path: '/auth/google/callback'
+      fullPath: '/auth/google/callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/facebook/callback': {
@@ -3211,6 +3250,7 @@ const DashboardPublishRouteWithChildren =
 interface DashboardSettingsRouteChildren {
   DashboardSettingsCanvaRoute: typeof DashboardSettingsCanvaRoute
   DashboardSettingsFacebookRoute: typeof DashboardSettingsFacebookRoute
+  DashboardSettingsGoogleRoute: typeof DashboardSettingsGoogleRoute
   DashboardSettingsInstagramRoute: typeof DashboardSettingsInstagramRoute
   DashboardSettingsThreadsRoute: typeof DashboardSettingsThreadsRoute
   DashboardSettingsWhatsappRoute: typeof DashboardSettingsWhatsappRoute
@@ -3219,6 +3259,7 @@ interface DashboardSettingsRouteChildren {
 const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
   DashboardSettingsCanvaRoute: DashboardSettingsCanvaRoute,
   DashboardSettingsFacebookRoute: DashboardSettingsFacebookRoute,
+  DashboardSettingsGoogleRoute: DashboardSettingsGoogleRoute,
   DashboardSettingsInstagramRoute: DashboardSettingsInstagramRoute,
   DashboardSettingsThreadsRoute: DashboardSettingsThreadsRoute,
   DashboardSettingsWhatsappRoute: DashboardSettingsWhatsappRoute,
@@ -3450,6 +3491,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   AuthCanvaCallbackRoute: AuthCanvaCallbackRoute,
   AuthFacebookCallbackRoute: AuthFacebookCallbackRoute,
+  AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
   AuthInstagramCallbackRoute: AuthInstagramCallbackRoute,
   AuthThreadsCallbackRoute: AuthThreadsCallbackRoute,
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
