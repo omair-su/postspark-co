@@ -549,6 +549,7 @@ function RepurposePage() {
             setSourceTab(id as typeof sourceTab);
             if (id === "pdf") setImportSubTab("pdf");
             if (id === "voice") setImportSubTab("audio");
+            if (id === "drive") setDrivePickerOpen(true);
           }}
           tabs={[
             { id: "text", label: "Paste Text", icon: <TypeIcon className="h-3.5 w-3.5" /> },
@@ -556,6 +557,7 @@ function RepurposePage() {
             { id: "youtube", label: "YouTube", icon: <Youtube className="h-3.5 w-3.5" /> },
             { id: "pdf", label: "PDF / Doc", icon: <FileText className="h-3.5 w-3.5" /> },
             { id: "voice", label: "Voice / Audio", icon: <Circle className="h-3 w-3" /> },
+            { id: "drive", label: "Google Drive", icon: <GoogleDriveIcon size={14} /> },
           ]}
 
         />
