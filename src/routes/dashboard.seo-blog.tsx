@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { generateBlog, generateOutline, refreshOldBlog } from "@/lib/seoBlog.functions";
 import { withAIProgress } from "@/lib/aiProgress";
+import { DriveImportButton } from "@/components/google/DriveImportButton";
+import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
 
 export const Route = createFileRoute("/dashboard/seo-blog")({
   component: SeoBlogPage,
@@ -378,6 +380,9 @@ function SeoBlogPage() {
             <Label>Refresh an old post</Label>
             <p className="mb-3 text-[12.5px] text-[#6B7280]">We'll update stats, improve keyword density, add a FAQ + TOC, and tighten the intro.</p>
             <div className="space-y-3">
+              <div className="flex justify-end">
+                <DriveImportButton onImported={(text) => setOldPost(text)} label="Import from Drive" />
+              </div>
               <textarea value={oldPost} onChange={(e) => setOldPost(e.target.value)} rows={10} placeholder="Paste your existing post here…" className="ps-input w-full" />
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
@@ -402,9 +407,16 @@ function SeoBlogPage() {
             <Card>
               <div className="mb-3 flex items-center justify-between">
                 <Label>Refreshed post</Label>
-                <button onClick={() => copy(refreshed, "refreshed")} className="output-action-btn">
-                  {copied === "refreshed" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} Copy
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => copy(refreshed, "refreshed")} className="output-action-btn">
+                    {copied === "refreshed" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} Copy
+                  </button>
+                  <ExportToGoogleDocs
+                    content={refreshed}
+                    defaultTitle={`PostSpark — Refreshed post${keyword ? ` (${keyword})` : ""}`}
+                    sourceTool="SEO Blog · Refresh"
+                  />
+                </div>
               </div>
               <pre className="max-h-[500px] overflow-auto whitespace-pre-wrap rounded-lg bg-[#FAFAF8] p-4 text-[12.5px] leading-relaxed text-[#1A1A2E]">{refreshed}</pre>
             </Card>
@@ -449,6 +461,11 @@ function SeoBlogPage() {
                 </button>
                 <button onClick={() => download("md")} className="output-action-btn"><Download className="h-3 w-3" /> .md</button>
                 <button onClick={() => download("txt")} className="output-action-btn"><Download className="h-3 w-3" /> .txt</button>
+                <ExportToGoogleDocs
+                  content={blog.markdown}
+                  defaultTitle={blog.title || "PostSpark — Blog post"}
+                  sourceTool="SEO Blog"
+                />
               </div>
             </div>
             <pre className="max-h-[600px] overflow-auto whitespace-pre-wrap rounded-lg bg-[#FAFAF8] p-4 text-[12.5px] leading-relaxed text-[#1A1A2E]">{blog.markdown}</pre>

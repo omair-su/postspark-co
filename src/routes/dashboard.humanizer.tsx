@@ -5,6 +5,8 @@ import { humanize } from "@/lib/copilot.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { toast } from "sonner";
 import { HeroArt } from "@/components/dashboard/HeroArt";
+import { DriveImportButton } from "@/components/google/DriveImportButton";
+import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
 
 export const Route = createFileRoute("/dashboard/humanizer")({
   component: HumanizerPage,
@@ -172,7 +174,10 @@ function HumanizerPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-[12px] font-semibold uppercase tracking-[0.05em] text-[#9CA3AF]">
             <span>Original text</span>
-            <span className="font-normal normal-case tracking-normal">{input.length} / 5,000 chars</span>
+            <div className="flex items-center gap-2">
+              <DriveImportButton onImported={(text) => setInput(text.slice(0, 5000))} label="From Drive" />
+              <span className="font-normal normal-case tracking-normal">{input.length} / 5,000 chars</span>
+            </div>
           </div>
           <textarea
             value={input}
@@ -196,6 +201,11 @@ function HumanizerPage() {
                   <button onClick={sendToRepurpose} className="output-action-btn">
                     <Repeat className="h-3 w-3" /> Repurpose
                   </button>
+                  <ExportToGoogleDocs
+                    content={output}
+                    defaultTitle="PostSpark — Humanized text"
+                    sourceTool="AI Humanizer"
+                  />
                 </>
               )}
             </div>

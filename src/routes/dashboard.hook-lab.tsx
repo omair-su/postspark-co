@@ -10,6 +10,8 @@ import {
 import { generateHooks } from "@/lib/hookLab.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { ToolHero } from "@/components/dashboard/ToolHero";
+import { DriveImportButton } from "@/components/google/DriveImportButton";
+import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
 
 interface Hook {
   framework: string;
@@ -156,7 +158,13 @@ function HookLabPage() {
         <Label>Your topic</Label>
         <div className="space-y-3">
           <div>
-            <SubLabel>Topic or angle *</SubLabel>
+            <div className="flex items-center justify-between gap-2">
+              <SubLabel>Topic or angle *</SubLabel>
+              <DriveImportButton
+                onImported={(text) => setTopic(text.slice(0, 600))}
+                label="From Drive"
+              />
+            </div>
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
@@ -283,6 +291,11 @@ function HookLabPage() {
               {copiedAll ? <Check className="h-3.5 w-3.5" /> : <ClipboardCopy className="h-3.5 w-3.5" />}
               Copy all
             </button>
+            <ExportToGoogleDocs
+              content={hooks.map((h, i) => `${i + 1}. ${h.text}`).join("\n\n")}
+              defaultTitle={`PostSpark — Hooks${topic ? `: ${topic.slice(0, 60)}` : ""}`}
+              sourceTool="Hook Lab"
+            />
           </div>
 
           {/* Filter tabs */}

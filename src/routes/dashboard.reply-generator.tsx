@@ -20,6 +20,8 @@ import { replies as repliesFn } from "@/lib/copilot.functions";
 import { saveToSwipeFn } from "@/lib/guidedStudios.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { toast } from "sonner";
+import { DriveImportButton } from "@/components/google/DriveImportButton";
+import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
 
 export const Route = createFileRoute("/dashboard/reply-generator")({
   component: ReplyGeneratorPage,
@@ -216,7 +218,10 @@ function ReplyGeneratorPage() {
 
       {/* INPUT */}
       <div className="rg-card">
-        <label className="rg-label">Original post / comment <span className="text-rose-500">*</span></label>
+        <div className="flex items-center justify-between gap-2">
+          <label className="rg-label">Original post / comment <span className="text-rose-500">*</span></label>
+          <DriveImportButton onImported={(text) => setPost(text.slice(0, 2000))} label="From Drive" />
+        </div>
         <textarea
           value={post}
           onChange={(e) => setPost(e.target.value.slice(0, 2000))}
@@ -430,6 +435,11 @@ function ReplyGeneratorPage() {
             <button onClick={saveBest} className="rg-btn-secondary" type="button">
               <Bookmark className="h-4 w-4" /> Save Best to Swipe File
             </button>
+            <ExportToGoogleDocs
+              content={out.map((r, i) => `${i + 1}. ${r.text}`).join("\n\n")}
+              defaultTitle="PostSpark — Replies"
+              sourceTool="Reply Generator"
+            />
           </div>
         </div>
       )}
