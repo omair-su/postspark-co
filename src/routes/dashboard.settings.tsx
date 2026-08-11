@@ -12,6 +12,7 @@ import { PublicShowcaseSettings } from "@/components/PublicShowcaseSettings";
 import { ConnectedAccountsCard } from "@/components/ConnectedAccountsCard";
 import { XAnalyticsCard } from "@/components/publish/XAnalyticsCard";
 import { HeroArt } from "@/components/dashboard/HeroArt";
+import { GoogleGIcon } from "@/components/google/GoogleIcons";
 
 export const Route = createFileRoute("/dashboard/settings")({
   component: SettingsPage,
@@ -79,7 +80,7 @@ function SettingsPage() {
 
 
       {/* Profile card */}
-      <div className="mt-6 rounded-xl border border-border bg-card p-5">
+      <div className="ps-liquid mt-6 p-5">
         <div className="flex items-center gap-4 mb-5">
           {avatarUrl ? (
             <img src={avatarUrl} alt="User profile photo" className="h-12 w-12 rounded-full object-cover" />
@@ -129,7 +130,7 @@ function SettingsPage() {
       <WeeklyDigestToggle />
 
       {/* Password */}
-      <div className="mt-4 rounded-xl border border-border bg-card p-5">
+      <div className="ps-liquid mt-4 p-5">
         <h2 className="text-sm font-semibold text-foreground">Change Password</h2>
         <form onSubmit={handleChangePassword} className="mt-4 space-y-3">
           <div>
@@ -156,11 +157,11 @@ function SettingsPage() {
       {/* Brand Kit shortcut */}
       <Link
         to="/dashboard/brand-kit"
-        className="mt-4 flex items-center justify-between rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
+        className="ps-liquid ps-liquid-link mt-4 flex items-center justify-between p-5"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-electric">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
+          <div className="ps-liquid-icon">
+            <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">Brand Kit</p>
@@ -173,15 +174,34 @@ function SettingsPage() {
       {/* Brand Voice shortcut — used by Spark Copilot, Repurpose, Reply Generator */}
       <Link
         to="/dashboard/brand-voice"
-        className="mt-4 flex items-center justify-between rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
+        className="ps-liquid ps-liquid-link mt-4 flex items-center justify-between p-5"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-electric to-electric/70">
-            <Mic className="h-4 w-4 text-white" />
+          <div className="ps-liquid-icon">
+            <Mic className="h-4 w-4 text-primary" />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">Brand Voice / Style</p>
             <p className="text-xs text-muted-foreground">Train Spark to write replies and content in your exact tone.</p>
+          </div>
+        </div>
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+
+      {/* Google Workspace shortcut */}
+      <Link
+        to="/dashboard/settings/google"
+        className="ps-liquid ps-liquid-link mt-4 flex items-center justify-between p-5"
+      >
+        <div className="flex items-center gap-3">
+          <div className="ps-liquid-icon">
+            <GoogleGIcon size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Google Workspace</p>
+            <p className="text-xs text-muted-foreground">
+              Import from Drive & Docs as content sources, export finished content back to Google Docs.
+            </p>
           </div>
         </div>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -197,7 +217,7 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
   const renewal = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
 
   return (
-    <div className="mt-4 rounded-xl border border-border bg-card p-5">
+    <div className="ps-liquid mt-4 p-5">
       <div className="flex items-center gap-2">
         <Crown className="h-4 w-4 text-primary" />
         <h2 className="text-sm font-semibold text-foreground">Subscription</h2>
@@ -363,7 +383,7 @@ function WeeklyDigestToggle() {
   };
 
   return (
-    <div className="mt-4 rounded-xl border border-border bg-card p-5">
+    <div className="ps-liquid mt-4 p-5">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Weekly digest email</h2>

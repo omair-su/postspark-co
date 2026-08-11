@@ -5226,3 +5226,119 @@ html:not(.dark) .dashboard-shell .pod-hero h1 {
   .lux-spring:active,
   .hover-scale:hover { transform: none !important; }
 }
+
+/* ============================================================
+   Liquid glass settings cards — premium animated surfaces
+   ============================================================ */
+.ps-liquid {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.15rem;
+  border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--card) 88%, transparent) 0%,
+      color-mix(in oklab, var(--card) 96%, transparent) 55%,
+      color-mix(in oklab, var(--primary) 7%, var(--card)) 100%
+    );
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, white 14%, transparent) inset,
+    0 18px 40px -28px color-mix(in oklab, var(--primary) 45%, transparent);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s ease, border-color 0.45s ease;
+}
+
+/* Slow drifting liquid blobs */
+.ps-liquid::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 42% at 18% 26%, color-mix(in oklab, var(--primary) 26%, transparent) 0%, transparent 62%),
+    radial-gradient(34% 38% at 82% 70%, color-mix(in oklab, var(--primary) 16%, transparent) 0%, transparent 60%),
+    radial-gradient(30% 34% at 60% 8%, color-mix(in oklab, #22d3ee 14%, transparent) 0%, transparent 60%);
+  filter: blur(26px);
+  opacity: 0.75;
+  animation: ps-liquid-drift 18s ease-in-out infinite alternate;
+}
+
+/* Glass sheen that sweeps across on hover */
+.ps-liquid::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 45%;
+  z-index: 1;
+  pointer-events: none;
+  transform: skewX(-18deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, white 22%, transparent),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ps-liquid:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, white 20%, transparent) inset,
+    0 26px 60px -26px color-mix(in oklab, var(--primary) 60%, transparent);
+}
+
+.ps-liquid:hover::after {
+  opacity: 1;
+  animation: ps-liquid-sheen 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Interactive link cards get a slightly stronger spring */
+.ps-liquid-link:active { transform: translateY(-1px) scale(0.995); }
+
+/* Icon medallion inside a liquid card */
+.ps-liquid-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 28%, transparent);
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, var(--primary) 22%, transparent),
+    color-mix(in oklab, var(--primary) 6%, transparent)
+  );
+  box-shadow: 0 8px 20px -12px color-mix(in oklab, var(--primary) 70%, transparent);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ps-liquid:hover .ps-liquid-icon { transform: translateY(-1px) rotate(-4deg) scale(1.06); }
+
+@keyframes ps-liquid-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(3%, -4%, 0) scale(1.08); }
+  100% { transform: translate3d(-4%, 3%, 0) scale(1.04); }
+}
+
+@keyframes ps-liquid-sheen {
+  from { left: -60%; }
+  to   { left: 130%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-liquid::before { animation: none !important; }
+  .ps-liquid::after { display: none !important; }
+  .ps-liquid:hover { transform: none !important; }
+  .ps-liquid:hover .ps-liquid-icon { transform: none !important; }
+}
