@@ -3,8 +3,8 @@ import { SegmentPage, segmentHead } from "@/components/segment/SegmentPage";
 
 export const Route = createFileRoute("/tools/youtube-to-blog")({
   head: () => segmentHead({
-    title: "YouTube to Blog Post Converter — Free AI Tool | PostSpark",
-    desc: "Turn any YouTube video into a publish-ready SEO blog post in 60 seconds. Auto title, meta description, H2 outline, FAQ, and pull quotes.",
+    title: "YouTube to Blog Post in 60 Seconds — Free AI Tool",
+    desc: "Paste a YouTube link and get a publish-ready SEO article — not a raw transcript. AI rewrites it with a keyword title, H2 outline, FAQ and pull quotes. Free.",
     url: "https://postspark.co/tools/youtube-to-blog",
     path: "/tools/youtube-to-blog"
   }),
