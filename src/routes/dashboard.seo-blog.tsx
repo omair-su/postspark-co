@@ -461,13 +461,19 @@ function SeoBlogPage() {
             </Card>
           )}
 
-          <Card>
-            <div className="mb-3 flex items-center justify-between">
-              <Label>Full article (Markdown)</Label>
-              <div className="flex gap-2">
-                <button onClick={() => copy(blog.markdown, "md")} className="output-action-btn">
-                  {copied === "md" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} Copy
-                </button>
+          <SeoAnalyzer
+            markdown={blog.markdown}
+            keyword={keyword}
+            title={blog.title}
+            metaDescription={blog.metaDescription}
+            wordTarget={wordTarget}
+          />
+
+          <ArticlePreview
+            markdown={blog.markdown}
+            onChange={(md) => setBlog({ ...blog, markdown: md })}
+            actions={
+              <>
                 <button onClick={() => download("md")} className="output-action-btn"><Download className="h-3 w-3" /> .md</button>
                 <button onClick={() => download("txt")} className="output-action-btn"><Download className="h-3 w-3" /> .txt</button>
                 <ExportToGoogleDocs
@@ -475,10 +481,10 @@ function SeoBlogPage() {
                   defaultTitle={blog.title || "PostSpark — Blog post"}
                   sourceTool="SEO Blog"
                 />
-              </div>
-            </div>
-            <pre className="max-h-[600px] overflow-auto whitespace-pre-wrap rounded-lg bg-[#FAFAF8] p-4 text-[12.5px] leading-relaxed text-[#1A1A2E]">{blog.markdown}</pre>
-          </Card>
+              </>
+            }
+          />
+
 
           {blog.faq.length > 0 && (
             <Card>
