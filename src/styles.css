@@ -5342,3 +5342,93 @@ html:not(.dark) .dashboard-shell .pod-hero h1 {
   .ps-liquid:hover { transform: none !important; }
   .ps-liquid:hover .ps-liquid-icon { transform: none !important; }
 }
+
+/* ============================================================
+   Premium article prose (SEO Blog preview) — token driven
+   ============================================================ */
+.ps-prose {
+  color: hsl(var(--foreground) / 0.92);
+  font-size: 15px;
+  line-height: 1.75;
+}
+.ps-prose > * + * { margin-top: 1em; }
+.ps-prose h1, .ps-prose h2, .ps-prose h3, .ps-prose h4 {
+  color: hsl(var(--foreground));
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin-top: 1.6em;
+}
+.ps-prose h1 { font-size: 1.7em; }
+.ps-prose h2 { font-size: 1.35em; }
+.ps-prose h3 { font-size: 1.12em; }
+.ps-prose h4 { font-size: 1em; text-transform: none; }
+.ps-prose p, .ps-prose li { color: hsl(var(--foreground) / 0.88); }
+.ps-prose strong { color: hsl(var(--foreground)); font-weight: 650; }
+.ps-prose a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ps-prose ul, .ps-prose ol { padding-left: 1.25em; }
+.ps-prose ul { list-style: disc; }
+.ps-prose ol { list-style: decimal; }
+.ps-prose li + li { margin-top: 0.35em; }
+.ps-prose blockquote {
+  border-left: 3px solid hsl(var(--primary) / 0.55);
+  padding: 0.2em 0 0.2em 1em;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+.ps-prose code {
+  background: hsl(var(--muted) / 0.55);
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+.ps-prose pre {
+  background: hsl(var(--muted) / 0.4);
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+}
+.ps-prose pre code { background: none; border: 0; padding: 0; }
+.ps-prose hr { border-color: hsl(var(--border)); margin: 2em 0; }
+.ps-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93em;
+  display: block;
+  overflow-x: auto;
+}
+.ps-prose th, .ps-prose td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5em 0.7em;
+  text-align: left;
+}
+.ps-prose th {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+  font-weight: 650;
+}
+.ps-prose img { border-radius: 12px; max-width: 100%; }
+
+/* Meter used by the SEO analyzer + hook score bars */
+.ps-meter {
+  height: 6px;
+  border-radius: 999px;
+  background: hsl(var(--muted) / 0.6);
+  overflow: hidden;
+}
+.ps-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, hsl(var(--primary)), color-mix(in oklab, hsl(var(--primary)) 45%, #22d3ee));
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ps-meter[data-tone="warn"] > span { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.ps-meter[data-tone="bad"] > span { background: linear-gradient(90deg, #ef4444, #f87171); }
+.ps-meter[data-tone="good"] > span { background: linear-gradient(90deg, #10b981, #34d399); }

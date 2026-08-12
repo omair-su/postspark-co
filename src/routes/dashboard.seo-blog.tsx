@@ -11,6 +11,15 @@ import { generateBlog, generateOutline, refreshOldBlog } from "@/lib/seoBlog.fun
 import { withAIProgress } from "@/lib/aiProgress";
 import { DriveImportButton } from "@/components/google/DriveImportButton";
 import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
+import {
+  StudioCard,
+  StudioLabel,
+  SubLabel as StudioSubLabel,
+  ChoicePill,
+} from "@/components/tools/studio";
+import { ArticlePreview } from "@/components/tools/ArticlePreview";
+import { SeoAnalyzer } from "@/components/tools/SeoAnalyzer";
+
 
 export const Route = createFileRoute("/dashboard/seo-blog")({
   component: SeoBlogPage,
@@ -452,13 +461,19 @@ function SeoBlogPage() {
             </Card>
           )}
 
-          <Card>
-            <div className="mb-3 flex items-center justify-between">
-              <Label>Full article (Markdown)</Label>
-              <div className="flex gap-2">
-                <button onClick={() => copy(blog.markdown, "md")} className="output-action-btn">
-                  {copied === "md" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} Copy
-                </button>
+          <SeoAnalyzer
+            markdown={blog.markdown}
+            keyword={keyword}
+            title={blog.title}
+            metaDescription={blog.metaDescription}
+            wordTarget={wordTarget}
+          />
+
+          <ArticlePreview
+            markdown={blog.markdown}
+            onChange={(md) => setBlog({ ...blog, markdown: md })}
+            actions={
+              <>
                 <button onClick={() => download("md")} className="output-action-btn"><Download className="h-3 w-3" /> .md</button>
                 <button onClick={() => download("txt")} className="output-action-btn"><Download className="h-3 w-3" /> .txt</button>
                 <ExportToGoogleDocs
@@ -466,10 +481,10 @@ function SeoBlogPage() {
                   defaultTitle={blog.title || "PostSpark — Blog post"}
                   sourceTool="SEO Blog"
                 />
-              </div>
-            </div>
-            <pre className="max-h-[600px] overflow-auto whitespace-pre-wrap rounded-lg bg-[#FAFAF8] p-4 text-[12.5px] leading-relaxed text-[#1A1A2E]">{blog.markdown}</pre>
-          </Card>
+              </>
+            }
+          />
+
 
           {blog.faq.length > 0 && (
             <Card>
@@ -530,20 +545,19 @@ function ActionBtn({ children, onClick, icon }: { children: React.ReactNode; onC
 }
 
 function Card({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-[14px] border border-black/[0.08] bg-white p-5">{children}</div>;
+  return <StudioCard>{children}</StudioCard>;
 }
 function Label({ children }: { children: React.ReactNode }) {
-  return <div className="mb-3 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#9CA3AF]">{children}</div>;
+  return <StudioLabel>{children}</StudioLabel>;
 }
 function SubLabel({ children }: { children: React.ReactNode }) {
-  return <div className="mb-1.5 text-[12px] font-medium text-[#6B7280]">{children}</div>;
+  return <StudioSubLabel>{children}</StudioSubLabel>;
 }
 function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className={`rounded-lg border px-3 py-1.5 text-[12.5px] font-medium transition ${
-      active ? "border-[#6B4EFF] bg-[#6B4EFF] text-white" : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#6B4EFF]/40 hover:text-[#1A1A2E]"
-    }`}>
+    <ChoicePill active={active} onClick={onClick}>
       {children}
-    </button>
+    </ChoicePill>
   );
 }
+

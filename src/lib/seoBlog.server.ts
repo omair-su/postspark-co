@@ -167,7 +167,14 @@ export interface SeoBlogOpts {
   sections?: string[];
   secondaryKeywords?: string;
   competitorAngle?: string;
+  /** Approved outline (H2 + optional H3s) the article MUST follow exactly. */
+  approvedOutline?: OutlineSection[];
+  /** Headings scraped from competitors so the article can beat their coverage. */
+  competitorGaps?: string[];
+  /** Internal links to weave in naturally. */
+  internalLinks?: { anchor: string; slug: string }[];
 }
+
 
 function computeSeoScore(blog: ClaudeBlogResponse, keyword: string, wordTarget: number): number {
   let score = 5.0;
@@ -209,6 +216,20 @@ export async function generateSeoBlog(
     : ["Meta title + description", "Table of contents", "Introduction hook", "FAQ section (5 Q&As)"]).join(", ");
   const secondary = opts.secondaryKeywords?.trim() ? `\nSECONDARY KEYWORDS: ${opts.secondaryKeywords.trim()}` : "";
   const angle = opts.competitorAngle?.trim() ? `\nCOMPETITOR ANGLE: ${opts.competitorAngle.trim()}` : "";
+  const outlineBlock = opts.approvedOutline?.length
+    ? "\n\nAPPROVED OUTLINE — follow this structure exactly, in this order, using these H2s verbatim:\n" +
+      opts.approvedOutline
+        .map((s, i) => `${i + 1}. ## ${s.h2}${s.h3?.length ? "\n" + s.h3.map((h) => `   - ### ${h}`).join("\n") : ""}`)
+        .join("\n")
+    : "";
+  const gapBlock = opts.competitorGaps?.length
+    ? "\n\nCOMPETITOR HEADINGS (cover these topics better, or deliberately beat them with a stronger angle):\n" +
+      opts.competitorGaps.slice(0, 40).map((h) => `- ${h}`).join("\n")
+    : "";
+  const linkBlock = opts.internalLinks?.length
+    ? "\n\nINTERNAL LINKS — weave each in once, naturally, as markdown links:\n" +
+      opts.internalLinks.slice(0, 8).map((l) => `- [${l.anchor}](/blog/${l.slug})`).join("\n")
+    : "";
 
   const systemPrompt = `You are an elite SEO content strategist and writer who has helped 500+ blogs rank on page 1 of Google. You write for humans first, search engines second.
 
@@ -221,7 +242,8 @@ INDUSTRY/NICHE: ${niche}
 TARGET LENGTH: ${wordTarget} words (hit within 10%).
 TONE: ${tone}
 LANGUAGE: ${language}
-REQUIRED SECTIONS: ${sections}${angle}
+REQUIRED SECTIONS: ${sections}${angle}${outlineBlock}${gapBlock}${linkBlock}
+
 
 SEO QUALITY RULES (non-negotiable):
 1. H1 title: Include primary keyword naturally. Under 65 characters.
@@ -310,4 +332,80 @@ Output ONLY the refreshed markdown. No preamble.`;
   const r = await callClaude({ systemPrompt: system, userPrompt: oldContent, maxTokens: 4000 });
   if (r.error) return { markdown: "", error: r.error };
   return { markdown: r.text };
+}
+
+export type SectionMode = "rewrite" | "expand" | "shorten" | "simplify" | "add_data" | "add_example";
+
+const SECTION_INTENT: Record<SectionMode, string> = {
+  rewrite: "Rewrite this section so it is sharper, more specific, and more useful. Same length.",
+  expand: "Expand this section with more depth, detail and concrete examples. Roughly double the length.",
+  shorten: "Tighten this section to roughly half the length without losing any real insight.",
+  simplify: "Rewrite this section in plainer language a beginner can follow. Keep every fact.",
+  add_data: "Rewrite this section adding 2-3 specific data points or benchmarks. Mark uncited numbers as [Verify].",
+  add_example: "Rewrite this section adding one concrete, realistic worked example the reader can copy.",
+};
+
+/** Regenerate a single markdown section of an article. */
+export async function rewriteBlogSection(
+  sectionMarkdown: string,
+  mode: SectionMode,
+  keyword: string,
+  language: string,
+  tone = "Professional",
+  brandVoiceSummary = "",
+): Promise<{ markdown: string; error?: string }> {
+  const voiceBlock = brandVoiceSummary.trim()
+    ? `\n\nMatch this brand voice exactly:\n${brandVoiceSummary.trim()}`
+    : "";
+
+  const system = `You are an elite SEO editor. You are editing ONE section of a larger article about "${keyword}".
+
+TASK: ${SECTION_INTENT[mode]}
+
+RULES:
+- Write in ${language}. Tone: ${tone}.
+- Keep the section's original heading level and heading text unless it is weak, in which case improve the wording only.
+- Use the keyword naturally at most once. No stuffing.
+- No filler, no "In today's world", no "It is important to note".
+- Never use em-dashes. Use commas, parentheses, or two short sentences.
+- Output ONLY the replacement markdown for this section. No preamble, no code fences.${voiceBlock}`;
+
+  const r = await callClaude({ systemPrompt: system, userPrompt: sectionMarkdown, maxTokens: 2000 });
+  if (r.error) return { markdown: "", error: r.error };
+  return { markdown: (r.text || "").replace(/^```(?:markdown)?\n?|\n?```$/g, "").trim() };
+}
+
+/** Generate SEO title + meta description variants for an existing article. */
+export async function generateMetaVariants(
+  title: string,
+  articleMarkdown: string,
+  keyword: string,
+  language: string,
+): Promise<{ variants: { title: string; metaDescription: string }[]; error?: string }> {
+  const r = await callClaudeWithTool<{ variants: { title: string; metaDescription: string }[] }>({
+    systemPrompt: `You write click-magnet SERP snippets. Language: ${language}. Primary keyword: "${keyword}".
+
+Return 4 distinct title + meta description pairs for this article.
+Rules: title <= 60 chars and includes the keyword; meta description 150-160 chars, includes the keyword, creates curiosity or urgency. No em-dashes. No clickbait lies.`,
+    userPrompt: `Current title: ${title}\n\nArticle:\n${articleMarkdown.slice(0, 6000)}\n\nReturn via return_meta.`,
+    toolName: "return_meta",
+    toolDescription: "Return 4 SERP snippet variants.",
+    toolSchema: {
+      type: "object",
+      properties: {
+        variants: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: { title: { type: "string" }, metaDescription: { type: "string" } },
+            required: ["title", "metaDescription"],
+          },
+        },
+      },
+      required: ["variants"],
+    },
+    maxTokens: 1200,
+  });
+  if (r.error || !r.data) return { variants: [], error: r.error || "No variants returned." };
+  return { variants: Array.isArray(r.data.variants) ? r.data.variants.slice(0, 4) : [] };
 }
