@@ -11,6 +11,15 @@ import { generateBlog, generateOutline, refreshOldBlog } from "@/lib/seoBlog.fun
 import { withAIProgress } from "@/lib/aiProgress";
 import { DriveImportButton } from "@/components/google/DriveImportButton";
 import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
+import {
+  StudioCard,
+  StudioLabel,
+  SubLabel as StudioSubLabel,
+  ChoicePill,
+} from "@/components/tools/studio";
+import { ArticlePreview } from "@/components/tools/ArticlePreview";
+import { SeoAnalyzer } from "@/components/tools/SeoAnalyzer";
+
 
 export const Route = createFileRoute("/dashboard/seo-blog")({
   component: SeoBlogPage,
