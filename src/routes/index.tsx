@@ -13,9 +13,9 @@ import {
   LP4_FAQ,
 } from "@/components/landing/v4/SectionsEnd";
 
-const TITLE = "PostSpark — AI Content Operating System | Turn 1 Idea Into 30+ Posts";
+const TITLE = "PostSpark — Turn 1 Idea Into 30+ AI Posts";
 const DESCRIPTION =
-  "PostSpark is the AI Content Operating System for creators and marketers. Repurpose one idea into LinkedIn posts, carousels, TikTok scripts, SEO blogs & more. Publish to 7 platforms.";
+  "Repurpose one idea into LinkedIn posts, carousels, TikTok scripts and SEO blogs — then publish to 7 platforms. Free to start, no card.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
