@@ -1,7 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateSeoBlog, generateSeoOutline, refreshSeoBlog } from "@/lib/seoBlog.server";
+import {
+  generateSeoBlog,
+  generateSeoOutline,
+  refreshSeoBlog,
+  rewriteBlogSection,
+  generateMetaVariants,
+} from "@/lib/seoBlog.server";
 
 export const generateBlog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -18,8 +24,18 @@ export const generateBlog = createServerFn({ method: "POST" })
       sections: z.array(z.string().max(80)).max(12).optional(),
       secondaryKeywords: z.string().max(300).optional(),
       competitorAngle: z.string().max(300).optional(),
+      approvedOutline: z
+        .array(z.object({ h2: z.string().max(200), h3: z.array(z.string().max(200)).max(8).optional() }))
+        .max(15)
+        .optional(),
+      competitorGaps: z.array(z.string().max(200)).max(40).optional(),
+      internalLinks: z
+        .array(z.object({ anchor: z.string().max(120), slug: z.string().max(160) }))
+        .max(8)
+        .optional(),
     }).parse,
   )
+
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -58,6 +74,10 @@ export const generateBlog = createServerFn({ method: "POST" })
         sections: data.sections,
         secondaryKeywords: data.secondaryKeywords,
         competitorAngle: data.competitorAngle,
+        approvedOutline: data.approvedOutline,
+        competitorGaps: data.competitorGaps,
+        internalLinks: data.internalLinks,
+
       },
     );
 
@@ -145,4 +165,92 @@ export const refreshOldBlog = createServerFn({ method: "POST" })
       return { markdown: "", error: "Blog Refresh is a Pro feature. Upgrade to unlock." };
     }
     return refreshSeoBlog(data.content, data.keyword, data.language);
+  });
+
+async function requirePro(supabase: any, userId: string) {
+  const { data: profile } = await supabase.from("profiles").select("plan").eq("user_id", userId).single();
+  const plan = profile?.plan || "free";
+  return plan === "pro" || plan === "agency";
+}
+
+export const regenerateSection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      section: z.string().min(20).max(12000),
+      mode: z.enum(["rewrite", "expand", "shorten", "simplify", "add_data", "add_example"]).default("rewrite"),
+      keyword: z.string().min(2).max(120),
+      language: z.string().min(2).max(40).default("English"),
+      tone: z.string().max(40).default("Professional"),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    if (!(await requirePro(supabase, userId))) {
+      return { markdown: "", error: "Section regeneration is a Pro feature. Upgrade to unlock." };
+    }
+    const { data: voice } = await supabase
+      .from("brand_voices")
+      .select("style_summary")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .maybeSingle();
+    return rewriteBlogSection(
+      data.section,
+      data.mode,
+      data.keyword,
+      data.language,
+      data.tone,
+      voice?.style_summary || "",
+    );
+  });
+
+export const generateSerpVariants = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      title: z.string().max(300).default(""),
+      markdown: z.string().min(50).max(30000),
+      keyword: z.string().min(2).max(120),
+      language: z.string().min(2).max(40).default("English"),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    if (!(await requirePro(supabase, userId))) {
+      return { variants: [], error: "SERP snippet variants are a Pro feature. Upgrade to unlock." };
+    }
+    return generateMetaVariants(data.title, data.markdown, data.keyword, data.language);
+  });
+
+/** Save a finished article draft into the user's history so it can be reopened. */
+export const saveArticleDraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      title: z.string().min(1).max(300),
+      keyword: z.string().max(120).default(""),
+      markdown: z.string().min(20).max(60000),
+      metaDescription: z.string().max(400).default(""),
+      slug: z.string().max(200).default(""),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase.from("repurpose_jobs").insert({
+      user_id: userId,
+      tool: "seo_blog",
+      input_text: `${data.title} — ${data.keyword}`,
+      title: data.title,
+      outputs: {
+        article: data.markdown,
+        meta_description: data.metaDescription,
+        slug: data.slug,
+      },
+    } as any);
+    if (error) {
+      console.error("draft save error", error);
+      return { success: false };
+    }
+    return { success: true };
   });
