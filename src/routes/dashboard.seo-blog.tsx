@@ -138,6 +138,7 @@ function SeoBlogPage() {
     if (audience.trim().length < 3) return toast.error("Add a target audience");
     setLoading(true);
     setBlog(null);
+    setSerpVariants([]); setSerpSelected(null);
     try {
       const res = await withAIProgress(generateBlog({
         data: {
@@ -145,6 +146,10 @@ function SeoBlogPage() {
           articleType, audience: audience.trim(), niche, tone, sections,
           secondaryKeywords: secondaryKeywords.trim() || undefined,
           competitorAngle: competitorAngle.trim() || undefined,
+          approvedOutline: outline?.outline?.length ? outline.outline : undefined,
+          internalLinks: outline?.suggestedInternalLinks?.length
+            ? outline.suggestedInternalLinks.map((l) => ({ anchor: l.anchor, slug: l.slug }))
+            : undefined,
         },
       }));
       if (res.error) toast.error(res.error);
@@ -153,6 +158,64 @@ function SeoBlogPage() {
     } catch (e) { console.error(e); toast.error("Generation failed"); }
     finally { setLoading(false); }
   };
+
+  /** Rewrite a single H2 section in place; preview + analyzer update instantly. */
+  const runSectionRewrite = async (index: number, mode: RewriteMode) => {
+    if (!blog) return;
+    const parts = splitSections(blog.markdown);
+    const target = parts[index];
+    if (!target) return;
+    if (target.markdown.trim().length < 20) return toast.error("Section is too short to rewrite");
+    setSectionBusy(index);
+    try {
+      const res: any = await withAIProgress(regenerateSection({
+        data: {
+          section: target.markdown.slice(0, 12000),
+          mode,
+          keyword: keyword.trim() || blog.title.slice(0, 60),
+          language,
+          tone,
+        },
+      }));
+      if (res.error) return toast.error(res.error);
+      if (!res.markdown) return toast.error("No rewrite returned");
+      const next = [...parts];
+      next[index] = { ...target, markdown: res.markdown.trim() };
+      setBlog({ ...blog, markdown: joinSections(next) });
+      toast.success(`Section updated (${mode.replace("_", " ")})`);
+    } catch (e) { console.error(e); toast.error("Section rewrite failed"); }
+    finally { setSectionBusy(null); }
+  };
+
+  const runSerpVariants = async () => {
+    if (!blog) return;
+    setSerpLoading(true);
+    try {
+      const res: any = await withAIProgress(generateSerpVariants({
+        data: {
+          title: blog.title,
+          markdown: blog.markdown.slice(0, 30000),
+          keyword: keyword.trim() || blog.title.slice(0, 60),
+          language,
+        },
+      }));
+      if (res.error) return toast.error(res.error);
+      if (!res.variants?.length) return toast.error("No variants returned");
+      setSerpVariants(res.variants as SerpVariant[]);
+      setSerpSelected(null);
+      toast.success(`${res.variants.length} snippet variants ready`);
+    } catch (e) { console.error(e); toast.error("Variant generation failed"); }
+    finally { setSerpLoading(false); }
+  };
+
+  const openHistory = async () => {
+    setHistoryOpen(true);
+    try {
+      const res = await listToolHistory({ data: { tool: "seo_blog", limit: 20 } });
+      setHistory(res.entries);
+    } catch (e) { console.error(e); }
+  };
+
 
   const runRefresh = async () => {
     if (oldPost.trim().length < 100) return toast.error("Paste a post (100+ chars)");
