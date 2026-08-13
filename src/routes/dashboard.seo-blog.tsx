@@ -92,6 +92,14 @@ function SeoBlogPage() {
   const [blog, setBlog] = useState<Blog | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
+  // section rewrites + SERP variants + history
+  const [sectionBusy, setSectionBusy] = useState<number | null>(null);
+  const [serpVariants, setSerpVariants] = useState<SerpVariant[]>([]);
+  const [serpLoading, setSerpLoading] = useState(false);
+  const [serpSelected, setSerpSelected] = useState<number | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<ToolHistoryEntry[]>([]);
+
   // outline tab
   const [competitors, setCompetitors] = useState<string[]>([""]);
   const [outline, setOutline] = useState<Outline | null>(null);
