@@ -5,9 +5,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   FileText, Loader2, Sparkles, Copy, Check, Download, Search, Plus, Trash2,
-  RefreshCw, Wand2, Calendar as CalIcon,
+  RefreshCw, Wand2, Calendar as CalIcon, History,
 } from "lucide-react";
-import { generateBlog, generateOutline, refreshOldBlog } from "@/lib/seoBlog.functions";
+import {
+  generateBlog, generateOutline, refreshOldBlog, regenerateSection, generateSerpVariants,
+} from "@/lib/seoBlog.functions";
+import { listToolHistory, type ToolHistoryEntry } from "@/lib/toolHistory.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { DriveImportButton } from "@/components/google/DriveImportButton";
 import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
@@ -16,9 +19,14 @@ import {
   StudioLabel,
   SubLabel as StudioSubLabel,
   ChoicePill,
+  GhostButton,
 } from "@/components/tools/studio";
 import { ArticlePreview } from "@/components/tools/ArticlePreview";
 import { SeoAnalyzer } from "@/components/tools/SeoAnalyzer";
+import { SectionRegenerator, type RewriteMode } from "@/components/tools/SectionRegenerator";
+import { SerpVariantPicker, type SerpVariant } from "@/components/tools/SerpVariantPicker";
+import { SideDrawer } from "@/components/tools/SideDrawer";
+import { splitSections, joinSections } from "@/lib/articleAnalysis";
 
 
 export const Route = createFileRoute("/dashboard/seo-blog")({
@@ -84,6 +92,14 @@ function SeoBlogPage() {
   const [blog, setBlog] = useState<Blog | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
+  // section rewrites + SERP variants + history
+  const [sectionBusy, setSectionBusy] = useState<number | null>(null);
+  const [serpVariants, setSerpVariants] = useState<SerpVariant[]>([]);
+  const [serpLoading, setSerpLoading] = useState(false);
+  const [serpSelected, setSerpSelected] = useState<number | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<ToolHistoryEntry[]>([]);
+
   // outline tab
   const [competitors, setCompetitors] = useState<string[]>([""]);
   const [outline, setOutline] = useState<Outline | null>(null);
@@ -122,6 +138,7 @@ function SeoBlogPage() {
     if (audience.trim().length < 3) return toast.error("Add a target audience");
     setLoading(true);
     setBlog(null);
+    setSerpVariants([]); setSerpSelected(null);
     try {
       const res = await withAIProgress(generateBlog({
         data: {
@@ -129,6 +146,10 @@ function SeoBlogPage() {
           articleType, audience: audience.trim(), niche, tone, sections,
           secondaryKeywords: secondaryKeywords.trim() || undefined,
           competitorAngle: competitorAngle.trim() || undefined,
+          approvedOutline: outline?.outline?.length ? outline.outline : undefined,
+          internalLinks: outline?.suggestedInternalLinks?.length
+            ? outline.suggestedInternalLinks.map((l) => ({ anchor: l.anchor, slug: l.slug }))
+            : undefined,
         },
       }));
       if (res.error) toast.error(res.error);
@@ -137,6 +158,64 @@ function SeoBlogPage() {
     } catch (e) { console.error(e); toast.error("Generation failed"); }
     finally { setLoading(false); }
   };
+
+  /** Rewrite a single H2 section in place; preview + analyzer update instantly. */
+  const runSectionRewrite = async (index: number, mode: RewriteMode) => {
+    if (!blog) return;
+    const parts = splitSections(blog.markdown);
+    const target = parts[index];
+    if (!target) return;
+    if (target.markdown.trim().length < 20) return toast.error("Section is too short to rewrite");
+    setSectionBusy(index);
+    try {
+      const res: any = await withAIProgress(regenerateSection({
+        data: {
+          section: target.markdown.slice(0, 12000),
+          mode,
+          keyword: keyword.trim() || blog.title.slice(0, 60),
+          language,
+          tone,
+        },
+      }));
+      if (res.error) return toast.error(res.error);
+      if (!res.markdown) return toast.error("No rewrite returned");
+      const next = [...parts];
+      next[index] = { ...target, markdown: res.markdown.trim() };
+      setBlog({ ...blog, markdown: joinSections(next) });
+      toast.success(`Section updated (${mode.replace("_", " ")})`);
+    } catch (e) { console.error(e); toast.error("Section rewrite failed"); }
+    finally { setSectionBusy(null); }
+  };
+
+  const runSerpVariants = async () => {
+    if (!blog) return;
+    setSerpLoading(true);
+    try {
+      const res: any = await withAIProgress(generateSerpVariants({
+        data: {
+          title: blog.title,
+          markdown: blog.markdown.slice(0, 30000),
+          keyword: keyword.trim() || blog.title.slice(0, 60),
+          language,
+        },
+      }));
+      if (res.error) return toast.error(res.error);
+      if (!res.variants?.length) return toast.error("No variants returned");
+      setSerpVariants(res.variants as SerpVariant[]);
+      setSerpSelected(null);
+      toast.success(`${res.variants.length} snippet variants ready`);
+    } catch (e) { console.error(e); toast.error("Variant generation failed"); }
+    finally { setSerpLoading(false); }
+  };
+
+  const openHistory = async () => {
+    setHistoryOpen(true);
+    try {
+      const res = await listToolHistory({ data: { tool: "seo_blog", limit: 20 } });
+      setHistory(res.entries);
+    } catch (e) { console.error(e); }
+  };
+
 
   const runRefresh = async () => {
     if (oldPost.trim().length < 100) return toast.error("Paste a post (100+ chars)");
@@ -159,12 +238,17 @@ function SeoBlogPage() {
     setTimeout(() => setCopied(null), 1500);
   };
 
+  // The selected SERP variant becomes the source of truth for meta + every export.
+  const chosen = serpSelected !== null ? serpVariants[serpSelected] : null;
+  const exportTitle = chosen?.title || blog?.title || "";
+  const exportMeta = chosen?.metaDescription || blog?.metaDescription || "";
+
   const download = (fmt: "md" | "txt") => {
     if (!blog) return;
     const ext = fmt === "md" ? "md" : "txt";
     const front = fmt === "md"
-      ? `---\ntitle: "${blog.title.replace(/"/g, '\\"')}"\ndescription: "${blog.metaDescription.replace(/"/g, '\\"')}"\nslug: ${blog.slug}\n---\n\n`
-      : `${blog.title}\n\n${blog.metaDescription}\n\n`;
+      ? `---\ntitle: "${exportTitle.replace(/"/g, '\\"')}"\ndescription: "${exportMeta.replace(/"/g, '\\"')}"\nslug: ${blog.slug}\n---\n\n`
+      : `${exportTitle}\n\n${exportMeta}\n\n`;
     const blob = new Blob([front + blog.markdown], { type: fmt === "md" ? "text/markdown" : "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -437,25 +521,37 @@ function SeoBlogPage() {
       {blog && tab === "blog" && (
         <>
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <p className="text-[12px] text-[#6B7280]">
+            <p className="text-[12px] text-muted-foreground">
               ✓ Blog generated · {blog.markdown.split(/\s+/).length.toLocaleString()} words
             </p>
-            {blog.seoScore !== undefined && <SeoScoreBadge score={blog.seoScore} />}
+            <div className="flex items-center gap-2">
+              <GhostButton icon={<History className="h-3.5 w-3.5" />} onClick={openHistory}>History</GhostButton>
+              {blog.seoScore !== undefined && <SeoScoreBadge score={blog.seoScore} />}
+            </div>
           </div>
 
           <Card>
             <Label>Meta section</Label>
             <div className="space-y-3">
-              <MetaRow label="Title" value={blog.title} id="title" copy={copy} copied={copied} />
-              <MetaRow label="Meta description" value={blog.metaDescription} id="meta" copy={copy} copied={copied} />
+              <MetaRow label="Title" value={exportTitle} id="title" copy={copy} copied={copied} />
+              <MetaRow label="Meta description" value={exportMeta} id="meta" copy={copy} copied={copied} />
               <MetaRow label="Slug" value={`/${blog.slug}`} id="slug" copy={copy} copied={copied} mono />
             </div>
           </Card>
 
+          <SerpVariantPicker
+            variants={serpVariants}
+            loading={serpLoading}
+            selected={serpSelected}
+            slug={blog.slug}
+            onGenerate={runSerpVariants}
+            onSelect={setSerpSelected}
+          />
+
           {blog.outline.length > 0 && (
             <Card>
               <Label>Table of contents</Label>
-              <ol className="list-decimal space-y-1 pl-5 text-[13px] text-[#1A1A2E]">
+              <ol className="list-decimal space-y-1 pl-5 text-[13px] text-foreground">
                 {blog.outline.map((s, i) => <li key={i}>{s}</li>)}
               </ol>
             </Card>
@@ -464,9 +560,15 @@ function SeoBlogPage() {
           <SeoAnalyzer
             markdown={blog.markdown}
             keyword={keyword}
-            title={blog.title}
-            metaDescription={blog.metaDescription}
+            title={exportTitle}
+            metaDescription={exportMeta}
             wordTarget={wordTarget}
+          />
+
+          <SectionRegenerator
+            markdown={blog.markdown}
+            busyIndex={sectionBusy}
+            onRegenerate={runSectionRewrite}
           />
 
           <ArticlePreview
@@ -477,8 +579,8 @@ function SeoBlogPage() {
                 <button onClick={() => download("md")} className="output-action-btn"><Download className="h-3 w-3" /> .md</button>
                 <button onClick={() => download("txt")} className="output-action-btn"><Download className="h-3 w-3" /> .txt</button>
                 <ExportToGoogleDocs
-                  content={blog.markdown}
-                  defaultTitle={blog.title || "PostSpark — Blog post"}
+                  content={`# ${exportTitle}\n\n${exportMeta}\n\n${blog.markdown}`}
+                  defaultTitle={exportTitle || "PostSpark — Blog post"}
                   sourceTool="SEO Blog"
                 />
               </>
@@ -491,9 +593,9 @@ function SeoBlogPage() {
               <Label>FAQ (People Also Ask)</Label>
               <div className="space-y-3">
                 {blog.faq.map((f, i) => (
-                  <div key={i} className="rounded-lg border border-[#E5E7EB] bg-[#FAFAF8] p-3">
-                    <p className="text-[13px] font-semibold text-[#1A1A2E]">{f.q}</p>
-                    <p className="mt-1 text-[12.5px] text-[#6B7280]">{f.a}</p>
+                  <div key={i} className="rounded-lg border border-border bg-card/50 p-3">
+                    <p className="text-[13px] font-semibold text-foreground">{f.q}</p>
+                    <p className="mt-1 text-[12.5px] text-muted-foreground">{f.a}</p>
                   </div>
                 ))}
               </div>
@@ -510,6 +612,48 @@ function SeoBlogPage() {
           </Card>
         </>
       )}
+
+      <SideDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        title="Recent articles"
+        subtitle="Reopen a past draft with all outputs"
+      >
+        {history.length === 0 ? (
+          <p className="text-[12.5px] text-muted-foreground">No saved articles yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {history.map((h) => (
+              <div key={h.id} className="rounded-xl border border-border bg-card/50 p-3">
+                <p className="text-[12.5px] font-semibold text-foreground">{h.title || h.input_text.slice(0, 70)}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{new Date(h.created_at).toLocaleString()}</p>
+                <div className="mt-2">
+                  <GhostButton
+                    onClick={() => {
+                      const out = (h.outputs || {}) as Record<string, string>;
+                      if (!out.article) return toast.error("This entry has no article body");
+                      setBlog({
+                        title: h.title || "Untitled article",
+                        metaDescription: out.meta_description || "",
+                        slug: out.slug || "",
+                        outline: [],
+                        markdown: out.article,
+                        faq: [],
+                      });
+                      setSerpVariants([]); setSerpSelected(null);
+                      setTab("blog");
+                      setHistoryOpen(false);
+                      toast.success("Draft reopened");
+                    }}
+                  >
+                    Reopen
+                  </GhostButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </SideDrawer>
     </div>
   );
 }
