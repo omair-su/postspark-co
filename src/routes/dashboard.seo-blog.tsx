@@ -5,9 +5,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   FileText, Loader2, Sparkles, Copy, Check, Download, Search, Plus, Trash2,
-  RefreshCw, Wand2, Calendar as CalIcon,
+  RefreshCw, Wand2, Calendar as CalIcon, History,
 } from "lucide-react";
-import { generateBlog, generateOutline, refreshOldBlog } from "@/lib/seoBlog.functions";
+import {
+  generateBlog, generateOutline, refreshOldBlog, regenerateSection, generateSerpVariants,
+} from "@/lib/seoBlog.functions";
+import { listToolHistory, type ToolHistoryEntry } from "@/lib/toolHistory.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import { DriveImportButton } from "@/components/google/DriveImportButton";
 import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
@@ -16,9 +19,14 @@ import {
   StudioLabel,
   SubLabel as StudioSubLabel,
   ChoicePill,
+  GhostButton,
 } from "@/components/tools/studio";
 import { ArticlePreview } from "@/components/tools/ArticlePreview";
 import { SeoAnalyzer } from "@/components/tools/SeoAnalyzer";
+import { SectionRegenerator, type RewriteMode } from "@/components/tools/SectionRegenerator";
+import { SerpVariantPicker, type SerpVariant } from "@/components/tools/SerpVariantPicker";
+import { SideDrawer } from "@/components/tools/SideDrawer";
+import { splitSections, joinSections } from "@/lib/articleAnalysis";
 
 
 export const Route = createFileRoute("/dashboard/seo-blog")({
