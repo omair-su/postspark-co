@@ -238,12 +238,17 @@ function SeoBlogPage() {
     setTimeout(() => setCopied(null), 1500);
   };
 
+  // The selected SERP variant becomes the source of truth for meta + every export.
+  const chosen = serpSelected !== null ? serpVariants[serpSelected] : null;
+  const exportTitle = chosen?.title || blog?.title || "";
+  const exportMeta = chosen?.metaDescription || blog?.metaDescription || "";
+
   const download = (fmt: "md" | "txt") => {
     if (!blog) return;
     const ext = fmt === "md" ? "md" : "txt";
     const front = fmt === "md"
-      ? `---\ntitle: "${blog.title.replace(/"/g, '\\"')}"\ndescription: "${blog.metaDescription.replace(/"/g, '\\"')}"\nslug: ${blog.slug}\n---\n\n`
-      : `${blog.title}\n\n${blog.metaDescription}\n\n`;
+      ? `---\ntitle: "${exportTitle.replace(/"/g, '\\"')}"\ndescription: "${exportMeta.replace(/"/g, '\\"')}"\nslug: ${blog.slug}\n---\n\n`
+      : `${exportTitle}\n\n${exportMeta}\n\n`;
     const blob = new Blob([front + blog.markdown], { type: fmt === "md" ? "text/markdown" : "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
