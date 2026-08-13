@@ -521,25 +521,37 @@ function SeoBlogPage() {
       {blog && tab === "blog" && (
         <>
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <p className="text-[12px] text-[#6B7280]">
+            <p className="text-[12px] text-muted-foreground">
               ✓ Blog generated · {blog.markdown.split(/\s+/).length.toLocaleString()} words
             </p>
-            {blog.seoScore !== undefined && <SeoScoreBadge score={blog.seoScore} />}
+            <div className="flex items-center gap-2">
+              <GhostButton icon={<History className="h-3.5 w-3.5" />} onClick={openHistory}>History</GhostButton>
+              {blog.seoScore !== undefined && <SeoScoreBadge score={blog.seoScore} />}
+            </div>
           </div>
 
           <Card>
             <Label>Meta section</Label>
             <div className="space-y-3">
-              <MetaRow label="Title" value={blog.title} id="title" copy={copy} copied={copied} />
-              <MetaRow label="Meta description" value={blog.metaDescription} id="meta" copy={copy} copied={copied} />
+              <MetaRow label="Title" value={exportTitle} id="title" copy={copy} copied={copied} />
+              <MetaRow label="Meta description" value={exportMeta} id="meta" copy={copy} copied={copied} />
               <MetaRow label="Slug" value={`/${blog.slug}`} id="slug" copy={copy} copied={copied} mono />
             </div>
           </Card>
 
+          <SerpVariantPicker
+            variants={serpVariants}
+            loading={serpLoading}
+            selected={serpSelected}
+            slug={blog.slug}
+            onGenerate={runSerpVariants}
+            onSelect={setSerpSelected}
+          />
+
           {blog.outline.length > 0 && (
             <Card>
               <Label>Table of contents</Label>
-              <ol className="list-decimal space-y-1 pl-5 text-[13px] text-[#1A1A2E]">
+              <ol className="list-decimal space-y-1 pl-5 text-[13px] text-foreground">
                 {blog.outline.map((s, i) => <li key={i}>{s}</li>)}
               </ol>
             </Card>
@@ -548,9 +560,15 @@ function SeoBlogPage() {
           <SeoAnalyzer
             markdown={blog.markdown}
             keyword={keyword}
-            title={blog.title}
-            metaDescription={blog.metaDescription}
+            title={exportTitle}
+            metaDescription={exportMeta}
             wordTarget={wordTarget}
+          />
+
+          <SectionRegenerator
+            markdown={blog.markdown}
+            busyIndex={sectionBusy}
+            onRegenerate={runSectionRewrite}
           />
 
           <ArticlePreview
@@ -561,8 +579,8 @@ function SeoBlogPage() {
                 <button onClick={() => download("md")} className="output-action-btn"><Download className="h-3 w-3" /> .md</button>
                 <button onClick={() => download("txt")} className="output-action-btn"><Download className="h-3 w-3" /> .txt</button>
                 <ExportToGoogleDocs
-                  content={blog.markdown}
-                  defaultTitle={blog.title || "PostSpark — Blog post"}
+                  content={`# ${exportTitle}\n\n${exportMeta}\n\n${blog.markdown}`}
+                  defaultTitle={exportTitle || "PostSpark — Blog post"}
                   sourceTool="SEO Blog"
                 />
               </>
