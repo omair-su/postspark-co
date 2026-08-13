@@ -593,9 +593,9 @@ function SeoBlogPage() {
               <Label>FAQ (People Also Ask)</Label>
               <div className="space-y-3">
                 {blog.faq.map((f, i) => (
-                  <div key={i} className="rounded-lg border border-[#E5E7EB] bg-[#FAFAF8] p-3">
-                    <p className="text-[13px] font-semibold text-[#1A1A2E]">{f.q}</p>
-                    <p className="mt-1 text-[12.5px] text-[#6B7280]">{f.a}</p>
+                  <div key={i} className="rounded-lg border border-border bg-card/50 p-3">
+                    <p className="text-[13px] font-semibold text-foreground">{f.q}</p>
+                    <p className="mt-1 text-[12.5px] text-muted-foreground">{f.a}</p>
                   </div>
                 ))}
               </div>
@@ -612,6 +612,48 @@ function SeoBlogPage() {
           </Card>
         </>
       )}
+
+      <SideDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        title="Recent articles"
+        subtitle="Reopen a past draft with all outputs"
+      >
+        {history.length === 0 ? (
+          <p className="text-[12.5px] text-muted-foreground">No saved articles yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {history.map((h) => (
+              <div key={h.id} className="rounded-xl border border-border bg-card/50 p-3">
+                <p className="text-[12.5px] font-semibold text-foreground">{h.title || h.input_text.slice(0, 70)}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{new Date(h.created_at).toLocaleString()}</p>
+                <div className="mt-2">
+                  <GhostButton
+                    onClick={() => {
+                      const out = (h.outputs || {}) as Record<string, string>;
+                      if (!out.article) return toast.error("This entry has no article body");
+                      setBlog({
+                        title: h.title || "Untitled article",
+                        metaDescription: out.meta_description || "",
+                        slug: out.slug || "",
+                        outline: [],
+                        markdown: out.article,
+                        faq: [],
+                      });
+                      setSerpVariants([]); setSerpSelected(null);
+                      setTab("blog");
+                      setHistoryOpen(false);
+                      toast.success("Draft reopened");
+                    }}
+                  >
+                    Reopen
+                  </GhostButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </SideDrawer>
     </div>
   );
 }
