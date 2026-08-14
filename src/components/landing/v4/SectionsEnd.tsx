@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, ChevronDown, ArrowRight } from "lucide-react";
 import { BoltMark, SOCIALS, SocialCircle, Wordmark, delay } from "./parts";
+import { PlatformLogo } from "./primitives";
+import { PUBLISH_PLATFORMS } from "@/lib/brandIcons";
 
 type Plan = {
   name: string;
