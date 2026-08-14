@@ -33,8 +33,8 @@ const PLANS: Plan[] = [
   },
   {
     name: "Pro",
-    monthly: 29,
-    annual: 23,
+    monthly: 24,
+    annual: 19,
     desc: "For creators and founders serious about content output and growth.",
     features: [
       "Unlimited generations",
@@ -52,8 +52,8 @@ const PLANS: Plan[] = [
   },
   {
     name: "Agency",
-    monthly: 79,
-    annual: 63,
+    monthly: 49,
+    annual: 39,
     desc: "For agencies and teams managing multiple brands and clients.",
     features: [
       "Everything in Pro",
@@ -147,7 +147,7 @@ export function Lp4Pricing() {
             </span>
           </div>
           <p className="fade-in-up mt-3" style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", ...delay(220) }}>
-            Join 1,200+ creators saving up to $192 per year with annual billing.
+            Join 1,200+ creators saving up to $120 per year with annual billing.
           </p>
         </div>
 
@@ -349,7 +349,7 @@ export const LP4_FAQ = [
   },
   {
     q: "Is there a free plan? What's included?",
-    a: "Yes. The free plan includes 10 generations per month, access to 3 Studios, 1 Brand profile, and limited Spark AI Copilot. No credit card required to sign up. Paid plans start at $29/month and include a 7-day free trial.",
+    a: "Yes. The free plan includes 10 generations per month, access to 3 Studios, 1 Brand profile, and limited Spark AI Copilot. No credit card required to sign up. Paid plans start at $24/month and include a 7-day free trial.",
   },
   {
     q: "What happens to my content and data?",
