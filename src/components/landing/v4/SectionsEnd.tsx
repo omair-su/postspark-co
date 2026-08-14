@@ -23,7 +23,7 @@ const PLANS: Plan[] = [
     annual: 0,
     desc: "Perfect for exploring PostSpark and testing your first repurposes.",
     features: [
-      "10 generations per month",
+      "3 repurposes per month",
       "3 Studios access",
       "1 Brand profile",
       "Spark AI Copilot (limited)",
@@ -349,7 +349,7 @@ export const LP4_FAQ = [
   },
   {
     q: "Is there a free plan? What's included?",
-    a: "Yes. The free plan includes 10 generations per month, access to 3 Studios, 1 Brand profile, and limited Spark AI Copilot. No credit card required to sign up. Paid plans start at $24/month and include a 7-day free trial.",
+    a: "Yes. The free plan includes 3 repurposes per month, access to 3 Studios, 1 Brand profile, and limited Spark AI Copilot. No credit card required to sign up. Paid plans start at $24/month and include a 7-day free trial.",
   },
   {
     q: "What happens to my content and data?",
