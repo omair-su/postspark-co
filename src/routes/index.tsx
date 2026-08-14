@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Navigate, createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useFadeIn } from "@/components/landing/v4/parts";
-import { Lp4Nav, Lp4Hero, Lp4SocialProof, Lp4HowItWorks } from "@/components/landing/v4/SectionsTop";
-import { Lp4Studios, Lp4Models, Lp4Features } from "@/components/landing/v4/SectionsMid";
+import { Lp4Announcement, Lp4Nav, Lp4Hero, Lp4SocialProof, Lp4HowItWorks } from "@/components/landing/v4/SectionsTop";
+import { Lp4TrustStrip, Lp4ModelMarquee, Lp4PlatformGrid } from "@/components/landing/v4/Trust";
+import { Lp4Studios, Lp4Features } from "@/components/landing/v4/SectionsMid";
 import { Lp4Guided, Lp4Testimonials, Lp4Stats } from "@/components/landing/v4/SectionsBottom";
 import {
   Lp4Pricing,
@@ -10,6 +12,7 @@ import {
   Lp4FinalCta,
   Lp4Footer,
   Lp4StickyCta,
+  Lp4CookieBar,
   LP4_FAQ,
 } from "@/components/landing/v4/SectionsEnd";
 
