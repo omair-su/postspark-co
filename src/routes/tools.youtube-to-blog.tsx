@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SegmentPage, segmentHead } from "@/components/segment/SegmentPage";
+import { YoutubeToBlogExample, YT_TO_BLOG_FAQS } from "@/components/tools/YoutubeToBlogExample";
 
 export const Route = createFileRoute("/tools/youtube-to-blog")({
   head: () => segmentHead({
     title: "YouTube to Blog Post in 60 Seconds — Free AI Tool",
     desc: "Paste a YouTube link and get a publish-ready SEO article — not a raw transcript. AI rewrites it with a keyword title, H2 outline, FAQ and pull quotes. Free.",
     url: "https://postspark.co/tools/youtube-to-blog",
-    path: "/tools/youtube-to-blog"
+    path: "/tools/youtube-to-blog",
+    faq: YT_TO_BLOG_FAQS,
   }),
   component: () => (
     <SegmentPage
@@ -14,6 +16,11 @@ export const Route = createFileRoute("/tools/youtube-to-blog")({
       eyebrow="Free Tool · YouTube → Blog"
       h1="Turn your YouTube videos into SEO blog posts that rank."
       sub="Paste a YouTube URL. PostSpark transcribes, generates a keyword-optimized title, meta description, H2 outline, body, FAQ section, and pull quotes — all formatted in markdown."
+      quickAnswer={{
+        question: "How do you turn a YouTube video into a blog post?",
+        answer:
+          "Paste the video URL into PostSpark. It transcribes the audio, then rewrites it as a structured article — SEO title, meta description, H2/H3 outline, body in your voice, pull quotes and an FAQ section — and returns it as markdown you can paste into WordPress, Webflow, Ghost or Notion. Free for 3 per month.",
+      }}
       pains={[
         "You publish to YouTube but never index on Google — 90% of search traffic missed.",
         "Manually transcribing and rewriting a 20-min video for a blog takes 4+ hours.",
@@ -29,6 +36,7 @@ export const Route = createFileRoute("/tools/youtube-to-blog")({
         { title: "Pick target keyword (optional)", body: "Or let PostSpark suggest one from the video title." },
         { title: "Get a publish-ready markdown blog post", body: "Copy into Webflow, WordPress, Ghost, or Notion." },
       ]}
+      extra={<YoutubeToBlogExample />}
     />
   ),
 });
