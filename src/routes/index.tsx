@@ -37,8 +37,17 @@ export const Route = createFileRoute("/")({
           "Turn one idea into a week of content. Repurpose, create & publish to LinkedIn, TikTok, Instagram, YouTube & more — powered by Claude AI.",
       },
       { property: "og:image", content: "https://postspark.co/og-image.png" },
+      { property: "og:image:width", content: "1536" },
+      { property: "og:image:height", content: "1024" },
+      {
+        property: "og:image:alt",
+        content: "PostSpark — turn one idea into 30+ posts and publish to every platform",
+      },
       { property: "og:url", content: "https://postspark.co" },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "PostSpark" },
+      { property: "og:locale", content: "en_US" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "PostSpark — AI Content Operating System" },
       {
@@ -47,6 +56,10 @@ export const Route = createFileRoute("/")({
           "Turn one idea into a week of content across 7 platforms. AI repurposing, image generation & direct publishing.",
       },
       { name: "twitter:image", content: "https://postspark.co/og-image.png" },
+      {
+        name: "twitter:image:alt",
+        content: "PostSpark — turn one idea into 30+ posts and publish to every platform",
+      },
     ],
     links: [{ rel: "canonical", href: "https://postspark.co" }],
     scripts: [

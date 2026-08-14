@@ -5,6 +5,7 @@ import { Wordmark, delay } from "./parts";
 import { SCREENS } from "./screens";
 import { PUBLISH_PLATFORMS } from "@/lib/brandIcons";
 import { CountUpOnView, PlatformLogo, useWordCycle } from "./primitives";
+import { FloatingBadges } from "./FloatingBadges";
 import heroPerson from "@/assets/landing-v5/hero-person.png.asset.json";
 
 const NAV_LINKS = [
@@ -158,17 +159,6 @@ export function Lp4Nav({ offset = 0 }: { offset?: number }) {
 
 const CYCLE = ["Week of Content.", "30 Platform Posts.", "Viral LinkedIn Thread.", "Full SEO Blog.", "7 Social Platforms."];
 
-/** Floating platform logos orbiting the hero visual. */
-const ORBIT: { key: string; top: string; left?: string; right?: string; anim: string; d: string }[] = [
-  { key: "linkedin", top: "4%", left: "-4%", anim: "lp4-orbit-a", d: "0s" },
-  { key: "x", top: "26%", right: "-5%", anim: "lp4-orbit-b", d: ".4s" },
-  { key: "instagram", top: "-3%", right: "16%", anim: "lp4-orbit-c", d: ".8s" },
-  { key: "tiktok", top: "62%", left: "-7%", anim: "lp4-orbit-b", d: "1.2s" },
-  { key: "youtube", top: "78%", right: "2%", anim: "lp4-orbit-a", d: ".6s" },
-  { key: "facebook", top: "48%", right: "-8%", anim: "lp4-orbit-c", d: "1s" },
-  { key: "threads", top: "88%", left: "22%", anim: "lp4-orbit-a", d: "1.4s" },
-];
-
 function HeroVisual() {
   return (
     <div className="relative mx-auto w-full max-w-[520px]">
@@ -204,27 +194,8 @@ function HeroVisual() {
         className="relative z-10 mx-auto block w-[82%]"
       />
 
-      {/* Floating real platform logos */}
-      {ORBIT.map((o) => {
-        const p = PUBLISH_PLATFORMS.find((x) => x.key === o.key)!;
-        return (
-          <span
-            key={o.key}
-            className={`${o.anim} absolute z-20 grid place-items-center rounded-2xl bg-white`}
-            style={{
-              top: o.top,
-              left: o.left,
-              right: o.right,
-              width: 56,
-              height: 56,
-              animationDelay: o.d,
-              boxShadow: "0 12px 30px rgba(15,15,26,0.14), 0 0 0 1px rgba(124,58,237,0.08)",
-            }}
-          >
-            <PlatformLogo p={p} size={30} />
-          </span>
-        );
-      })}
+      {/* Floating real platform badges — scroll-triggered, drifting, hoverable */}
+      <FloatingBadges size={56} />
 
       {/* Live notification cards */}
       <div
