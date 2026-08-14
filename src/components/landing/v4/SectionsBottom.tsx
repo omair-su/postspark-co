@@ -1,5 +1,8 @@
 import { Link } from "@tanstack/react-router";
+import { BadgeCheck } from "lucide-react";
 import { delay } from "./parts";
+import { CountUpOnView, PlatformLogo } from "./primitives";
+import { BRAND_ICON, PUBLISH_PLATFORMS } from "@/lib/brandIcons";
 
 const GUIDED = [
   {
@@ -112,7 +115,8 @@ const TESTIMONIALS = [
     stat: "+412%",
     statLabel: "WEEKLY OUTPUT",
     name: "Maya Chen",
-    title: "Creator · 142K on YouTube",
+    title: "142K YouTube",
+    platform: "youtube",
     avatar: "#7C3AED",
   },
   {
@@ -121,14 +125,68 @@ const TESTIMONIALS = [
     statLabel: "SAVED / MONTH",
     name: "Daniel Reyes",
     title: "Founder, Northbound Agency",
+    platform: "linkedin",
     avatar: "#3B82F6",
   },
   {
     quote:
       "The Brand Voice feature is a cheat code. Every post sounds exactly like me — I keep forgetting the AI wrote it.",
+    stat: "18 posts",
+    statLabel: "FROM 1 PODCAST",
     name: "Priya Sharma",
-    title: "LinkedIn Creator · 38K Followers",
+    title: "38K LinkedIn",
+    platform: "linkedin",
     avatar: "#10B981",
+  },
+  {
+    quote: "One podcast episode now covers my whole week — shorts, threads, newsletter. It saves me two full days.",
+    stat: "8 hrs",
+    statLabel: "SAVED / WEEK",
+    name: "Tom Whitfield",
+    title: "Podcast host · 60K downloads",
+    platform: "x",
+    avatar: "#EA580C",
+  },
+];
+
+const HEAD_STATS = [
+  { value: 1200, suffix: "+", label: "Creators & Marketers" },
+  { value: 4.9, decimals: 1, suffix: "★", label: "Average Rating" },
+  { value: 30, suffix: "+", label: "Content Formats" },
+];
+
+const TWEETS = [
+  {
+    name: "Alex Moreno",
+    handle: "@alexbuilds",
+    text: "PostSpark turned my 45-min podcast into 22 posts, 3 carousels and a newsletter. I checked every single one — all usable. This is unfair.",
+    likes: "412",
+    rt: "58",
+    color: "#7C3AED",
+  },
+  {
+    name: "Sara Lindqvist",
+    handle: "@saraonlinkedin",
+    text: "Cancelled Buffer + Jasper + Canva Pro this month. PostSpark does all three for my content workflow. 🤯",
+    likes: "836",
+    rt: "121",
+    color: "#0A66C2",
+  },
+  {
+    name: "Devon Price",
+    handle: "@devonships",
+    text: "The Hook Lab scoring is the best part. I A/B two hooks, publish the winner, and my impressions have doubled in 3 weeks.",
+    likes: "295",
+    rt: "34",
+    color: "#EA580C",
+  },
+  {
+    name: "Nina Rao",
+    handle: "@ninagrowth",
+    text: "Brand Voice actually works. My client posts sound like the client, not like ChatGPT. That alone is worth the subscription.",
+    likes: "651",
+    rt: "77",
+    color: "#10B981",
   },
 ];
 
@@ -148,42 +206,116 @@ export function Lp4Testimonials() {
           </h2>
         </div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-3">
-          {TESTIMONIALS.map((t, i) => (
-            <figure key={t.name} className="lp4-card fade-in-up px-6 py-7" style={delay(i * 100)}>
-              <p style={{ fontSize: 16, color: "#F59E0B", letterSpacing: "1px" }}>★★★★★</p>
-              <blockquote className="mt-4" style={{ fontSize: 16, color: "#374151", lineHeight: 1.65, fontStyle: "italic" }}>
-                “{t.quote}”
-              </blockquote>
-              {t.stat && (
+        {/* Stats bar */}
+        <div className="mt-12 grid gap-4 sm:grid-cols-3">
+          {HEAD_STATS.map((s, i) => (
+            <div key={s.label} className="lp4-card fade-in-up px-6 py-7 text-center" style={delay(i * 90)}>
+              <p className="lp4-grad-text" style={{ fontSize: "clamp(30px,4vw,40px)", fontWeight: 800, lineHeight: 1 }}>
+                <CountUpOnView value={s.value} decimals={s.decimals ?? 0} suffix={s.suffix} />
+              </p>
+              <p className="mt-2" style={{ fontSize: 13, fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase", color: "#9CA3AF" }}>
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Testimonial grid */}
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          {TESTIMONIALS.map((t, i) => {
+            const plat = PUBLISH_PLATFORMS.find((p) => p.key === t.platform);
+            return (
+              <figure
+                key={t.name}
+                className="fade-in-up px-6 py-7"
+                style={{ background: "#fff", border: "1px solid #EDE9FE", borderRadius: 16, boxShadow: "var(--lp-card-shadow)", ...delay((i % 2) * 100) }}
+              >
+                <p style={{ fontSize: 16, color: "#F59E0B", letterSpacing: "1px" }}>★★★★★</p>
+                <blockquote className="mt-4" style={{ fontSize: 15, color: "#374151", lineHeight: 1.7, fontStyle: "italic" }}>
+                  “{t.quote}”
+                </blockquote>
                 <div className="mt-4">
-                  <p className="lp4-grad-text" style={{ fontSize: 20, fontWeight: 800 }}>
+                  <p className="lp4-grad-text" style={{ fontSize: 22, fontWeight: 800 }}>
                     {t.stat}
                   </p>
                   <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".08em", color: "#9CA3AF" }}>{t.statLabel}</p>
                 </div>
-              )}
-              <figcaption
-                className="mt-5 flex items-center gap-3 pt-4"
-                style={{ borderTop: "1px solid #F3F4F6" }}
-              >
-                <span
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-                  style={{ background: t.avatar, color: "#fff", fontSize: 15, fontWeight: 700 }}
-                >
-                  {t.name.charAt(0)}
-                </span>
-                <span className="min-w-0">
-                  <span className="block truncate" style={{ fontSize: 14, fontWeight: 700, color: "#0F0F1A" }}>
-                    {t.name}
+                <figcaption className="mt-5 flex items-center gap-3 pt-4" style={{ borderTop: "1px solid #F3F4F6" }}>
+                  <span className="relative shrink-0">
+                    <span
+                      className="grid h-10 w-10 place-items-center rounded-full"
+                      style={{ background: t.avatar, color: "#fff", fontSize: 15, fontWeight: 700 }}
+                    >
+                      {t.name.charAt(0)}
+                    </span>
+                    {plat && (
+                      <span
+                        className="absolute -bottom-1 -right-1 grid place-items-center rounded-full bg-white"
+                        style={{ width: 18, height: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.18)" }}
+                      >
+                        <PlatformLogo p={plat} size={12} />
+                      </span>
+                    )}
                   </span>
-                  <span className="block truncate" style={{ fontSize: 13, color: "#9CA3AF" }}>
-                    {t.title}
+                  <span className="min-w-0">
+                    <span className="block truncate" style={{ fontSize: 14, fontWeight: 700, color: "#0F0F1A" }}>
+                      {t.name}
+                    </span>
+                    <span className="block truncate" style={{ fontSize: 13, color: "#9CA3AF" }}>
+                      {t.title}
+                    </span>
                   </span>
-                </span>
-              </figcaption>
-            </figure>
-          ))}
+                </figcaption>
+              </figure>
+            );
+          })}
+        </div>
+
+        {/* Wall of love */}
+        <div className="mt-16">
+          <h3 className="fade-in-up text-center" style={{ fontSize: 20, fontWeight: 700, color: "#0F0F1A" }}>
+            What creators are saying on X →
+          </h3>
+          <div className="mt-7 grid gap-5 md:grid-cols-2">
+            {TWEETS.map((tw, i) => (
+              <article key={tw.handle} className="lp4-card fade-in-up px-6 py-6" style={delay((i % 2) * 90)}>
+                <div className="flex items-center gap-3">
+                  <span
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full"
+                    style={{ background: tw.color, color: "#fff", fontSize: 15, fontWeight: 700 }}
+                  >
+                    {tw.name.charAt(0)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-1.5">
+                      <span className="truncate" style={{ fontSize: 14, fontWeight: 700, color: "#0F0F1A" }}>
+                        {tw.name}
+                      </span>
+                      <BadgeCheck className="h-4 w-4 shrink-0" style={{ color: "#1D9BF0" }} aria-label="Verified" />
+                    </span>
+                    <span className="block truncate" style={{ fontSize: 13, color: "#9CA3AF" }}>
+                      {tw.handle}
+                    </span>
+                  </span>
+                  <img
+                    src={BRAND_ICON.xBlack}
+                    alt="X logo"
+                    width={18}
+                    height={18}
+                    loading="lazy"
+                    style={{ width: 18, height: 18, objectFit: "contain" }}
+                  />
+                </div>
+                <p className="mt-4" style={{ fontSize: 15, color: "#374151", lineHeight: 1.6 }}>
+                  {tw.text}
+                </p>
+                <p className="mt-4 flex items-center gap-5" style={{ fontSize: 13, color: "#9CA3AF" }}>
+                  <span>♡ {tw.likes}</span>
+                  <span>⇄ {tw.rt}</span>
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -191,10 +323,10 @@ export function Lp4Testimonials() {
 }
 
 const STATS = [
-  { n: "9+", l: "Studios Built-in" },
-  { n: "7", l: "Platforms Connected" },
-  { n: "3", l: "AI Image Models" },
-  { n: "60s", l: "Average Repurpose Time" },
+  { n: 9, suffix: "+", l: "Studios Built-in" },
+  { n: 9, suffix: "", l: "Platforms Connected" },
+  { n: 3, suffix: "", l: "AI Image Models" },
+  { n: 60, suffix: "s", l: "Average Repurpose Time" },
 ];
 
 export function Lp4Stats() {
@@ -202,8 +334,10 @@ export function Lp4Stats() {
     <section className="px-6 py-16 sm:py-20" style={{ background: "linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%)" }}>
       <div className="mx-auto grid max-w-[1000px] grid-cols-2 gap-8 text-center md:grid-cols-4 md:divide-x md:divide-white/20">
         {STATS.map((s, i) => (
-          <div key={s.n} className="fade-in-up px-2" style={delay(i * 100)}>
-            <p style={{ fontSize: "clamp(38px,6vw,56px)", fontWeight: 800, color: "#fff", lineHeight: 1 }}>{s.n}</p>
+          <div key={s.l} className="fade-in-up px-2" style={delay(i * 100)}>
+            <p style={{ fontSize: "clamp(38px,6vw,56px)", fontWeight: 800, color: "#fff", lineHeight: 1 }}>
+              <CountUpOnView value={s.n} suffix={s.suffix} />
+            </p>
             <p className="mt-2" style={{ fontSize: 15, fontWeight: 500, color: "rgba(255,255,255,0.75)" }}>
               {s.l}
             </p>
@@ -213,3 +347,4 @@ export function Lp4Stats() {
     </section>
   );
 }
+
