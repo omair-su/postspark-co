@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, ChevronDown, ArrowRight } from "lucide-react";
 import { BoltMark, SOCIALS, SocialCircle, Wordmark, delay } from "./parts";
+import { PlatformLogo } from "./primitives";
+import { PUBLISH_PLATFORMS } from "@/lib/brandIcons";
 
 type Plan = {
   name: string;
@@ -21,7 +23,7 @@ const PLANS: Plan[] = [
     annual: 0,
     desc: "Perfect for exploring PostSpark and testing your first repurposes.",
     features: [
-      "10 generations per month",
+      "3 repurposes per month",
       "3 Studios access",
       "1 Brand profile",
       "Spark AI Copilot (limited)",
@@ -31,8 +33,8 @@ const PLANS: Plan[] = [
   },
   {
     name: "Pro",
-    monthly: 29,
-    annual: 23,
+    monthly: 24,
+    annual: 19,
     desc: "For creators and founders serious about content output and growth.",
     features: [
       "Unlimited generations",
@@ -50,8 +52,8 @@ const PLANS: Plan[] = [
   },
   {
     name: "Agency",
-    monthly: 79,
-    annual: 63,
+    monthly: 49,
+    annual: 39,
     desc: "For agencies and teams managing multiple brands and clients.",
     features: [
       "Everything in Pro",
@@ -67,28 +69,61 @@ const PLANS: Plan[] = [
   },
 ];
 
+const PLAN_PLATFORMS: Record<string, number> = { Free: 3, Pro: 9, Agency: 9 };
+
+const COMPARE_ROWS: { label: string; free: string; pro: string; agency: string }[] = [
+  { label: "Content generations / month", free: "10", pro: "Unlimited", agency: "Unlimited" },
+  { label: "Publishing platforms", free: "3", pro: "9", agency: "9" },
+  { label: "Studios included", free: "3", pro: "All 9", agency: "All 9" },
+  { label: "Brand Kit + Brand Voice", free: "–", pro: "✓", agency: "✓ Multi-brand" },
+  { label: "AI image models", free: "–", pro: "3 models", agency: "3 models" },
+  { label: "Team seats", free: "1", pro: "1", agency: "5" },
+  { label: "Direct publishing & scheduling", free: "–", pro: "✓", agency: "✓" },
+  { label: "Priority support", free: "–", pro: "✓", agency: "✓ + onboarding call" },
+];
+
+function PlanPlatformRow({ count }: { count: number }) {
+  return (
+    <div className="mt-5">
+      <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".06em", color: "#9CA3AF" }}>PUBLISH TO:</p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {PUBLISH_PLATFORMS.slice(0, count).map((p) => (
+          <PlatformLogo key={p.key} p={p} size={22} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Lp4Pricing() {
   const [annual, setAnnual] = useState(false);
+  const [showTable, setShowTable] = useState(false);
 
   return (
-    <section id="pricing" className="scroll-mt-20 bg-white px-6 py-16 sm:py-[100px]">
+    <section
+      id="pricing"
+      className="scroll-mt-20 px-6 py-16 sm:py-[100px]"
+      style={{ background: "linear-gradient(180deg,#0F0921 0%,#1A1035 100%)" }}
+    >
       <div className="mx-auto max-w-[1100px]">
         <div className="text-center">
-          <p className="lp4-label fade-in-up">Pricing</p>
+          <p className="fade-in-up" style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".1em", textTransform: "uppercase", color: "#A78BFA" }}>
+            Pricing
+          </p>
           <h2
             className="fade-in-up mt-3"
-            style={{ fontSize: "clamp(34px,5vw,48px)", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em", ...delay(100) }}
+            style={{ fontSize: "clamp(34px,5vw,48px)", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em", color: "#FFFFFF", ...delay(100) }}
           >
             Simple Pricing.
             <br />
             <span className="lp4-grad-text">Serious Power.</span>
           </h2>
-          <p className="fade-in-up mx-auto mt-4 max-w-[600px]" style={{ fontSize: 18, color: "#6B7280", ...delay(150) }}>
+          <p className="fade-in-up mx-auto mt-4 max-w-[600px]" style={{ fontSize: 18, color: "rgba(255,255,255,0.65)", ...delay(150) }}>
             Start free. Upgrade when you're ready. No credit card needed. Cancel anytime.
           </p>
 
           <div className="fade-in-up mt-8 flex items-center justify-center gap-3" style={delay(200)}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: annual ? "#6B7280" : "#0F0F1A" }}>Monthly</span>
+            <span style={{ fontSize: 14, fontWeight: 500, color: annual ? "rgba(255,255,255,0.6)" : "#FFFFFF" }}>Monthly</span>
             <button
               type="button"
               role="switch"
@@ -96,21 +131,24 @@ export function Lp4Pricing() {
               aria-label="Toggle annual billing"
               onClick={() => setAnnual((v) => !v)}
               className="relative shrink-0 rounded-full transition-colors"
-              style={{ width: 44, height: 24, background: annual ? "#7C3AED" : "#E5E7EB" }}
+              style={{ width: 44, height: 24, background: annual ? "#7C3AED" : "rgba(255,255,255,0.22)" }}
             >
               <span
                 className="absolute top-[3px] rounded-full bg-white transition-all"
                 style={{ width: 18, height: 18, left: annual ? 23 : 3 }}
               />
             </button>
-            <span style={{ fontSize: 14, fontWeight: 500, color: annual ? "#0F0F1A" : "#6B7280" }}>Annual</span>
+            <span style={{ fontSize: 14, fontWeight: 500, color: annual ? "#FFFFFF" : "rgba(255,255,255,0.6)" }}>Annual</span>
             <span
-              className="rounded-full px-2 py-0.5"
+              className={`rounded-full px-2 py-0.5 ${annual ? "lp4-badge-pulse" : ""}`}
               style={{ background: "#DCFCE7", color: "#16A34A", fontSize: 11, fontWeight: 700 }}
             >
               Save 20%
             </span>
           </div>
+          <p className="fade-in-up mt-3" style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", ...delay(220) }}>
+            Join 1,200+ creators saving up to $120 per year with annual billing.
+          </p>
         </div>
 
         <div className="mt-12 grid items-start gap-6 lg:grid-cols-3">
@@ -119,11 +157,16 @@ export function Lp4Pricing() {
             return (
               <div
                 key={p.name}
-                className="fade-in-up relative bg-white px-7 py-9"
+                className="fade-in-up relative px-7 py-9"
                 style={{
                   borderRadius: 20,
-                  border: p.featured ? "2px solid #7C3AED" : "1px solid #E5E7EB",
-                  boxShadow: p.featured ? "0 8px 40px rgba(124,58,237,0.20)" : "var(--lp-card-shadow)",
+                  background: p.featured ? "#FAF5FF" : "#FFFFFF",
+                  border: p.featured
+                    ? "2px solid #7C3AED"
+                    : p.outline
+                      ? "2px solid #B45309"
+                      : "1px solid #E5E7EB",
+                  boxShadow: p.featured ? "0 8px 50px rgba(124,58,237,0.35)" : "0 8px 30px rgba(0,0,0,0.25)",
                   ...delay(i * 100),
                 }}
               >
@@ -141,6 +184,14 @@ export function Lp4Pricing() {
                     }}
                   >
                     MOST POPULAR
+                  </span>
+                )}
+                {p.outline && (
+                  <span
+                    className="absolute left-1/2 -translate-x-1/2 rounded-full px-4 py-1.5"
+                    style={{ top: -14, background: "#B45309", color: "#fff", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap" }}
+                  >
+                    BEST FOR TEAMS
                   </span>
                 )}
                 <p
@@ -175,6 +226,7 @@ export function Lp4Pricing() {
                     </li>
                   ))}
                 </ul>
+                <PlanPlatformRow count={PLAN_PLATFORMS[p.name] ?? 3} />
                 <Link
                   to="/signup"
                   className={`mt-7 block w-full text-center ${p.featured ? "lp4-btn-primary" : ""}`}
@@ -187,8 +239,8 @@ export function Lp4Pricing() {
                             fontWeight: 600,
                             padding: "14px 20px",
                             borderRadius: 10,
-                            border: "1.5px solid #7C3AED",
-                            color: "#7C3AED",
+                            border: "1.5px solid #B45309",
+                            color: "#B45309",
                           }
                         : {
                             fontSize: 15,
@@ -212,9 +264,60 @@ export function Lp4Pricing() {
           })}
         </div>
 
+        {/* Comparison table */}
+        <div className="fade-in-up mt-12">
+          <button
+            type="button"
+            onClick={() => setShowTable((v) => !v)}
+            aria-expanded={showTable}
+            className="mx-auto flex items-center gap-2 rounded-full px-5 py-2.5"
+            style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.16)", color: "#fff", fontSize: 14, fontWeight: 600 }}
+          >
+            See everything included
+            <ChevronDown className="h-4 w-4 transition-transform" style={{ transform: showTable ? "rotate(180deg)" : "none" }} />
+          </button>
+          {showTable && (
+            <div className="mt-6 overflow-x-auto rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)" }}>
+              <table className="w-full" style={{ minWidth: 620, borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    {["Feature", "Free", "Pro", "Agency"].map((h) => (
+                      <th
+                        key={h}
+                        className="px-5 py-4 text-left"
+                        style={{ fontSize: 12, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", borderBottom: "1px solid rgba(255,255,255,0.12)" }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARE_ROWS.map((r) => (
+                    <tr key={r.label}>
+                      <td className="px-5 py-3.5" style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                        {r.label}
+                      </td>
+                      {[r.free, r.pro, r.agency].map((v, idx) => (
+                        <td
+                          key={idx}
+                          className="px-5 py-3.5"
+                          style={{ fontSize: 14, fontWeight: idx === 1 ? 700 : 500, color: idx === 1 ? "#A78BFA" : "rgba(255,255,255,0.7)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+                        >
+                          {v}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         <div
           className="fade-in-up mt-10 flex flex-wrap items-center justify-center gap-8"
-          style={{ fontSize: 13, fontWeight: 500, color: "#9CA3AF" }}
+          style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.5)" }}
         >
           <span>✓ 7-day free trial on paid plans</span>
           <span>✓ No credit card required</span>
@@ -225,6 +328,7 @@ export function Lp4Pricing() {
     </section>
   );
 }
+
 
 export const LP4_FAQ = [
   {
@@ -245,7 +349,7 @@ export const LP4_FAQ = [
   },
   {
     q: "Is there a free plan? What's included?",
-    a: "Yes. The free plan includes 10 generations per month, access to 3 Studios, 1 Brand profile, and limited Spark AI Copilot. No credit card required to sign up. Paid plans start at $29/month and include a 7-day free trial.",
+    a: "Yes. The free plan includes 3 repurposes per month, access to 3 Studios, 1 Brand profile, and limited Spark AI Copilot. No credit card required to sign up. Paid plans start at $24/month and include a 7-day free trial.",
   },
   {
     q: "What happens to my content and data?",
@@ -303,49 +407,114 @@ export function Lp4Faq() {
 
 export function Lp4FinalCta() {
   return (
-    <section
-      className="px-6 py-20 sm:py-[120px] text-center"
-      style={{ background: "linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 50%, #DBEAFE 100%)" }}
-    >
-      <div className="mx-auto max-w-[800px]">
+    <section className="relative overflow-hidden px-6 py-20 text-center sm:py-[120px]" style={{ background: "#1A0544" }}>
+      {/* animated gradient mesh */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <span
+          className="lp4-mesh absolute rounded-full"
+          style={{ top: "-20%", left: "8%", width: 460, height: 460, background: "radial-gradient(circle,#7C3AED,transparent 70%)", opacity: 0.45, filter: "blur(60px)" }}
+        />
+        <span
+          className="lp4-mesh absolute rounded-full"
+          style={{ bottom: "-25%", right: "6%", width: 420, height: 420, background: "radial-gradient(circle,#3B82F6,transparent 70%)", opacity: 0.35, filter: "blur(70px)", animationDelay: "2s" }}
+        />
+      </div>
+
+      <div className="relative mx-auto max-w-[820px]">
         <div className="fade-in-up flex justify-center">
-          <BoltMark size={64} />
+          <BoltMark size={56} />
         </div>
         <h2
           className="fade-in-up mt-6"
-          style={{ fontSize: "clamp(32px,5vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.02em", ...delay(100) }}
+          style={{ fontSize: "clamp(32px,5vw,50px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.02em", color: "#FFFFFF", ...delay(100) }}
         >
-          Your Next 30 Days of Content.
-          <br />
-          <span className="lp4-grad-text">Created in the Next 30 Minutes.</span>
+          Your content. Every platform. On autopilot.
         </h2>
-        <p className="fade-in-up mx-auto mt-5 max-w-[520px]" style={{ fontSize: 18, color: "#6B7280", lineHeight: 1.65, ...delay(200) }}>
-          Join 1,200+ creators already using PostSpark to reclaim their time, grow their audience, and ship more content
-          than ever before.
+        <p className="fade-in-up mx-auto mt-5 max-w-[520px]" style={{ fontSize: 18, color: "rgba(255,255,255,0.65)", lineHeight: 1.65, ...delay(200) }}>
+          Join 1,200+ creators who've replaced 6 tools with PostSpark.
         </p>
         <div className="fade-in-up mt-10 flex flex-wrap items-center justify-center gap-4" style={delay(300)}>
           <Link
             to="/signup"
-            className="lp4-btn-primary animate-cta-glow inline-flex items-center gap-2"
-            style={{ fontSize: 16, fontWeight: 600, padding: "16px 36px" }}
+            className="inline-flex items-center gap-2"
+            style={{ fontSize: 16, fontWeight: 700, padding: "16px 34px", borderRadius: 10, background: "#FFFFFF", color: "#7C3AED" }}
           >
             Start Creating Free <ArrowRight className="h-4 w-4" />
           </Link>
-          <Link
-            to="/pricing"
-            className="inline-flex items-center bg-white"
-            style={{ fontSize: 16, fontWeight: 600, padding: "16px 28px", borderRadius: 10, border: "1.5px solid #7C3AED", color: "#7C3AED" }}
+          <a
+            href="/#how-it-works"
+            className="inline-flex items-center gap-2"
+            style={{ fontSize: 16, fontWeight: 600, padding: "16px 28px", borderRadius: 10, border: "1.5px solid rgba(255,255,255,0.6)", color: "#FFFFFF" }}
           >
-            See Pricing
-          </Link>
+            Watch 2-min Demo ▶
+          </a>
         </div>
-        <p className="fade-in-up mt-5" style={{ fontSize: 13, color: "#9CA3AF", ...delay(400) }}>
+        <div className="fade-in-up mt-9 flex flex-wrap items-center justify-center gap-3.5" style={delay(400)}>
+          {PUBLISH_PLATFORMS.map((p) => (
+            <span
+              key={p.key}
+              className="grid place-items-center rounded-full"
+              style={{ width: 38, height: 38, background: "rgba(255,255,255,0.1)" }}
+            >
+              <PlatformLogo p={p} size={20} />
+            </span>
+          ))}
+        </div>
+        <p className="fade-in-up mt-6" style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...delay(450) }}>
           No credit card · Setup in 2 minutes · Cancel anytime
         </p>
       </div>
     </section>
   );
 }
+
+/** Minimal, one-line cookie consent bar. */
+export function Lp4CookieBar() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("ps-cookie-choice")) setShow(true);
+    } catch {
+      /* storage blocked — skip the banner */
+    }
+  }, []);
+  const decide = (v: string) => {
+    try {
+      localStorage.setItem("ps-cookie-choice", v);
+    } catch {
+      /* ignore */
+    }
+    setShow(false);
+  };
+  if (!show) return null;
+  return (
+    <div
+      className="fixed inset-x-0 bottom-0 z-[70] flex flex-wrap items-center justify-center gap-3 px-5 py-3"
+      style={{ background: "rgba(15,15,26,0.94)", backdropFilter: "blur(10px)", borderTop: "1px solid rgba(255,255,255,0.1)" }}
+    >
+      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
+        We use cookies to improve PostSpark and measure traffic.
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => decide("accepted")}
+          style={{ fontSize: 13, fontWeight: 700, padding: "7px 16px", borderRadius: 8, background: "#7C3AED", color: "#fff" }}
+        >
+          Accept
+        </button>
+        <button
+          type="button"
+          onClick={() => decide("declined")}
+          style={{ fontSize: 13, fontWeight: 600, padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.25)", color: "rgba(255,255,255,0.8)" }}
+        >
+          Decline
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 const FOOTER_COLS = [
   {

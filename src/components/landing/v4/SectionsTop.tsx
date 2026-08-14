@@ -1,18 +1,47 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, X as XIcon, Upload, Sparkles, Send, Play, ArrowRight } from "lucide-react";
-import { SOCIALS, SocialCircle, Wordmark, delay } from "./parts";
+import { Menu, X as XIcon, Upload, Sparkles, Rocket, Play, ArrowRight } from "lucide-react";
+import { Wordmark, delay } from "./parts";
 import { SCREENS } from "./screens";
-
+import { PUBLISH_PLATFORMS } from "@/lib/brandIcons";
+import { CountUpOnView, PlatformLogo, useWordCycle } from "./primitives";
+import heroPerson from "@/assets/landing-v5/hero-person.png.asset.json";
 
 const NAV_LINKS = [
   { label: "Features", to: "/#features" },
-  { label: "Studios", to: "/#studios" },
   { label: "Pricing", to: "/pricing" },
-  { label: "Blog", to: "/blog" },
+  { label: "Studios", to: "/#studios" },
+  { label: "Compare", to: "/alternatives/repurpose-io-vs-postspark" },
 ];
 
-export function Lp4Nav() {
+/** Full-width purple announcement strip above the header. */
+export function Lp4Announcement({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-x-0 top-0 z-[60] flex items-center justify-center px-10"
+      style={{ height: 36, background: "linear-gradient(90deg,#4C1D95,#6D28D9)" }}
+    >
+      <Link
+        to="/signup"
+        className="truncate text-center hover:underline"
+        style={{ fontSize: 12.5, fontWeight: 600, color: "#FFFFFF" }}
+      >
+        🎉 New: Direct publishing to 9 platforms — LinkedIn, Instagram, TikTok, YouTube, and more. Try it free →
+      </Link>
+      <button
+        type="button"
+        aria-label="Dismiss announcement"
+        onClick={onClose}
+        className="absolute right-4 grid place-items-center rounded-full"
+        style={{ width: 20, height: 20, color: "rgba(255,255,255,0.8)" }}
+      >
+        <XIcon className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+export function Lp4Nav({ offset = 0 }: { offset?: number }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -25,14 +54,15 @@ export function Lp4Nav() {
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-50"
+      className="fixed inset-x-0 z-50"
       style={{
+        top: offset,
         height: 64,
         background: "rgba(255,255,255,0.85)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid #F3F4F6",
         boxShadow: scrolled ? "0 1px 16px rgba(0,0,0,0.06)" : "none",
-        transition: "box-shadow .2s ease",
+        transition: "box-shadow .2s ease, top .2s ease",
       }}
     >
       <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-6 lg:px-10">
@@ -68,15 +98,25 @@ export function Lp4Nav() {
           </Link>
         </div>
 
-        <button
-          type="button"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen((v) => !v)}
-          className="md:hidden"
-          style={{ color: "#0F0F1A" }}
-        >
-          {open ? <Menu className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        {/* Mobile: CTA pill stays visible next to the menu button */}
+        <div className="flex items-center gap-2.5 md:hidden">
+          <Link
+            to="/signup"
+            className="lp4-btn-primary"
+            style={{ fontSize: 13, fontWeight: 600, padding: "8px 14px", borderRadius: 999 }}
+          >
+            Start Free
+          </Link>
+          <button
+            type="button"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen((v) => !v)}
+            className="grid place-items-center rounded-lg"
+            style={{ width: 38, height: 38, border: "1px solid #E5E7EB", color: "#0F0F1A", background: "#fff" }}
+          >
+            {open ? <XIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -116,118 +156,226 @@ export function Lp4Nav() {
   );
 }
 
-function DashboardMock() {
+const CYCLE = ["Week of Content.", "30 Platform Posts.", "Viral LinkedIn Thread.", "Full SEO Blog.", "7 Social Platforms."];
+
+/** Floating platform logos orbiting the hero visual. */
+const ORBIT: { key: string; top: string; left?: string; right?: string; anim: string; d: string }[] = [
+  { key: "linkedin", top: "4%", left: "-4%", anim: "lp4-orbit-a", d: "0s" },
+  { key: "x", top: "26%", right: "-5%", anim: "lp4-orbit-b", d: ".4s" },
+  { key: "instagram", top: "-3%", right: "16%", anim: "lp4-orbit-c", d: ".8s" },
+  { key: "tiktok", top: "62%", left: "-7%", anim: "lp4-orbit-b", d: "1.2s" },
+  { key: "youtube", top: "78%", right: "2%", anim: "lp4-orbit-a", d: ".6s" },
+  { key: "facebook", top: "48%", right: "-8%", anim: "lp4-orbit-c", d: "1s" },
+  { key: "threads", top: "88%", left: "22%", anim: "lp4-orbit-a", d: "1.4s" },
+];
+
+function HeroVisual() {
   return (
-    <img
-      src={SCREENS.dashboard}
-      alt="PostSpark dashboard showing the AI content workspace, quick actions and generation stats"
-      width={1800}
-      height={1125}
-      loading="eager"
-      decoding="async"
-      className="block w-full"
-      style={{ display: "block" }}
-    />
+    <div className="relative mx-auto w-full max-w-[520px]">
+      {/* soft purple halo behind the person */}
+      <div
+        aria-hidden
+        className="lp4-mesh pointer-events-none absolute left-1/2 top-[8%] -translate-x-1/2 rounded-full"
+        style={{
+          width: "86%",
+          aspectRatio: "1",
+          background: "radial-gradient(circle at 50% 50%, rgba(167,139,250,0.45), rgba(236,72,153,0.18) 55%, transparent 72%)",
+          filter: "blur(2px)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="lp4-ring pointer-events-none absolute left-1/2 top-[10%] -translate-x-1/2 rounded-full"
+        style={{
+          width: "82%",
+          aspectRatio: "1",
+          border: "1.5px dashed rgba(124,58,237,0.28)",
+        }}
+      />
+
+      <img
+        src={heroPerson.url}
+        alt="Creator using PostSpark on a phone to publish content to every platform"
+        width={1024}
+        height={1280}
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+        className="relative z-10 mx-auto block w-[82%]"
+      />
+
+      {/* Floating real platform logos */}
+      {ORBIT.map((o) => {
+        const p = PUBLISH_PLATFORMS.find((x) => x.key === o.key)!;
+        return (
+          <span
+            key={o.key}
+            className={`${o.anim} absolute z-20 grid place-items-center rounded-2xl bg-white`}
+            style={{
+              top: o.top,
+              left: o.left,
+              right: o.right,
+              width: 56,
+              height: 56,
+              animationDelay: o.d,
+              boxShadow: "0 12px 30px rgba(15,15,26,0.14), 0 0 0 1px rgba(124,58,237,0.08)",
+            }}
+          >
+            <PlatformLogo p={p} size={30} />
+          </span>
+        );
+      })}
+
+      {/* Live notification cards */}
+      <div
+        className="fade-in-up lp4-glass-chip absolute left-[-6%] top-[38%] z-30 px-3 py-2"
+        style={{ ...delay(600), maxWidth: 210 }}
+      >
+        <p style={{ fontSize: 12, fontWeight: 700, color: "#0F0F1A" }}>✅ LinkedIn post published</p>
+        <p style={{ fontSize: 11, color: "#16A34A", fontWeight: 600 }}>2 seconds ago</p>
+      </div>
+      <div
+        className="fade-in-up lp4-glass-chip absolute right-[-8%] top-[64%] z-30 px-3 py-2"
+        style={{ ...delay(750), maxWidth: 220 }}
+      >
+        <p style={{ fontSize: 12, fontWeight: 700, color: "#0F0F1A" }}>⚡ 30 posts generated</p>
+        <p style={{ fontSize: 11, color: "#7C3AED", fontWeight: 600 }}>in 4.2 seconds</p>
+      </div>
+      <div
+        className="fade-in-up lp4-glass-chip absolute bottom-[2%] left-[6%] z-30 px-3 py-2"
+        style={{ ...delay(900), maxWidth: 220 }}
+      >
+        <p style={{ fontSize: 12, fontWeight: 700, color: "#0F0F1A" }}>🔥 Hook went viral</p>
+        <p style={{ fontSize: 11, color: "#EA580C", fontWeight: 600 }}>847 reposts</p>
+      </div>
+    </div>
   );
 }
 
-
 export function Lp4Hero() {
-  const marquee = [...SOCIALS, ...SOCIALS];
+  const word = useWordCycle(CYCLE, 2500);
   return (
     <section
-      className="relative overflow-hidden px-6 pb-16 pt-[104px] sm:pt-[136px]"
+      className="relative overflow-hidden px-6 pb-14 pt-[104px] sm:pt-[132px]"
       style={{
         background:
-          "radial-gradient(ellipse 800px 600px at 50% 0%, rgba(124,58,237,0.05) 0%, transparent 70%), #FFFFFF",
+          "radial-gradient(ellipse 900px 700px at 50% 10%, #FFFFFF 0%, rgba(245,243,255,0.6) 100%), #FFFFFF",
       }}
     >
-      <div className="mx-auto max-w-[900px] text-center">
-        <div className="fade-in-up">
+      {/* ambient blurred circles */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        {[
+          { top: "6%", left: "4%", size: 320 },
+          { top: "34%", right: "6%", size: 380 },
+          { bottom: "4%", left: "26%", size: 300 },
+          { top: "0%", left: "48%", size: 260 },
+        ].map((c, i) => (
           <span
-            className="inline-flex items-center rounded-full px-4 py-2"
+            key={i}
+            className="absolute rounded-full"
             style={{
-              border: "1px solid #DDD6FE",
-              background: "#F5F3FF",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#7C3AED",
-              letterSpacing: ".03em",
+              ...c,
+              width: (c as { size: number }).size,
+              height: (c as { size: number }).size,
+              background: "#7C3AED",
+              opacity: 0.08,
+              filter: "blur(80px)",
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-2 lg:gap-10">
+        <div className="text-center lg:text-left">
+          <div className="fade-in-up">
+            <span
+              className="inline-flex items-center rounded-full px-4 py-2"
+              style={{
+                border: "1px solid #DDD6FE",
+                background: "#F5F3FF",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#7C3AED",
+                letterSpacing: ".03em",
+              }}
+            >
+              ⚡ PostSpark — AI Content OS · Claude · GPT Image 2 · Flux Pro 1.1
+            </span>
+          </div>
+
+          <h1
+            className="fade-in-up mt-7 text-balance"
+            style={{
+              fontSize: "clamp(40px,6.2vw,66px)",
+              fontWeight: 800,
+              lineHeight: 1.06,
+              letterSpacing: "-0.03em",
+              color: "#0F0F1A",
+              ...delay(100),
             }}
           >
-            ⚡ Powered by Claude Sonnet 5 · GPT Image 2 · Gemini Flash 2.5
-          </span>
-        </div>
+            Turn One Idea Into a
+            <br />
+            <span key={word} className="lp4-word lp4-grad-text">
+              {word}
+            </span>
+          </h1>
 
-        <h1
-          className="fade-in-up mt-7 text-balance"
-          style={{
-            fontSize: "clamp(44px, 7vw, 72px)",
-            fontWeight: 800,
-            lineHeight: 1.08,
-            letterSpacing: "-0.03em",
-            color: "#0F0F1A",
-            ...delay(100),
-          }}
-        >
-          Turn One Idea Into a
-          <br />
-          <span className="lp4-grad-text">Week of Content.</span>
-        </h1>
-
-        <p
-          className="fade-in-up mx-auto mt-6 max-w-[620px]"
-          style={{ fontSize: 18, lineHeight: 1.65, color: "#6B7280", ...delay(200) }}
-        >
-          PostSpark is your AI Content Operating System. Repurpose podcasts, blogs, and videos into LinkedIn posts,
-          TikTok scripts, carousels, hooks, and more — published to 7 platforms in under 60 seconds.
-        </p>
-
-        <div className="fade-in-up mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row" style={delay(300)}>
-          <Link
-            to="/signup"
-            className="lp4-btn-primary animate-cta-glow inline-flex items-center gap-2"
-            style={{ fontSize: 15, fontWeight: 600, padding: "14px 28px" }}
+          <p
+            className="fade-in-up mt-6 max-w-[600px] lg:mx-0 mx-auto"
+            style={{ fontSize: 18, lineHeight: 1.65, color: "#6B7280", ...delay(200) }}
           >
-            Start Creating Free <ArrowRight className="h-4 w-4" />
-          </Link>
-          <a
-            href="/#how-it-works"
-            className="lp4-btn-ghost inline-flex items-center gap-2"
-            style={{ fontSize: 15, fontWeight: 500, padding: "14px 24px" }}
+            PostSpark is your AI Content OS. One idea → 30 platform-ready pieces, published to 9 social platforms in
+            under 60 seconds. Powered by Claude, GPT Image 2, and Flux Pro 1.1.
+          </p>
+
+          <div
+            className="fade-in-up mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start justify-center"
+            style={delay(300)}
           >
-            <Play className="h-4 w-4" /> Watch Demo
-          </a>
-        </div>
-
-        <div
-          className="fade-in-up mt-5 flex flex-wrap items-center justify-center gap-5"
-          style={{ fontSize: 13, fontWeight: 500, color: "#9CA3AF", ...delay(350) }}
-        >
-          <span>✓ No credit card required</span>
-          <span>✓ Free forever plan</span>
-          <span>✓ Setup in 2 minutes</span>
-        </div>
-
-        <div className="fade-in-up mt-14" style={delay(400)}>
-          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".08em", color: "#9CA3AF" }}>PUBLISH DIRECTLY TO</p>
-          <div className="lp4-marquee-wrap relative mt-4 w-full overflow-hidden">
-            <div className="animate-marquee flex w-max gap-8">
-              {marquee.map((s, i) => (
-                <SocialCircle key={`${s.name}-${i}`} s={s} />
-              ))}
-            </div>
+            <Link
+              to="/signup"
+              className="lp4-btn-primary animate-cta-glow inline-flex items-center gap-2"
+              style={{ fontSize: 15, fontWeight: 600, padding: "14px 28px" }}
+            >
+              Start Creating Free <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a
+              href="/#how-it-works"
+              className="lp4-btn-ghost inline-flex items-center gap-2"
+              style={{ fontSize: 15, fontWeight: 500, padding: "14px 24px" }}
+            >
+              <Play className="h-4 w-4" /> Watch Demo
+            </a>
           </div>
+
+          <p
+            className="fade-in-up mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 lg:justify-start"
+            style={{ fontSize: 13, fontWeight: 500, color: "#9CA3AF", ...delay(350) }}
+          >
+            <span>✓ No credit card</span>
+            <span aria-hidden>|</span>
+            <span>✓ Free forever plan</span>
+            <span aria-hidden>|</span>
+            <span>✓ Setup in 2 minutes</span>
+            <span aria-hidden>|</span>
+            <span>✓ Cancel anytime</span>
+          </p>
+        </div>
+
+        <div className="fade-in-up relative" style={delay(400)}>
+          <HeroVisual />
         </div>
       </div>
 
-      <div className="fade-in-up mx-auto mt-16 max-w-[1000px]" style={delay(500)}>
+      {/* Product screenshot with glow */}
+      <div className="fade-in-up relative mx-auto mt-16 max-w-[1000px]" style={delay(500)}>
         <div
-          className="animate-float overflow-hidden"
+          className="overflow-hidden"
           style={{
             background: "#fff",
             borderRadius: 16,
-            boxShadow: "0 20px 80px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
+            boxShadow: "0 0 60px 0 rgba(124,58,237,0.15), 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)",
           }}
         >
           <div
@@ -244,7 +392,15 @@ export function Lp4Hero() {
               postspark.co/dashboard
             </div>
           </div>
-          <DashboardMock />
+          <img
+            src={SCREENS.dashboard}
+            alt="PostSpark dashboard showing the AI content workspace, quick actions and generation stats"
+            width={1800}
+            height={1125}
+            loading="lazy"
+            decoding="async"
+            className="block w-full"
+          />
         </div>
       </div>
     </section>
@@ -259,17 +415,22 @@ export function Lp4SocialProof() {
     >
       <div className="fade-in-up mx-auto flex max-w-[1000px] flex-col items-center gap-5 text-center md:flex-row md:justify-between md:text-left">
         <div>
-          <p style={{ fontSize: 18, fontWeight: 700, color: "#0F0F1A" }}>1,200+ Creators &amp; Marketers</p>
+          <p style={{ fontSize: 18, fontWeight: 700, color: "#0F0F1A" }}>
+            <CountUpOnView value={1200} suffix="+" /> Creators &amp; Marketers
+          </p>
           <p style={{ fontSize: 14, color: "#6B7280" }}>trust PostSpark daily</p>
         </div>
         <div>
           <p style={{ fontSize: 20, color: "#F59E0B", letterSpacing: "2px" }}>★★★★★</p>
-          <p style={{ fontSize: 14, fontWeight: 600, color: "#0F0F1A" }}>4.9/5 rating</p>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "#0F0F1A" }}>
+            <CountUpOnView value={4.9} decimals={1} />
+            /5 rating
+          </p>
           <p style={{ fontSize: 13, color: "#9CA3AF" }}>from early users</p>
         </div>
         <div>
           <p className="lp4-grad-text" style={{ fontSize: 24, fontWeight: 800 }}>
-            27 days
+            <CountUpOnView value={27} suffix=" days" />
           </p>
           <p style={{ fontSize: 14, color: "#6B7280" }}>longest active streak 🔥</p>
         </div>
@@ -281,67 +442,118 @@ export function Lp4SocialProof() {
 const STEPS = [
   {
     n: "01",
+    num: 1,
     Icon: Upload,
+    anim: "lp4-anim-bounce",
     title: "Drop Your Source",
-    body: "Paste a YouTube link, upload a podcast MP3, or import a blog URL. PostSpark reads it and handles transcription automatically.",
+    body: "Paste a YouTube URL, upload a podcast MP3, or paste any blog post. PostSpark reads it all and transcribes automatically.",
+    chips: ["🎬 YouTube", "🎙 Podcast MP3", "📝 Blog URL", "📄 Google Doc", "✍️ Raw Text"],
+    shot: SCREENS.repurpose,
+    shotAlt: "PostSpark import panel with source options",
   },
   {
     n: "02",
+    num: 2,
     Icon: Sparkles,
+    anim: "lp4-anim-wand",
     title: "AI Creates Everything",
-    body: "PostSpark learns your Brand Voice, then generates 30+ platform-ready outputs: hooks, carousels, threads, shorts scripts, SEO blogs, and images.",
+    body: "Claude reads your brand voice, applies your tone, and generates 30+ platform-optimised pieces: tweets, LinkedIn posts, SEO blogs, carousels, hooks, and video scripts.",
+    chips: ["⚡ Generated in 4.2 seconds"],
+    shot: SCREENS.imageStudio,
+    shotAlt: "PostSpark output panel with generated content pieces",
   },
   {
     n: "03",
-    Icon: Send,
-    title: "Publish Everywhere",
-    body: "Schedule or publish instantly to LinkedIn, Twitter/X, Instagram, TikTok, YouTube, Facebook, and Threads — all from one place.",
+    num: 3,
+    Icon: Rocket,
+    anim: "lp4-anim-rocket",
+    title: "Publish to 9 Platforms",
+    body: "Review everything in the Content Calendar, schedule your posts, and publish directly to X, Instagram, TikTok, YouTube, Facebook, LinkedIn, Threads, and WhatsApp — from one place.",
+    chips: [],
+    shot: SCREENS.publishing,
+    shotAlt: "PostSpark publishing center with platform toggles",
   },
 ];
 
 export function Lp4HowItWorks() {
   return (
     <section id="how-it-works" className="scroll-mt-20 bg-white px-6 py-16 sm:py-[100px]">
-      <div className="mx-auto max-w-[1100px] text-center">
-        <p className="lp4-label fade-in-up">How it works</p>
-        <h2
-          className="fade-in-up mt-3"
-          style={{ fontSize: "clamp(34px,5vw,48px)", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em", ...delay(100) }}
-        >
-          From One Source to Everywhere
-        </h2>
-        <p className="fade-in-up mx-auto mt-4 max-w-[560px]" style={{ fontSize: 18, color: "#6B7280", ...delay(200) }}>
-          Three steps. That's all it takes to turn any content into a full week of platform-ready posts.
-        </p>
+      <div className="mx-auto max-w-[1000px]">
+        <div className="text-center">
+          <p className="lp4-label fade-in-up">How it works</p>
+          <h2
+            className="fade-in-up mt-3"
+            style={{ fontSize: "clamp(32px,5vw,48px)", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em", ...delay(100) }}
+          >
+            From One Idea to <span className="lp4-grad-text">30 Posts</span> in 3 Steps
+          </h2>
+          <p className="fade-in-up mx-auto mt-4 max-w-[520px]" style={{ fontSize: 17, color: "#6B7280", ...delay(200) }}>
+            No editing. No reformatting. No switching between 6 tools.
+          </p>
+        </div>
 
-        <div className="mt-14 grid gap-8 md:grid-cols-3">
-          {STEPS.map((s, i) => (
-            <div
-              key={s.n}
-              className="lp4-card lp4-card-lg fade-in-up relative px-8 py-9 text-left"
-              style={delay(i * 100)}
-            >
-              <span
-                aria-hidden
-                className="absolute right-6 top-4"
-                style={{ fontSize: 56, fontWeight: 800, color: "#F3F0FF", lineHeight: 1 }}
-              >
-                {s.n}
-              </span>
-              <span
-                className="grid place-items-center rounded-full"
-                style={{ width: 52, height: 52, background: "#F5F3FF" }}
-              >
-                <s.Icon className="h-6 w-6" style={{ color: "#7C3AED" }} />
-              </span>
-              <h3 className="mt-4" style={{ fontSize: 20, fontWeight: 700, color: "#0F0F1A" }}>
-                {s.title}
-              </h3>
-              <p className="mt-2" style={{ fontSize: 15, color: "#6B7280", lineHeight: 1.6 }}>
-                {s.body}
-              </p>
-            </div>
-          ))}
+        <div className="relative mt-14">
+          {/* dashed timeline rail */}
+          <span
+            aria-hidden
+            className="absolute left-[26px] top-4 hidden md:block"
+            style={{ width: 2, bottom: 24, borderLeft: "2px dashed #DDD6FE" }}
+          />
+
+          <div className="flex flex-col gap-6">
+            {STEPS.map((s, i) => (
+              <div key={s.n} className="fade-in-up relative md:pl-[76px]" style={delay(i * 120)}>
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-4 hidden place-items-center rounded-full bg-white md:grid"
+                  style={{ width: 54, height: 54, border: "2px solid #EDE9FE" }}
+                >
+                  <s.Icon className={`h-6 w-6 ${s.anim}`} style={{ color: "#7C3AED" }} />
+                </span>
+                <div className="lp4-card lp4-card-lg grid gap-6 px-7 py-8 md:grid-cols-[1fr_240px] md:items-center">
+                  <div>
+                    <span style={{ fontSize: 34, fontWeight: 800, color: "#EDE9FE", lineHeight: 1 }}>{s.n}</span>
+                    <h3 className="mt-2" style={{ fontSize: 21, fontWeight: 700, color: "#0F0F1A" }}>
+                      {s.title}
+                    </h3>
+                    <p className="mt-2" style={{ fontSize: 15, color: "#6B7280", lineHeight: 1.65 }}>
+                      {s.body}
+                    </p>
+                    {s.chips.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {s.chips.map((c) => (
+                          <span
+                            key={c}
+                            className="rounded-full px-3 py-1"
+                            style={{ fontSize: 12, fontWeight: 600, background: "#F5F3FF", color: "#7C3AED" }}
+                          >
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {s.num === 3 && (
+                      <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                        {PUBLISH_PLATFORMS.map((p) => (
+                          <PlatformLogo key={p.key} p={p} size={22} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="lp4-shot">
+                    <img
+                      src={s.shot}
+                      alt={s.shotAlt}
+                      width={1800}
+                      height={1125}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
