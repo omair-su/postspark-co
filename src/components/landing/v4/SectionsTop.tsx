@@ -54,8 +54,10 @@ export function Lp4Nav({ offset = 0 }: { offset?: number }) {
   }, []);
 
   return (
+    <>
     <header
       className="fixed inset-x-0 z-50"
+
       style={{
         top: offset,
         height: 64,
@@ -120,42 +122,60 @@ export function Lp4Nav({ offset = 0 }: { offset?: number }) {
         </div>
       </div>
 
-      {open && (
-        <div className="fixed inset-0 z-50 md:hidden" style={{ background: "#fff" }}>
-          <div className="flex h-16 items-center justify-between px-6">
-            <Wordmark />
-            <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} style={{ color: "#0F0F1A" }}>
-              <XIcon className="h-6 w-6" />
-            </button>
-          </div>
-          <div className="flex flex-col gap-6 px-6 pt-6">
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l.label}
-                href={l.to}
-                onClick={() => setOpen(false)}
-                style={{ fontSize: 20, fontWeight: 600, color: "#0F0F1A" }}
-              >
-                {l.label}
-              </a>
-            ))}
-            <Link to="/login" onClick={() => setOpen(false)} style={{ fontSize: 20, fontWeight: 600, color: "#6B7280" }}>
-              Log in
-            </Link>
-            <Link
-              to="/signup"
-              onClick={() => setOpen(false)}
-              className="lp4-btn-primary mt-2 text-center"
-              style={{ fontSize: 16, fontWeight: 600, padding: "14px 20px" }}
-            >
-              Start Free →
-            </Link>
-          </div>
-        </div>
-      )}
     </header>
+
+    {open && (
+      <div
+        className="fixed inset-0 z-[100] overflow-y-auto md:hidden"
+        style={{ background: "#FFFFFF", backgroundImage: "linear-gradient(180deg,#FFFFFF 0%,#F7F6FF 100%)" }}
+      >
+        <div className="flex h-16 items-center justify-between px-6" style={{ borderBottom: "1px solid #EEF0F6" }}>
+          <Wordmark />
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+            className="grid place-items-center rounded-lg"
+            style={{ width: 38, height: 38, border: "1px solid #E5E7EB", color: "#0F0F1A", background: "#fff" }}
+          >
+            <XIcon className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="flex flex-col gap-1 px-6 pt-4 pb-10">
+          {NAV_LINKS.map((l) => (
+            <a
+              key={l.label}
+              href={l.to}
+              onClick={() => setOpen(false)}
+              className="rounded-xl px-3 py-3.5"
+              style={{ fontSize: 18, fontWeight: 600, color: "#0F0F1A" }}
+            >
+              {l.label}
+            </a>
+          ))}
+          <Link
+            to="/login"
+            onClick={() => setOpen(false)}
+            className="rounded-xl px-3 py-3.5"
+            style={{ fontSize: 18, fontWeight: 600, color: "#4B5563" }}
+          >
+            Log in
+          </Link>
+          <Link
+            to="/signup"
+            onClick={() => setOpen(false)}
+            className="lp4-btn-primary mt-3 text-center"
+            style={{ fontSize: 16, fontWeight: 600, padding: "14px 20px" }}
+          >
+            Start Free →
+          </Link>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
+
 
 const CYCLE = ["Week of Content.", "30 Platform Posts.", "Viral LinkedIn Thread.", "Full SEO Blog.", "7 Social Platforms."];
 
