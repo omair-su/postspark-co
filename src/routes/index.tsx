@@ -82,19 +82,23 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   const { session, loading } = useAuth();
+  const [banner, setBanner] = useState(true);
   useFadeIn();
 
   if (!loading && session) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="lp4 min-h-screen">
-      <Lp4Nav />
+    <div className="lp4 min-h-screen" style={{ paddingTop: banner ? 36 : 0 }}>
+      {banner && <Lp4Announcement onClose={() => setBanner(false)} />}
+      <Lp4Nav offset={banner ? 36 : 0} />
       <main>
         <Lp4Hero />
+        <Lp4TrustStrip />
+        <Lp4ModelMarquee />
+        <Lp4PlatformGrid />
         <Lp4SocialProof />
         <Lp4HowItWorks />
         <Lp4Studios />
-        <Lp4Models />
         <Lp4Features />
         <Lp4Guided />
         <Lp4Testimonials />
@@ -105,6 +109,8 @@ function LandingPage() {
       </main>
       <Lp4Footer />
       <Lp4StickyCta />
+      <Lp4CookieBar />
     </div>
   );
 }
+
