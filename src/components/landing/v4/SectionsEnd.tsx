@@ -407,49 +407,114 @@ export function Lp4Faq() {
 
 export function Lp4FinalCta() {
   return (
-    <section
-      className="px-6 py-20 sm:py-[120px] text-center"
-      style={{ background: "linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 50%, #DBEAFE 100%)" }}
-    >
-      <div className="mx-auto max-w-[800px]">
+    <section className="relative overflow-hidden px-6 py-20 text-center sm:py-[120px]" style={{ background: "#1A0544" }}>
+      {/* animated gradient mesh */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <span
+          className="lp4-mesh absolute rounded-full"
+          style={{ top: "-20%", left: "8%", width: 460, height: 460, background: "radial-gradient(circle,#7C3AED,transparent 70%)", opacity: 0.45, filter: "blur(60px)" }}
+        />
+        <span
+          className="lp4-mesh absolute rounded-full"
+          style={{ bottom: "-25%", right: "6%", width: 420, height: 420, background: "radial-gradient(circle,#3B82F6,transparent 70%)", opacity: 0.35, filter: "blur(70px)", animationDelay: "2s" }}
+        />
+      </div>
+
+      <div className="relative mx-auto max-w-[820px]">
         <div className="fade-in-up flex justify-center">
-          <BoltMark size={64} />
+          <BoltMark size={56} />
         </div>
         <h2
           className="fade-in-up mt-6"
-          style={{ fontSize: "clamp(32px,5vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.02em", ...delay(100) }}
+          style={{ fontSize: "clamp(32px,5vw,50px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.02em", color: "#FFFFFF", ...delay(100) }}
         >
-          Your Next 30 Days of Content.
-          <br />
-          <span className="lp4-grad-text">Created in the Next 30 Minutes.</span>
+          Your content. Every platform. On autopilot.
         </h2>
-        <p className="fade-in-up mx-auto mt-5 max-w-[520px]" style={{ fontSize: 18, color: "#6B7280", lineHeight: 1.65, ...delay(200) }}>
-          Join 1,200+ creators already using PostSpark to reclaim their time, grow their audience, and ship more content
-          than ever before.
+        <p className="fade-in-up mx-auto mt-5 max-w-[520px]" style={{ fontSize: 18, color: "rgba(255,255,255,0.65)", lineHeight: 1.65, ...delay(200) }}>
+          Join 1,200+ creators who've replaced 6 tools with PostSpark.
         </p>
         <div className="fade-in-up mt-10 flex flex-wrap items-center justify-center gap-4" style={delay(300)}>
           <Link
             to="/signup"
-            className="lp4-btn-primary animate-cta-glow inline-flex items-center gap-2"
-            style={{ fontSize: 16, fontWeight: 600, padding: "16px 36px" }}
+            className="inline-flex items-center gap-2"
+            style={{ fontSize: 16, fontWeight: 700, padding: "16px 34px", borderRadius: 10, background: "#FFFFFF", color: "#7C3AED" }}
           >
             Start Creating Free <ArrowRight className="h-4 w-4" />
           </Link>
-          <Link
-            to="/pricing"
-            className="inline-flex items-center bg-white"
-            style={{ fontSize: 16, fontWeight: 600, padding: "16px 28px", borderRadius: 10, border: "1.5px solid #7C3AED", color: "#7C3AED" }}
+          <a
+            href="/#how-it-works"
+            className="inline-flex items-center gap-2"
+            style={{ fontSize: 16, fontWeight: 600, padding: "16px 28px", borderRadius: 10, border: "1.5px solid rgba(255,255,255,0.6)", color: "#FFFFFF" }}
           >
-            See Pricing
-          </Link>
+            Watch 2-min Demo ▶
+          </a>
         </div>
-        <p className="fade-in-up mt-5" style={{ fontSize: 13, color: "#9CA3AF", ...delay(400) }}>
+        <div className="fade-in-up mt-9 flex flex-wrap items-center justify-center gap-3.5" style={delay(400)}>
+          {PUBLISH_PLATFORMS.map((p) => (
+            <span
+              key={p.key}
+              className="grid place-items-center rounded-full"
+              style={{ width: 38, height: 38, background: "rgba(255,255,255,0.1)" }}
+            >
+              <PlatformLogo p={p} size={20} />
+            </span>
+          ))}
+        </div>
+        <p className="fade-in-up mt-6" style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...delay(450) }}>
           No credit card · Setup in 2 minutes · Cancel anytime
         </p>
       </div>
     </section>
   );
 }
+
+/** Minimal, one-line cookie consent bar. */
+export function Lp4CookieBar() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("ps-cookie-choice")) setShow(true);
+    } catch {
+      /* storage blocked — skip the banner */
+    }
+  }, []);
+  const decide = (v: string) => {
+    try {
+      localStorage.setItem("ps-cookie-choice", v);
+    } catch {
+      /* ignore */
+    }
+    setShow(false);
+  };
+  if (!show) return null;
+  return (
+    <div
+      className="fixed inset-x-0 bottom-0 z-[70] flex flex-wrap items-center justify-center gap-3 px-5 py-3"
+      style={{ background: "rgba(15,15,26,0.94)", backdropFilter: "blur(10px)", borderTop: "1px solid rgba(255,255,255,0.1)" }}
+    >
+      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
+        We use cookies to improve PostSpark and measure traffic.
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => decide("accepted")}
+          style={{ fontSize: 13, fontWeight: 700, padding: "7px 16px", borderRadius: 8, background: "#7C3AED", color: "#fff" }}
+        >
+          Accept
+        </button>
+        <button
+          type="button"
+          onClick={() => decide("declined")}
+          style={{ fontSize: 13, fontWeight: 600, padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.25)", color: "rgba(255,255,255,0.8)" }}
+        >
+          Decline
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 const FOOTER_COLS = [
   {
