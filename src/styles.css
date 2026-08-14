@@ -3901,10 +3901,61 @@ html:not(.dark) .ps-dot[data-on="1"] { background: linear-gradient(180deg, #7FB3
 }
 .lp4 .fade-in-up.visible { opacity: 1; transform: translateY(0); }
 
+/* --- LP4 world-class upgrade layer --- */
+@keyframes lp4-marquee-rev { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+@keyframes lp4-orbit-a { 0%,100% { transform: translate3d(0,0,0) rotate(-4deg); } 50% { transform: translate3d(6px,-18px,0) rotate(4deg); } }
+@keyframes lp4-orbit-b { 0%,100% { transform: translate3d(0,0,0) rotate(5deg); } 50% { transform: translate3d(-10px,-14px,0) rotate(-5deg); } }
+@keyframes lp4-orbit-c { 0%,100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(10px,12px,0); } }
+@keyframes lp4-word-in { from { opacity: 0; transform: translateY(14px) skewY(2deg); } to { opacity: 1; transform: translateY(0) skewY(0); } }
+@keyframes lp4-ring-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes lp4-badge-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.45); } 50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); } }
+@keyframes lp4-wand { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes lp4-bounce-y { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes lp4-rocket { 0%,100% { transform: translateY(3px); } 50% { transform: translateY(-8px); } }
+@keyframes lp4-mesh { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(3%,-4%,0) scale(1.12); } }
+
+.lp4 .animate-marquee-slow { animation: lp4-marquee 40s linear infinite; will-change: transform; }
+.lp4 .animate-marquee-rev { animation: lp4-marquee-rev 34s linear infinite; will-change: transform; }
+.lp4 .lp4-marquee-wrap:hover .animate-marquee-slow,
+.lp4 .lp4-marquee-wrap:hover .animate-marquee-rev { animation-play-state: paused; }
+.lp4-marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.lp4 .lp4-orbit-a { animation: lp4-orbit-a 7s ease-in-out infinite; }
+.lp4 .lp4-orbit-b { animation: lp4-orbit-b 9s ease-in-out infinite; }
+.lp4 .lp4-orbit-c { animation: lp4-orbit-c 11s ease-in-out infinite; }
+.lp4 .lp4-word { display: inline-block; animation: lp4-word-in .5s cubic-bezier(.16,1,.3,1) both; }
+.lp4 .lp4-ring { animation: lp4-ring-spin 26s linear infinite; }
+.lp4 .lp4-badge-pulse { animation: lp4-badge-pulse 2s ease-in-out infinite; }
+.lp4 .lp4-anim-wand { animation: lp4-wand 9s linear infinite; }
+.lp4 .lp4-anim-bounce { animation: lp4-bounce-y 2.4s ease-in-out infinite; }
+.lp4 .lp4-anim-rocket { animation: lp4-rocket 3s ease-in-out infinite; }
+.lp4 .lp4-mesh { animation: lp4-mesh 18s ease-in-out infinite; }
+
+.lp4-glass-chip {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(124,58,237,0.16);
+  box-shadow: 0 10px 30px rgba(15,15,26,0.10);
+  border-radius: 12px;
+}
+.lp4-shot { overflow: hidden; border-radius: 10px; border: 1px solid var(--lp-border); }
+.lp4-shot img { transition: transform .35s ease; display: block; width: 100%; }
+.lp4-card:hover .lp4-shot img { transform: scale(1.06); }
+.lp4-plat-card { position: relative; overflow: hidden; }
+.lp4-plat-card .lp4-fly { opacity: 0; transform: translateX(-14px); transition: all .3s ease; }
+.lp4-plat-card:hover .lp4-fly { opacity: 1; transform: translateX(0); }
+
 @media (prefers-reduced-motion: reduce) {
-  .lp4 .animate-float, .lp4 .animate-marquee, .lp4 .lp4-stagger { animation: none !important; }
+  .lp4 .animate-float, .lp4 .animate-marquee, .lp4 .animate-marquee-slow, .lp4 .animate-marquee-rev,
+  .lp4 .lp4-stagger, .lp4 .lp4-orbit-a, .lp4 .lp4-orbit-b, .lp4 .lp4-orbit-c, .lp4 .lp4-ring,
+  .lp4 .lp4-badge-pulse, .lp4 .lp4-anim-wand, .lp4 .lp4-anim-bounce, .lp4 .lp4-anim-rocket, .lp4 .lp4-mesh,
+  .lp4 .lp4-word { animation: none !important; }
   .lp4 .fade-in-up { opacity: 1; transform: none; transition: none; }
 }
+
 
 /* ============================================================
    PHASE 5 — PREMIUM LIGHT WORKSPACE (authored baseline)
