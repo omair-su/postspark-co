@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, X, Sparkles } from "lucide-react";
 import { NavV3 } from "@/components/landing/v3/NavV3";
@@ -18,6 +19,8 @@ export type SegmentPageProps = {
   workflow?: { title: string; body: string }[];
   path?: string;
   quickAnswer?: { question: string; answer: string };
+  /** Page-specific content rendered after the workflow section. */
+  extra?: ReactNode;
 };
 
 function crumbsFromPath(path?: string): Crumb[] {
@@ -311,6 +314,8 @@ export function SegmentPage(p: SegmentPageProps) {
             </div>
           </section>
         )}
+
+        {p.extra}
 
         <PricingV3 />
         <FAQV3 />
