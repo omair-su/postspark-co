@@ -1,13 +1,110 @@
 import { Link } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2, Sparkles, Star } from "lucide-react";
 import type { ReactNode } from "react";
 import { PostSparkLogo } from "@/components/PostSparkLogo";
 
 /**
- * Premium centered-card auth layout (Ayrshare-inspired).
- * Brand purple gradient backdrop, white card, Geist heading, Inter body.
+ * Premium light split-screen auth layout, matched to the PostSpark landing page:
+ * soft #F7F6FF canvas, mesh gradient glows, glass card, and a brand proof panel.
  * Shared by /login, /signup and /reset-password.
  */
+
+const PROOF = [
+  "One idea → 30 platform-ready posts",
+  "Publish to 9 networks in one click",
+  "Brand Voice + Brand Kit applied automatically",
+  "Powered by Claude, GPT Image 2 & Flux Pro",
+];
+
+function BrandPanel() {
+  return (
+    <div
+      className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between"
+      style={{
+        padding: "48px 44px",
+        background:
+          "radial-gradient(700px 420px at 12% 8%, rgba(168,139,250,0.55) 0%, transparent 60%)," +
+          "radial-gradient(600px 500px at 92% 96%, rgba(236,72,153,0.35) 0%, transparent 62%)," +
+          "linear-gradient(150deg, #2B1160 0%, #4C1D95 48%, #6D28D9 100%)",
+      }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.75) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+          maskImage: "radial-gradient(ellipse at 40% 30%, black 15%, transparent 72%)",
+        }}
+      />
+
+      <div className="relative">
+        <Link to="/" aria-label="PostSpark home" className="inline-flex">
+          <PostSparkLogo variant="wordmark" size={40} tone="light" />
+        </Link>
+      </div>
+
+      <div className="relative">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1"
+          style={{
+            background: "rgba(255,255,255,0.14)",
+            border: "1px solid rgba(255,255,255,0.22)",
+            color: "#EDE9FE",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          AI Content OS
+        </span>
+        <h2
+          className="font-display mt-5 text-white"
+          style={{ fontSize: 38, lineHeight: 1.08, fontWeight: 700, letterSpacing: "-0.03em" }}
+        >
+          Turn one idea into
+          <br />
+          a month of content.
+        </h2>
+        <ul className="mt-7 space-y-3.5">
+          {PROOF.map((p) => (
+            <li key={p} className="flex items-start gap-3" style={{ color: "rgba(255,255,255,0.88)", fontSize: 14.5 }}>
+              <span
+                className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
+                style={{ background: "rgba(255,255,255,0.18)" }}
+              >
+                <Check className="h-3 w-3" strokeWidth={3} />
+              </span>
+              {p}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div
+        className="relative rounded-2xl p-5"
+        style={{
+          background: "rgba(255,255,255,0.10)",
+          border: "1px solid rgba(255,255,255,0.18)",
+          backdropFilter: "blur(10px)",
+        }}
+      >
+        <div className="flex gap-1">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Star key={i} className="h-3.5 w-3.5" style={{ color: "#FCD34D", fill: "#FCD34D" }} />
+          ))}
+        </div>
+        <p className="mt-3 text-white" style={{ fontSize: 14, lineHeight: 1.6 }}>
+          “PostSpark replaced three tools and a freelancer. I publish everywhere from one screen now.”
+        </p>
+        <p className="mt-2.5" style={{ color: "rgba(255,255,255,0.65)", fontSize: 12.5 }}>
+          Marcus L. — Creator, 120k followers
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function AuthShell({
   title,
   subtitle,
@@ -24,56 +121,54 @@ export function AuthShell({
   children: ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
-      {/* Background — brand gradient with soft radial glows */}
+    <div
+      className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-10 lg:py-10"
+      style={{ background: "#F7F6FF" }}
+    >
+      {/* Soft landing-page mesh glows */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10"
+        className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(1000px 600px at 20% 10%, #A855F7 0%, transparent 55%)," +
-            "radial-gradient(900px 700px at 85% 90%, #6D28D9 0%, transparent 55%)," +
-            "linear-gradient(135deg, #4C1D95 0%, #6D28D9 55%, #9333EA 100%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.18]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1px)",
-          backgroundSize: "26px 26px",
-          maskImage:
-            "radial-gradient(ellipse at 50% 40%, black 20%, transparent 75%)",
+            "radial-gradient(760px 420px at 8% -6%, rgba(167,139,250,0.30) 0%, transparent 62%)," +
+            "radial-gradient(700px 460px at 98% 8%, rgba(96,165,250,0.22) 0%, transparent 60%)," +
+            "radial-gradient(700px 500px at 60% 112%, rgba(236,72,153,0.14) 0%, transparent 62%)",
         }}
       />
 
-      <div className="relative w-full max-w-md">
-        <Link
-          to="/"
-          className="mb-6 flex items-center justify-center"
-          aria-label="PostSpark home"
+      <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[1120px] items-center">
+        <div
+          className="grid w-full overflow-hidden rounded-[28px] lg:grid-cols-[1.02fr_1fr]"
+          style={{
+            background: "rgba(255,255,255,0.86)",
+            border: "1px solid rgba(124,58,237,0.10)",
+            boxShadow: "0 40px 100px -40px rgba(76,29,149,0.35), 0 2px 8px rgba(15,23,42,0.04)",
+            backdropFilter: "blur(14px)",
+          }}
         >
-          <PostSparkLogo variant="wordmark" size={44} tone="light" />
-        </Link>
+          <BrandPanel />
 
-        <div className="rounded-2xl border border-white/60 bg-white p-8 shadow-[0_30px_80px_-20px_rgba(76,29,149,0.55)]">
-          <div className="text-center">
+          <div className="flex flex-col justify-center px-6 py-10 sm:px-12 sm:py-14">
+            <Link to="/" className="mb-8 inline-flex lg:hidden" aria-label="PostSpark home">
+              <PostSparkLogo variant="wordmark" size={38} />
+            </Link>
+
             <h1
-              className="font-display text-[22px] font-semibold text-[#0F172A]"
-              style={{ letterSpacing: "-0.02em" }}
+              className="font-display text-[#0F172A]"
+              style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.15 }}
             >
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-1.5 text-sm text-[#64748B]">
+              <p className="mt-2 text-[14.5px] text-[#64748B]">
                 {altPrompt ? (
                   <>
                     {altPrompt}{" "}
                     {altTo && altLinkText && (
                       <Link
                         to={altTo}
-                        className="font-medium text-[#7C3AED] underline-offset-2 hover:underline"
+                        className="font-semibold text-[#7C3AED] underline-offset-2 hover:underline"
                       >
                         {altLinkText}
                       </Link>
@@ -84,24 +179,24 @@ export function AuthShell({
                 )}
               </p>
             )}
+
+            <div className="mt-7">{children}</div>
+
+            <p className="mt-8 text-[12px] text-[#94A3B8]">
+              <Link to="/terms" className="hover:text-[#7C3AED] hover:underline">
+                Terms
+              </Link>
+              <span className="mx-2 opacity-50">·</span>
+              <Link to="/privacy" className="hover:text-[#7C3AED] hover:underline">
+                Privacy
+              </Link>
+              <span className="mx-2 opacity-50">·</span>
+              <Link to="/" className="hover:text-[#7C3AED] hover:underline">
+                Home
+              </Link>
+            </p>
           </div>
-
-          <div className="mt-6">{children}</div>
         </div>
-
-        <p className="mt-6 text-center text-xs text-white/70">
-          <Link to="/terms" className="hover:text-white hover:underline">
-            Terms
-          </Link>
-          <span className="mx-2 opacity-50">·</span>
-          <Link to="/privacy" className="hover:text-white hover:underline">
-            Privacy
-          </Link>
-          <span className="mx-2 opacity-50">·</span>
-          <Link to="/" className="hover:text-white hover:underline">
-            Home
-          </Link>
-        </p>
       </div>
     </div>
   );
@@ -111,20 +206,18 @@ export function AuthShell({
 
 export function AuthLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="mb-1.5 block text-[13px] font-medium text-[#334155]">
+    <label className="mb-1.5 block text-[12.5px] font-semibold tracking-[0.01em] text-[#334155]">
       {children}
     </label>
   );
 }
 
-export function AuthInput(
-  props: React.InputHTMLAttributes<HTMLInputElement>,
-) {
+export function AuthInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
       className={
-        "block w-full rounded-lg border border-[#E2E8F0] bg-white px-3.5 py-2.5 text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] shadow-sm transition-colors focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 " +
+        "block w-full rounded-xl border border-[#E4E4F5] bg-white/90 px-4 py-3 text-[14.5px] text-[#0F172A] placeholder:text-[#A5AEC0] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-[#7C3AED] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#7C3AED]/12 " +
         (props.className ?? "")
       }
     />
@@ -140,8 +233,9 @@ export function AuthPrimaryButton({
     <button
       {...props}
       disabled={loading || props.disabled}
+      style={{ background: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 55%, #3B82F6 100%)", ...(props.style ?? {}) }}
       className={
-        "inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#7C3AED] px-4 py-2.5 text-[14px] font-semibold text-white shadow-[0_10px_24px_-10px_rgba(124,58,237,0.65)] transition-all hover:bg-[#6D28D9] disabled:cursor-not-allowed disabled:opacity-60 " +
+        "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-[14.5px] font-semibold text-white shadow-[0_16px_34px_-14px_rgba(79,70,229,0.65)] transition-all hover:-translate-y-[1px] hover:shadow-[0_20px_40px_-14px_rgba(79,70,229,0.7)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 " +
         (props.className ?? "")
       }
     >
@@ -153,12 +247,10 @@ export function AuthPrimaryButton({
 
 export function AuthDivider({ label = "OR" }: { label?: string }) {
   return (
-    <div className="my-5 flex items-center gap-3">
-      <div className="h-px flex-1 bg-[#E2E8F0]" />
-      <span className="text-[11px] font-medium tracking-wider text-[#94A3B8]">
-        {label}
-      </span>
-      <div className="h-px flex-1 bg-[#E2E8F0]" />
+    <div className="my-6 flex items-center gap-3">
+      <div className="h-px flex-1" style={{ background: "linear-gradient(90deg,transparent,#E4E4F5)" }} />
+      <span className="text-[11px] font-semibold tracking-[0.14em] text-[#A5AEC0]">{label}</span>
+      <div className="h-px flex-1" style={{ background: "linear-gradient(90deg,#E4E4F5,transparent)" }} />
     </div>
   );
 }
@@ -177,7 +269,7 @@ export function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#E2E8F0] bg-white px-4 py-2.5 text-[14px] font-medium text-[#0F172A] shadow-sm transition-colors hover:bg-[#F8FAFC] disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#E4E4F5] bg-white px-4 py-3 text-[14.5px] font-semibold text-[#0F172A] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-[1px] hover:border-[#CFC7F7] hover:shadow-[0_10px_24px_-14px_rgba(76,29,149,0.35)] disabled:translate-y-0 disabled:opacity-60"
     >
       {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
