@@ -15,18 +15,48 @@ import { AI_BADGES, AiBadge, delay } from "./parts";
 import { SCREENS } from "./screens";
 
 const STUDIOS = [
-  { Icon: RefreshCw, name: "Repurpose Studio", desc: "One source → 30+ platform-ready posts, on-brand.", tier: "PRO", to: "/dashboard/repurpose" },
-  { Icon: Zap, name: "Hook Lab", desc: "10 hooks per idea, scored and A/B ready.", tier: "PRO", to: "/dashboard/hook-lab" },
-  { Icon: LayoutGrid, name: "Carousel Generator", desc: "Multi-slide LinkedIn & X carousels that stop the scroll.", tier: "PRO", to: "/dashboard/carousel" },
-  { Icon: Video, name: "Shorts Studio", desc: "Idea → 60s TikTok/Reels script with AI voiceover.", tier: "PRO", to: "/dashboard/shorts-studio" },
-  { Icon: FileText, name: "SEO Blog", desc: "Long-form articles tuned to rank on Google.", tier: "PRO", to: "/dashboard/seo-blog" },
-  { Icon: ImageIcon, name: "Image Studio", desc: "Brand-aware visuals powered by 3 AI models.", tier: "PRO", to: "/dashboard/image-studio" },
-  { Icon: Layout, name: "Thumbnail / Cover", desc: "YouTube & podcast covers in seconds.", tier: "PRO", to: "/dashboard/thumbnail" },
-  { Icon: Wand2, name: "AI Humanizer", desc: "Make AI text read like you actually wrote it.", tier: "FREE", to: "/dashboard/humanizer" },
-  { Icon: Mic, name: "Podcast → Content", desc: "Turn episodes into viral clips & posts.", tier: "PRO", to: "/dashboard/podcast" },
+  { Icon: RefreshCw, name: "Repurpose Studio", desc: "One source → 30+ platform-ready posts, on-brand.", tier: "PRO", ai: "Claude Sonnet", shot: SCREENS.repurpose, to: "/dashboard/repurpose", wide: true },
+  { Icon: Zap, name: "Hook Lab", desc: "10 hooks per idea, scored and A/B ready.", tier: "PRO", ai: "Claude Sonnet", shot: SCREENS.dashboard, to: "/dashboard/hook-lab" },
+  { Icon: LayoutGrid, name: "Carousel Generator", desc: "Multi-slide LinkedIn & X carousels that stop the scroll.", tier: "PRO", ai: "Claude + Canva API", shot: SCREENS.brandKit, to: "/dashboard/carousel" },
+  { Icon: Video, name: "Shorts Studio", desc: "Idea → 60s TikTok/Reels script with AI voiceover.", tier: "PRO", ai: "ElevenLabs + Shotstack", shot: SCREENS.publishing, to: "/dashboard/shorts-studio" },
+  { Icon: FileText, name: "SEO Blog", desc: "Long-form articles tuned to rank on Google.", tier: "PRO", ai: "Claude Sonnet", shot: SCREENS.repurpose, to: "/dashboard/seo-blog" },
+  { Icon: ImageIcon, name: "Image Studio", desc: "Brand-aware visuals powered by 3 AI models.", tier: "PRO", ai: "GPT Image 2 + Flux Pro + Gemini", shot: SCREENS.imageStudio, to: "/dashboard/image-studio" },
+  { Icon: Layout, name: "Thumbnail / Cover", desc: "YouTube & podcast covers in seconds.", tier: "PRO", ai: "GPT Image 2", shot: SCREENS.imageStudio, to: "/dashboard/thumbnail" },
+  { Icon: Wand2, name: "AI Humanizer", desc: "Make AI text read like you actually wrote it.", tier: "FREE", ai: "Claude Sonnet", shot: SCREENS.dashboard, to: "/dashboard/humanizer" },
+  { Icon: Mic, name: "Podcast → Content", desc: "Turn episodes into viral clips & posts.", tier: "PRO", ai: "ElevenLabs + Claude", shot: SCREENS.publishing, to: "/dashboard/podcast" },
 ] as const;
 
+function TierBadge({ tier }: { tier: string }) {
+  return (
+    <span
+      className="inline-flex rounded-full px-2 py-0.5"
+      style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: ".06em",
+        background: tier === "FREE" ? "#DCFCE7" : "#F5F3FF",
+        color: tier === "FREE" ? "#16A34A" : "#7C3AED",
+      }}
+    >
+      {tier}
+    </span>
+  );
+}
+
+function AiChip({ ai }: { ai: string }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
+      style={{ fontSize: 10.5, fontWeight: 600, background: "#F9FAFB", color: "#6B7280", border: "1px solid #EEF0F4" }}
+    >
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#7C3AED" }} />
+      AI: {ai}
+    </span>
+  );
+}
+
 export function Lp4Studios() {
+  const [hero, ...rest] = STUDIOS;
   return (
     <section id="studios" className="scroll-mt-20 px-6 py-16 sm:py-[100px]" style={{ background: "#FAFAFA" }}>
       <div className="mx-auto max-w-[1200px]">
@@ -45,38 +75,64 @@ export function Lp4Studios() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {STUDIOS.map((s, i) => (
-            <Link
-              key={s.name}
-              to={s.to}
-              className="lp4-card fade-in-up block px-6 py-7"
-              style={delay((i % 3) * 100)}
+        {/* Wide hero card */}
+        <Link
+          to={hero.to}
+          className="lp4-card lp4-card-lg fade-in-up mt-12 grid gap-7 px-7 py-8 lg:grid-cols-[1fr_1.15fr] lg:items-center"
+        >
+          <div>
+            <span
+              className="grid place-items-center"
+              style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#F5F3FF,#EDE9FE)" }}
             >
+              <hero.Icon className="h-[22px] w-[22px]" style={{ color: "#7C3AED" }} />
+            </span>
+            <h3 className="mt-4" style={{ fontSize: 24, fontWeight: 800, color: "#0F0F1A", letterSpacing: "-0.02em" }}>
+              {hero.name}
+            </h3>
+            <p className="mt-2 max-w-[420px]" style={{ fontSize: 15, color: "#6B7280", lineHeight: 1.6 }}>
+              {hero.desc} Paste once — PostSpark writes native content for every platform in your voice.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <TierBadge tier={hero.tier} />
+              <AiChip ai={hero.ai} />
               <span
-                className="grid place-items-center"
-                style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#F5F3FF,#EDE9FE)" }}
+                className="animate-cta-glow inline-flex items-center rounded-full px-3 py-1"
+                style={{ fontSize: 11, fontWeight: 700, background: "#F5F3FF", color: "#7C3AED" }}
               >
-                <s.Icon className="h-[22px] w-[22px]" style={{ color: "#7C3AED" }} />
+                ⚡ 1 input → 30 outputs
               </span>
-              <h3 className="mt-3.5" style={{ fontSize: 16, fontWeight: 700, color: "#0F0F1A" }}>
+            </div>
+          </div>
+          <div className="lp4-shot">
+            <img src={hero.shot} alt="Repurpose Studio output panel" width={1800} height={1125} loading="lazy" decoding="async" />
+          </div>
+        </Link>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {rest.map((s, i) => (
+            <Link key={s.name} to={s.to} className="lp4-card fade-in-up block px-5 py-6" style={delay((i % 4) * 90)}>
+              <div className="flex items-start justify-between gap-3">
+                <span
+                  className="grid place-items-center"
+                  style={{ width: 40, height: 40, borderRadius: 10, background: "#EDE9FE" }}
+                >
+                  <s.Icon className="h-5 w-5" style={{ color: "#7C3AED" }} />
+                </span>
+                <TierBadge tier={s.tier} />
+              </div>
+              <h3 className="mt-3.5" style={{ fontSize: 15, fontWeight: 700, color: "#0F0F1A" }}>
                 {s.name}
               </h3>
-              <p className="mt-1" style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.5 }}>
+              <p className="mt-1" style={{ fontSize: 13.5, color: "#6B7280", lineHeight: 1.5 }}>
                 {s.desc}
               </p>
-              <span
-                className="mt-4 inline-flex rounded-full px-2 py-0.5"
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: ".06em",
-                  background: s.tier === "FREE" ? "#DCFCE7" : "#F5F3FF",
-                  color: s.tier === "FREE" ? "#16A34A" : "#7C3AED",
-                }}
-              >
-                {s.tier}
-              </span>
+              <div className="lp4-shot mt-4" style={{ height: 80 }}>
+                <img src={s.shot} alt={`${s.name} preview`} width={1800} height={1125} loading="lazy" decoding="async" style={{ objectFit: "cover", height: "100%" }} />
+              </div>
+              <div className="mt-3">
+                <AiChip ai={s.ai} />
+              </div>
             </Link>
           ))}
         </div>
@@ -91,6 +147,7 @@ export function Lp4Studios() {
     </section>
   );
 }
+
 
 const MODELS = [
   { name: "Claude Sonnet 5", bg: "#FFF7F0", initial: "C", color: "#D97757", use: "Writing & Thinking" },
