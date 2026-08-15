@@ -109,6 +109,18 @@ async function countMonthlyGenerations(userId: string): Promise<number> {
   return count || 0;
 }
 
+/**
+ * Monthly image-generation allowance. Every persisted tile (one generated_images
+ * row) counts, so batches, streaming tiles, edits, inpaints and outpaints all
+ * draw from the same pool. Returns how many renders the user may still start.
+ */
+async function imageQuotaRemaining(userId: string, plan: string): Promise<number> {
+  const limit = (await isPro(plan)) ? PRO_MONTHLY_LIMIT : FREE_MONTHLY_LIMIT;
+  const used = await countMonthlyGenerations(userId);
+  return Math.max(0, limit - used);
+}
+
+
 const FREE_REPURPOSE_LIMIT = 3;
 async function checkRepurposeQuota(userId: string, plan: string): Promise<boolean> {
   if (plan === "pro" || plan === "agency") return true;
