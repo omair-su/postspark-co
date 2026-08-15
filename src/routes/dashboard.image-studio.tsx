@@ -23,6 +23,9 @@ import {
   ShieldCheck,
   Droplet,
   Package as PackageIcon,
+  Star,
+  Info,
+  CheckSquare,
 } from "lucide-react";
 import { drawWatermarkOnCanvas, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
 import {
@@ -69,6 +72,19 @@ import {
   NEGATIVE_CHIPS,
   type Recipe,
 } from "@/components/image/studio/StudioUI";
+import {
+  SeedControl,
+  ReferencePanel,
+  BrandLockPanel,
+  InpaintDialog,
+  CaptionPanel,
+  ExportPackPanel,
+  FeaturedRecipeRail,
+  LibraryRecipeDrawer,
+  type FeaturedRecipe,
+} from "@/components/image/studio/StudioPro";
+import { EXPORT_PACK, resizeCover, padToAspect, compositeLogo, randomSeed, type ExportSize } from "@/lib/studioCanvas";
+import { getBrandKit } from "@/lib/brandKit.functions";
 
 
 
@@ -239,8 +255,78 @@ function ImageStudioPage() {
   const [promptHistory, setPromptHistory] = useState<string[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
 
+  // seed / reference / brand lock / caption / export
+  const [seed, setSeed] = useState<number>(() => randomSeed());
+  const [seedLocked, setSeedLocked] = useState(false);
+  const [referenceUrl, setReferenceUrl] = useState<string | null>(null);
+  const [refStrength, setRefStrength] = useState(60);
+  const [savedRefs, setSavedRefs] = useState<{ id: string; name: string; url: string }[]>([]);
+  const [brandLock, setBrandLock] = useState(false);
+  const [brandKit, setBrandKit] = useState<any>(null);
+  const [logoOn, setLogoOn] = useState(false);
+  const [logoPlacement, setLogoPlacement] = useState<any>("bottom-right");
+  const [caption, setCaption] = useState<string | null>(null);
+  const [captionBusy, setCaptionBusy] = useState(false);
+  const [packBusy, setPackBusy] = useState(false);
+  const [inpaintSrc, setInpaintSrc] = useState<string | null>(null);
+  const [inpaintBusy, setInpaintBusy] = useState(false);
+  const [drawerItem, setDrawerItem] = useState<LibImage | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [libStyle, setLibStyle] = useState<string>("all");
+  const [libFavOnly, setLibFavOnly] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      setSavedRefs(JSON.parse(localStorage.getItem("ps_studio_refs") || "[]"));
+      setFavorites(JSON.parse(localStorage.getItem("ps_studio_favs") || "[]"));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const persistRefs = (refs: { id: string; name: string; url: string }[]) => {
+    setSavedRefs(refs);
+    try {
+      localStorage.setItem("ps_studio_refs", JSON.stringify(refs));
+    } catch {
+      toast.error("Reference too large to store locally");
+    }
+  };
+
+  const toggleFavorite = (id: string) => {
+    setFavorites((f) => {
+      const next = f.includes(id) ? f.filter((x) => x !== id) : [...f, id];
+      try {
+        localStorage.setItem("ps_studio_favs", JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
+
+  const brandColors: string[] = useMemo(() => {
+    const k = brandKit;
+    if (!k) return [];
+    return [k.primary_color, k.secondary_color, k.accent_color, k.neutral_color, k.background_color].filter(
+      (c: any) => typeof c === "string" && c.startsWith("#"),
+    );
+  }, [brandKit]);
+
   const pushHistory = (p: string) =>
     setPromptHistory((h) => [p, ...h.filter((x) => x !== p)].slice(0, 8));
+
+  /** Prompt actually sent to the model — layers in seed + brand lock. */
+  const effectivePrompt = (base: string) => {
+    const parts = [base];
+    if (brandLock && brandColors.length)
+      parts.push(`Strictly use this brand palette: ${brandColors.join(", ")}`);
+    if (brandLock && brandKit?.font_heading) parts.push(`Typography feel similar to ${brandKit.font_heading}`);
+    if (seedLocked) parts.push(`consistency seed ${seed}`);
+    return parts.join(". ");
+  };
 
   const currentRecipe = (): Recipe => ({
     prompt: prompt.trim(),
@@ -261,18 +347,35 @@ function ImageStudioPage() {
     setImageUrl("");
     setStockAttribution(null);
     try {
-      if (count === 1) {
+      const sent = effectivePrompt(r.prompt);
+      if (referenceUrl) {
+        // Reference-guided (img2img) render — one image per run.
+        const res = await withAIProgress(
+          editUploadedImage({
+            data: {
+              imageDataUrl: referenceUrl,
+              instruction: `${sent}. Use the supplied image as a visual reference at roughly ${refStrength}% influence — keep its subject identity, materials and palette, restyle everything else to match the description.`,
+            },
+            headers: authHeaders,
+          }),
+        );
+        if ((res.error as string) === "LIMIT_REACHED") return setLimitOpen(true);
+        if (res.error) return toast.error(res.error);
+        if (!res.imageUrl) return toast.error("No image returned");
+        setResults([res.imageUrl]);
+        setImageUrl(res.imageUrl);
+      } else if (count === 1) {
         const res = await withAIProgress(
           generateImage({
             data: {
-              prompt: r.prompt,
+              prompt: sent,
               style,
               aspect,
               template,
               model,
               quality,
               negativePrompt: r.negativePrompt,
-              originalPrompt: originalPrompt || undefined,
+              originalPrompt: originalPrompt || r.prompt,
             },
             headers: authHeaders,
           }),
@@ -285,7 +388,7 @@ function ImageStudioPage() {
       } else {
         const res: any = await withAIProgress(
           generateImageVariations({
-            data: { prompt: r.prompt, style, aspect, template, count: count as 2 | 3 | 4, model, quality },
+            data: { prompt: sent, style, aspect, template, count: count as 2 | 3 | 4, model, quality },
             headers: authHeaders,
           }),
         );
@@ -296,6 +399,8 @@ function ImageStudioPage() {
         setResults(urls);
         setImageUrl(urls[0]);
       }
+      if (!seedLocked) setSeed(randomSeed());
+      setCaption(null);
       setRecipe(r);
       pushHistory(r.prompt);
       toast.success(count === 1 ? "Image ready" : `${count} images ready`);
@@ -336,6 +441,157 @@ function ImageStudioPage() {
     setTab("edit");
     toast.success("Loaded into the editor");
   };
+
+  /* ------------------------------ pro actions ----------------------------- */
+
+  const forkRecipe = (r: FeaturedRecipe) => {
+    setPrompt(r.prompt);
+    setStyle(r.style as any);
+    setAspect(r.aspect);
+    setModel(r.model);
+    setTemplate(undefined);
+    setOriginalPrompt(null);
+    setTab("generate");
+    toast.success(`Forked "${r.title}"`);
+  };
+
+  const upscaleResult = async (url: string, scale: 2 | 4 = 2) => {
+    setLoading(true);
+    try {
+      const res = await withAIProgress(
+        upscaleUploadedImage({ data: { imageDataUrl: url, scale }, headers: authHeaders }),
+      );
+      if (res.error) return toast.error(res.error);
+      if (!res.imageUrl) return toast.error("No image returned");
+      setResults((r) => r.map((u) => (u === url ? res.imageUrl : u)));
+      toast.success(`Upscaled ${scale}x`);
+    } catch {
+      toast.error("Upscale failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runInpaint = async (maskedDataUrl: string, instruction: string) => {
+    setInpaintBusy(true);
+    try {
+      const res = await editUploadedImage({
+        data: {
+          imageDataUrl: maskedDataUrl,
+          instruction: `Only modify the area marked with the magenta overlay: ${instruction}. Remove the magenta marking entirely and blend the new content seamlessly with the untouched parts of the image.`,
+        },
+        headers: authHeaders,
+      });
+      if (res.error) return toast.error(res.error);
+      if (!res.imageUrl) return toast.error("No image returned");
+      setResults((r) => (r.length ? [res.imageUrl, ...r.slice(1)] : [res.imageUrl]));
+      setImageUrl(res.imageUrl);
+      setInpaintSrc(null);
+      toast.success("Masked area regenerated");
+    } catch {
+      toast.error("Inpaint failed");
+    } finally {
+      setInpaintBusy(false);
+    }
+  };
+
+  const expandCanvas = async (target: "square" | "portrait" | "landscape") => {
+    const src = results[0] || imageUrl;
+    if (!src) return toast.error("Generate an image first");
+    setLoading(true);
+    try {
+      const padded = await padToAspect(src, target);
+      const res = await withAIProgress(
+        editUploadedImage({
+          data: {
+            imageDataUrl: padded,
+            instruction: `Outpaint: fill the flat grey margins around the original image with a seamless, photorealistic continuation of the existing scene. Keep the original centre area untouched and deliver a clean ${target} composition.`,
+          },
+          headers: authHeaders,
+        }),
+      );
+      if (res.error) return toast.error(res.error);
+      if (!res.imageUrl) return toast.error("No image returned");
+      setResults([res.imageUrl]);
+      setImageUrl(res.imageUrl);
+      setAspect(target);
+      toast.success(`Expanded to ${target}`);
+    } catch {
+      toast.error("Expand failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateCaption = async () => {
+    const base = recipe?.prompt || prompt.trim();
+    if (base.length < 3) return toast.error("Generate an image first");
+    setCaptionBusy(true);
+    try {
+      const c = await captionForImage({ data: { prompt: base }, headers: authHeaders });
+      setCaption(c.caption || null);
+      if (!c.caption) toast.error("No caption returned");
+    } catch {
+      toast.error("Caption failed");
+    } finally {
+      setCaptionBusy(false);
+    }
+  };
+
+  const sendCaptionToPublishing = () => {
+    const url = results[0] || imageUrl;
+    if (!caption) return;
+    try {
+      localStorage.setItem(
+        "ps_publish_draft",
+        JSON.stringify({ text: caption, mediaUrl: url, source: "image-studio", at: Date.now() }),
+      );
+    } catch {
+      /* ignore */
+    }
+    toast.success("Draft handed to Publishing Center");
+    window.location.assign("/dashboard/publishing");
+  };
+
+  const exportPack = async (sizes: ExportSize[]) => {
+    const src = results[0] || imageUrl;
+    if (!src) return toast.error("Generate an image first");
+    setPackBusy(true);
+    const t = toast.loading("Building platform pack…");
+    try {
+      let base = src;
+      if (logoOn && brandKit?.logo_url) {
+        try {
+          base = await compositeLogo(base, brandKit.logo_url, logoPlacement);
+        } catch {
+          /* keep base */
+        }
+      }
+      const zip = new JSZip();
+      for (const s of sizes) {
+        const dataUrl = await resizeCover(base, s.w, s.h);
+        zip.file(`${s.id}-${s.w}x${s.h}.png`, dataUrl.split(",")[1], { base64: true });
+      }
+      if (caption) zip.file("caption.txt", caption);
+      const blob = await zip.generateAsync({ type: "blob" });
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `postspark-platform-pack-${Date.now()}.zip`;
+      a.click();
+      URL.revokeObjectURL(objectUrl);
+      toast.dismiss(t);
+      toast.success("Platform pack downloaded");
+    } catch (e) {
+      console.error(e);
+      toast.dismiss(t);
+      toast.error("Export failed — try downloading the image first");
+    } finally {
+      setPackBusy(false);
+    }
+  };
+
+
 
   const addChip = (v: string) => {
     setPrompt((p) => (p.trim() ? `${p.replace(/,\s*$/, "")}, ${v}` : v));
@@ -453,6 +709,15 @@ function ImageStudioPage() {
   useEffect(() => {
     if (session) refreshUsage();
   }, [session]);
+
+  useEffect(() => {
+    if (!authHeaders) return;
+    getBrandKit({ headers: authHeaders })
+      .then((r: any) => setBrandKit(r?.kit || r?.data?.kit || null))
+      .catch(() => {});
+  }, [authHeaders]);
+
+
 
   const loadLibrary = async () => {
     if (!authHeaders) return;
@@ -748,6 +1013,8 @@ function ImageStudioPage() {
     const q = libQuery.trim().toLowerCase();
     let arr = library.filter((i) => {
       if (libTemplate !== "all" && (i.template || "none") !== libTemplate) return false;
+      if (libStyle !== "all" && (i.style || "") !== libStyle) return false;
+      if (libFavOnly && !favorites.includes(i.id)) return false;
       if (q && !i.prompt.toLowerCase().includes(q)) return false;
       return true;
     });
@@ -1035,7 +1302,45 @@ function ImageStudioPage() {
                 <p className="is-eyebrow">Batch</p>
                 <BatchPicker value={batch} onChange={setBatch} />
               </div>
+              <div className="mt-3">
+                <p className="is-eyebrow mb-1.5">Seed</p>
+                <SeedControl
+                  seed={seed}
+                  locked={seedLocked}
+                  onChange={setSeed}
+                  onToggleLock={() => setSeedLocked((v) => !v)}
+                  onRandom={() => setSeed(randomSeed())}
+                />
+              </div>
             </StudioCard>
+
+            <ReferencePanel
+              referenceUrl={referenceUrl}
+              strength={refStrength}
+              onPick={(u) => setReferenceUrl(u)}
+              onClear={() => setReferenceUrl(null)}
+              onStrength={setRefStrength}
+              savedRefs={savedRefs}
+              onSaveRef={() => {
+                if (!referenceUrl) return;
+                const name = window.prompt("Name this character / product", "My subject") || "Reference";
+                persistRefs([{ id: String(Date.now()), name, url: referenceUrl }, ...savedRefs].slice(0, 6));
+                toast.success("Reference saved");
+              }}
+              onUseSavedRef={(u) => setReferenceUrl(u)}
+            />
+
+            <BrandLockPanel
+              on={brandLock}
+              onToggle={() => setBrandLock((v) => !v)}
+              colors={brandColors}
+              logoUrl={brandKit?.logo_url || null}
+              logoOn={logoOn}
+              onLogoToggle={() => setLogoOn((v) => !v)}
+              placement={logoPlacement}
+              onPlacement={setLogoPlacement}
+            />
+
 
             <button onClick={() => handleBatch()} disabled={loading} className="is-btn">
               {loading ? (
@@ -1088,6 +1393,9 @@ function ImageStudioPage() {
                       onRemix={reuseRecipe}
                       onEdit={() => useAsEditSource(url)}
                       onCopyRecipe={copyRecipe}
+                      onUpscale={() => upscaleResult(url, 2)}
+                      onInpaint={() => setInpaintSrc(url)}
+                      onDelete={() => setResults((r) => r.filter((u) => u !== url))}
                       footer={
                         stockAttribution && i === 0 ? (
                           <>
@@ -1132,23 +1440,49 @@ function ImageStudioPage() {
                 />
               </div>
             )}
+
+            <FeaturedRecipeRail onFork={forkRecipe} />
           </div>
 
           {/* ------------------------------- inspector ----------------------------- */}
-          <Inspector
-            recipe={recipe}
-            locked={lockedSettings}
-            onToggleLock={() => setLockedSettings((v) => !v)}
-            onReuse={reuseRecipe}
-            history={promptHistory}
-            onPickHistory={(p) => {
-              setPrompt(p);
-              setOriginalPrompt(null);
-            }}
-            onClearHistory={() => setPromptHistory([])}
-          />
+          <div className="space-y-4">
+            <Inspector
+              recipe={recipe ? { ...recipe, prompt: recipe.prompt } : null}
+              locked={lockedSettings}
+              onToggleLock={() => setLockedSettings((v) => !v)}
+              onReuse={reuseRecipe}
+              history={promptHistory}
+              onPickHistory={(p) => {
+                setPrompt(p);
+                setOriginalPrompt(null);
+              }}
+              onClearHistory={() => setPromptHistory([])}
+            />
+
+            {(results.length > 0 || imageUrl) && (
+              <>
+                <CaptionPanel
+                  caption={caption}
+                  busy={captionBusy}
+                  onGenerate={generateCaption}
+                  onCopy={async () => {
+                    if (!caption) return;
+                    try {
+                      await navigator.clipboard.writeText(caption);
+                      toast.success("Caption copied");
+                    } catch {
+                      toast.error("Clipboard blocked");
+                    }
+                  }}
+                  onSendToPublishing={sendCaptionToPublishing}
+                />
+                <ExportPackPanel busy={packBusy} onExport={exportPack} onExpand={expandCanvas} sizes={EXPORT_PACK} />
+              </>
+            )}
+          </div>
         </div>
       )}
+
 
       {tab === "carousel" && (
         <div className="space-y-6">
@@ -1434,6 +1768,18 @@ function ImageStudioPage() {
               ))}
             </select>
             <select
+              value={libStyle}
+              onChange={(e) => setLibStyle(e.target.value)}
+              className="is-input !w-auto !py-2 !text-[12px]"
+            >
+              <option value="all">All styles</option>
+              {STYLES.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+            <select
               value={libSort}
               onChange={(e) => setLibSort(e.target.value as any)}
               className="is-input !w-auto !py-2 !text-[12px]"
@@ -1441,6 +1787,12 @@ function ImageStudioPage() {
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
             </select>
+            <button
+              onClick={() => setLibFavOnly((v) => !v)}
+              className={`is-btn-ghost ${libFavOnly ? "is-btn-on" : ""}`}
+            >
+              <Star className="h-3.5 w-3.5" /> Favorites
+            </button>
             <button
               onClick={exportZip}
               disabled={zipping || !filteredLibrary.length}
@@ -1454,6 +1806,36 @@ function ImageStudioPage() {
               Export ZIP + captions
             </button>
           </div>
+
+          {selected.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-[11.5px]">
+              <span className="font-semibold">{selected.length} selected</span>
+              <button
+                onClick={async () => {
+                  for (const id of selected) {
+                    const item = library.find((l) => l.id === id);
+                    if (item) await download(item.image_url, `${safeFilename(item.prompt)}.png`);
+                  }
+                }}
+                className="is-btn-ghost"
+              >
+                <Download className="h-3.5 w-3.5" /> Download
+              </button>
+              <button
+                onClick={async () => {
+                  for (const id of selected) await removeFromLibrary(id);
+                  setSelected([]);
+                }}
+                className="is-btn-ghost"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Delete
+              </button>
+              <button onClick={() => setSelected([])} className="is-btn-ghost">
+                Clear selection
+              </button>
+            </div>
+          )}
+
 
           {libLoading ? (
             <div className="flex h-64 items-center justify-center">
@@ -1474,15 +1856,35 @@ function ImageStudioPage() {
               {filteredLibrary.map((img) => (
                 <div
                   key={img.id}
-                  className="is-card group !p-0 overflow-hidden"
+                  className={`is-card group !p-0 overflow-hidden ${selected.includes(img.id) ? "ring-2 ring-[hsl(var(--primary))]" : ""}`}
                 >
-                  <div className="aspect-square w-full overflow-hidden bg-muted">
+                  <div className="relative aspect-square w-full overflow-hidden bg-muted">
                     <img
                       src={img.image_url}
                       alt={img.prompt}
                       loading="lazy"
                       className="h-full w-full object-cover transition group-hover:scale-105"
                     />
+                    <button
+                      onClick={() => toggleFavorite(img.id)}
+                      aria-label="Favorite"
+                      className="absolute left-2 top-2 rounded-full bg-background/85 p-1.5"
+                    >
+                      <Star
+                        className={`h-3.5 w-3.5 ${favorites.includes(img.id) ? "fill-current text-amber-500" : "text-muted-foreground"}`}
+                      />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setSelected((s) => (s.includes(img.id) ? s.filter((x) => x !== img.id) : [...s, img.id]))
+                      }
+                      aria-label="Select"
+                      className="absolute right-2 top-2 rounded-full bg-background/85 p-1.5"
+                    >
+                      <CheckSquare
+                        className={`h-3.5 w-3.5 ${selected.includes(img.id) ? "text-primary" : "text-muted-foreground"}`}
+                      />
+                    </button>
                   </div>
                   <div className="p-3">
                     <p className="line-clamp-2 text-xs text-muted-foreground" title={img.prompt}>
@@ -1494,18 +1896,24 @@ function ImageStudioPage() {
                       </span>
                     )}
                     <div className="mt-2 flex gap-2">
-                      <a
-                        href={img.image_url}
-                        download
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        onClick={() => download(img.image_url, `${safeFilename(img.prompt)}.png`)}
                         className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-center text-xs hover:bg-accent"
+                        aria-label="Download"
                       >
                         <Download className="mx-auto h-3.5 w-3.5" />
-                      </a>
+                      </button>
+                      <button
+                        onClick={() => setDrawerItem(img)}
+                        className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-center text-xs hover:bg-accent"
+                        aria-label="View recipe"
+                      >
+                        <Info className="mx-auto h-3.5 w-3.5" />
+                      </button>
                       <button
                         onClick={() => removeFromLibrary(img.id)}
                         className="flex-1 rounded-md border border-destructive/40 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                        aria-label="Delete"
                       >
                         <Trash2 className="mx-auto h-3.5 w-3.5" />
                       </button>
