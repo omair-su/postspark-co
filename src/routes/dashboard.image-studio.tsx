@@ -1948,6 +1948,34 @@ function ImageStudioPage() {
         onSelectPhoto={(photo) => applyStockPhoto(photo, stockOpen || "generate")}
       />
       <Lightbox url={lightbox} onClose={() => setLightbox(null)} />
+      {inpaintSrc && (
+        <InpaintDialog
+          src={inpaintSrc}
+          busy={inpaintBusy}
+          onClose={() => setInpaintSrc(null)}
+          onSubmit={runInpaint}
+        />
+      )}
+      {drawerItem && (
+        <LibraryRecipeDrawer
+          item={drawerItem}
+          onClose={() => setDrawerItem(null)}
+          onReuse={() => {
+            setPrompt(drawerItem.prompt);
+            if (drawerItem.style) setStyle(drawerItem.style as any);
+            if (drawerItem.aspect) setAspect(drawerItem.aspect as any);
+            setTemplate(drawerItem.template || undefined);
+            setDrawerItem(null);
+            setTab("generate");
+            toast.success("Recipe loaded");
+          }}
+          onUseAsReference={() => {
+            setReferenceUrl(drawerItem.image_url);
+            setDrawerItem(null);
+            setTab("generate");
+            toast.success("Set as reference");
+          }}
+        />
 
     </div>
   );
