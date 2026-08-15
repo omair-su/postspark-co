@@ -60,6 +60,8 @@ export const generateImage = createServerFn({ method: "POST" })
       return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)) && data.template !== "thumbnail" && data.template !== "blog-cover")
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
+    if ((await imageQuotaRemaining(userId, plan)) < 1)
+      return { imageUrl: "", error: "LIMIT_REACHED" };
     const res = await generateSocialImage(
       data.prompt,
       data.style,
