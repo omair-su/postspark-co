@@ -26,6 +26,7 @@ import {
   Star,
   Info,
   CheckSquare,
+  X,
 } from "lucide-react";
 import { drawWatermarkOnCanvas, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
 import {
@@ -84,6 +85,7 @@ import {
   type FeaturedRecipe,
 } from "@/components/image/studio/StudioPro";
 import { EXPORT_PACK, resizeCover, padToAspect, compositeLogo, randomSeed, type ExportSize } from "@/lib/studioCanvas";
+import { streamImage } from "@/lib/streamImage";
 import { getBrandKit } from "@/lib/brandKit.functions";
 
 
@@ -239,6 +241,11 @@ function ImageStudioPage() {
   const [enhancing, setEnhancing] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  // Streaming preview + cancelable jobs + in-session render cache
+  const [streamPreview, setStreamPreview] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const jobRef = useRef(0);
+  const cacheRef = useRef<Map<string, string[]>>(new Map());
   const [imageUrl, setImageUrl] = useState("");
   const [variations, setVariations] = useState<string[]>([]);
   const [originalPrompt, setOriginalPrompt] = useState<string | null>(null);
@@ -338,13 +345,58 @@ function ImageStudioPage() {
     template,
   });
 
+  /** Stable cache key for a render request — identical settings replay instantly. */
+  const cacheKey = (r: Recipe, count: number) =>
+    JSON.stringify([
+      effectivePrompt(r.prompt),
+      r.negativePrompt || "",
+      r.style,
+      r.aspect,
+      r.model,
+      r.quality,
+      r.template || "",
+      count,
+      referenceUrl ? `ref:${refStrength}:${referenceUrl.slice(-40)}` : "",
+    ]);
+
+  /** Cancel the in-flight render (streaming or RPC) without burning quota. */
+  const cancelJob = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    jobRef.current += 1;
+    setLoading(false);
+    setStreamPreview(null);
+    toast.message("Render canceled");
+  };
+
   const handleBatch = async (count = batch) => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
     const r = currentRecipe();
+    const key = cacheKey(r, count);
+
+    // Instant replay for repeated settings — no AI call, no quota burn.
+    const cached = cacheRef.current.get(key);
+    if (cached?.length) {
+      setResults(cached);
+      setImageUrl(cached[0]);
+      setRecipe(r);
+      setStreamPreview(null);
+      toast.success("Loaded from this session's cache");
+      return;
+    }
+
+    // Supersede any in-flight render so rapid iterations never race.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const job = ++jobRef.current;
+    const stale = () => job !== jobRef.current;
+
     setLoading(true);
     setResults([]);
     setImageUrl("");
+    setStreamPreview(null);
     setStockAttribution(null);
     try {
       const sent = effectivePrompt(r.prompt);
@@ -357,59 +409,104 @@ function ImageStudioPage() {
               instruction: `${sent}. Use the supplied image as a visual reference at roughly ${refStrength}% influence — keep its subject identity, materials and palette, restyle everything else to match the description.`,
             },
             headers: authHeaders,
-          }),
+            signal: controller.signal,
+          } as any),
         );
+        if (stale()) return;
         if ((res.error as string) === "LIMIT_REACHED") return setLimitOpen(true);
         if (res.error) return toast.error(res.error);
         if (!res.imageUrl) return toast.error("No image returned");
         setResults([res.imageUrl]);
         setImageUrl(res.imageUrl);
+        cacheRef.current.set(key, [res.imageUrl]);
       } else if (count === 1) {
-        const res = await withAIProgress(
-          generateImage({
-            data: {
-              prompt: sent,
-              style,
-              aspect,
-              template,
-              model,
-              quality,
-              negativePrompt: r.negativePrompt,
-              originalPrompt: originalPrompt || r.prompt,
+        // Streaming render — progressive previews, cancelable, quota counted
+        // server-side once the final tile is persisted.
+        let streamed: string | null = null;
+        try {
+          const out = await streamImage(
+            "/api/studio-stream",
+            { prompt: sent, style, aspect, template },
+            (frame, isFinal) => {
+              if (stale()) return;
+              if (!isFinal) setStreamPreview(frame);
             },
-            headers: authHeaders,
-          }),
-        );
-        if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
-        if (res.error) return toast.error(res.error);
-        if (!res.imageUrl) return toast.error("No image returned");
-        setResults([res.imageUrl]);
-        setImageUrl(res.imageUrl);
+            { headers: authHeaders, signal: controller.signal },
+          );
+          if (stale()) return;
+          if (out.error === "LIMIT_REACHED") {
+            setLimitOpen(true);
+            return;
+          }
+          streamed = out.imageUrl;
+        } catch (e: any) {
+          if (e?.name === "AbortError" || controller.signal.aborted) return;
+          streamed = null; // fall through to the non-streaming path
+        }
+
+        if (streamed) {
+          setResults([streamed]);
+          setImageUrl(streamed);
+          cacheRef.current.set(key, [streamed]);
+        } else {
+          const res = await withAIProgress(
+            generateImage({
+              data: {
+                prompt: sent,
+                style,
+                aspect,
+                template,
+                model,
+                quality,
+                negativePrompt: r.negativePrompt,
+                originalPrompt: originalPrompt || r.prompt,
+              },
+              headers: authHeaders,
+              signal: controller.signal,
+            } as any),
+          );
+          if (stale()) return;
+          if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
+          if (res.error) return toast.error(res.error);
+          if (!res.imageUrl) return toast.error("No image returned");
+          setResults([res.imageUrl]);
+          setImageUrl(res.imageUrl);
+          cacheRef.current.set(key, [res.imageUrl]);
+        }
       } else {
         const res: any = await withAIProgress(
           generateImageVariations({
             data: { prompt: sent, style, aspect, template, count: count as 2 | 3 | 4, model, quality },
             headers: authHeaders,
-          }),
+            signal: controller.signal,
+          } as any),
         );
+        if (stale()) return;
         if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
         if (res.error) return toast.error(res.error);
         const urls = (res.results || []).map((x: any) => x.imageUrl).filter(Boolean);
         if (!urls.length) return toast.error("No images returned");
         setResults(urls);
         setImageUrl(urls[0]);
+        cacheRef.current.set(key, urls);
       }
+
       if (!seedLocked) setSeed(randomSeed());
       setCaption(null);
       setRecipe(r);
       pushHistory(r.prompt);
       toast.success(count === 1 ? "Image ready" : `${count} images ready`);
       refreshUsage();
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.name === "AbortError" || controller.signal.aborted) return;
       console.error(e);
       toast.error("Generation failed");
     } finally {
-      setLoading(false);
+      if (!stale()) {
+        setLoading(false);
+        setStreamPreview(null);
+        if (abortRef.current === controller) abortRef.current = null;
+      }
     }
   };
 
@@ -1353,6 +1450,11 @@ function ImageStudioPage() {
                 </>
               )}
             </button>
+            {loading && (
+              <button onClick={cancelJob} className="is-btn-ghost w-full" type="button">
+                <X className="h-3.5 w-3.5" /> Cancel render
+              </button>
+            )}
           </div>
 
           {/* ------------------------------ canvas board --------------------------- */}
@@ -1361,7 +1463,11 @@ function ImageStudioPage() {
               label="Canvas"
               hint={results.length ? `${results.length} render${results.length > 1 ? "s" : ""} on the board` : "Your board is empty — pick a prompt idea below."}
               action={
-                results.length ? (
+                loading ? (
+                  <button onClick={cancelJob} className="is-btn-ghost">
+                    <X className="h-3.5 w-3.5" /> Cancel
+                  </button>
+                ) : results.length ? (
                   <button onClick={() => setResults([])} className="is-btn-ghost">
                     <Trash2 className="h-3.5 w-3.5" /> Clear board
                   </button>
@@ -1369,12 +1475,21 @@ function ImageStudioPage() {
               }
             >
               {loading && <div className="is-rail mb-3" />}
-              {loading ? (
+              {loading && streamPreview ? (
+                <div className={`overflow-hidden rounded-xl border border-border ${aspectClass}`}>
+                  <img
+                    src={streamPreview}
+                    alt="Streaming preview"
+                    className="h-full w-full object-cover blur-xl transition-[filter] duration-500"
+                  />
+                </div>
+              ) : loading ? (
                 <div className={`grid gap-3 ${batch > 1 ? "sm:grid-cols-2" : ""}`}>
                   {Array.from({ length: batch }).map((_, i) => (
                     <TileSkeleton key={i} aspectClass={aspectClass} />
                   ))}
                 </div>
+
               ) : results.length ? (
                 <div className={`grid gap-3 ${results.length > 1 ? "sm:grid-cols-2" : ""}`}>
                   {results.map((url, i) => (

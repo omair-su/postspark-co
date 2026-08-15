@@ -13,133 +13,21 @@ import {
   upscaleImage as upscaleImageServer,
   enhanceImagePrompt,
 } from "@/lib/image.server";
-import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
+import {
+  persistGeneratedImage,
+  logToHistory,
+  checkRepurposeQuota,
+  imageQuotaRemaining,
+  countMonthlyGenerations,
+  monthlyImageLimit,
+  getPlanFor as getPlan,
+  isProPlan as isPro,
+} from "@/lib/imageQuota.server";
 
 const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
 const QUALITY = z.enum(["standard", "hd"]).default("standard");
 
-const FREE_MONTHLY_LIMIT = 5; // free tier preview generations
-const PRO_MONTHLY_LIMIT = 500; // soft cap for Pro/Agency
 
-// Persist a generated image (data: URL or remote http(s) URL) to storage and
-// insert a row in generated_images. Returns the public storage URL on success.
-async function persistGeneratedImage(opts: {
-  userId: string;
-  imageUrl: string;
-  prompt: string;
-  style?: string;
-  aspect?: string;
-  template?: string;
-  source?: string;
-}): Promise<string | null> {
-  try {
-    let bytes: Uint8Array | null = null;
-    let mime = "image/png";
-
-    if (opts.imageUrl.startsWith("data:")) {
-      const m = opts.imageUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
-      if (!m) return null;
-      mime = m[1];
-      bytes = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
-    } else if (/^https?:\/\//i.test(opts.imageUrl)) {
-      if (!isSafePublicUrl(opts.imageUrl)) return null;
-      const r = await safeFetch(opts.imageUrl);
-      if (!r.ok) return null;
-      mime = (r.headers.get("content-type") || "image/png").split(";")[0];
-      bytes = new Uint8Array(await r.arrayBuffer());
-    } else {
-      return null;
-    }
-    if (!bytes) return null;
-
-    const ext = mime.split("/")[1].replace("jpeg", "jpg");
-    const path = `${opts.userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: upErr } = await supabaseAdmin.storage
-      .from("generated-images")
-      .upload(path, bytes, { contentType: mime, upsert: false });
-    if (upErr) {
-      console.error("persistGeneratedImage upload error:", upErr);
-      return null;
-    }
-    const { data: pub } = supabaseAdmin.storage.from("generated-images").getPublicUrl(path);
-    const publicUrl = pub.publicUrl;
-
-    const { error: insErr } = await supabaseAdmin.from("generated_images").insert({
-      user_id: opts.userId,
-      image_url: publicUrl,
-      prompt: opts.prompt,
-      style: opts.style,
-      aspect: opts.aspect,
-      template: opts.template,
-      source: opts.source || "generate",
-    });
-    if (insErr) console.error("persistGeneratedImage insert error:", insErr);
-    return publicUrl;
-  } catch (e) {
-    console.error("persistGeneratedImage error:", e);
-    return null;
-  }
-}
-
-async function getPlan(supabase: any, userId: string): Promise<string> {
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("plan")
-    .eq("user_id", userId)
-    .single();
-  return profile?.plan || "free";
-}
-
-async function isPro(plan: string) {
-  return plan === "pro" || plan === "agency";
-}
-
-async function monthStartIso() {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
-}
-
-async function countMonthlyGenerations(userId: string): Promise<number> {
-  const since = await monthStartIso();
-  const { count } = await supabaseAdmin
-    .from("generated_images")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .gte("created_at", since);
-  return count || 0;
-}
-
-const FREE_REPURPOSE_LIMIT = 3;
-async function checkRepurposeQuota(userId: string, plan: string): Promise<boolean> {
-  if (plan === "pro" || plan === "agency") return true;
-  const since = await monthStartIso();
-  const { count } = await supabaseAdmin
-    .from("repurpose_jobs")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .gte("created_at", since);
-  return (count ?? 0) < FREE_REPURPOSE_LIMIT;
-}
-
-async function logToHistory(opts: {
-  userId: string;
-  tool: string;
-  title: string;
-  inputText: string;
-  outputs: Record<string, any>;
-}) {
-  try {
-    await supabaseAdmin.from("repurpose_jobs").insert({
-      user_id: opts.userId,
-      tool: opts.tool,
-      title: opts.title.slice(0, 200),
-      input_text: opts.inputText.slice(0, 5000),
-      outputs: opts.outputs,
-    } as any);
-  } catch (e) {
-    console.error("logToHistory error:", e);
-  }
-}
 
 export const getImageUsage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -147,7 +35,7 @@ export const getImageUsage = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
     const used = await countMonthlyGenerations(userId);
-    const limit = (await isPro(plan)) ? PRO_MONTHLY_LIMIT : FREE_MONTHLY_LIMIT;
+    const limit = monthlyImageLimit(plan);
     return { plan, used, limit, remaining: Math.max(0, limit - used) };
   });
 
@@ -172,6 +60,8 @@ export const generateImage = createServerFn({ method: "POST" })
       return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)) && data.template !== "thumbnail" && data.template !== "blog-cover")
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
+    if ((await imageQuotaRemaining(userId, plan)) < 1)
+      return { imageUrl: "", error: "LIMIT_REACHED" };
     const res = await generateSocialImage(
       data.prompt,
       data.style,
@@ -244,12 +134,16 @@ export const generateImageVariations = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { results: [], error: "Variations is a Pro feature. Upgrade to unlock." };
+    // Every completed tile counts, so only render as many as the plan allows.
+    const remaining = await imageQuotaRemaining(userId, plan);
+    if (remaining < 1) return { results: [], error: "LIMIT_REACHED" };
+    const wanted = Math.min(data.count, remaining);
     const results = await generateVariations(
       data.prompt,
       data.style,
       data.aspect,
       data.template,
-      data.count,
+      wanted,
       data.model,
       data.quality,
     );
@@ -340,6 +234,8 @@ export const editUploadedImage = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Image editing is a Pro feature. Upgrade to unlock." };
+    if ((await imageQuotaRemaining(userId, plan)) < 1)
+      return { imageUrl: "", error: "LIMIT_REACHED" };
     const res = await editImage(data.imageDataUrl, data.instruction);
     if (res.imageUrl) {
       const persisted = await persistGeneratedImage({
