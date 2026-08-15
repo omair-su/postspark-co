@@ -51,6 +51,24 @@ import type { StockPhoto } from "@/lib/stockMedia.server";
 import { Images } from "lucide-react";
 import { StyleIcon } from "@/components/BrandIcon";
 import { HeroArt } from "@/components/dashboard/HeroArt";
+import {
+  StudioCard,
+  StudioTabs,
+  ModelPicker,
+  StylePicker,
+  AspectPicker,
+  BatchPicker,
+  ChipRow,
+  ImageTile,
+  TileSkeleton,
+  Inspector,
+  InspirationWall,
+  Lightbox,
+  PROMPT_CHIPS,
+  INSPIRATION_PROMPTS,
+  NEGATIVE_CHIPS,
+  type Recipe,
+} from "@/components/image/studio/StudioUI";
 
 
 
@@ -212,6 +230,119 @@ function ImageStudioPage() {
   const [enhancedDraft, setEnhancedDraft] = useState("");
   const [enhanceBefore, setEnhanceBefore] = useState("");
   const [limitOpen, setLimitOpen] = useState(false);
+
+  // batch board + recipe inspector
+  const [batch, setBatch] = useState(1);
+  const [results, setResults] = useState<string[]>([]);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [lockedSettings, setLockedSettings] = useState(false);
+  const [promptHistory, setPromptHistory] = useState<string[]>([]);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  const pushHistory = (p: string) =>
+    setPromptHistory((h) => [p, ...h.filter((x) => x !== p)].slice(0, 8));
+
+  const currentRecipe = (): Recipe => ({
+    prompt: prompt.trim(),
+    negativePrompt: negativePrompt.trim() || undefined,
+    style,
+    aspect,
+    model,
+    quality,
+    template,
+  });
+
+  const handleBatch = async (count = batch) => {
+    if (!session) return toast.error("Please sign in");
+    if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
+    const r = currentRecipe();
+    setLoading(true);
+    setResults([]);
+    setImageUrl("");
+    setStockAttribution(null);
+    try {
+      if (count === 1) {
+        const res = await withAIProgress(
+          generateImage({
+            data: {
+              prompt: r.prompt,
+              style,
+              aspect,
+              template,
+              model,
+              quality,
+              negativePrompt: r.negativePrompt,
+              originalPrompt: originalPrompt || undefined,
+            },
+            headers: authHeaders,
+          }),
+        );
+        if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
+        if (res.error) return toast.error(res.error);
+        if (!res.imageUrl) return toast.error("No image returned");
+        setResults([res.imageUrl]);
+        setImageUrl(res.imageUrl);
+      } else {
+        const res: any = await withAIProgress(
+          generateImageVariations({
+            data: { prompt: r.prompt, style, aspect, template, count: count as 2 | 3 | 4, model, quality },
+            headers: authHeaders,
+          }),
+        );
+        if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
+        if (res.error) return toast.error(res.error);
+        const urls = (res.results || []).map((x: any) => x.imageUrl).filter(Boolean);
+        if (!urls.length) return toast.error("No images returned");
+        setResults(urls);
+        setImageUrl(urls[0]);
+      }
+      setRecipe(r);
+      pushHistory(r.prompt);
+      toast.success(count === 1 ? "Image ready" : `${count} images ready`);
+      refreshUsage();
+    } catch (e) {
+      console.error(e);
+      toast.error("Generation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reuseRecipe = () => {
+    if (!recipe) return;
+    setPrompt(recipe.prompt);
+    setNegativePrompt(recipe.negativePrompt || "");
+    setStyle(recipe.style as any);
+    setAspect(recipe.aspect as any);
+    setModel(recipe.model as any);
+    setQuality((recipe.quality as any) || "standard");
+    setTemplate(recipe.template);
+    toast.success("Recipe loaded into the composer");
+  };
+
+  const copyRecipe = async () => {
+    if (!recipe) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(recipe, null, 2));
+      toast.success("Recipe copied");
+    } catch {
+      toast.error("Clipboard blocked");
+    }
+  };
+
+  const useAsEditSource = (url: string) => {
+    setUploadedUrl(url);
+    setEditedUrl("");
+    setTab("edit");
+    toast.success("Loaded into the editor");
+  };
+
+  const addChip = (v: string) => {
+    setPrompt((p) => (p.trim() ? `${p.replace(/,\s*$/, "")}, ${v}` : v));
+    setOriginalPrompt(null);
+  };
+  const addNegativeChip = (v: string) =>
+    setNegativePrompt((p) => (p.trim() ? (p.includes(v) ? p : `${p.replace(/,\s*$/, "")}, ${v}`) : v));
 
 
   // edit
@@ -681,135 +812,109 @@ function ImageStudioPage() {
   };
 
   const tabs: { id: Tab; label: string; icon: any }[] = [
-    { id: "generate", label: "Generate", icon: Sparkles },
+    { id: "generate", label: "Studio", icon: Sparkles },
     { id: "templates", label: "Templates", icon: Layers },
-    { id: "carousel", label: "Carousel (5)", icon: GalleryHorizontal },
-    { id: "variations", label: "Variations", icon: Wand2 },
-    { id: "edit", label: "Edit", icon: Upload },
+    { id: "carousel", label: "Carousel", icon: GalleryHorizontal },
+    { id: "edit", label: "Edit & retouch", icon: Upload },
     { id: "library", label: "Library", icon: Library },
   ];
 
   const usagePct = usage ? Math.min(100, Math.round((usage.used / usage.limit) * 100)) : 0;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden ">
+    <div className="is-shell mx-auto max-w-[1400px] space-y-6">
+      {/* ---------------------------------- hero --------------------------------- */}
+      <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden">
         <span className="ps-ambient" aria-hidden />
         <HeroArt art="image" />
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-electric">
-              <ImageIcon className="h-5 w-5 text-primary-foreground" />
+        <div className="relative z-[1] flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl gradient-electric shadow-glow">
+              <ImageIcon className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">AI Image Studio Pro</h1>
-              <p className="text-sm text-muted-foreground">
-                Generate, edit, vary, and save share-worthy social visuals.
+              <p className="is-eyebrow">AI Image Studio</p>
+              <h1
+                className="mt-1 font-bold tracking-tight"
+                style={{ fontSize: "clamp(24px,3vw,36px)", letterSpacing: "-0.03em", lineHeight: 1.08 }}
+              >
+                Create scroll-stopping visuals in seconds.
+              </h1>
+              <p className="mt-1.5 max-w-[560px] text-sm text-muted-foreground">
+                Three frontier models, visual style presets, batch boards, remixable recipes and a
+                one-click post pipeline — all inside your workspace.
               </p>
             </div>
           </div>
 
-          {/* Usage indicator */}
-          {usage && (
-            <div className="min-w-[240px] rounded-xl border border-border bg-card p-3">
-              <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="inline-flex items-center gap-1 font-medium">
-                  <Zap className="h-3.5 w-3.5 text-primary" /> This month
-                </span>
-                <span className="text-muted-foreground">
-                  {usage.used}/{usage.limit}{" "}
-                  <span className="uppercase tracking-wide">{usage.plan}</span>
-                </span>
+          <div className="flex flex-col items-stretch gap-3 sm:flex-row lg:flex-col lg:items-end">
+            {usage && (
+              <div className="is-hero-panel min-w-[240px] rounded-2xl border border-border bg-card p-3 shadow-lg">
+                <div className="mb-1.5 flex items-center justify-between text-[11.5px]">
+                  <span className="inline-flex items-center gap-1.5 font-semibold">
+                    <Zap className="h-3.5 w-3.5 text-primary" /> This month
+                  </span>
+                  <span className="text-muted-foreground">
+                    {usage.used}/{usage.limit}{" "}
+                    <span className="uppercase tracking-wide">{usage.plan}</span>
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="h-full gradient-electric transition-all" style={{ width: `${usagePct}%` }} />
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">{usage.remaining} renders remaining</p>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full gradient-electric transition-all"
-                  style={{ width: `${usagePct}%` }}
-                />
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {usage.remaining} remaining
-              </p>
+            )}
+            <div className="is-hero-panel min-w-[240px]">
+              <ModelHealthBadge />
             </div>
-          )}
-          <ModelHealthBadge />
+          </div>
         </div>
       </section>
 
-      {/* Settings strip: watermark + safety */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3">
-        <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium">
+      {/* --------------------------------- controls -------------------------------- */}
+      <div className="flex flex-wrap items-center gap-3">
+        <StudioTabs tabs={tabs} value={tab} onChange={setTab} />
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setWatermarkOn(!watermarkOn)}
+            className={`is-btn-ghost ${watermarkOn ? "is-btn-on" : ""}`}
+            title="Stamp your handle on saved images"
+          >
+            <Droplet className="h-3.5 w-3.5" /> Watermark
+          </button>
           <input
-            type="checkbox"
-            checked={watermarkOn}
-            onChange={(e) => setWatermarkOn(e.target.checked)}
-            className="h-4 w-4 rounded border-input"
+            type="text"
+            value={watermarkText}
+            onChange={(e) => setWatermarkText(e.target.value)}
+            maxLength={40}
+            disabled={!watermarkOn}
+            placeholder="@yourbrand"
+            className="is-input !w-36 !py-1.5 !text-[11.5px] disabled:opacity-50"
           />
-          <Droplet className="h-3.5 w-3.5 text-primary" /> Watermark
-        </label>
-        <input
-          type="text"
-          value={watermarkText}
-          onChange={(e) => setWatermarkText(e.target.value)}
-          maxLength={40}
-          disabled={!watermarkOn}
-          placeholder="@yourbrand"
-          className="w-40 rounded-md border border-input bg-background px-2 py-1 text-xs disabled:opacity-50"
-        />
-        <span className="mx-1 h-4 w-px bg-border" />
-        <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium">
-          <input
-            type="checkbox"
-            checked={safetyOn}
-            onChange={(e) => setSafetyOn(e.target.checked)}
-            className="h-4 w-4 rounded border-input"
-          />
-          <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Safety check before save
-        </label>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-border pb-2">
-        {tabs.map((t) => {
-          const active = tab === t.id;
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card hover:bg-accent text-foreground"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {t.label}
-            </button>
-          );
-        })}
+          <button
+            onClick={() => setSafetyOn(!safetyOn)}
+            className={`is-btn-ghost ${safetyOn ? "is-btn-on" : ""}`}
+            title="Run a safety check before saving"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" /> Safety check
+          </button>
+        </div>
       </div>
 
       {tab === "templates" && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {TEMPLATES.map((t) => {
             const Icon = t.icon;
             return (
-              <button
-                key={t.id}
-                onClick={() => pickTemplate(t)}
-                className="group flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-5 text-left transition hover:border-primary hover:shadow-glow"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg gradient-electric">
+              <button key={t.id} onClick={() => pickTemplate(t)} className="is-inspire">
+                <span className="is-inspire-glow" aria-hidden />
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl gradient-electric">
                   <Icon className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">{t.label}</h3>
-                  <p className="text-sm text-muted-foreground">{t.desc}</p>
-                </div>
-                <span className="mt-auto text-xs text-primary group-hover:underline">
-                  Use template →
                 </span>
+                <span className="mt-3 block text-[14px] font-bold text-foreground">{t.label}</span>
+                <span className="mt-1 block text-[11.5px] text-muted-foreground">{t.desc}</span>
+                <span className="is-inspire-cta">Use template →</span>
               </button>
             );
           })}
@@ -817,300 +922,237 @@ function ImageStudioPage() {
       )}
 
       {(tab === "generate" || tab === "variations") && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)_minmax(0,300px)]">
+          {/* ------------------------------- composer ------------------------------ */}
+          <div className="space-y-4">
             {template && (
-              <div className="flex items-center justify-between rounded-lg bg-primary/10 px-3 py-2 text-xs">
+              <div className="flex items-center justify-between rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-[11.5px]">
                 <span>
                   Template: <strong>{TEMPLATES.find((t) => t.id === template)?.label}</strong>
                 </span>
-                <button
-                  onClick={() => setTemplate(undefined)}
-                  className="text-muted-foreground hover:text-foreground"
-                >
+                <button onClick={() => setTemplate(undefined)} className="text-muted-foreground hover:text-foreground">
                   Clear
                 </button>
               </div>
             )}
-            {/* AI Model selector */}
-            <div>
-              <label className="mb-2 block text-sm font-medium">AI Model</label>
-              <div className="grid grid-cols-3 gap-2">
-                {MODELS.map((m) => {
-                  const selected = model === m.id;
-                  return (
-                    <button
-                      key={m.id}
-                      onClick={() => setModel(m.id)}
-                      className={`relative rounded-xl border-2 p-3 text-left transition-all ${selected ? "shadow-sm" : "border-input bg-background hover:border-primary/40"}`}
-                      style={selected ? { borderColor: m.color, background: `${m.color}0d` } : undefined}
-                    >
-                      <div className="inline-block rounded-md px-1.5 py-0.5 text-[10px] font-bold" style={{ color: m.color, background: `${m.color}1a` }}>
-                        {m.badge}
-                      </div>
-                      <div className="mt-1.5 text-xs font-semibold text-foreground">{m.name}</div>
-                      <div className="text-[11px] text-muted-foreground leading-tight">{m.desc}</div>
-                      <div className="mt-1.5 border-t border-border/60 pt-1 text-[10px] text-muted-foreground">{m.cost}</div>
-                    </button>
-                  );
-                })}
-              </div>
-              {model === "gpt" && (
-                <p className="mt-1.5 text-[11px] text-emerald-600">✦ GPT Image 2 renders exact text into your image — best for thumbnails & graphics.</p>
-              )}
-            </div>
 
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <label className="block text-sm font-medium">Describe your image</label>
+            <StudioCard label="Prompt lab" hint="Describe the shot, then layer in cinematic detail with one tap.">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleEnhance}
                   disabled={enhancing || prompt.trim().length < 3}
-                  className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-[11px] font-medium hover:bg-accent disabled:opacity-50"
+                  className="is-btn-ghost disabled:opacity-50"
                 >
-                  {enhancing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} Enhance with AI
+                  {enhancing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  Enhance with AI
+                </button>
+                <button
+                  onClick={() => {
+                    const pick = INSPIRATION_PROMPTS[Math.floor(Math.random() * INSPIRATION_PROMPTS.length)];
+                    setPrompt(pick);
+                    setOriginalPrompt(null);
+                  }}
+                  className="is-btn-ghost"
+                >
+                  <Wand2 className="h-3.5 w-3.5" /> Surprise me
+                </button>
+                <button onClick={() => setStockOpen("generate")} className="is-btn-ghost">
+                  <Images className="h-3.5 w-3.5" /> Stock photo
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setStockOpen("generate")}
-                className="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted"
-              >
-                <Images className="h-3.5 w-3.5" /> Or pick a stock photo (Unsplash · Pexels)
-              </button>
               <textarea
                 value={prompt}
-                onChange={(e) => { setPrompt(e.target.value); setOriginalPrompt(null); }}
-                rows={4}
-                placeholder="e.g. A laptop on a sunlit desk with coffee, soft morning light"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                onChange={(e) => {
+                  setPrompt(e.target.value);
+                  setOriginalPrompt(null);
+                }}
+                rows={5}
+                placeholder="e.g. A matte black espresso machine on travertine, single hard light, editorial luxury still life"
+                className="is-input resize-y"
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Negative prompt — what to avoid (optional)</label>
-              <input
-                value={negativePrompt}
-                onChange={(e) => setNegativePrompt(e.target.value)}
-                maxLength={300}
-                placeholder="blurry, watermark, extra fingers, low quality"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium">Style</label>
-              <div className="grid grid-cols-3 gap-2">
-                {STYLES.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setStyle(s.id)}
-                    className={`group flex flex-col items-center gap-2 rounded-xl border px-2 py-3 text-center text-xs font-medium transition-all ${
-                      style === s.id
-                        ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10 scale-[1.02]"
-                        : "border-input bg-background hover:bg-accent hover:border-primary/30"
-                    }`}
-                  >
-                    <StyleIcon styleId={s.id as any} size={36} />
-                    <div className="leading-tight">{s.label}</div>
-                  </button>
-                ))}
+              <div className="mt-1.5 flex items-center justify-between text-[10.5px] text-muted-foreground">
+                <span>{prompt.trim().length} chars</span>
+                {originalPrompt && <span>Enhanced · original kept</span>}
               </div>
-            </div>
 
-            {model === "gpt" && (
-              <div>
-                <label className="mb-2 block text-sm font-medium">Quality</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setQuality("standard")}
-                    className={`rounded-lg border px-3 py-2 text-xs font-medium ${quality === "standard" ? "border-primary bg-primary/10" : "border-input bg-background hover:bg-accent"}`}
-                  >Standard</button>
-                  <button
-                    onClick={() => setQuality("hd")}
-                    className={`rounded-lg border px-3 py-2 text-xs font-medium ${quality === "hd" ? "border-primary bg-primary/10" : "border-input bg-background hover:bg-accent"}`}
-                  >HD · higher detail</button>
+              <div className="mt-3 space-y-2.5">
+                {PROMPT_CHIPS.map((g) => (
+                  <div key={g.group}>
+                    <p className="mb-1.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                      {g.group}
+                    </p>
+                    <ChipRow items={g.items} onPick={addChip} />
+                  </div>
+                ))}
+                <div>
+                  <p className="mb-1.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                    Avoid
+                  </p>
+                  <ChipRow items={NEGATIVE_CHIPS} onPick={addNegativeChip} active={NEGATIVE_CHIPS.filter((n) => negativePrompt.includes(n))} />
+                  <input
+                    value={negativePrompt}
+                    onChange={(e) => setNegativePrompt(e.target.value)}
+                    maxLength={300}
+                    placeholder="negative prompt"
+                    className="is-input mt-2 !py-2 !text-[12px]"
+                  />
                 </div>
               </div>
-            )}
+            </StudioCard>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium">Aspect ratio</label>
-              <div className="space-y-2">
-                {ASPECTS.map((a) => (
-                  <button
-                    key={a.id}
-                    onClick={() => setAspect(a.id)}
-                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
-                      aspect === a.id
-                        ? "border-primary bg-primary/10"
-                        : "border-input bg-background hover:bg-accent"
-                    }`}
-                  >
-                    <span>{a.label}</span>
-                    <span className="text-muted-foreground">{a.hint}</span>
-                  </button>
-                ))}
+            <StudioCard label="Model" hint="Each engine is tuned for a different job.">
+              <ModelPicker models={MODELS} value={model} onChange={setModel} />
+              {model === "gpt" && (
+                <>
+                  <p className="mt-2 text-[11px] font-medium text-emerald-500">
+                    Renders exact text into the image — best for thumbnails and graphics.
+                  </p>
+                  <div className="mt-3">
+                    <p className="is-eyebrow mb-1.5">Quality</p>
+                    <div className="is-seg">
+                      {(["standard", "hd"] as const).map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => setQuality(q)}
+                          className={`is-seg-btn ${quality === q ? "is-seg-on" : ""}`}
+                        >
+                          {q === "standard" ? "Standard" : "HD · more detail"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </StudioCard>
+
+            <StudioCard label="Style">
+              <StylePicker styles={STYLES} value={style} onChange={setStyle} />
+            </StudioCard>
+
+            <StudioCard label="Format">
+              <AspectPicker aspects={ASPECTS} value={aspect} onChange={setAspect} />
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="is-eyebrow">Batch</p>
+                <BatchPicker value={batch} onChange={setBatch} />
               </div>
-            </div>
+            </StudioCard>
 
-            {tab === "generate" ? (
-              <button
-                onClick={handleGenerate}
-                disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:opacity-90 disabled:opacity-60"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" /> Generate image
-                  </>
-                )}
-              </button>
-            ) : (
-              <button
-                onClick={handleVariations}
-                disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:opacity-90 disabled:opacity-60"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Creating 4 variations...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="h-4 w-4" /> Generate 4 variations
-                  </>
-                )}
-              </button>
-            )}
+            <button onClick={() => handleBatch()} disabled={loading} className="is-btn">
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Rendering {batch > 1 ? `${batch} images` : "your image"}…
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" /> Generate {batch > 1 ? `${batch} images` : "image"}
+                </>
+              )}
+            </button>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5">
-            {tab === "generate" && (
-              <>
-                <div
-                  className={`relative ${aspectClass} w-full overflow-hidden rounded-xl bg-muted`}
-                >
-                  {loading ? (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt="AI-generated image preview"
-                      className="h-full w-full object-cover"
+          {/* ------------------------------ canvas board --------------------------- */}
+          <div className="space-y-4">
+            <StudioCard
+              label="Canvas"
+              hint={results.length ? `${results.length} render${results.length > 1 ? "s" : ""} on the board` : "Your board is empty — pick a prompt idea below."}
+              action={
+                results.length ? (
+                  <button onClick={() => setResults([])} className="is-btn-ghost">
+                    <Trash2 className="h-3.5 w-3.5" /> Clear board
+                  </button>
+                ) : undefined
+              }
+            >
+              {loading && <div className="is-rail mb-3" />}
+              {loading ? (
+                <div className={`grid gap-3 ${batch > 1 ? "sm:grid-cols-2" : ""}`}>
+                  {Array.from({ length: batch }).map((_, i) => (
+                    <TileSkeleton key={i} aspectClass={aspectClass} />
+                  ))}
+                </div>
+              ) : results.length ? (
+                <div className={`grid gap-3 ${results.length > 1 ? "sm:grid-cols-2" : ""}`}>
+                  {results.map((url, i) => (
+                    <ImageTile
+                      key={`${url}-${i}`}
+                      url={url}
+                      index={i}
+                      aspectClass={aspectClass}
+                      onOpen={() => setLightbox(url)}
+                      onDownload={() => download(url)}
+                      onSave={() => save(url, results.length > 1 ? "variation" : "generate")}
+                      onVary={() => {
+                        setBatch(4);
+                        handleBatch(4);
+                      }}
+                      onRemix={reuseRecipe}
+                      onEdit={() => useAsEditSource(url)}
+                      onCopyRecipe={copyRecipe}
+                      footer={
+                        stockAttribution && i === 0 ? (
+                          <>
+                            Photo by{" "}
+                            <a
+                              href={stockAttribution.profileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer nofollow"
+                              className="underline"
+                            >
+                              {stockAttribution.name}
+                            </a>{" "}
+                            on {stockAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
+                          </>
+                        ) : undefined
+                      }
                     />
-                  ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center text-muted-foreground">
-                      <ImageIcon className="mb-2 h-10 w-10 opacity-40" />
-                      <p className="text-xs">Your image will appear here</p>
-                    </div>
-                  )}
-                  {imageUrl && stockAttribution && (
-                    <div
-                      className="pointer-events-none absolute inset-x-0 bottom-0 px-2 py-1.5"
-                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0))" }}
-                    >
-                      <span className="text-[11px] text-white/95">
-                        Photo by{" "}
-                        <a
-                          href={stockAttribution.profileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                          className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
-                        >
-                          {stockAttribution.name}
-                        </a>{" "}
-                        on{" "}
-                        <a
-                          href={stockAttribution.source === "unsplash"
-                            ? "https://unsplash.com/?utm_source=postspark&utm_medium=referral"
-                            : "https://www.pexels.com"}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                          className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
-                        >
-                          {stockAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
-                        </a>
-                      </span>
-                    </div>
-                  )}
+                  ))}
                 </div>
-                {imageUrl && (
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => download(imageUrl)}
-                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
-                    >
-                      <Download className="h-4 w-4" /> Download
-                    </button>
-                    <button
-                      onClick={() => save(imageUrl, "generate")}
-                      className="inline-flex items-center justify-center gap-2 rounded-lg gradient-electric px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-                    >
-                      <Save className="h-4 w-4" /> Save to library
-                    </button>
+              ) : (
+                <div className={`is-tile ${aspectClass} grid place-items-center`}>
+                  <div className="px-6 text-center">
+                    <ImageIcon className="mx-auto mb-2 h-10 w-10 text-muted-foreground opacity-40" />
+                    <p className="text-[12.5px] font-semibold">Your renders land here</p>
+                    <p className="mt-1 text-[11.5px] text-muted-foreground">
+                      Pick a prompt idea, choose a batch size, and hit generate.
+                    </p>
                   </div>
-                )}
-              </>
-            )}
+                </div>
+              )}
+            </StudioCard>
 
-            {tab === "variations" && (
+            {!results.length && !loading && (
               <div>
-                {loading ? (
-                  <div className="flex h-64 items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-                ) : variations.length ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    {variations.map((url, i) => (
-                      <div key={i} className="space-y-2">
-                        <div
-                          className={`${aspectClass} w-full overflow-hidden rounded-lg bg-muted`}
-                        >
-                          <img
-                            src={url}
-                            alt={`Variation ${i + 1}`}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => download(url)}
-                            className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-xs hover:bg-accent"
-                          >
-                            <Download className="mx-auto h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => save(url, "variation")}
-                            className="flex-1 rounded-md gradient-electric px-2 py-1 text-xs text-primary-foreground hover:opacity-90"
-                          >
-                            <Save className="mx-auto h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex h-64 flex-col items-center justify-center text-muted-foreground">
-                    <Wand2 className="mb-2 h-10 w-10 opacity-40" />
-                    <p className="text-xs">4 variations will appear here</p>
-                  </div>
-                )}
+                <p className="is-eyebrow mb-2">Start from an idea</p>
+                <InspirationWall
+                  onPick={(p) => {
+                    setPrompt(p);
+                    setOriginalPrompt(null);
+                    toast.success("Prompt loaded");
+                  }}
+                />
               </div>
             )}
           </div>
+
+          {/* ------------------------------- inspector ----------------------------- */}
+          <Inspector
+            recipe={recipe}
+            locked={lockedSettings}
+            onToggleLock={() => setLockedSettings((v) => !v)}
+            onReuse={reuseRecipe}
+            history={promptHistory}
+            onPickHistory={(p) => {
+              setPrompt(p);
+              setOriginalPrompt(null);
+            }}
+            onClearHistory={() => setPromptHistory([])}
+          />
         </div>
       )}
 
       {tab === "carousel" && (
         <div className="space-y-6">
-          <div className="grid gap-4 rounded-2xl border border-border bg-card p-5 md:grid-cols-[2fr,1fr]">
+          <div className="is-card grid gap-4 md:grid-cols-[2fr,1fr]">
             <div>
               <label className="mb-2 block text-sm font-medium">Carousel topic</label>
               <textarea
@@ -1118,7 +1160,7 @@ function ImageStudioPage() {
                 onChange={(e) => setCarouselTopic(e.target.value)}
                 rows={3}
                 placeholder='e.g. "5 morning habits that 10x your productivity"'
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="is-input"
               />
               <p className="mt-2 text-xs text-muted-foreground">
                 Generates a cohesive 5-slide Instagram set with matching typography &amp; layout.
@@ -1129,7 +1171,7 @@ function ImageStudioPage() {
               <select
                 value={style}
                 onChange={(e) => setStyle(e.target.value as any)}
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                className="is-input"
               >
                 {STYLES.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -1140,7 +1182,7 @@ function ImageStudioPage() {
               <button
                 onClick={handleCarousel}
                 disabled={loading}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:opacity-90 disabled:opacity-60"
+                className="is-btn mt-3"
               >
                 {loading ? (
                   <>
@@ -1174,7 +1216,7 @@ function ImageStudioPage() {
                 {carouselSlides.map((s, i) => (
                   <div
                     key={i}
-                    className="overflow-hidden rounded-xl border border-border bg-card"
+                    className="is-card !p-0 overflow-hidden"
                   >
                     <div className="aspect-square w-full overflow-hidden bg-muted">
                       <img
@@ -1220,7 +1262,7 @@ function ImageStudioPage() {
 
       {tab === "edit" && (
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
+          <div className="is-card space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium">Upload image</label>
               <input
@@ -1279,14 +1321,14 @@ function ImageStudioPage() {
                 onChange={(e) => setEditInstruction(e.target.value)}
                 rows={3}
                 placeholder="e.g. Make the sky purple at sunset, add a floating moon"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="is-input"
               />
             </div>
 
             <button
               onClick={handleEdit}
               disabled={loading || !uploadedUrl}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg gradient-electric px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:opacity-90 disabled:opacity-60"
+              className="is-btn"
             >
               {loading ? (
                 <>
@@ -1332,7 +1374,7 @@ function ImageStudioPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="is-card">
             <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-muted">
               {loading ? (
                 <div className="flex h-full w-full items-center justify-center">
@@ -1368,7 +1410,7 @@ function ImageStudioPage() {
       )}
 
       {tab === "library" && (
-        <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
+        <div className="is-card space-y-4">
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[200px]">
@@ -1377,13 +1419,13 @@ function ImageStudioPage() {
                 value={libQuery}
                 onChange={(e) => setLibQuery(e.target.value)}
                 placeholder="Search by prompt..."
-                className="w-full rounded-md border border-input bg-background py-2 pl-8 pr-3 text-sm"
+                className="is-input !py-2 pl-8"
               />
             </div>
             <select
               value={libTemplate}
               onChange={(e) => setLibTemplate(e.target.value)}
-              className="rounded-md border border-input bg-background px-2 py-2 text-sm"
+              className="is-input !w-auto !py-2 !text-[12px]"
             >
               {templateOptions.map((t) => (
                 <option key={t} value={t}>
@@ -1394,7 +1436,7 @@ function ImageStudioPage() {
             <select
               value={libSort}
               onChange={(e) => setLibSort(e.target.value as any)}
-              className="rounded-md border border-input bg-background px-2 py-2 text-sm"
+              className="is-input !w-auto !py-2 !text-[12px]"
             >
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
@@ -1432,7 +1474,7 @@ function ImageStudioPage() {
               {filteredLibrary.map((img) => (
                 <div
                   key={img.id}
-                  className="group overflow-hidden rounded-xl border border-border bg-background"
+                  className="is-card group !p-0 overflow-hidden"
                 >
                   <div className="aspect-square w-full overflow-hidden bg-muted">
                     <img
@@ -1497,6 +1539,8 @@ function ImageStudioPage() {
         }
         onSelectPhoto={(photo) => applyStockPhoto(photo, stockOpen || "generate")}
       />
+      <Lightbox url={lightbox} onClose={() => setLightbox(null)} />
+
     </div>
   );
 }
