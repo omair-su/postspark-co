@@ -1449,6 +1449,11 @@ function ImageStudioPage() {
                 </>
               )}
             </button>
+            {loading && (
+              <button onClick={cancelJob} className="is-btn-ghost w-full" type="button">
+                <X className="h-3.5 w-3.5" /> Cancel render
+              </button>
+            )}
           </div>
 
           {/* ------------------------------ canvas board --------------------------- */}
@@ -1457,7 +1462,11 @@ function ImageStudioPage() {
               label="Canvas"
               hint={results.length ? `${results.length} render${results.length > 1 ? "s" : ""} on the board` : "Your board is empty — pick a prompt idea below."}
               action={
-                results.length ? (
+                loading ? (
+                  <button onClick={cancelJob} className="is-btn-ghost">
+                    <X className="h-3.5 w-3.5" /> Cancel
+                  </button>
+                ) : results.length ? (
                   <button onClick={() => setResults([])} className="is-btn-ghost">
                     <Trash2 className="h-3.5 w-3.5" /> Clear board
                   </button>
@@ -1465,12 +1474,21 @@ function ImageStudioPage() {
               }
             >
               {loading && <div className="is-rail mb-3" />}
-              {loading ? (
+              {loading && streamPreview ? (
+                <div className={`overflow-hidden rounded-xl border border-border ${aspectClass}`}>
+                  <img
+                    src={streamPreview}
+                    alt="Streaming preview"
+                    className="h-full w-full object-cover blur-xl transition-[filter] duration-500"
+                  />
+                </div>
+              ) : loading ? (
                 <div className={`grid gap-3 ${batch > 1 ? "sm:grid-cols-2" : ""}`}>
                   {Array.from({ length: batch }).map((_, i) => (
                     <TileSkeleton key={i} aspectClass={aspectClass} />
                   ))}
                 </div>
+
               ) : results.length ? (
                 <div className={`grid gap-3 ${results.length > 1 ? "sm:grid-cols-2" : ""}`}>
                   {results.map((url, i) => (
