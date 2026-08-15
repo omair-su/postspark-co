@@ -228,6 +228,8 @@ export const editUploadedImage = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Image editing is a Pro feature. Upgrade to unlock." };
+    if ((await imageQuotaRemaining(userId, plan)) < 1)
+      return { imageUrl: "", error: "LIMIT_REACHED" };
     const res = await editImage(data.imageDataUrl, data.instruction);
     if (res.imageUrl) {
       const persisted = await persistGeneratedImage({
