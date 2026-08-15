@@ -6004,3 +6004,9 @@ html:not(.dark) .dashboard-shell .pod-hero h1 {
   .is-skel, .is-rail::after { animation-duration: 0s !important; }
   .is-tile:hover .is-tile-img { transform: none; }
 }
+
+/* Hero side panels stay opaque so the hero artwork never bleeds through */
+.is-hero-panel, .is-hero-panel > div {
+  background: var(--ds-card, hsl(var(--card))) !important;
+  border-radius: 16px;
+}

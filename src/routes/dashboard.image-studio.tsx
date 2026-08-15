@@ -849,7 +849,7 @@ function ImageStudioPage() {
 
           <div className="flex flex-col items-stretch gap-3 sm:flex-row lg:flex-col lg:items-end">
             {usage && (
-              <div className="min-w-[240px] rounded-2xl border border-border bg-card p-3 shadow-lg">
+              <div className="is-hero-panel min-w-[240px] rounded-2xl border border-border bg-card p-3 shadow-lg">
                 <div className="mb-1.5 flex items-center justify-between text-[11.5px]">
                   <span className="inline-flex items-center gap-1.5 font-semibold">
                     <Zap className="h-3.5 w-3.5 text-primary" /> This month
@@ -865,7 +865,7 @@ function ImageStudioPage() {
                 <p className="mt-1 text-[11px] text-muted-foreground">{usage.remaining} renders remaining</p>
               </div>
             )}
-            <div className="min-w-[240px]">
+            <div className="is-hero-panel min-w-[240px]">
               <ModelHealthBadge />
             </div>
           </div>
