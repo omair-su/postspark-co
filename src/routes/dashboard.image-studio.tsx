@@ -371,9 +371,30 @@ function ImageStudioPage() {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
     const r = currentRecipe();
+    const key = cacheKey(r, count);
+
+    // Instant replay for repeated settings — no AI call, no quota burn.
+    const cached = cacheRef.current.get(key);
+    if (cached?.length) {
+      setResults(cached);
+      setImageUrl(cached[0]);
+      setRecipe(r);
+      setStreamPreview(null);
+      toast.success("Loaded from this session's cache");
+      return;
+    }
+
+    // Supersede any in-flight render so rapid iterations never race.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const job = ++jobRef.current;
+    const stale = () => job !== jobRef.current;
+
     setLoading(true);
     setResults([]);
     setImageUrl("");
+    setStreamPreview(null);
     setStockAttribution(null);
     try {
       const sent = effectivePrompt(r.prompt);
@@ -386,48 +407,88 @@ function ImageStudioPage() {
               instruction: `${sent}. Use the supplied image as a visual reference at roughly ${refStrength}% influence — keep its subject identity, materials and palette, restyle everything else to match the description.`,
             },
             headers: authHeaders,
-          }),
+            signal: controller.signal,
+          } as any),
         );
+        if (stale()) return;
         if ((res.error as string) === "LIMIT_REACHED") return setLimitOpen(true);
         if (res.error) return toast.error(res.error);
         if (!res.imageUrl) return toast.error("No image returned");
         setResults([res.imageUrl]);
         setImageUrl(res.imageUrl);
+        cacheRef.current.set(key, [res.imageUrl]);
       } else if (count === 1) {
-        const res = await withAIProgress(
-          generateImage({
-            data: {
-              prompt: sent,
-              style,
-              aspect,
-              template,
-              model,
-              quality,
-              negativePrompt: r.negativePrompt,
-              originalPrompt: originalPrompt || r.prompt,
+        // Streaming render — progressive previews, cancelable, quota counted
+        // server-side once the final tile is persisted.
+        let streamed: string | null = null;
+        try {
+          const out = await streamImage(
+            "/api/studio-stream",
+            { prompt: sent, style, aspect, template },
+            (frame, isFinal) => {
+              if (stale()) return;
+              if (!isFinal) setStreamPreview(frame);
             },
-            headers: authHeaders,
-          }),
-        );
-        if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
-        if (res.error) return toast.error(res.error);
-        if (!res.imageUrl) return toast.error("No image returned");
-        setResults([res.imageUrl]);
-        setImageUrl(res.imageUrl);
+            { headers: authHeaders, signal: controller.signal },
+          );
+          if (stale()) return;
+          if (out.error === "LIMIT_REACHED") {
+            setLimitOpen(true);
+            return;
+          }
+          streamed = out.imageUrl;
+        } catch (e: any) {
+          if (e?.name === "AbortError" || controller.signal.aborted) return;
+          streamed = null; // fall through to the non-streaming path
+        }
+
+        if (streamed) {
+          setResults([streamed]);
+          setImageUrl(streamed);
+          cacheRef.current.set(key, [streamed]);
+        } else {
+          const res = await withAIProgress(
+            generateImage({
+              data: {
+                prompt: sent,
+                style,
+                aspect,
+                template,
+                model,
+                quality,
+                negativePrompt: r.negativePrompt,
+                originalPrompt: originalPrompt || r.prompt,
+              },
+              headers: authHeaders,
+              signal: controller.signal,
+            } as any),
+          );
+          if (stale()) return;
+          if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
+          if (res.error) return toast.error(res.error);
+          if (!res.imageUrl) return toast.error("No image returned");
+          setResults([res.imageUrl]);
+          setImageUrl(res.imageUrl);
+          cacheRef.current.set(key, [res.imageUrl]);
+        }
       } else {
         const res: any = await withAIProgress(
           generateImageVariations({
             data: { prompt: sent, style, aspect, template, count: count as 2 | 3 | 4, model, quality },
             headers: authHeaders,
-          }),
+            signal: controller.signal,
+          } as any),
         );
+        if (stale()) return;
         if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
         if (res.error) return toast.error(res.error);
         const urls = (res.results || []).map((x: any) => x.imageUrl).filter(Boolean);
         if (!urls.length) return toast.error("No images returned");
         setResults(urls);
         setImageUrl(urls[0]);
+        cacheRef.current.set(key, urls);
       }
+
       if (!seedLocked) setSeed(randomSeed());
       setCaption(null);
       setRecipe(r);
