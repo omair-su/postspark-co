@@ -1,16 +1,12 @@
-import { useLocation } from "@tanstack/react-router";
-
 /**
  * Cinematic view transition wrapper.
- * Keyed on pathname so every route (marketing, tools, features, dashboard,
- * settings, history) re-mounts and plays the same enter timing.
+ *
+ * Intentionally NOT keyed on pathname: keying here remounted the whole routed
+ * tree (including the dashboard shell/sidebar) on every navigation, resetting
+ * state and re-firing server calls. Individual layouts (e.g. DashboardLayout)
+ * key their own inner content wrapper to play the enter animation.
  * Motion is fully disabled under prefers-reduced-motion (see styles.css).
  */
 export function RouteTransition({ children }: { children: React.ReactNode }) {
-  const location = useLocation();
-  return (
-    <div key={location.pathname} className="lux-view">
-      {children}
-    </div>
-  );
+  return <div className="lux-view">{children}</div>;
 }
