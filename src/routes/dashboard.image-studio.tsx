@@ -1024,7 +1024,7 @@ function ImageStudioPage() {
       return libSort === "newest" ? db - da : da - db;
     });
     return arr;
-  }, [library, libQuery, libTemplate, libSort]);
+  }, [library, libQuery, libTemplate, libSort, libStyle, libFavOnly, favorites]);
 
   const templateOptions = useMemo(() => {
     const set = new Set<string>();
