@@ -35,7 +35,7 @@ export const getImageUsage = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
     const used = await countMonthlyGenerations(userId);
-    const limit = (await isPro(plan)) ? PRO_MONTHLY_LIMIT : FREE_MONTHLY_LIMIT;
+    const limit = monthlyImageLimit(plan);
     return { plan, used, limit, remaining: Math.max(0, limit - used) };
   });
 
