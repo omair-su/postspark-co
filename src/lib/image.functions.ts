@@ -132,12 +132,16 @@ export const generateImageVariations = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { results: [], error: "Variations is a Pro feature. Upgrade to unlock." };
+    // Every completed tile counts, so only render as many as the plan allows.
+    const remaining = await imageQuotaRemaining(userId, plan);
+    if (remaining < 1) return { results: [], error: "LIMIT_REACHED" };
+    const wanted = Math.min(data.count, remaining);
     const results = await generateVariations(
       data.prompt,
       data.style,
       data.aspect,
       data.template,
-      data.count,
+      wanted,
       data.model,
       data.quality,
     );
