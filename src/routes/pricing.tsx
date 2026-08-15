@@ -135,7 +135,7 @@ function PricingPage() {
       <Lp4Nav />
       <main>
         <Lp4PageHero
-          label="⚡ Pricing"
+          label="Pricing"
           title="Pricing built for"
           accent="creators & agencies."
           subtitle={`Start free with 3 repurposes a month. Go Pro for unlimited at $${PRICE_PRO_MONTHLY}/mo (or $${PRICE_PRO_ANNUAL_PER_MONTH}/mo annual), or run every client brand on Agency.`}

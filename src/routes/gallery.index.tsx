@@ -77,7 +77,7 @@ type Tab = "community" | "photos" | "videos";
 type StockSource = "all" | "unsplash" | "pexels";
 
 function GalleryPage() {
-  useFadeIn();
+  // no-op: reveal observer wired below once data mounts
 
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -184,6 +184,8 @@ function GalleryPage() {
 
   const touchX = useRef<number | null>(null);
 
+  useFadeIn(`${tab}:${items.length}:${stockPhotos.length}:${stockVideos.length}`);
+
   const totalFormats = new Set(items.flatMap((i) => i.formats)).size;
   const totalViews = items.reduce((a, i) => a + (i.views || 0), 0);
 
@@ -192,7 +194,7 @@ function GalleryPage() {
       <Lp4Nav />
       <main>
         <Lp4PageHero
-          label="✨ Community Gallery"
+          label="Community Gallery"
           title="Real posts,"
           accent="real creators."
           subtitle="Get inspired by content repurposed with PostSpark — then remix any of it into your own brand voice in a single click."
