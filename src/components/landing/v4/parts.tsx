@@ -1,9 +1,16 @@
 import { useEffect } from "react";
 
-/** Reveals every `.fade-in-up` inside the page as it scrolls into view. */
-export function useFadeIn() {
+/**
+ * Reveals every `.fade-in-up` inside the page as it scrolls into view.
+ * Pass a `dep` that changes when new content mounts (async lists) so the
+ * freshly rendered elements get observed too.
+ */
+export function useFadeIn(dep?: unknown) {
   useEffect(() => {
-    const els = Array.from(document.querySelectorAll<HTMLElement>(".lp4 .fade-in-up"));
+    const els = Array.from(
+      document.querySelectorAll<HTMLElement>(".lp4 .fade-in-up:not(.visible)"),
+    );
+
     if (!els.length) return;
     const observer = new IntersectionObserver(
       (entries) =>
