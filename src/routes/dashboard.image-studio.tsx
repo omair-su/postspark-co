@@ -239,6 +239,11 @@ function ImageStudioPage() {
   const [enhancing, setEnhancing] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  // Streaming preview + cancelable jobs + in-session render cache
+  const [streamPreview, setStreamPreview] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const jobRef = useRef(0);
+  const cacheRef = useRef<Map<string, string[]>>(new Map());
   const [imageUrl, setImageUrl] = useState("");
   const [variations, setVariations] = useState<string[]>([]);
   const [originalPrompt, setOriginalPrompt] = useState<string | null>(null);
