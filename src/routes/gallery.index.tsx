@@ -2,14 +2,27 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getGalleryFeed } from "@/lib/gallery.functions";
 import { getPublicStockFeed } from "@/lib/stockMedia.functions";
-import { Sparkles, Eye, ArrowRight, Loader2, Star, User, Image as ImageIcon, Video as VideoIcon, Info } from "lucide-react";
-import { StockAttribution } from "@/components/stock/StockAttribution";
+import {
+  Eye,
+  ArrowRight,
+  Star,
+  User,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  Info,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Play,
+} from "lucide-react";
 import { StockAttributionModal } from "@/components/stock/StockAttributionModal";
-import { NavV3 } from "@/components/landing/v3/NavV3";
-import { FooterV3 } from "@/components/landing/v3/FooterV3";
+import { useFadeIn, delay } from "@/components/landing/v4/parts";
+import { Lp4Nav } from "@/components/landing/v4/SectionsTop";
+import { Lp4Footer, Lp4FinalCta, Lp4StickyCta } from "@/components/landing/v4/SectionsEnd";
+import { Lp4PageHero, Lp4TrustRow } from "@/components/landing/v4/PageHero";
 import type { StockPhoto, StockVideo } from "@/lib/stockMedia.server";
-
-
 
 interface Item {
   id: string;
@@ -26,11 +39,16 @@ interface Item {
 export const Route = createFileRoute("/gallery/")({
   head: () => ({
     meta: [
-      { title: "Public Content Gallery — PostSpark" },
-      { name: "description", content: "Real examples of blog posts, podcasts, and videos repurposed into tweets, LinkedIn posts, and newsletters with PostSpark AI. Get inspired by the community." },
+      { title: "Content Gallery — Real AI Posts by Creators | PostSpark" },
+      {
+        name: "description",
+        content:
+          "Browse real blog posts, podcasts and videos repurposed into tweets, LinkedIn posts and newsletters with PostSpark AI — plus a free premium photo and video library.",
+      },
       { property: "og:title", content: "PostSpark Community Gallery" },
-      { property: "og:description", content: "Browse real AI-repurposed content from creators and agencies." },
+      { property: "og:description", content: "Real AI-repurposed content from creators and agencies, plus free premium stock photos and videos." },
       { property: "og:url", content: "https://postspark.co/gallery" },
+      { property: "og:type", content: "website" },
       { property: "og:image", content: "https://postspark.co/og-image.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "PostSpark Community Gallery" },
@@ -55,15 +73,16 @@ export const Route = createFileRoute("/gallery/")({
   component: GalleryPage,
 });
 
-type StockKind = "photos" | "videos";
+type Tab = "community" | "photos" | "videos";
 type StockSource = "all" | "unsplash" | "pexels";
 
 function GalleryPage() {
+  // no-op: reveal observer wired below once data mounts
+
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Stock feed state
-  const [stockKind, setStockKind] = useState<StockKind>("photos");
+  const [tab, setTab] = useState<Tab>("community");
   const [stockSource, setStockSource] = useState<StockSource>("all");
   const [stockQuery, setStockQuery] = useState("creator content");
   const [queryInput, setQueryInput] = useState("creator content");
@@ -73,11 +92,11 @@ function GalleryPage() {
   const [stockLoading, setStockLoading] = useState(true);
   const [stockHasMore, setStockHasMore] = useState(true);
   const [modalAsset, setModalAsset] = useState<
-    | { kind: "photo"; photo: StockPhoto }
-    | { kind: "video"; video: StockVideo }
-    | null
+    { kind: "photo"; photo: StockPhoto } | { kind: "video"; video: StockVideo } | null
   >(null);
+  const [lightbox, setLightbox] = useState<number | null>(null);
 
+  const stockKind: "photos" | "videos" = tab === "videos" ? "videos" : "photos";
   const stockRequestKey = useRef(0);
   const stockSentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -104,15 +123,15 @@ function GalleryPage() {
         });
         if (key !== stockRequestKey.current) return;
         if (stockKind === "photos") {
-          const items = (res?.photos as StockPhoto[]) || [];
-          setStockPhotos((prev) => (reset ? items : [...prev, ...items]));
+          const list = (res?.photos as StockPhoto[]) || [];
+          setStockPhotos((prev) => (reset ? list : [...prev, ...list]));
           setStockVideos([]);
-          setStockHasMore(items.length > 0);
+          setStockHasMore(list.length > 0);
         } else {
-          const items = (res?.videos as StockVideo[]) || [];
-          setStockVideos((prev) => (reset ? items : [...prev, ...items]));
+          const list = (res?.videos as StockVideo[]) || [];
+          setStockVideos((prev) => (reset ? list : [...prev, ...list]));
           setStockPhotos([]);
-          setStockHasMore(items.length > 0);
+          setStockHasMore(list.length > 0);
         }
         setStockPage(nextPage);
       } catch {
@@ -124,7 +143,6 @@ function GalleryPage() {
     [stockQuery, stockKind, stockSource],
   );
 
-  // Reload when filters/query change
   useEffect(() => {
     setStockPage(1);
     setStockHasMore(true);
@@ -132,10 +150,9 @@ function GalleryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stockQuery, stockKind, stockSource]);
 
-  // Infinite scroll sentinel
   useEffect(() => {
     const el = stockSentinelRef.current;
-    if (!el) return;
+    if (!el || tab === "community") return;
     const obs = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting && !stockLoading && stockHasMore) {
@@ -146,366 +163,429 @@ function GalleryPage() {
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [stockLoading, stockHasMore, stockPage, loadStock]);
+  }, [stockLoading, stockHasMore, stockPage, loadStock, tab]);
 
+  // lightbox keyboard nav
+  const lbCount = stockKind === "photos" ? stockPhotos.length : stockVideos.length;
+  useEffect(() => {
+    if (lightbox === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowRight") setLightbox((i) => (i === null ? i : (i + 1) % lbCount));
+      if (e.key === "ArrowLeft") setLightbox((i) => (i === null ? i : (i - 1 + lbCount) % lbCount));
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [lightbox, lbCount]);
 
+  const touchX = useRef<number | null>(null);
+
+  useFadeIn(`${tab}:${items.length}:${stockPhotos.length}:${stockVideos.length}`);
+
+  const totalFormats = new Set(items.flatMap((i) => i.formats)).size;
+  const totalViews = items.reduce((a, i) => a + (i.views || 0), 0);
 
   return (
-    <div className="min-h-screen lv3-aurora" style={{ color: "#FAFAF9" }}>
-      <NavV3 />
-
+    <div className="lp4 min-h-screen">
+      <Lp4Nav />
       <main>
-        {/* HERO */}
-        <section className="relative overflow-hidden lv3-grain">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 lv3-drift"
-            style={{
-              background:
-                "radial-gradient(40% 30% at 20% 20%, rgba(124,58,237,0.32), transparent 70%), radial-gradient(35% 25% at 80% 30%, rgba(6,182,212,0.24), transparent 70%)",
-            }}
+        <Lp4PageHero
+          label="Community Gallery"
+          title="Real posts,"
+          accent="real creators."
+          subtitle="Get inspired by content repurposed with PostSpark — then remix any of it into your own brand voice in a single click."
+        >
+          <Lp4TrustRow
+            items={[
+              `${items.length || 0}+ shared creations`,
+              `${totalFormats || 9} output formats`,
+              `${totalViews.toLocaleString()} views`,
+              "Free stock library included",
+            ]}
           />
-          <div className="relative mx-auto max-w-5xl px-5 sm:px-8 pt-32 sm:pt-40 pb-12 text-center">
-            <span className="lv3-chip lv3-fade-up">
-              <Sparkles className="h-3.5 w-3.5" style={{ color: "#A78BFA" }} />
-              Community Gallery
-            </span>
-            <h1
-              className="mt-6 font-display-lux text-balance lv3-fade-up"
-              style={{
-                fontSize: "clamp(40px, 6vw, 76px)",
-                lineHeight: 1.03,
-                color: "#FAFAF9",
-                maxWidth: "20ch",
-                marginInline: "auto",
-              }}
-            >
-              Real posts,{" "}
-              <em className="lv3-text-gradient not-italic" style={{ fontStyle: "italic" }}>
-                real creators.
-              </em>
-            </h1>
-            <p
-              className="mx-auto mt-6 max-w-2xl lv3-fade-up"
-              style={{ fontSize: "clamp(16px, 1.3vw, 19px)", lineHeight: 1.6, color: "rgba(250,250,249,0.7)" }}
-            >
-              Get inspired by content repurposed with PostSpark — then remix any of it into your own voice in a click.
-            </p>
-          </div>
-        </section>
+        </Lp4PageHero>
 
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 pb-24">
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#A78BFA" }} />
-            </div>
-          ) : items.length === 0 ? (
-            <div className="rounded-3xl lv3-glass lv3-gradient-border p-16 text-center">
-              <p className="font-display-lux text-xl" style={{ color: "#FAFAF9" }}>
-                No public posts yet.
-              </p>
-              <p className="mt-2 text-sm" style={{ color: "rgba(250,250,249,0.65)" }}>
-                Be the first to share your work with the community.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
-                <Link
-                  key={item.id}
-                  to="/gallery/$slug"
-                  params={{ slug: item.slug }}
-                  className="group flex flex-col rounded-3xl p-6 transition-all"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    backdropFilter: "blur(14px)",
-                  }}
+        {/* STICKY FILTER BAR */}
+        <div
+          className="sticky top-[64px] z-30 px-6 py-4"
+          style={{
+            background: "rgba(255,255,255,0.82)",
+            backdropFilter: "blur(16px)",
+            borderBottom: "1px solid var(--lp-border)",
+          }}
+        >
+          <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-3">
+            <div className="lp4-seg">
+              {([
+                { id: "community", label: "Community", Icon: Sparkles },
+                { id: "photos", label: "Photos", Icon: ImageIcon },
+                { id: "videos", label: "Videos", Icon: VideoIcon },
+              ] as const).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTab(t.id)}
+                  data-active={tab === t.id}
+                  className="lp4-seg-btn"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <h2
-                      className="line-clamp-2 font-display-lux text-lg"
-                      style={{ color: "#FAFAF9", lineHeight: 1.2 }}
-                    >
-                      {item.title}
-                    </h2>
-                    {item.featured && (
-                      <span
-                        className="inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
-                        style={{
-                          background: "rgba(201,168,124,0.15)",
-                          color: "#E2C18A",
-                          border: "1px solid rgba(201,168,124,0.3)",
-                        }}
+                  <t.Icon className="h-4 w-4" /> {t.label}
+                </button>
+              ))}
+            </div>
+
+            {tab !== "community" && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setStockQuery(queryInput.trim() || "creator content");
+                }}
+                className="flex flex-1 flex-wrap items-center justify-end gap-2"
+              >
+                <div className="relative min-w-[180px] flex-1 sm:max-w-[300px]">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: "#9CA3AF" }} />
+                  <input
+                    value={queryInput}
+                    onChange={(e) => setQueryInput(e.target.value)}
+                    placeholder="Search photos & videos…"
+                    aria-label="Search stock media"
+                    className="lp4-input w-full pl-11"
+                  />
+                </div>
+                {tab === "photos" && (
+                  <div className="lp4-seg">
+                    {(["all", "unsplash", "pexels"] as const).map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setStockSource(s)}
+                        data-active={stockSource === s}
+                        className="lp4-seg-btn capitalize"
+                        style={{ padding: "6px 12px", fontSize: 12 }}
                       >
-                        <Star className="h-3 w-3" /> Featured
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    className="mt-3 line-clamp-3 flex-1 text-sm"
-                    style={{ color: "rgba(250,250,249,0.65)", lineHeight: 1.6 }}
-                  >
-                    {item.preview}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {item.formats.slice(0, 4).map((f) => (
-                      <span
-                        key={f}
-                        className="rounded-full px-2 py-0.5 text-[10px] font-medium capitalize"
-                        style={{
-                          background: "rgba(124,58,237,0.12)",
-                          color: "#C4B5FD",
-                          border: "1px solid rgba(124,58,237,0.25)",
-                        }}
-                      >
-                        {f}
-                      </span>
+                        {s === "all" ? "All" : s}
+                      </button>
                     ))}
                   </div>
-                  <div
-                    className="mt-4 flex items-center justify-between text-[11px]"
-                    style={{ color: "rgba(250,250,249,0.55)" }}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      {item.author?.avatar ? (
-                        <img
-                          src={item.author.avatar}
-                          alt=""
-                          className="h-4 w-4 rounded-full object-cover"
-                          style={{ border: "1px solid rgba(255,255,255,0.15)" }}
-                        />
-                      ) : (
-                        <User className="h-3 w-3" />
-                      )}
-                      <span className="truncate max-w-[100px]">{item.author?.name || "Anonymous"}</span>
-                      <span>·</span>
-                      <Eye className="h-3 w-3" /> {item.views}
-                    </span>
-                    <span className="inline-flex items-center gap-1 font-semibold" style={{ color: "#A78BFA" }}>
-                      View <ArrowRight className="h-3 w-3" />
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-
-        {/* Stock inspiration: Unsplash + Pexels photos and Pexels videos */}
-        <section className="mt-16">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2 className="flex items-center gap-2 text-2xl font-bold" style={{ color: "#FAFAF9" }}>
-                <ImageIcon className="h-5 w-5" style={{ color: "#A78BFA" }} /> Stock inspiration
-              </h2>
-              <p className="mt-1 text-sm" style={{ color: "rgba(250,250,249,0.7)" }}>
-                Free premium {stockKind} from{" "}
-                {stockKind === "photos" ? "Unsplash & Pexels" : "Pexels"}. Fully attributed.
-              </p>
-            </div>
-            <Link
-              to="/dashboard/stock-gallery"
-              className="hidden text-xs font-semibold text-primary hover:underline sm:inline"
-            >
-              Open full stock library →
-            </Link>
-          </div>
-
-          {/* Filters */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setStockQuery(queryInput.trim() || "creator content");
-            }}
-            className="mt-4 flex flex-wrap items-center gap-2"
-          >
-            <div className="inline-flex rounded-md border border-border bg-muted p-0.5">
-              <button
-                type="button"
-                onClick={() => setStockKind("photos")}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  stockKind === "photos"
-                    ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <ImageIcon className="h-4 w-4" /> Photos
-              </button>
-              <button
-                type="button"
-                onClick={() => setStockKind("videos")}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  stockKind === "videos"
-                    ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <VideoIcon className="h-4 w-4" /> Videos
-              </button>
-            </div>
-
-            <input
-              value={queryInput}
-              onChange={(e) => setQueryInput(e.target.value)}
-              placeholder="Search photos & videos…"
-              className="min-w-[180px] flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-            />
-
-            {stockKind === "photos" && (
-              <div className="inline-flex rounded-md border border-border bg-muted p-0.5 text-xs">
-                {(["all", "unsplash", "pexels"] as const).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setStockSource(s)}
-                    className={`rounded-md px-2.5 py-1 font-medium capitalize transition-colors ${
-                      stockSource === s
-                        ? "bg-background shadow-sm text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {s === "all" ? "All" : s}
-                  </button>
-                ))}
-              </div>
+                )}
+                <button type="submit" className="lp4-btn-primary px-5 py-2.5" style={{ fontSize: 13, fontWeight: 700 }}>
+                  Search
+                </button>
+              </form>
             )}
-
-            <button
-              type="submit"
-              className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-            >
-              Search
-            </button>
-          </form>
-
-          {/* Grid */}
-          {stockKind === "photos" ? (
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {stockPhotos.map((p, i) => (
-                <div
-                  key={`${p.source}-${p.id}-${i}`}
-                  className="group relative overflow-hidden rounded-xl border border-border bg-card"
-                >
-                  <img
-                    src={p.thumbUrl}
-                    alt={p.alt || `Photo by ${p.photographerName}`}
-                    loading="lazy"
-                    className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-105"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setModalAsset({ kind: "photo", photo: p })}
-                    className="absolute right-2 top-2 rounded-md bg-white/95 p-1.5 text-black opacity-0 shadow transition-opacity group-hover:opacity-100"
-                    aria-label="Attribution & download"
-                  >
-                    <Info className="h-3.5 w-3.5" />
-                  </button>
-                  <StockAttribution photo={p} />
-                </div>
-              ))}
-              {!stockLoading && stockPhotos.length === 0 && (
-                <div className="col-span-full py-10 text-center text-sm text-muted-foreground">
-                  No photos found. Try a different search.
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {stockVideos.map((v, i) => (
-                <div
-                  key={`${v.id}-${i}`}
-                  className="group relative overflow-hidden rounded-xl border border-border bg-black"
-                >
-                  <video
-                    src={v.previewUrl}
-                    poster={v.thumbUrl}
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
-                    onMouseLeave={(e) => {
-                      const el = e.currentTarget as HTMLVideoElement;
-                      el.pause();
-                      el.currentTime = 0;
-                    }}
-                    className="aspect-video w-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setModalAsset({ kind: "video", video: v })}
-                    className="absolute right-2 top-2 rounded-md bg-white/95 p-1.5 text-black opacity-0 shadow transition-opacity group-hover:opacity-100"
-                    aria-label="Attribution & download"
-                  >
-                    <Info className="h-3.5 w-3.5" />
-                  </button>
-                  <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 px-2 py-1.5"
-                    style={{
-                      background:
-                        "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 60%, rgba(0,0,0,0) 100%)",
-                    }}
-                  >
-                    <span className="text-[11px] text-white/90">
-                      Video by{" "}
-                      <a
-                        href={v.photographerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow"
-                        className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
-                      >
-                        {v.photographerName}
-                      </a>{" "}
-                      on{" "}
-                      <a
-                        href="https://www.pexels.com"
-                        target="_blank"
-                        rel="noopener noreferrer nofollow"
-                        className="pointer-events-auto underline decoration-white/40 hover:decoration-white"
-                      >
-                        Pexels
-                      </a>
-                    </span>
-                  </div>
-                </div>
-              ))}
-              {!stockLoading && stockVideos.length === 0 && (
-                <div className="col-span-full py-10 text-center text-sm text-muted-foreground">
-                  No clips found. Try a different search.
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Infinite scroll sentinel + loader */}
-          <div ref={stockSentinelRef} className="h-8" />
-          {stockLoading && (
-            <div className="flex justify-center py-4">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            </div>
-          )}
-          {!stockHasMore && (stockPhotos.length > 0 || stockVideos.length > 0) && (
-            <p className="py-3 text-center text-xs text-muted-foreground">
-              You've reached the end.
-            </p>
-          )}
-        </section>
+          </div>
         </div>
 
-        <FooterV3 />
+        {/* CONTENT */}
+        <section className="px-6 py-12 sm:py-16" style={{ background: "#FFFFFF" }}>
+          <div className="mx-auto max-w-[1180px]">
+            {tab === "community" ? (
+              loading ? (
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="lp4-skel h-[220px]" />
+                  ))}
+                </div>
+              ) : items.length === 0 ? (
+                <div className="lp4-card mx-auto max-w-[520px] p-12 text-center">
+                  <span className="inline-grid h-14 w-14 place-items-center rounded-2xl" style={{ background: "#F5F3FF", color: "#7C3AED" }}>
+                    <Sparkles className="h-6 w-6" />
+                  </span>
+                  <p className="mt-5" style={{ fontSize: 20, fontWeight: 700, color: "#0F0F1A" }}>
+                    No public posts yet.
+                  </p>
+                  <p className="mt-2" style={{ fontSize: 14, color: "#6B7280" }}>
+                    Be the first to share your work with the community.
+                  </p>
+                  <Link to="/signup" className="lp4-btn-primary mt-6 inline-flex px-6 py-3" style={{ fontSize: 14, fontWeight: 700 }}>
+                    Create your first pack
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map((item, i) => (
+                    <Link
+                      key={item.id}
+                      to="/gallery/$slug"
+                      params={{ slug: item.slug }}
+                      className="lp4-card fade-in-up group flex flex-col p-6"
+                      style={{
+                        ...delay(Math.min(i, 8) * 60),
+                        ...(item.featured ? { borderColor: "var(--lp-border-purple)", boxShadow: "0 10px 34px rgba(124,58,237,.14)" } : null),
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <h2 className="line-clamp-2" style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.01em", color: "#0F0F1A", lineHeight: 1.3 }}>
+                          {item.title}
+                        </h2>
+                        {item.featured && (
+                          <span
+                            className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5"
+                            style={{ background: "#FFF7E6", color: "#B4884A", border: "1px solid #F0DCB4", fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".08em" }}
+                          >
+                            <Star className="h-3 w-3" /> Featured
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-3 line-clamp-3 flex-1" style={{ fontSize: 14, lineHeight: 1.65, color: "#6B7280" }}>
+                        {item.preview}
+                      </p>
+                      <div className="mt-4 flex flex-wrap gap-1.5">
+                        {item.formats.slice(0, 4).map((f) => (
+                          <span
+                            key={f}
+                            className="rounded-full px-2.5 py-1 capitalize"
+                            style={{ background: "#F5F3FF", color: "#7C3AED", border: "1px solid var(--lp-border-purple)", fontSize: 11, fontWeight: 600 }}
+                          >
+                            {f}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-5 flex items-center justify-between" style={{ fontSize: 12, color: "#9CA3AF" }}>
+                        <span className="flex items-center gap-1.5">
+                          {item.author?.avatar ? (
+                            <img src={item.author.avatar} alt="" className="h-5 w-5 rounded-full object-cover" style={{ border: "1px solid var(--lp-border)" }} />
+                          ) : (
+                            <User className="h-3.5 w-3.5" />
+                          )}
+                          <span className="max-w-[110px] truncate">{item.author?.name || "Anonymous"}</span>
+                          <span>·</span>
+                          <Eye className="h-3.5 w-3.5" /> {item.views}
+                        </span>
+                        <span className="inline-flex items-center gap-1 transition-transform group-hover:translate-x-0.5" style={{ color: "#7C3AED", fontSize: 12, fontWeight: 700 }}>
+                          View <ArrowRight className="h-3.5 w-3.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )
+            ) : (
+              <>
+                <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <h2 style={{ fontSize: "clamp(22px,3vw,32px)", fontWeight: 800, letterSpacing: "-0.02em", color: "#0F0F1A" }}>
+                      {tab === "photos" ? "Free premium photos" : "Free premium video clips"}
+                    </h2>
+                    <p className="mt-1" style={{ fontSize: 14, color: "#6B7280" }}>
+                      From {tab === "photos" ? "Unsplash & Pexels" : "Pexels"} — every asset fully attributed. Tap any tile to preview.
+                    </p>
+                  </div>
+                  <Link to="/dashboard/stock-gallery" style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED" }}>
+                    Open full stock library →
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {tab === "photos"
+                    ? stockPhotos.map((p, i) => (
+                        <button
+                          key={`${p.source}-${p.id}-${i}`}
+                          type="button"
+                          onClick={() => setLightbox(i)}
+                          className="lp4-tile group aspect-[4/5] w-full text-left sm:aspect-[4/3]"
+                          style={{ animationDelay: `${Math.min(i, 10) * 45}ms` }}
+                          aria-label={p.alt || `Photo by ${p.photographerName}`}
+                        >
+                          <img
+                            src={p.thumbUrl}
+                            alt={p.alt || `Photo by ${p.photographerName}`}
+                            loading="lazy"
+                            decoding="async"
+                            className="lp4-tile-media absolute inset-0"
+                          />
+                          <span className="lp4-tile-scrim">
+                            <span className="block truncate" style={{ fontWeight: 600 }}>
+                              {p.photographerName}
+                            </span>
+                            <span className="capitalize opacity-70">{p.source}</span>
+                          </span>
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalAsset({ kind: "photo", photo: p });
+                            }}
+                            className="absolute right-3 top-3 inline-grid h-8 w-8 place-items-center rounded-full opacity-0 transition-opacity group-hover:opacity-100"
+                            style={{ background: "rgba(255,255,255,.95)", color: "#0F0F1A" }}
+                            aria-hidden
+                          >
+                            <Info className="h-4 w-4" />
+                          </span>
+                        </button>
+                      ))
+                    : stockVideos.map((v, i) => (
+                        <button
+                          key={`${v.id}-${i}`}
+                          type="button"
+                          onClick={() => setLightbox(i)}
+                          className="lp4-tile group aspect-[4/5] w-full text-left sm:aspect-video"
+                          style={{ animationDelay: `${Math.min(i, 10) * 45}ms`, background: "#0F0921" }}
+                          aria-label={`Video by ${v.photographerName}`}
+                        >
+                          <video
+                            src={v.previewUrl}
+                            poster={v.thumbUrl}
+                            muted
+                            loop
+                            playsInline
+                            preload="metadata"
+                            onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
+                            onMouseLeave={(e) => {
+                              const el = e.currentTarget as HTMLVideoElement;
+                              el.pause();
+                              el.currentTime = 0;
+                            }}
+                            className="lp4-tile-media absolute inset-0"
+                          />
+                          <span
+                            className="absolute left-1/2 top-1/2 inline-grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full"
+                            style={{ background: "rgba(255,255,255,.9)", color: "#0F0F1A" }}
+                            aria-hidden
+                          >
+                            <Play className="h-5 w-5" />
+                          </span>
+                          <span className="lp4-tile-scrim">
+                            <span className="block truncate" style={{ fontWeight: 600 }}>
+                              {v.photographerName}
+                            </span>
+                            <span className="opacity-70">Pexels</span>
+                          </span>
+                        </button>
+                      ))}
+
+                  {stockLoading &&
+                    Array.from({ length: 8 }).map((_, i) => (
+                      <div key={`sk-${i}`} className="lp4-skel aspect-[4/5] w-full sm:aspect-[4/3]" />
+                    ))}
+                </div>
+
+                {!stockLoading &&
+                  ((tab === "photos" && stockPhotos.length === 0) || (tab === "videos" && stockVideos.length === 0)) && (
+                    <div className="lp4-card mx-auto mt-8 max-w-[480px] p-10 text-center">
+                      <p style={{ fontSize: 16, fontWeight: 700, color: "#0F0F1A" }}>Nothing found for "{stockQuery}"</p>
+                      <p className="mt-2" style={{ fontSize: 14, color: "#6B7280" }}>
+                        Try a broader search like "startup", "desk" or "city".
+                      </p>
+                    </div>
+                  )}
+
+                <div ref={stockSentinelRef} className="h-8" />
+                {!stockHasMore && (stockPhotos.length > 0 || stockVideos.length > 0) && (
+                  <p className="py-4 text-center" style={{ fontSize: 12, color: "#9CA3AF" }}>
+                    You've reached the end.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+
+        <Lp4FinalCta />
       </main>
+      <Lp4Footer />
+      <Lp4StickyCta />
 
-      {modalAsset && (
-        <StockAttributionModal
-          open
-          onClose={() => setModalAsset(null)}
-          asset={modalAsset}
-        />
+      {/* LIGHTBOX */}
+      {lightbox !== null && lbCount > 0 && (
+        <div
+          className="lp4-lb"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setLightbox(null)}
+          onTouchStart={(e) => {
+            touchX.current = e.touches[0]?.clientX ?? null;
+          }}
+          onTouchEnd={(e) => {
+            const start = touchX.current;
+            const end = e.changedTouches[0]?.clientX ?? null;
+            if (start === null || end === null) return;
+            const dx = end - start;
+            if (Math.abs(dx) > 48) {
+              setLightbox((i) => (i === null ? i : (i + (dx < 0 ? 1 : -1) + lbCount) % lbCount));
+            }
+            touchX.current = null;
+          }}
+        >
+          <button type="button" className="lp4-lb-btn absolute right-4 top-4" onClick={() => setLightbox(null)} aria-label="Close preview">
+            <X className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            className="lp4-lb-btn absolute left-3 top-1/2 -translate-y-1/2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox((i) => (i === null ? i : (i - 1 + lbCount) % lbCount));
+            }}
+            aria-label="Previous"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            className="lp4-lb-btn absolute right-3 top-1/2 -translate-y-1/2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox((i) => (i === null ? i : (i + 1) % lbCount));
+            }}
+            aria-label="Next"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+
+          <div className="lp4-lb-frame" onClick={(e) => e.stopPropagation()}>
+            {stockKind === "photos"
+              ? (() => {
+                  const p = stockPhotos[lightbox];
+                  if (!p) return null;
+                  return (
+                    <>
+                      <img src={p.fullUrl || p.thumbUrl} alt={p.alt || `Photo by ${p.photographerName}`} style={{ maxHeight: "80vh", display: "block", width: "100%", objectFit: "contain", background: "#0F0921" }} />
+                      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4" style={{ background: "#0F0921" }}>
+                        <span style={{ fontSize: 13, color: "rgba(255,255,255,.8)" }}>
+                          Photo by <strong>{p.photographerName}</strong> on <span className="capitalize">{p.source}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setModalAsset({ kind: "photo", photo: p })}
+                          className="lp4-btn-primary px-4 py-2"
+                          style={{ fontSize: 13, fontWeight: 700 }}
+                        >
+                          Attribution & download
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()
+              : (() => {
+                  const v = stockVideos[lightbox];
+                  if (!v) return null;
+                  return (
+                    <>
+                      <video src={v.previewUrl} poster={v.thumbUrl} controls autoPlay loop muted playsInline style={{ maxHeight: "80vh", display: "block", width: "100%", background: "#0F0921" }} />
+                      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4" style={{ background: "#0F0921" }}>
+                        <span style={{ fontSize: 13, color: "rgba(255,255,255,.8)" }}>
+                          Video by <strong>{v.photographerName}</strong> on Pexels
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setModalAsset({ kind: "video", video: v })}
+                          className="lp4-btn-primary px-4 py-2"
+                          style={{ fontSize: 13, fontWeight: 700 }}
+                        >
+                          Attribution & download
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()}
+          </div>
+        </div>
       )}
-    </div>
 
+      {modalAsset && <StockAttributionModal open onClose={() => setModalAsset(null)} asset={modalAsset} />}
+    </div>
   );
 }
