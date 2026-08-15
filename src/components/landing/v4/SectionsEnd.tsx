@@ -72,7 +72,7 @@ const PLANS: Plan[] = [
 const PLAN_PLATFORMS: Record<string, number> = { Free: 3, Pro: 9, Agency: 9 };
 
 const COMPARE_ROWS: { label: string; free: string; pro: string; agency: string }[] = [
-  { label: "Content generations / month", free: "10", pro: "Unlimited", agency: "Unlimited" },
+  { label: "Content generations / month", free: "3", pro: "Unlimited", agency: "Unlimited" },
   { label: "Publishing platforms", free: "3", pro: "9", agency: "9" },
   { label: "Studios included", free: "3", pro: "All 9", agency: "All 9" },
   { label: "Brand Kit + Brand Voice", free: "–", pro: "✓", agency: "✓ Multi-brand" },
