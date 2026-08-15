@@ -26,6 +26,7 @@ import {
   Star,
   Info,
   CheckSquare,
+  X,
 } from "lucide-react";
 import { drawWatermarkOnCanvas, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
 import {
