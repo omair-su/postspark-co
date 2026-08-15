@@ -17,6 +17,8 @@ import {
   Trash2,
   Lock,
   Unlock,
+  Brush,
+  ArrowUpRightSquare,
 } from "lucide-react";
 
 /* ---------------------------------- shell --------------------------------- */
@@ -286,6 +288,9 @@ export function ImageTile({
   onEdit,
   onOpen,
   onCopyRecipe,
+  onUpscale,
+  onInpaint,
+  onDelete,
   footer,
 }: {
   url: string;
@@ -298,6 +303,9 @@ export function ImageTile({
   onEdit?: () => void;
   onOpen?: () => void;
   onCopyRecipe?: () => void;
+  onUpscale?: () => void;
+  onInpaint?: () => void;
+  onDelete?: () => void;
   footer?: ReactNode;
 }) {
   const actions: { icon: any; label: string; fn?: () => void }[] = [
@@ -305,9 +313,12 @@ export function ImageTile({
     { icon: Download, label: "Download", fn: onDownload },
     { icon: Save, label: "Save", fn: onSave },
     { icon: Wand2, label: "Variations", fn: onVary },
+    { icon: ArrowUpRightSquare, label: "Upscale 2x", fn: onUpscale },
+    { icon: Brush, label: "Inpaint", fn: onInpaint },
     { icon: RefreshCw, label: "Remix", fn: onRemix },
     { icon: Sparkles, label: "Edit", fn: onEdit },
     { icon: Copy, label: "Copy recipe", fn: onCopyRecipe },
+    { icon: Trash2, label: "Remove from board", fn: onDelete },
   ].filter((a) => !!a.fn);
 
   return (
