@@ -84,6 +84,7 @@ import {
   type FeaturedRecipe,
 } from "@/components/image/studio/StudioPro";
 import { EXPORT_PACK, resizeCover, padToAspect, compositeLogo, randomSeed, type ExportSize } from "@/lib/studioCanvas";
+import { streamImage } from "@/lib/streamImage";
 import { getBrandKit } from "@/lib/brandKit.functions";
 
 
