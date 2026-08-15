@@ -24,7 +24,7 @@ export function useFadeIn(dep?: unknown) {
     );
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [dep]);
 }
 
 export function delay(ms: number) {
