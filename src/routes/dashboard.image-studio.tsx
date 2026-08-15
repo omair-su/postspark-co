@@ -496,11 +496,16 @@ function ImageStudioPage() {
       pushHistory(r.prompt);
       toast.success(count === 1 ? "Image ready" : `${count} images ready`);
       refreshUsage();
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.name === "AbortError" || controller.signal.aborted) return;
       console.error(e);
       toast.error("Generation failed");
     } finally {
-      setLoading(false);
+      if (!stale()) {
+        setLoading(false);
+        setStreamPreview(null);
+        if (abortRef.current === controller) abortRef.current = null;
+      }
     }
   };
 
