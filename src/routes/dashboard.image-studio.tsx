@@ -1976,6 +1976,9 @@ function ImageStudioPage() {
             toast.success("Set as reference");
           }}
         />
+      )}
+
+
 
     </div>
   );
