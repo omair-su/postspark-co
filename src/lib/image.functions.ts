@@ -13,13 +13,20 @@ import {
   upscaleImage as upscaleImageServer,
   enhanceImagePrompt,
 } from "@/lib/image.server";
-import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
+import {
+  persistGeneratedImage,
+  logToHistory,
+  checkRepurposeQuota,
+  imageQuotaRemaining,
+  countMonthlyGenerations,
+  monthlyImageLimit,
+  getPlanFor as getPlan,
+  isProPlan as isPro,
+} from "@/lib/imageQuota.server";
 
 const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
 const QUALITY = z.enum(["standard", "hd"]).default("standard");
 
-const getPlan = getPlanFor;
-const isPro = async (plan: string) => isProPlan(plan);
 
 
 export const getImageUsage = createServerFn({ method: "GET" })
