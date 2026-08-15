@@ -57,8 +57,8 @@ const REPLICATE_ASPECT: Record<string, string> = {
 
 const OPENAI_SIZE: Record<string, string> = {
   square: "1024x1024",
-  portrait: "1024x1792",
-  landscape: "1792x1024",
+  portrait: "1024x1536",
+  landscape: "1536x1024",
 };
 
 // OpenAI gpt-image-2 (text-perfect image generation). Falls back to
