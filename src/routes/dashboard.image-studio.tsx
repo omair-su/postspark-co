@@ -338,6 +338,30 @@ function ImageStudioPage() {
     template,
   });
 
+  /** Stable cache key for a render request — identical settings replay instantly. */
+  const cacheKey = (r: Recipe, count: number) =>
+    JSON.stringify([
+      effectivePrompt(r.prompt),
+      r.negativePrompt || "",
+      r.style,
+      r.aspect,
+      r.model,
+      r.quality,
+      r.template || "",
+      count,
+      referenceUrl ? `ref:${refStrength}:${referenceUrl.slice(-40)}` : "",
+    ]);
+
+  /** Cancel the in-flight render (streaming or RPC) without burning quota. */
+  const cancelJob = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    jobRef.current += 1;
+    setLoading(false);
+    setStreamPreview(null);
+    toast.message("Render canceled");
+  };
+
   const handleBatch = async (count = batch) => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
