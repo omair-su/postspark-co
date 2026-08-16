@@ -246,6 +246,9 @@ function ImageStudioPage() {
   const abortRef = useRef<AbortController | null>(null);
   const jobRef = useRef(0);
   const cacheRef = useRef<Map<string, string[]>>(new Map());
+  /** URLs the server already persisted (streamed tiles) — never re-upload these. */
+  const autoSavedRef = useRef<Set<string>>(new Set());
+
   const [imageUrl, setImageUrl] = useState("");
   const [variations, setVariations] = useState<string[]>([]);
   const [originalPrompt, setOriginalPrompt] = useState<string | null>(null);
