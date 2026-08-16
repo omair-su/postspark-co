@@ -646,13 +646,73 @@ function RepurposePage() {
         {sourceTab === "youtube" && (
           <>
             <UrlFetchRow
-              value={urlInput} onChange={setUrlInput}
+              value={urlInput}
+              onChange={(v) => { setUrlInput(v); setYtStatus("idle"); }}
               placeholder="▶ youtube.com/watch?v=…"
-              busy={urlBusy} onFetch={() => handleFetchUrl(urlInput)}
+              busy={urlBusy} onFetch={() => handleFetchUrl(urlInput, true)}
+              busyLabel="Fetching transcript…"
             />
-            <p className="mt-2 text-xs text-muted-foreground">AI extracts transcript and key ideas automatically.</p>
+
+            {ytStatus === "loading" && (
+              <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Fetching transcript…
+              </p>
+            )}
+            {ytStatus === "transcript" && (
+              <p className="mt-2 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400">
+                ✓ Transcript loaded ({ytWords.toLocaleString()} words)
+              </p>
+            )}
+            {ytStatus === "metadata" && (
+              <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[13px] text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+                ⚠ No transcript found — repurposing from title &amp; description only. Results may be less specific.
+              </div>
+            )}
+            {ytStatus === "failed" && (
+              <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3 text-[13px] text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+                ✗ Could not fetch this video. Try pasting the transcript manually.
+              </div>
+            )}
+            {ytStatus === "idle" && (
+              <p className="mt-2 text-xs text-muted-foreground">AI extracts transcript and key ideas automatically.</p>
+            )}
+
+            <div className="mt-3 rounded-xl border border-border bg-muted/30 p-3">
+              <button
+                type="button"
+                onClick={() => setYtManualOpen((o) => !o)}
+                className="flex w-full items-center justify-between gap-2 text-left text-xs font-semibold text-foreground"
+              >
+                <span>Can't fetch transcript? Paste it here →</span>
+                <span className="text-muted-foreground">{ytManualOpen ? "−" : "+"}</span>
+              </button>
+              {ytManualOpen && (
+                <div className="mt-3 space-y-2">
+                  <textarea
+                    value={ytManualText}
+                    onChange={(e) => setYtManualText(e.target.value)}
+                    rows={6}
+                    placeholder="Paste the video transcript here (works for private, age-restricted, or caption-less videos)…"
+                    className="w-full resize-y rounded-lg border-[1.5px] border-input bg-background p-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] text-muted-foreground">
+                      {ytManualText.trim() ? `${ytManualText.trim().split(/\s+/).filter(Boolean).length.toLocaleString()} words` : "Tip: open the video → ••• → Show transcript"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={useManualTranscript}
+                      className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-violet-500 px-4 py-2 text-xs font-bold text-primary-foreground shadow hover:opacity-90"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" /> Use this transcript
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         )}
+
         {(sourceTab === "pdf" || sourceTab === "voice") && (
           <div className="mt-3">
             <ImportInputPanel
