@@ -246,6 +246,9 @@ function ImageStudioPage() {
   const abortRef = useRef<AbortController | null>(null);
   const jobRef = useRef(0);
   const cacheRef = useRef<Map<string, string[]>>(new Map());
+  /** URLs the server already persisted (streamed tiles) — never re-upload these. */
+  const autoSavedRef = useRef<Set<string>>(new Set());
+
   const [imageUrl, setImageUrl] = useState("");
   const [variations, setVariations] = useState<string[]>([]);
   const [originalPrompt, setOriginalPrompt] = useState<string | null>(null);
@@ -445,10 +448,17 @@ function ImageStudioPage() {
         }
 
         if (streamed) {
+          // The streaming route already persisted this tile to the library and
+          // counted it once — mark it so Save never re-uploads it.
+          autoSavedRef.current.add(streamed);
           setResults([streamed]);
           setImageUrl(streamed);
           cacheRef.current.set(key, [streamed]);
+          loadLibrary();
+          refreshUsage();
+          toast.success("Saved to your library");
         } else {
+
           const res = await withAIProgress(
             generateImage({
               data: {
@@ -1049,12 +1059,14 @@ function ImageStudioPage() {
   };
 
   const save = async (url: string, src = "generate", overridePrompt?: string) => {
-    if (!url.startsWith("data:")) {
-      // Server already auto-persists generated images. Refresh library so it shows up.
+    if (!url.startsWith("data:") || autoSavedRef.current.has(url)) {
+      // Server already auto-persists generated images (including streamed tiles).
+      // Refresh library so it shows up — never re-upload, that would burn a credit.
       loadLibrary();
       toast.success("Saved to your library");
       return;
     }
+
     let finalUrl = url;
     if (watermarkOn && watermarkText.trim()) {
       try {
