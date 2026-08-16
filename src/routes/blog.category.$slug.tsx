@@ -25,6 +25,10 @@ export const Route = createFileRoute("/blog/category/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:url", content: url },
+        { property: "og:image", content: "https://postspark.co/og-image.png" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:image", content: "https://postspark.co/og-image.png" },
       ],
       links: [{ rel: "canonical", href: url }],
     };
