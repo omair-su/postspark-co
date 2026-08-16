@@ -138,8 +138,27 @@ export function YoutubeToBlogExample() {
               </div>
             ))}
           </dl>
+
+          <div className="mt-12 rounded-3xl p-8 lv3-glass text-center">
+            <h3 className="font-display-lux text-2xl" style={{ color: "#FAFAF9" }}>
+              Turn your next YouTube video into a publish-ready article
+            </h3>
+            <p className="mx-auto mt-3 max-w-2xl text-sm" style={{ color: "rgba(250,250,249,0.7)", lineHeight: 1.7 }}>
+              Paste a link, get an SEO-structured draft with title, meta description, H2 outline, FAQ and pull
+              quotes — ready to paste into WordPress, Webflow, Ghost or Notion. 3 free articles every month, no
+              credit card, no watermark.
+            </p>
+            <a
+              href="/signup"
+              className="mt-6 inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold"
+              style={{ background: "#FAFAF9", color: "#0B0B0F" }}
+            >
+              Convert my first video free
+            </a>
+          </div>
         </div>
       </section>
+
 
       {/* Tool-specific FAQ (mirrors FAQPage JSON-LD) */}
       <section className="relative py-20">
