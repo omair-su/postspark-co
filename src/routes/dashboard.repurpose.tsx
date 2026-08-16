@@ -314,22 +314,57 @@ function RepurposePage() {
     });
   };
 
-  const handleFetchUrl = async (url: string) => {
+  const handleFetchUrl = async (url: string, isYouTube = false) => {
     if (!session) return toast.error("Please sign in");
     if (!url.trim()) return toast.error("Paste a URL");
     setUrlBusy(true);
+    if (isYouTube) { setYtStatus("loading"); setYtWords(0); }
     try {
       const res = await importFromUrl({
         data: { url: url.trim() },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if (res.error || !res.text) { toast.error(res.error || "Couldn't fetch that URL"); return; }
+      if (res.error || !res.text) {
+        if (isYouTube) { setYtStatus("failed"); setYtManualOpen(true); }
+        toast.error(res.error || "Couldn't fetch that URL");
+        return;
+      }
       setInputText(res.text);
       setImportMeta(res.title ? `From: ${res.title}` : `From: ${url}`);
+      if (isYouTube) {
+        const kind = res.kind === "metadata" ? "metadata" : "transcript";
+        setYtStatus(kind);
+        setYtWords(res.words || 0);
+        if (kind === "metadata") {
+          setYtManualOpen(true);
+          toast.warning("No transcript found — using title & channel only");
+          return;
+        }
+        toast.success(`Transcript loaded (${res.words || 0} words)`);
+        setSourceTab("text");
+        return;
+      }
       setSourceTab("text");
       toast.success("Content loaded");
+    } catch (e: any) {
+      if (isYouTube) { setYtStatus("failed"); setYtManualOpen(true); }
+      toast.error(e?.message || "Couldn't fetch that URL");
     } finally { setUrlBusy(false); }
   };
+
+  const useManualTranscript = () => {
+    const t = ytManualText.trim();
+    if (t.length < 50) return toast.error("Paste a bit more of the transcript");
+    setInputText(
+      `Video source: ${urlInput.trim() || "(pasted manually)"}\n\nTranscript:\n${t}`,
+    );
+    setImportMeta(urlInput.trim() ? `From: ${urlInput.trim()}` : "Pasted transcript");
+    setYtStatus("transcript");
+    setYtWords(t.split(/\s+/).filter(Boolean).length);
+    setSourceTab("text");
+    toast.success("Transcript added");
+  };
+
 
   const handleGenerate = async () => {
     if (!session) return toast.error("Please sign in");
