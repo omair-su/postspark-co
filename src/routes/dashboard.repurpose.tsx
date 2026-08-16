@@ -1201,8 +1201,9 @@ function StepCard({ step, title, icon, children }: { step: string; title: string
 
 
 
-function UrlFetchRow({ value, onChange, placeholder, busy, onFetch }: {
-  value: string; onChange: (v: string) => void; placeholder: string; busy: boolean; onFetch: () => void;
+function UrlFetchRow({ value, onChange, placeholder, busy, onFetch, busyLabel }: {
+  value: string; onChange: (v: string) => void; placeholder: string; busy: boolean; onFetch: () => void; busyLabel?: string;
+
 }) {
   return (
     <div className="mt-3 flex flex-col gap-2 sm:flex-row">
