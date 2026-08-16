@@ -133,20 +133,25 @@ export function PackQueue({
 
       if (row.platform === "threads") {
         const chain = row.chain?.length ? row.chain : [row.text];
-        let last: any;
+        let parentId: string | undefined;
+        let firstUrl: string | undefined;
         for (const post of chain) {
-          last = await publishToThreads({
+          const r: any = await publishToThreads({
             data: {
               text: post.slice(0, PLATFORM_LIMITS.threads),
               ...(media ? { mediaUrl: media, mediaType: isVideo ? "VIDEO" : "IMAGE" } : { mediaType: "TEXT" }),
-              ...(last?.postId ? { replyToId: last.postId } : {}),
+              ...(parentId ? { replyToId: parentId } : {}),
             },
             ...authHeaders,
           } as any);
-          if (last?.error) return { ok: false, message: last.error };
+          if (r?.error) return { ok: false, message: r.error };
+          // Response exposes the new post id as threadId/id — chain off it.
+          parentId = r?.threadId || r?.id || parentId;
+          if (!firstUrl) firstUrl = r?.url || r?.permalink;
         }
-        return { ok: true, ...(last?.url ? { url: last.url } : {}) };
+        return { ok: true, ...(firstUrl ? { url: firstUrl } : {}) };
       }
+
 
       if (row.platform === "linkedin") {
         const r: any = await publishToLinkedIn({
