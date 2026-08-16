@@ -9,7 +9,16 @@ export const Route = createFileRoute("/templates/gallery")({
     meta: [
       { title: "Template Marketplace · PostSpark" },
       { name: "description", content: "Browse 30+ ready-to-use templates from the PostSpark team and community. Import any template into your workspace in one click." },
+      { property: "og:title", content: "Template Marketplace · PostSpark" },
+      { property: "og:description", content: "Browse 30+ ready-to-use content repurposing templates. Import any template into your workspace in one click." },
+      { property: "og:url", content: "https://postspark.co/templates/gallery" },
+      { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://postspark.co/og-image.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:image", content: "https://postspark.co/og-image.png" },
     ],
+    links: [{ rel: "canonical", href: "https://postspark.co/templates/gallery" }],
   }),
 });
 

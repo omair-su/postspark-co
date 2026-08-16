@@ -4,8 +4,8 @@ import { YoutubeToBlogExample, YT_TO_BLOG_FAQS } from "@/components/tools/Youtub
 
 export const Route = createFileRoute("/tools/youtube-to-blog")({
   head: () => segmentHead({
-    title: "YouTube to Blog Post in 60 Seconds — Free AI Tool",
-    desc: "Paste a YouTube link and get a publish-ready SEO article — not a raw transcript. AI rewrites it with a keyword title, H2 outline, FAQ and pull quotes. Free.",
+    title: "YouTube to Article AI — Publish-Ready Blog Post, Free",
+    desc: "Free YouTube to article AI: paste a link, get a publish-ready blog post — keyword title, meta, H2 outline, FAQ and pull quotes. Not a raw transcript. No card.",
     url: "https://postspark.co/tools/youtube-to-blog",
     path: "/tools/youtube-to-blog",
     faq: YT_TO_BLOG_FAQS,

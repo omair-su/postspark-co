@@ -408,6 +408,8 @@ export function segmentHead(opts: {
     });
   }
 
+  const OG_IMAGE = "https://postspark.co/og-image.png";
+
   return {
     meta: [
       { title: opts.title },
@@ -416,6 +418,13 @@ export function segmentHead(opts: {
       { property: "og:description", content: opts.desc },
       { property: "og:url", content: opts.url },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: opts.title },
+      { name: "twitter:description", content: opts.desc },
+      { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
       { rel: "canonical", href: opts.url },
