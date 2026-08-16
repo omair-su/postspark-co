@@ -77,8 +77,9 @@ async function callOpenAIImage(
 
   for (const model of models) {
     try {
+      // gpt-image generations regularly run past a minute at 1024x1536/HD.
       const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 55_000);
+      const t = setTimeout(() => ctrl.abort(), 170_000);
       const res = await fetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
         signal: ctrl.signal,
@@ -110,11 +111,20 @@ async function callOpenAIImage(
       lastErr = "OpenAI returned no image";
     } catch (err: any) {
       console.error(`OpenAI ${model} request error:`, err?.message || err);
+      // A timeout/abort means the request budget is spent — retrying the
+      // fallback model just burns the rest of it and fails again.
+      if (err?.name === "AbortError" || /abort/i.test(String(err?.message || err))) {
+        return {
+          imageUrl: "",
+          error: "Image generation took too long. Try again, or switch model/lower quality.",
+        };
+      }
       lastErr = "Failed to reach OpenAI";
     }
   }
   return { imageUrl: "", error: lastErr };
 }
+
 
 // Replicate Flux 1.1 Pro — premium photorealistic generation.
 // Worker-friendly async pattern: create prediction (returns instantly with an ID),
