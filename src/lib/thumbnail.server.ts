@@ -89,15 +89,15 @@ export async function buildThumbnailConcept(input: {
   if (input.mode === "youtube") {
     if (!input.url) return { ...empty(), error: "Paste a YouTube URL first." };
     const res = await scrapeUrl(input.url);
-    if (res.error && !res.content) return { ...empty(), error: res.error };
+    if (res.error && !res.text) return { ...empty(), error: res.error };
     sourceTitle = res.title;
-    words = res.content ? res.content.trim().split(/\s+/).length : 0;
+    words = res.words ?? (res.text ? res.text.trim().split(/\s+/).length : 0);
     if ((words ?? 0) < 60) {
       notice = "No transcript available — working from the video title only.";
     }
     brief = [
       `Video title: ${res.title || "(unknown)"}`,
-      res.content ? `Transcript excerpt:\n${res.content.slice(0, 6000)}` : "",
+      res.text ? `Transcript excerpt:\n${res.text.slice(0, 6000)}` : "",
     ]
       .filter(Boolean)
       .join("\n\n");
