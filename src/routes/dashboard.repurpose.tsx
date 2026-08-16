@@ -137,6 +137,12 @@ function RepurposePage() {
   const [importMeta, setImportMeta] = useState("");
   const [urlInput, setUrlInput] = useState("");
   const [urlBusy, setUrlBusy] = useState(false);
+  // YouTube transcript fetch status
+  const [ytStatus, setYtStatus] = useState<"idle"|"loading"|"transcript"|"metadata"|"failed">("idle");
+  const [ytWords, setYtWords] = useState(0);
+  const [ytManualOpen, setYtManualOpen] = useState(false);
+  const [ytManualText, setYtManualText] = useState("");
+
 
   // Format selection
   const [picks, setPicks] = useState<Partial<Record<FormatId, FormatPick>>>(() => ({
@@ -308,22 +314,57 @@ function RepurposePage() {
     });
   };
 
-  const handleFetchUrl = async (url: string) => {
+  const handleFetchUrl = async (url: string, isYouTube = false) => {
     if (!session) return toast.error("Please sign in");
     if (!url.trim()) return toast.error("Paste a URL");
     setUrlBusy(true);
+    if (isYouTube) { setYtStatus("loading"); setYtWords(0); }
     try {
       const res = await importFromUrl({
         data: { url: url.trim() },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if (res.error || !res.text) { toast.error(res.error || "Couldn't fetch that URL"); return; }
+      if (res.error || !res.text) {
+        if (isYouTube) { setYtStatus("failed"); setYtManualOpen(true); }
+        toast.error(res.error || "Couldn't fetch that URL");
+        return;
+      }
       setInputText(res.text);
       setImportMeta(res.title ? `From: ${res.title}` : `From: ${url}`);
+      if (isYouTube) {
+        const kind = res.kind === "metadata" ? "metadata" : "transcript";
+        setYtStatus(kind);
+        setYtWords(res.words || 0);
+        if (kind === "metadata") {
+          setYtManualOpen(true);
+          toast.warning("No transcript found — using title & channel only");
+          return;
+        }
+        toast.success(`Transcript loaded (${res.words || 0} words)`);
+        setSourceTab("text");
+        return;
+      }
       setSourceTab("text");
       toast.success("Content loaded");
+    } catch (e: any) {
+      if (isYouTube) { setYtStatus("failed"); setYtManualOpen(true); }
+      toast.error(e?.message || "Couldn't fetch that URL");
     } finally { setUrlBusy(false); }
   };
+
+  const useManualTranscript = () => {
+    const t = ytManualText.trim();
+    if (t.length < 50) return toast.error("Paste a bit more of the transcript");
+    setInputText(
+      `Video source: ${urlInput.trim() || "(pasted manually)"}\n\nTranscript:\n${t}`,
+    );
+    setImportMeta(urlInput.trim() ? `From: ${urlInput.trim()}` : "Pasted transcript");
+    setYtStatus("transcript");
+    setYtWords(t.split(/\s+/).filter(Boolean).length);
+    setSourceTab("text");
+    toast.success("Transcript added");
+  };
+
 
   const handleGenerate = async () => {
     if (!session) return toast.error("Please sign in");
@@ -605,13 +646,73 @@ function RepurposePage() {
         {sourceTab === "youtube" && (
           <>
             <UrlFetchRow
-              value={urlInput} onChange={setUrlInput}
+              value={urlInput}
+              onChange={(v) => { setUrlInput(v); setYtStatus("idle"); }}
               placeholder="▶ youtube.com/watch?v=…"
-              busy={urlBusy} onFetch={() => handleFetchUrl(urlInput)}
+              busy={urlBusy} onFetch={() => handleFetchUrl(urlInput, true)}
+              busyLabel="Fetching transcript…"
             />
-            <p className="mt-2 text-xs text-muted-foreground">AI extracts transcript and key ideas automatically.</p>
+
+            {ytStatus === "loading" && (
+              <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Fetching transcript…
+              </p>
+            )}
+            {ytStatus === "transcript" && (
+              <p className="mt-2 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400">
+                ✓ Transcript loaded ({ytWords.toLocaleString()} words)
+              </p>
+            )}
+            {ytStatus === "metadata" && (
+              <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[13px] text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+                ⚠ No transcript found — repurposing from title &amp; description only. Results may be less specific.
+              </div>
+            )}
+            {ytStatus === "failed" && (
+              <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3 text-[13px] text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+                ✗ Could not fetch this video. Try pasting the transcript manually.
+              </div>
+            )}
+            {ytStatus === "idle" && (
+              <p className="mt-2 text-xs text-muted-foreground">AI extracts transcript and key ideas automatically.</p>
+            )}
+
+            <div className="mt-3 rounded-xl border border-border bg-muted/30 p-3">
+              <button
+                type="button"
+                onClick={() => setYtManualOpen((o) => !o)}
+                className="flex w-full items-center justify-between gap-2 text-left text-xs font-semibold text-foreground"
+              >
+                <span>Can't fetch transcript? Paste it here →</span>
+                <span className="text-muted-foreground">{ytManualOpen ? "−" : "+"}</span>
+              </button>
+              {ytManualOpen && (
+                <div className="mt-3 space-y-2">
+                  <textarea
+                    value={ytManualText}
+                    onChange={(e) => setYtManualText(e.target.value)}
+                    rows={6}
+                    placeholder="Paste the video transcript here (works for private, age-restricted, or caption-less videos)…"
+                    className="w-full resize-y rounded-lg border-[1.5px] border-input bg-background p-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] text-muted-foreground">
+                      {ytManualText.trim() ? `${ytManualText.trim().split(/\s+/).filter(Boolean).length.toLocaleString()} words` : "Tip: open the video → ••• → Show transcript"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={useManualTranscript}
+                      className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-violet-500 px-4 py-2 text-xs font-bold text-primary-foreground shadow hover:opacity-90"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" /> Use this transcript
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         )}
+
         {(sourceTab === "pdf" || sourceTab === "voice") && (
           <div className="mt-3">
             <ImportInputPanel
@@ -1100,8 +1201,9 @@ function StepCard({ step, title, icon, children }: { step: string; title: string
 
 
 
-function UrlFetchRow({ value, onChange, placeholder, busy, onFetch }: {
-  value: string; onChange: (v: string) => void; placeholder: string; busy: boolean; onFetch: () => void;
+function UrlFetchRow({ value, onChange, placeholder, busy, onFetch, busyLabel }: {
+  value: string; onChange: (v: string) => void; placeholder: string; busy: boolean; onFetch: () => void; busyLabel?: string;
+
 }) {
   return (
     <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -1118,7 +1220,7 @@ function UrlFetchRow({ value, onChange, placeholder, busy, onFetch }: {
         onClick={onFetch} disabled={busy}
         className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-violet-500 px-5 py-2.5 text-sm font-bold text-primary-foreground shadow hover:opacity-90 disabled:opacity-60"
       >
-        {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Fetching…</> : <><Sparkles className="h-4 w-4" /> Fetch content</>}
+        {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> {busyLabel || "Fetching…"}</> : <><Sparkles className="h-4 w-4" /> Fetch content</>}
       </button>
     </div>
   );

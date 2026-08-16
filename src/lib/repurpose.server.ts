@@ -426,11 +426,21 @@ export async function generateOneFormat(opts: {
     opts.voiceProfile,
   );
 
+  // Extra guidance when the source is a YouTube transcript import.
+  const isYouTubeSource =
+    /Video source: https?:\/\/(www\.)?(youtube\.com|youtu\.be)/i.test(opts.inputText);
+  const systemPrompt = isYouTubeSource
+    ? `${system}
+
+YOUTUBE CONTEXT: You are repurposing a YouTube video transcript. The user has provided the transcript (or, when unavailable, the video title and channel). Extract the most valuable insights, key quotes, and actionable points. Create content that feels like it came from someone who actually watched and understood the video deeply. Never mention that you were given a transcript.`
+    : system;
+
   const result = await callClaude({
-    systemPrompt: system,
+    systemPrompt,
     userPrompt: opts.inputText,
     maxTokens,
   });
+
 
   if (result.error) return { output: "", error: result.error };
   return { output: result.text };
