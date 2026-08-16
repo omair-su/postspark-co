@@ -143,17 +143,120 @@ function extractYouTubeId(input: string): string | null {
   return null;
 }
 
+const XML_ENTITIES: Array<[RegExp, string]> = [
+  [/&amp;/g, "&"],
+  [/&lt;/g, "<"],
+  [/&gt;/g, ">"],
+  [/&#39;/g, "'"],
+  [/&apos;/g, "'"],
+  [/&quot;/g, '"'],
+  [/&nbsp;/g, " "],
+];
+
+function decodeCaptionText(raw: string): string {
+  let out = raw.replace(/<[^>]*>/g, " ");
+  for (const [re, rep] of XML_ENTITIES) out = out.replace(re, rep);
+  return out.replace(/\s+/g, " ").trim();
+}
+
+/** Supadata API — the most reliable YouTube transcript source. */
+async function fetchSupadataTranscript(youtubeUrl: string): Promise<string> {
+  const key = process.env.SUPADATA_API_KEY;
+  if (!key) return "";
+
+  const endpoints = [
+    `https://api.supadata.ai/v1/youtube/transcript?url=${encodeURIComponent(youtubeUrl)}&lang=en&text=true`,
+    `https://api.supadata.ai/v1/transcript?url=${encodeURIComponent(youtubeUrl)}&lang=en&text=true`,
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        headers: { "x-api-key": key, "Content-Type": "application/json" },
+      });
+      if (!res.ok) continue;
+      const data: any = await res.json();
+
+      // Segment array form
+      if (Array.isArray(data?.content)) {
+        const full = data.content
+          .map((s: { text?: string }) => s?.text || "")
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (full.length > 100) return full;
+      }
+      // Plain string forms
+      for (const candidate of [data?.content, data?.transcript, data?.text]) {
+        if (typeof candidate === "string" && candidate.trim().length > 100) {
+          return candidate.replace(/\s+/g, " ").trim();
+        }
+      }
+    } catch (error) {
+      console.error("Supadata fetch failed:", error);
+    }
+  }
+  return "";
+}
+
+/** Fallback — read caption tracks off the watch page, then fetch timedtext XML. */
+async function fetchTimedTextTranscript(videoId: string): Promise<string> {
+  try {
+    const page = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+    });
+    const html = await page.text();
+    const match = html.match(/"captions":(\{.*?"captionTracks":\[.*?\]\})/s);
+
+    if (match) {
+      const captionData: any = JSON.parse(match[1]);
+      const tracks: any[] = captionData?.playerCaptionsTracklistRenderer?.captionTracks
+        || captionData?.captionTracks
+        || [];
+      const track =
+        tracks.find((t) => t?.languageCode === "en" || t?.languageCode === "en-US") || tracks[0];
+      if (track?.baseUrl) {
+        const cap = await fetch(track.baseUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+        if (cap.ok) {
+          const transcript = decodeCaptionText(await cap.text());
+          if (transcript.length > 100) return transcript;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("YouTube timedtext fallback failed:", error);
+  }
+
+  // Legacy public timedtext endpoint (some videos still answer here).
+  for (const lang of ["en", "en-US", "en-GB"]) {
+    try {
+      const r = await fetch(`https://www.youtube.com/api/timedtext?lang=${lang}&v=${videoId}`, {
+        headers: { "User-Agent": "Mozilla/5.0" },
+      });
+      if (!r.ok) continue;
+      const xml = await r.text();
+      if (xml.includes("<text")) {
+        const transcript = decodeCaptionText(xml);
+        if (transcript.length > 100) return transcript;
+      }
+    } catch {}
+  }
+  return "";
+}
+
 /**
- * Fetch metadata + best-effort transcript for a YouTube video.
- * - oEmbed gives us title + author (always works, no API key).
- * - Try the timedtext endpoint for an auto-generated English transcript.
- *   When unavailable, we still return a useful summary (title + channel + URL)
- *   so the user can repurpose the video idea instead of failing outright.
+ * Fetch a YouTube transcript with graceful degradation:
+ * 1. Supadata API (needs SUPADATA_API_KEY)
+ * 2. YouTube caption tracks / timedtext
+ * 3. oEmbed metadata only (title + channel) so generation can still proceed
  */
 async function fetchYouTube(videoId: string, originalUrl: string): Promise<ImportResult> {
   let title = "";
   let author = "";
-  let description = "";
 
   try {
     const oembed = await fetch(
@@ -171,60 +274,42 @@ async function fetchYouTube(videoId: string, originalUrl: string): Promise<Impor
     console.warn("YouTube oEmbed failed:", e);
   }
 
-  // Attempt transcript via public timedtext endpoint.
-  let transcript = "";
-  for (const lang of ["en", "en-US", "en-GB"]) {
-    try {
-      const r = await fetch(
-        `https://www.youtube.com/api/timedtext?lang=${lang}&v=${videoId}`,
-        { headers: { "User-Agent": "Mozilla/5.0" } },
-      );
-      if (r.ok) {
-        const xml = await r.text();
-        if (xml && xml.includes("<text")) {
-          transcript = xml
-            .replace(/<text[^>]*>/g, "\n")
-            .replace(/<\/text>/g, "")
-            .replace(/<[^>]+>/g, " ")
-            .replace(/&amp;/g, "&")
-            .replace(/&#39;/g, "'")
-            .replace(/&quot;/g, '"')
-            .replace(/&lt;/g, "<")
-            .replace(/&gt;/g, ">")
-            .replace(/&nbsp;/g, " ")
-            .replace(/[ \t]+/g, " ")
-            .replace(/\n\s*\n+/g, "\n")
-            .trim();
-          if (transcript.length > 100) break;
-        }
-      }
-    } catch {}
-  }
+  let transcript = await fetchSupadataTranscript(originalUrl);
+  if (!transcript) transcript = await fetchTimedTextTranscript(videoId);
 
   if (!title && !transcript) {
-    return { text: "", error: "Could not fetch this YouTube video. Try pasting the transcript or description directly." };
+    return {
+      text: "",
+      error: "Could not fetch this video. Try pasting the transcript manually.",
+    };
   }
 
   const parts: string[] = [];
   if (title) parts.push(`Video title: ${title}`);
   if (author) parts.push(`Channel: ${author}`);
-  parts.push(`URL: ${originalUrl}`);
+  parts.push(`Video source: ${originalUrl}`);
   if (transcript) {
     parts.push("");
     parts.push("Transcript:");
-    parts.push(transcript.length > 38000 ? transcript.slice(0, 38000) + "\n\n[…truncated]" : transcript);
+    parts.push(
+      transcript.length > 38000 ? transcript.slice(0, 38000) + "\n\n[…truncated]" : transcript,
+    );
   } else {
     parts.push("");
-    parts.push("(No transcript available — repurpose based on the title and channel context.)");
+    parts.push(
+      "(No transcript was available for this video. Repurpose based on the title and channel context only.)",
+    );
   }
-  if (description) parts.push(description);
 
   return {
     text: parts.join("\n"),
     title: title || `YouTube video ${videoId}`,
     source: originalUrl,
+    kind: transcript ? "transcript" : "metadata",
+    words: transcript ? transcript.split(/\s+/).filter(Boolean).length : 0,
   };
 }
+
 
 export interface TranscriptionResult {
   text: string;
