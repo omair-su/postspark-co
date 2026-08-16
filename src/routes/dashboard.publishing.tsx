@@ -20,6 +20,8 @@ import { publishToX } from "@/lib/socialPublish.functions";
 import { publishToFacebook, publishToInstagram, publishToThreads } from "@/lib/metaPublish.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
 import { ToolHero } from "@/components/dashboard/ToolHero";
+import { PackQueue, rowsFromPieces, type QueueRow } from "@/components/publish/PackQueue";
+import { PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
 
 export const Route = createFileRoute("/dashboard/publishing")({
   head: () => ({
@@ -72,6 +74,20 @@ function PublishingCenter() {
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
   const [previewPlatform, setPreviewPlatform] = useState<PlatformId>("x");
+
+  const [queue, setQueue] = useState<QueueRow[]>([]);
+
+  // Whole-pack handoff from Repurpose ("Publish all")
+  useEffect(() => {
+    try {
+      const rawPack = sessionStorage.getItem(PUBLISH_PACK_KEY);
+      if (rawPack) {
+        sessionStorage.removeItem(PUBLISH_PACK_KEY);
+        const parsed = JSON.parse(rawPack) as { pieces?: Piece[] };
+        if (parsed?.pieces?.length) setQueue(rowsFromPieces(parsed.pieces));
+      }
+    } catch {}
+  }, []);
 
   // Prefill from Repurpose ("Publish" menu handoff)
   useEffect(() => {
@@ -195,11 +211,13 @@ function PublishingCenter() {
         eyebrow="Publishing Center"
         icon={<Sparkles className="h-3 w-3" />}
         title="Publish everywhere, from one composer"
-        subtitle="One composer for every network. Toggle platforms, preview, then publish or schedule."
+        subtitle="Send a whole content pack out in one click — every post to its native platform, with native limits enforced."
         art="upgrade"
         steps={["Write once", "Preview per platform", "Publish or schedule"]}
       />
 
+
+      <PackQueue rows={queue} setRows={(u) => setQueue((prev) => u(prev))} onClear={() => setQueue([])} />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_260px_1fr]">
         {/* Composer */}
