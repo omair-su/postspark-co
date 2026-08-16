@@ -1059,12 +1059,14 @@ function ImageStudioPage() {
   };
 
   const save = async (url: string, src = "generate", overridePrompt?: string) => {
-    if (!url.startsWith("data:")) {
-      // Server already auto-persists generated images. Refresh library so it shows up.
+    if (!url.startsWith("data:") || autoSavedRef.current.has(url)) {
+      // Server already auto-persists generated images (including streamed tiles).
+      // Refresh library so it shows up — never re-upload, that would burn a credit.
       loadLibrary();
       toast.success("Saved to your library");
       return;
     }
+
     let finalUrl = url;
     if (watermarkOn && watermarkText.trim()) {
       try {
