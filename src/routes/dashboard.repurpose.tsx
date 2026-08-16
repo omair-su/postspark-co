@@ -6,7 +6,7 @@ import { withAIProgress } from "@/lib/aiProgress";
 import {
   Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Eye, FileText,
   Youtube, Link as LinkIcon, Calendar as CalendarIcon, Save, X, Repeat, Type as TypeIcon,
-  Languages, Bookmark, Wand2, Circle, ChevronDown,
+  Languages, Bookmark, Wand2, Circle, ChevronDown, Send,
 } from "lucide-react";
 import { repurposeOneFormat, startRepurposePack, getMonthlyUsage, saveToSwipeFile } from "@/lib/repurpose.functions";
 import { importFromUrl } from "@/lib/import.functions";
@@ -20,8 +20,9 @@ import { VisualPreview } from "@/components/VisualPreview";
 import { BrandIcon, BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
+import { parsePack, PUBLISH_PACK_KEY } from "@/lib/pieces";
 import { HookABTester } from "@/components/HookABTester";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ToolHero } from "@/components/dashboard/ToolHero";
 import { LiquidTabs } from "@/components/dashboard/LiquidTabs";
 import { brandColor } from "@/lib/brandColors";
@@ -50,16 +51,17 @@ interface FormatDef {
 }
 
 const FORMATS: FormatDef[] = [
-  { id: "tweets",    name: "Twitter / X",    emoji: "🐦", group: "Social Media", quantities: [1,3,5,7,10,15,20], defaultQty: 5, qtyLabel: "Tweets",
+  { id: "tweets",    name: "Twitter / X",    emoji: "🐦", group: "Social Media", quantities: [1,2,3,5,7,10,15,20], defaultQty: 3, qtyLabel: "Tweets",
     styles: ["Standalone tweets","Punchy (under 100 chars)","With hooks"] },
-  { id: "linkedin",  name: "LinkedIn",       emoji: "💼", group: "Social Media", quantities: [1,2,3,5], defaultQty: 2, qtyLabel: "Posts",
+  { id: "linkedin",  name: "LinkedIn",       emoji: "💼", group: "Social Media", quantities: [1,2,3,5], defaultQty: 1, qtyLabel: "Posts",
     styles: ["Long-form story","Short insight","List post","Data-driven"] },
-  { id: "instagram", name: "Instagram",      emoji: "📸", group: "Social Media", quantities: [3,5,7], defaultQty: 3, qtyLabel: "Captions",
+  { id: "instagram", name: "Instagram",      emoji: "📸", group: "Social Media", quantities: [1,2,3,5,7], defaultQty: 1, qtyLabel: "Captions",
     styles: ["With hashtags","Minimal","Story-style"] },
-  { id: "facebook",  name: "Facebook",       emoji: "👍", group: "Social Media", quantities: [1,3,5], defaultQty: 3, qtyLabel: "Posts" },
-  { id: "tiktok",    name: "TikTok / Reels", emoji: "🎵", group: "Social Media", quantities: [1,3,5], defaultQty: 3, qtyLabel: "Scripts" },
+  { id: "facebook",  name: "Facebook",       emoji: "👍", group: "Social Media", quantities: [1,2,3,5], defaultQty: 1, qtyLabel: "Posts" },
+  { id: "tiktok",    name: "TikTok / Reels", emoji: "🎵", group: "Social Media", quantities: [1,2,3,5], defaultQty: 1, qtyLabel: "Scripts" },
 
-  { id: "thread",    name: "Threads",        emoji: "🧵", group: "Long-form", quantities: [5,8,10,12,15,20], defaultQty: 10, qtyLabel: "Posts" },
+  { id: "thread",    name: "Threads",        emoji: "🧵", group: "Long-form", quantities: [1,2,3,5,8,10,12,15,20], defaultQty: 3, qtyLabel: "Posts",
+    styles: ["Connected chain","Single posts"] },
   { id: "email",     name: "Email Newsletter", emoji: "📧", group: "Long-form",
     styles: ["Newsletter","Promotional","Educational digest","Weekly roundup"] },
   { id: "video",     name: "Video Script",   emoji: "🎬", group: "Long-form",
@@ -70,7 +72,25 @@ const FORMATS: FormatDef[] = [
   { id: "podcast",   name: "Podcast Notes",  emoji: "🎙️", group: "Discovery & SEO",
     styles: ["Show notes + quotes","Episode summary","Chapters + timestamps"] },
 
-  { id: "carousel",  name: "Carousel",       emoji: "🖼️", group: "Visual", quantities: [5,7,8,10,12,15], defaultQty: 8, qtyLabel: "Slides" },
+  { id: "carousel",  name: "Carousel",       emoji: "🖼️", group: "Visual", quantities: [1,2,5,7,8,10,12,15], defaultQty: 8, qtyLabel: "Slides" },
+];
+
+/** One-tap starter recipes (nothing is pre-selected without a click). */
+const RECIPES: { id: string; label: string; hint: string; picks: Partial<Record<FormatId, FormatPick>> }[] = [
+  { id: "linkedin-x", label: "LinkedIn + X", hint: "1 post · 3 tweets",
+    picks: { linkedin: { count: 1, style: "Long-form story" }, tweets: { count: 3, style: "Standalone tweets" } } },
+  { id: "deep-single", label: "One deep post", hint: "Highest quality",
+    picks: { linkedin: { count: 1, style: "Long-form story" } } },
+  { id: "social-drop", label: "Social drop", hint: "X · Threads · IG",
+    picks: { tweets: { count: 3, style: "Standalone tweets" }, thread: { count: 3, style: "Single posts" }, instagram: { count: 1, style: "With hashtags" } } },
+  { id: "launch-pack", label: "Full launch pack", hint: "5 formats",
+    picks: {
+      linkedin: { count: 2, style: "Long-form story" },
+      tweets: { count: 5, style: "Standalone tweets" },
+      thread: { count: 5, style: "Connected chain" },
+      email: { style: "Newsletter" },
+      video: { length: "60 seconds" },
+    } },
 ];
 
 const DRAFT_KEY = "postspark.repurpose.draft.v1";
@@ -128,6 +148,7 @@ export const Route = createFileRoute("/dashboard/repurpose")({
 function RepurposePage() {
   const { user, session } = useAuth();
   const { tier } = useSubscription();
+  const navigate = useNavigate();
 
   // Source
   const [sourceTab, setSourceTab] = useState<"text"|"url"|"youtube"|"pdf"|"voice"|"drive">("text");
@@ -145,12 +166,8 @@ function RepurposePage() {
 
 
   // Format selection
-  const [picks, setPicks] = useState<Partial<Record<FormatId, FormatPick>>>(() => ({
-    tweets:   { count: 5, style: "Standalone tweets" },
-    linkedin: { count: 2, style: "Long-form story" },
-    email:    { style: "Newsletter" },
-    video:    { length: "60 seconds" },
-  }));
+  // Nothing is pre-selected — the user picks exactly what they want.
+  const [picks, setPicks] = useState<Partial<Record<FormatId, FormatPick>>>({});
 
   // Tone & style
   const [tone, setTone] = useState("professional");
@@ -276,9 +293,29 @@ function RepurposePage() {
   }, [selectedIds, picks]);
 
   const qualityLabel: "Excellent"|"Good"|"Compressed" =
-    selectedIds.length <= 4 ? "Excellent" : selectedIds.length <= 6 ? "Good" : "Compressed";
+    selectedIds.length <= 3 && totalPieces <= 8 ? "Excellent"
+      : selectedIds.length <= 5 && totalPieces <= 14 ? "Good"
+      : "Compressed";
   const qualityPct = qualityLabel === "Excellent" ? 95 : qualityLabel === "Good" ? 55 : 25;
   const qualityClass = qualityLabel === "Excellent" ? "bg-emerald-500" : qualityLabel === "Good" ? "bg-amber-500" : "bg-red-500";
+
+  // Every generated post as a discrete piece — powers preview + publishing.
+  const packPieces = useMemo(
+    () => parsePack(results as Record<string, string | undefined>, selectedIds),
+    [results, selectedIds],
+  );
+  const packPieceCount = packPieces.length;
+
+  const sendPackToPublishing = () => {
+    if (!packPieces.length) return;
+    try {
+      sessionStorage.setItem(
+        PUBLISH_PACK_KEY,
+        JSON.stringify({ pieces: packPieces, at: Date.now() }),
+      );
+    } catch {}
+    navigate({ to: "/dashboard/publishing" });
+  };
 
   const wordCount = useMemo(() => inputText.trim() ? inputText.trim().split(/\s+/).length : 0, [inputText]);
   const wordQuality: "too-short"|"good"|"too-long"|"empty" =
@@ -753,6 +790,35 @@ function RepurposePage() {
 
       {/* ============== STEP 2 — FORMATS ============== */}
       <StepCard step="2" title="Choose Your Formats">
+        <div className="mb-4 rounded-xl border border-primary/15 bg-primary/[0.04] p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Starter recipes <span className="font-normal normal-case tracking-normal">— optional, one tap</span>
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {RECIPES.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setPicks(r.picks)}
+                className="rounded-full border border-primary/25 bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:border-primary hover:text-primary"
+              >
+                {r.label} <span className="font-normal text-muted-foreground">· {r.hint}</span>
+              </button>
+            ))}
+            {selectedIds.length > 0 && (
+              <button
+                onClick={() => setPicks({})}
+                className="rounded-full border border-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          {selectedIds.length === 0 && (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Nothing is selected — pick only the formats you actually want. Fewer formats = deeper, better writing.
+            </p>
+          )}
+        </div>
         {(["Social Media","Long-form","Discovery & SEO","Visual"] as const).map((group) => {
           const items = FORMATS.filter((f) => f.group === group);
           const groupSelectedAll = items.every((f) => picks[f.id]);
@@ -971,9 +1037,12 @@ function RepurposePage() {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-bold text-foreground">
               <Sparkles className="mr-1.5 inline h-4 w-4 text-primary" />
-              Your content pack is ready · {Object.keys(results).length} piece{Object.keys(results).length===1?"":"s"} · Saved automatically
+              Your content pack is ready · {packPieceCount} post{packPieceCount===1?"":"s"} · Saved automatically
             </h2>
             <div className="flex flex-wrap gap-2">
+              <button onClick={sendPackToPublishing} className="inline-flex items-center gap-1.5 rounded-lg gradient-electric px-3 py-1.5 text-xs font-bold text-primary-foreground transition-opacity hover:opacity-90">
+                <Send className="h-3.5 w-3.5" /> Publish all ({packPieceCount})
+              </button>
               <button onClick={() => setShowScheduleModal(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/40 hover:text-primary">
                 <CalendarIcon className="h-3.5 w-3.5" /> Schedule
               </button>
@@ -1309,7 +1378,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
   onEdit: (value: string) => void;
 }) {
   const def = FORMAT_BY_ID[formatId];
-  const previewable = ["tweets","thread","linkedin","instagram","facebook","tiktok","email"].includes(formatId);
+  const previewable = true;
   const [view, setView] = useState<"raw"|"preview">(previewable ? "preview" : "raw");
   const [edited, setEdited] = useState(content);
   useEffect(() => { setEdited(content); }, [content]);
@@ -1359,7 +1428,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
           <div className="h-3 w-[85%] animate-pulse rounded bg-muted" />
         </div>
       ) : view === "preview" && previewable ? (
-        <div className="mt-4 animate-fade-in"><VisualPreview typeId={formatId} content={edited} /></div>
+        <div className="mt-4 animate-fade-in"><VisualPreview typeId={formatId} content={edited} label={def.name} /></div>
       ) : (
         <textarea
           value={edited}
