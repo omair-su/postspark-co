@@ -1220,7 +1220,7 @@ function UrlFetchRow({ value, onChange, placeholder, busy, onFetch, busyLabel }:
         onClick={onFetch} disabled={busy}
         className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-violet-500 px-5 py-2.5 text-sm font-bold text-primary-foreground shadow hover:opacity-90 disabled:opacity-60"
       >
-        {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Fetching…</> : <><Sparkles className="h-4 w-4" /> Fetch content</>}
+        {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> {busyLabel || "Fetching…"}</> : <><Sparkles className="h-4 w-4" /> Fetch content</>}
       </button>
     </div>
   );
