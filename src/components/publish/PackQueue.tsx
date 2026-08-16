@@ -152,8 +152,7 @@ export function PackQueue({
         const r: any = await publishToLinkedIn({
           data: {
             commentary: row.text.slice(0, PLATFORM_LIMITS.linkedin),
-            ...(media && !isVideo ? { mediaUrl: media } : {}),
-            mediaKind: "none",
+            ...(media ? { mediaUrl: media } : {}),
           },
           ...authHeaders,
         } as any);
