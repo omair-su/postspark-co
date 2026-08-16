@@ -3,7 +3,12 @@ export interface ImportResult {
   title?: string;
   source?: string;
   error?: string;
+  /** For YouTube: whether we got a real transcript or only video metadata. */
+  kind?: "transcript" | "metadata";
+  /** Word count of the extracted transcript (YouTube only). */
+  words?: number;
 }
+
 
 /** Strip HTML to plain text without external deps. Worker-safe. */
 function stripHtml(html: string): { text: string; title?: string } {
