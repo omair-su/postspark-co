@@ -137,6 +137,12 @@ function RepurposePage() {
   const [importMeta, setImportMeta] = useState("");
   const [urlInput, setUrlInput] = useState("");
   const [urlBusy, setUrlBusy] = useState(false);
+  // YouTube transcript fetch status
+  const [ytStatus, setYtStatus] = useState<"idle"|"loading"|"transcript"|"metadata"|"failed">("idle");
+  const [ytWords, setYtWords] = useState(0);
+  const [ytManualOpen, setYtManualOpen] = useState(false);
+  const [ytManualText, setYtManualText] = useState("");
+
 
   // Format selection
   const [picks, setPicks] = useState<Partial<Record<FormatId, FormatPick>>>(() => ({
