@@ -448,10 +448,17 @@ function ImageStudioPage() {
         }
 
         if (streamed) {
+          // The streaming route already persisted this tile to the library and
+          // counted it once — mark it so Save never re-uploads it.
+          autoSavedRef.current.add(streamed);
           setResults([streamed]);
           setImageUrl(streamed);
           cacheRef.current.set(key, [streamed]);
+          loadLibrary();
+          refreshUsage();
+          toast.success("Saved to your library");
         } else {
+
           const res = await withAIProgress(
             generateImage({
               data: {
