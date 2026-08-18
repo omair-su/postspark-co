@@ -251,8 +251,8 @@ function CarouselPage() {
             style: "abstract",
             aspect: aspectForPreset(),
             template: "carousel",
-            model: "flux-pro",
-            quality: "high",
+            model: "flux",
+            quality: "hd",
           },
           ...auth,
         } as any),
@@ -776,7 +776,7 @@ function CarouselPage() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">Backgrounds for slide {active + 1}</p>
                     <p className="text-xs text-muted-foreground">
-                      AI art via Flux Pro, or free stock from Unsplash &amp; Pexels. A scrim keeps text readable.
+                      AI art via Flux, or free stock from Unsplash &amp; Pexels. A scrim keeps text readable.
                     </p>
                   </div>
                   <div className="flex gap-2">
