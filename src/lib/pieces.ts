@@ -60,6 +60,8 @@ export interface Piece {
   text: string;
   /** Threads chain / long tweet thread: the connected sub-posts, if any. */
   chain?: string[];
+  /** Public image URLs to attach (carousel slides, generated visuals). */
+  media?: string[];
   /** True when this piece is a document (email, script, notes) not a social post. */
   document: boolean;
 }
