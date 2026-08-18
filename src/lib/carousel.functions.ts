@@ -41,9 +41,11 @@ async function checkPlan(supabase: any, userId: string) {
   return { ok: true as const, plan };
 }
 
-function wrapError(e: any): never {
+function rethrow(e: any): never {
   console.error("[server-fn] error:", e);
-  throw new Error(e?.message || (typeof e === "string" ? e : "Something went wrong. Please try again."));
+  throw new Error(
+    e?.message || (typeof e === "string" ? e : "Something went wrong. Please try again."),
+  );
 }
 
 export const createCarousel = createServerFn({ method: "POST" })
@@ -52,7 +54,118 @@ export const createCarousel = createServerFn({ method: "POST" })
     z.object({
       topic: z.string().min(5).max(4000),
       audience: z.string().max(200).optional(),
-      tone: z.string().max: undefined as never,
+      tone: z.string().max(50).optional(),
+      framework: z.string().max(40).optional(),
+      depth: z.enum(["standard", "deep"]).default("deep"),
+      slideCount: z.number().int().min(5).max(12).default(8),
+      useBrandVoice: z.boolean().default(true),
     }).parse,
   )
-  .handler(async () => ({}) as never);
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+      const empty = { slides: [], hashtags: [], caption: "" };
+      if (rateLimited(userId))
+        return { ...empty, error: "Rate limit reached. Wait a minute." };
+
+      const usage = await checkPlan(supabase, userId);
+      if (!usage.ok) return { ...empty, error: "LIMIT_REACHED" };
+
+      const kit = await resolveActiveBrandKit(supabase, userId);
+
+      let brandVoice: string | null = null;
+      if (data.useBrandVoice) {
+        const { data: voice } = await supabase
+          .from("brand_voices")
+          .select("summary, tone_notes")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (voice) {
+          brandVoice = [voice.summary, voice.tone_notes].filter(Boolean).join("\n") || null;
+        }
+      }
+
+      const result = await generateCarousel({
+        topic: data.topic,
+        audience: data.audience,
+        tone: data.tone,
+        slideCount: data.slideCount,
+        framework: data.framework,
+        depth: data.depth,
+        brandName: kit?.brand_name || null,
+        brandVoice,
+      });
+
+      if (result.error) return result;
+
+      await supabase.from("repurpose_jobs").insert({
+        user_id: userId,
+        tool: "carousel",
+        input_text: data.topic,
+        title: `Carousel: ${data.topic.slice(0, 60)}`,
+        outputs: {
+          carousel: {
+            slides: result.slides,
+            hashtags: result.hashtags,
+            caption: result.caption,
+            framework: data.framework || "listicle",
+          },
+        },
+      } as any);
+
+      return result;
+    } catch (e: any) {
+      rethrow(e);
+    }
+  });
+
+export const rewriteSlide = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      title: z.string().max(300),
+      body: z.string().max(1200),
+      kind: z.string().max(20),
+      bullets: z.array(z.string().max(120)).max(4).optional(),
+      action: z.enum(["rewrite", "shorten", "expand", "punchier", "concrete"]).default("rewrite"),
+      instruction: z.string().max(400).optional(),
+      tone: z.string().max(50).optional(),
+      topic: z.string().max(400).optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+      if (rateLimited(userId))
+        return { title: data.title, body: data.body, error: "Rate limit. Try again." };
+      const usage = await checkPlan(supabase, userId);
+      if (!usage.ok) return { title: data.title, body: data.body, error: "LIMIT_REACHED" };
+      return await rewriteSlideClaude(data);
+    } catch (e: any) {
+      rethrow(e);
+    }
+  });
+
+export const refreshCaption = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      topic: z.string().min(3).max(4000),
+      tone: z.string().max(50).optional(),
+      slides: z
+        .array(z.object({ title: z.string().max(300), body: z.string().max(1200) }))
+        .min(1)
+        .max(12),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId } = context;
+      if (rateLimited(userId)) return { caption: "", hashtags: [], error: "Rate limit. Try again." };
+      const usage = await checkPlan(supabase, userId);
+      if (!usage.ok) return { caption: "", hashtags: [], error: "LIMIT_REACHED" };
+      return await regenerateCaption(data);
+    } catch (e: any) {
+      rethrow(e);
+    }
+  });
