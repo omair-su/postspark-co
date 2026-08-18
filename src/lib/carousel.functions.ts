@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { resolveActiveBrandKit } from "@/lib/activeBrandKit.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateCarousel, rewriteSlideClaude } from "@/lib/carousel.server";
+import { generateCarousel, rewriteSlideClaude, regenerateCaption } from "@/lib/carousel.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 
@@ -10,7 +10,7 @@ const RATE_BUCKET = new Map<string, number[]>();
 function rateLimited(userId: string): boolean {
   const now = Date.now();
   const arr = (RATE_BUCKET.get(userId) || []).filter((t) => now - t < 60_000);
-  if (arr.length >= 10) {
+  if (arr.length >= 12) {
     RATE_BUCKET.set(userId, arr);
     return true;
   }
@@ -41,87 +41,18 @@ async function checkPlan(supabase: any, userId: string) {
   return { ok: true as const, plan };
 }
 
+function wrapError(e: any): never {
+  console.error("[server-fn] error:", e);
+  throw new Error(e?.message || (typeof e === "string" ? e : "Something went wrong. Please try again."));
+}
+
 export const createCarousel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      topic: z.string().min(5).max(2000),
+      topic: z.string().min(5).max(4000),
       audience: z.string().max(200).optional(),
-      tone: z.string().max(50).optional(),
-      slideCount: z.number().int().min(6).max(10).default(8),
+      tone: z.string().max: undefined as never,
     }).parse,
   )
-  .handler(async ({ data, context }) => {
-    try {
-    const { supabase, userId } = context;
-    if (rateLimited(userId)) return { slides: [], hashtags: [], caption: "", error: "Rate limit reached. Wait a minute." };
-
-    const usage = await checkPlan(supabase, userId);
-    if (!usage.ok) return { slides: [], hashtags: [], caption: "", error: "LIMIT_REACHED" };
-
-    // Pull the deterministic ACTIVE brand kit for personalization
-    const kit = await resolveActiveBrandKit(supabase, userId);
-
-    const result = await generateCarousel({
-      topic: data.topic,
-      audience: data.audience,
-      tone: data.tone,
-      slideCount: data.slideCount,
-      brandName: kit?.brand_name || null,
-    });
-
-    if (result.error) return result;
-
-    await supabase.from("repurpose_jobs").insert({
-      user_id: userId,
-      tool: "carousel",
-      input_text: data.topic,
-      title: `Carousel: ${data.topic.slice(0, 60)}`,
-      outputs: {
-        carousel: {
-          slides: result.slides,
-          hashtags: result.hashtags,
-          caption: result.caption,
-        },
-      },
-    } as any);
-
-    return result;
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      if (e instanceof Response) {
-        const txt = await e.text().catch(() => e.statusText || 'Request failed');
-        throw new Error(txt || 'Request failed');
-      }
-      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
-    }
-  });
-
-export const rewriteSlide = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator(
-    z.object({
-      title: z.string().max(200),
-      body: z.string().max(800),
-      kind: z.enum(["cover", "content", "cta"]),
-      instruction: z.string().max(300).optional(),
-      tone: z.string().max(50).optional(),
-    }).parse,
-  )
-  .handler(async ({ data, context }) => {
-    try {
-    const { supabase, userId } = context;
-    if (rateLimited(userId)) return { title: data.title, body: data.body, error: "Rate limit. Try again." };
-    const usage = await checkPlan(supabase, userId);
-    if (!usage.ok) return { title: data.title, body: data.body, error: "LIMIT_REACHED" };
-    const r = await rewriteSlideClaude(data);
-    return r;
-  } catch (e: any) {
-      console.error('[server-fn] error:', e);
-      if (e instanceof Response) {
-        const txt = await e.text().catch(() => e.statusText || 'Request failed');
-        throw new Error(txt || 'Request failed');
-      }
-      throw new Error(e?.message || (typeof e === 'string' ? e : 'Something went wrong. Please try again.'));
-    }
-  });
+  .handler(async () => ({}) as never);
