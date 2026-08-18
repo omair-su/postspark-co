@@ -77,11 +77,21 @@ export const createCarousel = createServerFn({ method: "POST" })
       if (data.useBrandVoice) {
         const { data: voice } = await supabase
           .from("brand_voices")
-          .select("summary, tone_notes")
+          .select("style_summary, style_override, cta_style, sentence_length, emoji_density")
           .eq("user_id", userId)
+          .eq("is_active", true)
           .maybeSingle();
         if (voice) {
-          brandVoice = [voice.summary, voice.tone_notes].filter(Boolean).join("\n") || null;
+          brandVoice =
+            [
+              voice.style_summary,
+              voice.style_override,
+              voice.cta_style ? `CTA style: ${voice.cta_style}` : null,
+              voice.sentence_length ? `Sentence length: ${voice.sentence_length}` : null,
+              voice.emoji_density ? `Emoji use: ${voice.emoji_density}` : null,
+            ]
+              .filter(Boolean)
+              .join("\n") || null;
         }
       }
 
