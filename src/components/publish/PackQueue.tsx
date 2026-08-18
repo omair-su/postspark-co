@@ -59,7 +59,7 @@ export function rowsFromPieces(pieces: Piece[]): QueueRow[] {
         id: `${p.format}-${i}-${Math.random().toString(36).slice(2, 7)}`,
         platform,
         text: p.text,
-        mediaUrl: "",
+        mediaUrl: p.media?.[0] || "",
         autoThread: platform === "twitter",
         status: "queued",
         sourceFormat: p.format,
