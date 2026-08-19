@@ -103,6 +103,9 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
               height: "100%",
               objectFit: "cover",
               zIndex: 0,
+              filter: ov.imageBlur ? `blur(${ov.imageBlur}px)` : undefined,
+              transform: ov.imageZoom && ov.imageZoom !== 1 ? `scale(${ov.imageZoom})` : undefined,
+              transformOrigin: "center",
             }}
           />
           <div
@@ -123,17 +126,20 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
       ) : null}
 
       {/* Accent top band */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: m.bandTop,
-          background: palette.accent,
-          zIndex: 3,
-        }}
-      />
+      {showBands ? (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: m.bandTop,
+            background: palette.accent,
+            zIndex: 3,
+          }}
+        />
+      ) : null}
+
 
       {/* Framed border for the frame template */}
       {template.background === "frame" && !hasPhoto ? (
