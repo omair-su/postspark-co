@@ -40,10 +40,11 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
   },
   ref,
 ) {
-  const font = fontPairByKey(fontPairKey);
+  const ov = slide.override ?? {};
+  const font = fontPairByKey(ov.fontPairKey ?? fontPairKey);
   const m = layoutMetrics(preset.width, preset.height);
   const bullets = slide.bullets?.filter(Boolean) ?? [];
-  const ts = typeScale({
+  const base = typeScale({
     width: preset.width,
     height: preset.height,
     kind: slide.kind,
@@ -51,14 +52,24 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
     bodyLength: slide.body.length + bullets.join("").length,
     bulletCount: bullets.length,
   });
+  const ts = {
+    ...base,
+    title: base.title * (ov.titleScale ?? 1),
+    body: base.body * (ov.bodyScale ?? 1),
+    bullet: base.bullet * (ov.bodyScale ?? 1),
+  };
 
   const isCover = slide.kind === "cover";
   const center = template.align === "center";
   const hasPhoto = Boolean(slide.imageUrl);
+  const vAlign = ov.vAlign ?? (isCover ? "bottom" : "center");
+  const justify = vAlign === "top" ? "flex-start" : vAlign === "bottom" ? "flex-end" : "center";
+  const showBands = !ov.hideBands;
 
   const label =
     slide.label ||
     (isCover ? brandName : slide.kind === "cta" ? "Your move" : `${index + 1} of ${total}`);
+
 
   return (
     <div
