@@ -410,17 +410,20 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
       ) : null}
 
       {/* Accent bottom band */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: Math.round(m.bandTop * 0.7),
-          background: palette.accent,
-          zIndex: 3,
-        }}
-      />
+      {showBands ? (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: Math.round(m.bandTop * 0.7),
+            background: palette.accent,
+            zIndex: 3,
+          }}
+        />
+      ) : null}
+
     </div>
   );
 });
