@@ -228,7 +228,7 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
           minHeight: 0,
           display: "flex",
           flexDirection: "column",
-          justifyContent: isCover ? "flex-end" : "center",
+          justifyContent: justify,
           alignItems: center ? "center" : "flex-start",
           textAlign: center ? "center" : "left",
           padding: `${m.pad * 0.7}px ${m.pad}px ${m.pad * 0.7}px`,
