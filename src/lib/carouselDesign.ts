@@ -361,6 +361,37 @@ export const FRAMEWORKS: Framework[] = [
 export type SlideKind =
   | "cover" | "hook" | "insight" | "example" | "list" | "quote" | "stat" | "cta";
 
+/**
+ * Per-slide design overrides. Every field is optional — anything unset falls
+ * back to the deck-level design, so a slide only stores what the user changed.
+ */
+export interface SlideOverride {
+  /** Use a different template for just this slide. */
+  templateKey?: string;
+  /** Use a different font pairing for just this slide. */
+  fontPairKey?: string;
+  align?: "left" | "center";
+  /** Vertical placement of the copy block inside the content zone. */
+  vAlign?: "top" | "center" | "bottom";
+  /** Multipliers applied on top of the auto-fit type scale (0.6 – 1.6). */
+  titleScale?: number;
+  bodyScale?: number;
+  card?: boolean;
+  rule?: boolean;
+  uppercaseLabel?: boolean;
+  /** Photo darkening, 0 – 0.95. */
+  scrim?: number;
+  /** Photo blur in export pixels. */
+  imageBlur?: number;
+  /** Photo zoom (1 = cover). */
+  imageZoom?: number;
+  accent?: string;
+  surface?: string;
+  textColor?: string;
+  /** Hide the accent bands at the top/bottom edge. */
+  hideBands?: boolean;
+}
+
 export interface Slide {
   title: string;
   body: string;
@@ -372,6 +403,39 @@ export interface Slide {
   imageUrl?: string;
   /** Attribution line for stock imagery. */
   imageCredit?: string;
+  /** Per-slide design overrides set from the canvas inspector. */
+  override?: SlideOverride;
+}
+
+/** Merge a slide's structural overrides into the deck template. */
+export function mergeTemplate(base: CarouselTemplate, ov?: SlideOverride): CarouselTemplate {
+  const tpl = ov?.templateKey ? templateByKey(ov.templateKey) : base;
+  if (!ov) return tpl;
+  return {
+    ...tpl,
+    align: ov.align ?? tpl.align,
+    card: ov.card ?? tpl.card,
+    rule: ov.rule ?? tpl.rule,
+    uppercaseLabel: ov.uppercaseLabel ?? tpl.uppercaseLabel,
+    scrim: ov.scrim ?? tpl.scrim,
+  };
+}
+
+/** Merge a slide's colour overrides into the resolved deck palette. */
+export function mergePalette(base: Palette, ov?: SlideOverride): Palette {
+  if (!ov) return base;
+  const text = ov.textColor ?? base.text;
+  return {
+    surface: ov.surface ?? base.surface,
+    accent: ov.accent ?? base.accent,
+    text,
+    subtle: ov.textColor ? withAlpha(ov.textColor, 0.74) : base.subtle,
+  };
+}
+
+/** True when a slide carries any customisation (drives the "edited" badge). */
+export function hasOverride(ov?: SlideOverride): boolean {
+  return Boolean(ov && Object.values(ov).some((v) => v !== undefined));
 }
 
 export interface CarouselDesignState {
@@ -393,3 +457,12 @@ export const DEFAULT_DESIGN: CarouselDesignState = {
   showCounter: true,
   showSwipeHint: true,
 };
+
+/** Sample copy used for template gallery thumbnails. */
+export const GALLERY_SAMPLE: Slide = {
+  kind: "cover",
+  title: "7 Fixes That Move Pipeline",
+  body: "What the top 1% of B2B founders do differently on LinkedIn.",
+  label: "Playbook",
+};
+
