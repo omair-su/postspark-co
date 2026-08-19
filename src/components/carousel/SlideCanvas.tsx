@@ -40,10 +40,11 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
   },
   ref,
 ) {
-  const font = fontPairByKey(fontPairKey);
+  const ov = slide.override ?? {};
+  const font = fontPairByKey(ov.fontPairKey ?? fontPairKey);
   const m = layoutMetrics(preset.width, preset.height);
   const bullets = slide.bullets?.filter(Boolean) ?? [];
-  const ts = typeScale({
+  const base = typeScale({
     width: preset.width,
     height: preset.height,
     kind: slide.kind,
@@ -51,14 +52,24 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
     bodyLength: slide.body.length + bullets.join("").length,
     bulletCount: bullets.length,
   });
+  const ts = {
+    ...base,
+    title: base.title * (ov.titleScale ?? 1),
+    body: base.body * (ov.bodyScale ?? 1),
+    bullet: base.bullet * (ov.bodyScale ?? 1),
+  };
 
   const isCover = slide.kind === "cover";
   const center = template.align === "center";
   const hasPhoto = Boolean(slide.imageUrl);
+  const vAlign = ov.vAlign ?? (isCover ? "bottom" : "center");
+  const justify = vAlign === "top" ? "flex-start" : vAlign === "bottom" ? "flex-end" : "center";
+  const showBands = !ov.hideBands;
 
   const label =
     slide.label ||
     (isCover ? brandName : slide.kind === "cta" ? "Your move" : `${index + 1} of ${total}`);
+
 
   return (
     <div
@@ -92,6 +103,9 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
               height: "100%",
               objectFit: "cover",
               zIndex: 0,
+              filter: ov.imageBlur ? `blur(${ov.imageBlur}px)` : undefined,
+              transform: ov.imageZoom && ov.imageZoom !== 1 ? `scale(${ov.imageZoom})` : undefined,
+              transformOrigin: "center",
             }}
           />
           <div
@@ -112,17 +126,20 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
       ) : null}
 
       {/* Accent top band */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: m.bandTop,
-          background: palette.accent,
-          zIndex: 3,
-        }}
-      />
+      {showBands ? (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: m.bandTop,
+            background: palette.accent,
+            zIndex: 3,
+          }}
+        />
+      ) : null}
+
 
       {/* Framed border for the frame template */}
       {template.background === "frame" && !hasPhoto ? (
@@ -211,7 +228,7 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
           minHeight: 0,
           display: "flex",
           flexDirection: "column",
-          justifyContent: isCover ? "flex-end" : "center",
+          justifyContent: justify,
           alignItems: center ? "center" : "flex-start",
           textAlign: center ? "center" : "left",
           padding: `${m.pad * 0.7}px ${m.pad}px ${m.pad * 0.7}px`,
@@ -393,17 +410,20 @@ export const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(function
       ) : null}
 
       {/* Accent bottom band */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: Math.round(m.bandTop * 0.7),
-          background: palette.accent,
-          zIndex: 3,
-        }}
-      />
+      {showBands ? (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: Math.round(m.bandTop * 0.7),
+            background: palette.accent,
+            zIndex: 3,
+          }}
+        />
+      ) : null}
+
     </div>
   );
 });
