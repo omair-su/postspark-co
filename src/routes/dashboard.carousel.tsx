@@ -670,7 +670,8 @@ function CarouselPage() {
           <div className="space-y-4">
             <div className="flex gap-1.5 rounded-xl border border-border bg-card p-1.5">
               {([
-                { k: "design", label: "Design", icon: PaletteIcon },
+                { k: "slide", label: "Slide", icon: SlidersHorizontal },
+                { k: "design", label: "Deck", icon: PaletteIcon },
                 { k: "art", label: "Art", icon: ImageIcon },
                 { k: "copy", label: "Copy", icon: TypeIcon },
               ] as const).map((t) => (
@@ -686,75 +687,37 @@ function CarouselPage() {
               ))}
             </div>
 
+            {tab === "slide" && current ? (
+              <SlideInspector
+                slide={current}
+                index={active}
+                total={slides.length}
+                deckTemplateKey={design.templateKey}
+                deckFontPairKey={design.fontPairKey}
+                busy={busySlide === active}
+                artBusy={artBusy}
+                onPatch={(patch) => updateSlide(active, patch)}
+                onOverride={(patch) => patchOverride(active, patch)}
+                onResetOverride={() => resetOverride(active)}
+                onGenerateArt={() => generateArt(active)}
+                onClearArt={() => updateSlide(active, { imageUrl: undefined, imageCredit: undefined })}
+                onAction={(a) => runSlideAction(active, a)}
+              />
+            ) : null}
+
             {tab === "design" ? (
               <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Canvas</p>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-4">
-                    {CAROUSEL_PRESETS.map((p) => (
-                      <button
-                        key={p.key}
-                        onClick={() => setDesign((d) => ({ ...d, presetKey: p.key }))}
-                        className={`rounded-xl border p-3 text-left transition ${
-                          design.presetKey === p.key
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-background hover:border-primary/40"
-                        }`}
-                      >
-                        <div className="text-sm font-semibold text-foreground">{p.label}</div>
-                        <div className="text-[11px] text-muted-foreground">{p.hint}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Template</p>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    {CAROUSEL_TEMPLATES.map((t) => (
-                      <button
-                        key={t.key}
-                        onClick={() =>
-                          setDesign((d) => ({ ...d, templateKey: t.key, fontPairKey: t.fontPair }))
-                        }
-                        className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${
-                          design.templateKey === t.key
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-background hover:border-primary/40"
-                        }`}
-                      >
-                        <span
-                          className="h-10 w-10 shrink-0 rounded-lg border border-border"
-                          style={{ background: t.surface, boxShadow: `inset 0 -10px 0 ${t.accent}` }}
-                        />
-                        <span className="min-w-0">
-                          <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                          <span className="block truncate text-[11px] text-muted-foreground">{t.blurb}</span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Typography</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {FONT_PAIRS.map((f) => (
-                      <button
-                        key={f.key}
-                        onClick={() => setDesign((d) => ({ ...d, fontPairKey: f.key }))}
-                        style={{ fontFamily: `'${f.heading}', serif` }}
-                        className={`rounded-lg border px-3 py-1.5 text-sm transition ${
-                          design.fontPairKey === f.key
-                            ? "border-primary bg-primary/10 text-foreground"
-                            : "border-input bg-background text-muted-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <TemplateGallery
+                  design={design}
+                  setDesign={setDesign}
+                  brandName={brandName}
+                  handle={handle}
+                  showBrief
+                  framework={framework}
+                  setFramework={setFramework}
+                  slideCount={slideCount}
+                  setSlideCount={setSlideCount}
+                />
 
                 <div className="flex flex-wrap gap-4 border-t border-border pt-4 text-xs">
                   {([
@@ -794,6 +757,7 @@ function CarouselPage() {
                 </div>
               </div>
             ) : null}
+
 
             {tab === "art" ? (
               <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
