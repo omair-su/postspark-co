@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Loader2, Sparkles, Download, Copy, Check, ChevronLeft, ChevronRight, Layers,
   Wand2, Image as ImageIcon, FileText, Droplet, Palette as PaletteIcon, Trash2,
-  Plus, ArrowUp, ArrowDown, Send, Type as TypeIcon, RefreshCw, X,
+  Plus, ArrowUp, ArrowDown, Send, Type as TypeIcon, RefreshCw, X, SlidersHorizontal,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -23,11 +23,14 @@ import { CanvaDesignLauncher } from "@/components/canva/CanvaDesignLauncher";
 import { CANVA_CAROUSEL_FORMATS } from "@/lib/canvaUrls";
 import { HeroArt } from "@/components/dashboard/HeroArt";
 import { SlideCanvas } from "@/components/carousel/SlideCanvas";
+import { TemplateGallery } from "@/components/carousel/TemplateGallery";
+import { SlideInspector } from "@/components/carousel/SlideInspector";
 import { PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
 import {
-  CAROUSEL_FONTS_HREF, CAROUSEL_PRESETS, CAROUSEL_TEMPLATES, DEFAULT_DESIGN, FONT_PAIRS,
-  FRAMEWORKS, presetByKey, resolvePalette, templateByKey, type Slide,
+  CAROUSEL_FONTS_HREF, DEFAULT_DESIGN, hasOverride, mergePalette, mergeTemplate,
+  presetByKey, resolvePalette, templateByKey, type Slide, type SlideOverride,
 } from "@/lib/carouselDesign";
+
 
 export const Route = createFileRoute("/dashboard/carousel")({
   head: () => ({
@@ -96,7 +99,7 @@ function CarouselPage() {
   const [kit, setKit] = useState<BrandKit | null>(null);
   const [stock, setStock] = useState<any[]>([]);
   const [stockQuery, setStockQuery] = useState("");
-  const [tab, setTab] = useState<"design" | "art" | "copy">("design");
+  const [tab, setTab] = useState<"slide" | "design" | "art" | "copy">("slide");
 
   // Watermark
   const initialWm = getWatermarkState();
@@ -134,6 +137,34 @@ function CarouselPage() {
   const brandName = kit?.brand_name || "PostSpark";
   const handle = kit?.brand_handle || "@postspark";
   const watermark = { on: watermarkOn, text: watermarkText, opacity: watermarkOpacity, placement: watermarkPlacement };
+
+  /** Resolve the effective design for one slide (deck design + its overrides). */
+  const resolveFor = (s: Slide) => {
+    const ov = s.override;
+    const tpl = mergeTemplate(template, ov);
+    const basePalette = ov?.templateKey
+      ? resolvePalette(tpl, {
+          useBrand: design.useBrand,
+          brandPrimary: kit?.primary_color,
+          brandAccent: kit?.accent_color,
+        })
+      : palette;
+    return {
+      template: tpl,
+      palette: mergePalette(basePalette, ov),
+      fontPairKey: ov?.fontPairKey ?? design.fontPairKey,
+    };
+  };
+
+  const patchOverride = (idx: number, patch: SlideOverride) =>
+    setSlides((prev) =>
+      prev.map((x, i) => (i === idx ? { ...x, override: { ...(x.override ?? {}), ...patch } } : x)),
+    );
+
+  const resetOverride = (idx: number) =>
+    setSlides((prev) => prev.map((x, i) => (i === idx ? { ...x, override: undefined } : x)));
+
+
 
   /* ------------------------------------------------------------ generate */
 
@@ -569,40 +600,7 @@ function CarouselPage() {
           </div>
         </div>
 
-        <div className="mt-4">
-          <label className="text-xs font-medium text-muted-foreground">Story framework</label>
-          <div className="mt-1.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {FRAMEWORKS.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFramework(f.key)}
-                className={`rounded-xl border p-3 text-left transition ${
-                  framework === f.key
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-background hover:border-primary/40"
-                }`}
-              >
-                <div className="text-sm font-semibold text-foreground">{f.label}</div>
-                <div className="text-[11px] text-muted-foreground">{f.blurb}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="mt-4 flex flex-wrap items-end gap-4">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">
-              Slides: <span className="text-foreground">{slideCount}</span>
-            </label>
-            <input
-              type="range"
-              min={5}
-              max={12}
-              value={slideCount}
-              onChange={(e) => setSlideCount(Number(e.target.value))}
-              className="mt-1 block w-48 accent-primary"
-            />
-          </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Copy depth</label>
             <div className="mt-1 flex gap-1.5">
@@ -633,19 +631,47 @@ function CarouselPage() {
       </div>
 
       {slides.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
-          <Layers className="mx-auto h-8 w-8 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Write your topic above and PostSpark will build the full deck — copy, layout and art.
-          </p>
-        </div>
+        <>
+          <div className="mt-5 rounded-2xl border border-border bg-card p-5 ps-elev-1">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Choose your look</h2>
+                <p className="text-sm text-muted-foreground">
+                  Pick a canvas, a premium template, typography, framework and slide count — every thumbnail
+                  below is a live render of the real design engine.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <TemplateGallery
+                design={design}
+                setDesign={setDesign}
+                brandName={brandName}
+                handle={handle}
+                showBrief
+                framework={framework}
+                setFramework={setFramework}
+                slideCount={slideCount}
+                setSlideCount={setSlideCount}
+              />
+            </div>
+          </div>
+          <div className="mt-5 rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center">
+            <Layers className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 text-sm text-muted-foreground">
+              Write your topic above, then generate — copy, layout and art in one pass.
+            </p>
+          </div>
+        </>
       ) : (
+
         <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_460px]">
           {/* LEFT — control tabs */}
           <div className="space-y-4">
             <div className="flex gap-1.5 rounded-xl border border-border bg-card p-1.5">
               {([
-                { k: "design", label: "Design", icon: PaletteIcon },
+                { k: "slide", label: "Slide", icon: SlidersHorizontal },
+                { k: "design", label: "Deck", icon: PaletteIcon },
                 { k: "art", label: "Art", icon: ImageIcon },
                 { k: "copy", label: "Copy", icon: TypeIcon },
               ] as const).map((t) => (
@@ -661,75 +687,37 @@ function CarouselPage() {
               ))}
             </div>
 
+            {tab === "slide" && current ? (
+              <SlideInspector
+                slide={current}
+                index={active}
+                total={slides.length}
+                deckTemplateKey={design.templateKey}
+                deckFontPairKey={design.fontPairKey}
+                busy={busySlide === active}
+                artBusy={artBusy}
+                onPatch={(patch) => updateSlide(active, patch)}
+                onOverride={(patch) => patchOverride(active, patch)}
+                onResetOverride={() => resetOverride(active)}
+                onGenerateArt={() => generateArt(active)}
+                onClearArt={() => updateSlide(active, { imageUrl: undefined, imageCredit: undefined })}
+                onAction={(a) => runSlideAction(active, a)}
+              />
+            ) : null}
+
             {tab === "design" ? (
               <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Canvas</p>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-4">
-                    {CAROUSEL_PRESETS.map((p) => (
-                      <button
-                        key={p.key}
-                        onClick={() => setDesign((d) => ({ ...d, presetKey: p.key }))}
-                        className={`rounded-xl border p-3 text-left transition ${
-                          design.presetKey === p.key
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-background hover:border-primary/40"
-                        }`}
-                      >
-                        <div className="text-sm font-semibold text-foreground">{p.label}</div>
-                        <div className="text-[11px] text-muted-foreground">{p.hint}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Template</p>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    {CAROUSEL_TEMPLATES.map((t) => (
-                      <button
-                        key={t.key}
-                        onClick={() =>
-                          setDesign((d) => ({ ...d, templateKey: t.key, fontPairKey: t.fontPair }))
-                        }
-                        className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${
-                          design.templateKey === t.key
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-background hover:border-primary/40"
-                        }`}
-                      >
-                        <span
-                          className="h-10 w-10 shrink-0 rounded-lg border border-border"
-                          style={{ background: t.surface, boxShadow: `inset 0 -10px 0 ${t.accent}` }}
-                        />
-                        <span className="min-w-0">
-                          <span className="block text-sm font-semibold text-foreground">{t.label}</span>
-                          <span className="block truncate text-[11px] text-muted-foreground">{t.blurb}</span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Typography</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {FONT_PAIRS.map((f) => (
-                      <button
-                        key={f.key}
-                        onClick={() => setDesign((d) => ({ ...d, fontPairKey: f.key }))}
-                        style={{ fontFamily: `'${f.heading}', serif` }}
-                        className={`rounded-lg border px-3 py-1.5 text-sm transition ${
-                          design.fontPairKey === f.key
-                            ? "border-primary bg-primary/10 text-foreground"
-                            : "border-input bg-background text-muted-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <TemplateGallery
+                  design={design}
+                  setDesign={setDesign}
+                  brandName={brandName}
+                  handle={handle}
+                  showBrief
+                  framework={framework}
+                  setFramework={setFramework}
+                  slideCount={slideCount}
+                  setSlideCount={setSlideCount}
+                />
 
                 <div className="flex flex-wrap gap-4 border-t border-border pt-4 text-xs">
                   {([
@@ -769,6 +757,7 @@ function CarouselPage() {
                 </div>
               </div>
             ) : null}
+
 
             {tab === "art" ? (
               <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
@@ -978,9 +967,9 @@ function CarouselPage() {
                       index={active}
                       total={slides.length}
                       preset={preset}
-                      template={template}
-                      palette={palette}
-                      fontPairKey={design.fontPairKey}
+                      template={resolveFor(current).template}
+                      palette={resolveFor(current).palette}
+                      fontPairKey={resolveFor(current).fontPairKey}
                       brandName={brandName}
                       handle={handle}
                       logoUrl={kit?.logo_url}
@@ -995,19 +984,32 @@ function CarouselPage() {
 
               {/* Filmstrip */}
               <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                {slides.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActive(i)}
-                    className={`h-14 w-11 shrink-0 rounded-md border text-[10px] font-bold ${
-                      i === active ? "border-primary ring-2 ring-primary/30" : "border-border"
-                    }`}
-                    style={{ background: s.imageUrl ? `url(${s.imageUrl}) center/cover` : palette.surface, color: palette.text }}
-                    title={s.title}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {slides.map((s, i) => {
+                  const r = resolveFor(s);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setActive(i)}
+                      className={`relative h-14 w-11 shrink-0 rounded-md border text-[10px] font-bold ${
+                        i === active ? "border-primary ring-2 ring-primary/30" : "border-border"
+                      }`}
+                      style={{
+                        background: s.imageUrl ? `url(${s.imageUrl}) center/cover` : r.palette.surface,
+                        color: r.palette.text,
+                      }}
+                      title={s.title}
+                    >
+                      {i + 1}
+                      {hasOverride(s.override) ? (
+                        <span
+                          className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary"
+                          title="Customised slide"
+                        />
+                      ) : null}
+                    </button>
+                  );
+                })}
+
               </div>
 
               {/* Export actions */}
@@ -1054,28 +1056,32 @@ function CarouselPage() {
 
       {/* Off-screen full-size render targets for export */}
       <div style={{ position: "fixed", left: -99999, top: 0, pointerEvents: "none", opacity: 0 }} aria-hidden>
-        {slides.map((s, i) => (
-          <SlideCanvas
-            key={i}
-            ref={(el) => {
-              slideRefs.current[i] = el;
-            }}
-            slide={s}
-            index={i}
-            total={slides.length}
-            preset={preset}
-            template={template}
-            palette={palette}
-            fontPairKey={design.fontPairKey}
-            brandName={brandName}
-            handle={handle}
-            logoUrl={kit?.logo_url}
-            showBrandBar={design.showBrandBar}
-            showCounter={design.showCounter}
-            showSwipeHint={design.showSwipeHint}
-            watermark={watermark}
-          />
-        ))}
+        {slides.map((s, i) => {
+          const r = resolveFor(s);
+          return (
+            <SlideCanvas
+              key={i}
+              ref={(el) => {
+                slideRefs.current[i] = el;
+              }}
+              slide={s}
+              index={i}
+              total={slides.length}
+              preset={preset}
+              template={r.template}
+              palette={r.palette}
+              fontPairKey={r.fontPairKey}
+              brandName={brandName}
+              handle={handle}
+              logoUrl={kit?.logo_url}
+              showBrandBar={design.showBrandBar}
+              showCounter={design.showCounter}
+              showSwipeHint={design.showSwipeHint}
+              watermark={watermark}
+            />
+          );
+        })}
+
       </div>
 
       {/* Canva — optional polish step, deliberately secondary */}
