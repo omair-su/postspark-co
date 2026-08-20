@@ -600,40 +600,7 @@ function CarouselPage() {
           </div>
         </div>
 
-        <div className="mt-4">
-          <label className="text-xs font-medium text-muted-foreground">Story framework</label>
-          <div className="mt-1.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {FRAMEWORKS.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFramework(f.key)}
-                className={`rounded-xl border p-3 text-left transition ${
-                  framework === f.key
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-background hover:border-primary/40"
-                }`}
-              >
-                <div className="text-sm font-semibold text-foreground">{f.label}</div>
-                <div className="text-[11px] text-muted-foreground">{f.blurb}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="mt-4 flex flex-wrap items-end gap-4">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">
-              Slides: <span className="text-foreground">{slideCount}</span>
-            </label>
-            <input
-              type="range"
-              min={5}
-              max={12}
-              value={slideCount}
-              onChange={(e) => setSlideCount(Number(e.target.value))}
-              className="mt-1 block w-48 accent-primary"
-            />
-          </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Copy depth</label>
             <div className="mt-1 flex gap-1.5">
@@ -664,13 +631,40 @@ function CarouselPage() {
       </div>
 
       {slides.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
-          <Layers className="mx-auto h-8 w-8 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Write your topic above and PostSpark will build the full deck — copy, layout and art.
-          </p>
-        </div>
+        <>
+          <div className="mt-5 rounded-2xl border border-border bg-card p-5 ps-elev-1">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Choose your look</h2>
+                <p className="text-sm text-muted-foreground">
+                  Pick a canvas, a premium template, typography, framework and slide count — every thumbnail
+                  below is a live render of the real design engine.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <TemplateGallery
+                design={design}
+                setDesign={setDesign}
+                brandName={brandName}
+                handle={handle}
+                showBrief
+                framework={framework}
+                setFramework={setFramework}
+                slideCount={slideCount}
+                setSlideCount={setSlideCount}
+              />
+            </div>
+          </div>
+          <div className="mt-5 rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center">
+            <Layers className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 text-sm text-muted-foreground">
+              Write your topic above, then generate — copy, layout and art in one pass.
+            </p>
+          </div>
+        </>
       ) : (
+
         <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_460px]">
           {/* LEFT — control tabs */}
           <div className="space-y-4">
