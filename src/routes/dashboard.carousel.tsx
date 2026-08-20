@@ -23,11 +23,14 @@ import { CanvaDesignLauncher } from "@/components/canva/CanvaDesignLauncher";
 import { CANVA_CAROUSEL_FORMATS } from "@/lib/canvaUrls";
 import { HeroArt } from "@/components/dashboard/HeroArt";
 import { SlideCanvas } from "@/components/carousel/SlideCanvas";
+import { TemplateGallery } from "@/components/carousel/TemplateGallery";
+import { SlideInspector } from "@/components/carousel/SlideInspector";
 import { PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
 import {
-  CAROUSEL_FONTS_HREF, CAROUSEL_PRESETS, CAROUSEL_TEMPLATES, DEFAULT_DESIGN, FONT_PAIRS,
-  FRAMEWORKS, presetByKey, resolvePalette, templateByKey, type Slide,
+  CAROUSEL_FONTS_HREF, DEFAULT_DESIGN, hasOverride, mergePalette, mergeTemplate,
+  presetByKey, resolvePalette, templateByKey, type Slide, type SlideOverride,
 } from "@/lib/carouselDesign";
+
 
 export const Route = createFileRoute("/dashboard/carousel")({
   head: () => ({
