@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Loader2, Sparkles, Download, Copy, Check, ChevronLeft, ChevronRight, Layers,
   Wand2, Image as ImageIcon, FileText, Droplet, Palette as PaletteIcon, Trash2,
-  Plus, ArrowUp, ArrowDown, Send, Type as TypeIcon, RefreshCw, X,
+  Plus, ArrowUp, ArrowDown, Send, Type as TypeIcon, RefreshCw, X, SlidersHorizontal,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
