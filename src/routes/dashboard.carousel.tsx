@@ -99,7 +99,7 @@ function CarouselPage() {
   const [kit, setKit] = useState<BrandKit | null>(null);
   const [stock, setStock] = useState<any[]>([]);
   const [stockQuery, setStockQuery] = useState("");
-  const [tab, setTab] = useState<"design" | "art" | "copy">("design");
+  const [tab, setTab] = useState<"slide" | "design" | "art" | "copy">("slide");
 
   // Watermark
   const initialWm = getWatermarkState();
