@@ -10,6 +10,7 @@ import {
   deriveCodeVerifier,
   verifyCanvaState,
 } from "./canva.server";
+import { safeFetch } from "./safeFetch";
 import {
   forceRefreshCanvaToken,
   getCanvaAccessToken,
@@ -390,7 +391,12 @@ export async function publishDesign(
 
 
 export async function uploadAsset(userId: string, imageUrl: string, name: string) {
-  const imgRes = await fetch(imageUrl);
+  let imgRes: Response;
+  try {
+    imgRes = await safeFetch(imageUrl);
+  } catch {
+    return { error: "That image URL is not allowed." };
+  }
   if (!imgRes.ok) return { error: "Could not read that image before uploading to Canva." };
   const bytes = new Uint8Array(await imgRes.arrayBuffer());
 
