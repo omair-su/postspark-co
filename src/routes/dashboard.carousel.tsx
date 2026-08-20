@@ -1056,28 +1056,32 @@ function CarouselPage() {
 
       {/* Off-screen full-size render targets for export */}
       <div style={{ position: "fixed", left: -99999, top: 0, pointerEvents: "none", opacity: 0 }} aria-hidden>
-        {slides.map((s, i) => (
-          <SlideCanvas
-            key={i}
-            ref={(el) => {
-              slideRefs.current[i] = el;
-            }}
-            slide={s}
-            index={i}
-            total={slides.length}
-            preset={preset}
-            template={template}
-            palette={palette}
-            fontPairKey={design.fontPairKey}
-            brandName={brandName}
-            handle={handle}
-            logoUrl={kit?.logo_url}
-            showBrandBar={design.showBrandBar}
-            showCounter={design.showCounter}
-            showSwipeHint={design.showSwipeHint}
-            watermark={watermark}
-          />
-        ))}
+        {slides.map((s, i) => {
+          const r = resolveFor(s);
+          return (
+            <SlideCanvas
+              key={i}
+              ref={(el) => {
+                slideRefs.current[i] = el;
+              }}
+              slide={s}
+              index={i}
+              total={slides.length}
+              preset={preset}
+              template={r.template}
+              palette={r.palette}
+              fontPairKey={r.fontPairKey}
+              brandName={brandName}
+              handle={handle}
+              logoUrl={kit?.logo_url}
+              showBrandBar={design.showBrandBar}
+              showCounter={design.showCounter}
+              showSwipeHint={design.showSwipeHint}
+              watermark={watermark}
+            />
+          );
+        })}
+
       </div>
 
       {/* Canva — optional polish step, deliberately secondary */}
