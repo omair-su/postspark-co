@@ -12,6 +12,7 @@ import {
   uploadLinkedInImage,
   uploadLinkedInVideo,
 } from "@/lib/linkedinMedia.server";
+import { safeFetch } from "@/lib/safeFetch";
 
 const BUCKET = "post-media";
 
@@ -46,8 +47,12 @@ export async function publishLinkedInForUser(
 
   async function readBytes(ref: string): Promise<ArrayBuffer | null> {
     if (/^https?:\/\//i.test(ref)) {
-      const res = await fetch(ref);
-      return res.ok ? await res.arrayBuffer() : null;
+      try {
+        const res = await safeFetch(ref);
+        return res.ok ? await res.arrayBuffer() : null;
+      } catch {
+        return null;
+      }
     }
     const { data: blob, error } = await admin.storage.from(BUCKET).download(ref);
     if (error || !blob) return null;

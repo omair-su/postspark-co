@@ -1,3 +1,4 @@
+import { safeFetch } from "./safeFetch";
 /**
  * Server-only helpers for publishing to X (Twitter) from cron/public routes.
  * Do not import this file from client code.
@@ -269,7 +270,12 @@ export async function publishTweetForUser(
 
   const mediaIds: string[] = [];
   for (const url of args.mediaUrls) {
-    const r = await fetch(url);
+    let r: Response;
+    try {
+      r = await safeFetch(url);
+    } catch {
+      return { error: "media URL not allowed" };
+    }
     if (!r.ok) return { error: `fetch media ${r.status}` };
     const buf = await r.arrayBuffer();
     if (buf.byteLength > 15 * 1024 * 1024) return { error: "media > 15MB" };
