@@ -967,9 +967,9 @@ function CarouselPage() {
                       index={active}
                       total={slides.length}
                       preset={preset}
-                      template={template}
-                      palette={palette}
-                      fontPairKey={design.fontPairKey}
+                      template={resolveFor(current).template}
+                      palette={resolveFor(current).palette}
+                      fontPairKey={resolveFor(current).fontPairKey}
                       brandName={brandName}
                       handle={handle}
                       logoUrl={kit?.logo_url}
@@ -984,19 +984,32 @@ function CarouselPage() {
 
               {/* Filmstrip */}
               <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                {slides.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActive(i)}
-                    className={`h-14 w-11 shrink-0 rounded-md border text-[10px] font-bold ${
-                      i === active ? "border-primary ring-2 ring-primary/30" : "border-border"
-                    }`}
-                    style={{ background: s.imageUrl ? `url(${s.imageUrl}) center/cover` : palette.surface, color: palette.text }}
-                    title={s.title}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {slides.map((s, i) => {
+                  const r = resolveFor(s);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setActive(i)}
+                      className={`relative h-14 w-11 shrink-0 rounded-md border text-[10px] font-bold ${
+                        i === active ? "border-primary ring-2 ring-primary/30" : "border-border"
+                      }`}
+                      style={{
+                        background: s.imageUrl ? `url(${s.imageUrl}) center/cover` : r.palette.surface,
+                        color: r.palette.text,
+                      }}
+                      title={s.title}
+                    >
+                      {i + 1}
+                      {hasOverride(s.override) ? (
+                        <span
+                          className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary"
+                          title="Customised slide"
+                        />
+                      ) : null}
+                    </button>
+                  );
+                })}
+
               </div>
 
               {/* Export actions */}
