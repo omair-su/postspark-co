@@ -138,6 +138,34 @@ function CarouselPage() {
   const handle = kit?.brand_handle || "@postspark";
   const watermark = { on: watermarkOn, text: watermarkText, opacity: watermarkOpacity, placement: watermarkPlacement };
 
+  /** Resolve the effective design for one slide (deck design + its overrides). */
+  const resolveFor = (s: Slide) => {
+    const ov = s.override;
+    const tpl = mergeTemplate(template, ov);
+    const basePalette = ov?.templateKey
+      ? resolvePalette(tpl, {
+          useBrand: design.useBrand,
+          brandPrimary: kit?.primary_color,
+          brandAccent: kit?.accent_color,
+        })
+      : palette;
+    return {
+      template: tpl,
+      palette: mergePalette(basePalette, ov),
+      fontPairKey: ov?.fontPairKey ?? design.fontPairKey,
+    };
+  };
+
+  const patchOverride = (idx: number, patch: SlideOverride) =>
+    setSlides((prev) =>
+      prev.map((x, i) => (i === idx ? { ...x, override: { ...(x.override ?? {}), ...patch } } : x)),
+    );
+
+  const resetOverride = (idx: number) =>
+    setSlides((prev) => prev.map((x, i) => (i === idx ? { ...x, override: undefined } : x)));
+
+
+
   /* ------------------------------------------------------------ generate */
 
   const handleGenerate = async () => {
