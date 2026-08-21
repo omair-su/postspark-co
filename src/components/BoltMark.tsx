@@ -24,13 +24,20 @@ export function BoltMark({
       style={{ width: size, height: size }}
     >
       <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#EC4899" />
-          <stop offset="50%" stopColor="#8B5CF6" />
-          <stop offset="100%" stopColor="#06B6D4" />
+        <linearGradient id={id} x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1400E6" />
+          <stop offset="50%" stopColor="#7A0BC0" />
+          <stop offset="100%" stopColor="#E60012" />
         </linearGradient>
       </defs>
-      <path d="M13.5 2 4 14h6l-1.5 8L20 9.5h-6.8L13.5 2z" fill={`url(#${id})`} />
+      <path
+        d="M10.5 2 20 14h-6l1.5 8L4 9.5h6.8L10.5 2z"
+        fill={`url(#${id})`}
+        stroke={`url(#${id})`}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
