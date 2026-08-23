@@ -508,13 +508,46 @@ export const publishToInstagram = createServerFn({ method: "POST" })
         return { error: "No Instagram Business account connected. Link one to a Facebook Page first." };
       }
 
+      // Slide list for carousels: mediaUrl first, then any extra unique images.
+      const slideUrls = Array.from(
+        new Set([data.mediaUrl, ...(data.mediaUrls ?? [])].filter(Boolean)),
+      ).slice(0, 10);
+      const isCarousel = data.mediaType === "IMAGE" && slideUrls.length > 1;
+
       // 1) Create media container
       const containerBody = new URLSearchParams({
         caption: data.caption,
         access_token: page.page_access_token,
       });
-      if (data.mediaType === "IMAGE") containerBody.set("image_url", data.mediaUrl);
-      else {
+      if (isCarousel) {
+        // Each slide needs its own item container first.
+        const childIds: string[] = [];
+        for (const url of slideUrls) {
+          const itemBody = new URLSearchParams({
+            image_url: url,
+            is_carousel_item: "true",
+            access_token: page.page_access_token,
+          });
+          // eslint-disable-next-line no-await-in-loop
+          const itemRes = await fetch(
+            `${META_GRAPH}/${page.instagram_business_account_id}/media`,
+            { method: "POST", body: itemBody },
+          );
+          // eslint-disable-next-line no-await-in-loop
+          const itemJson: any = await itemRes.json().catch(() => ({}));
+          if (!itemRes.ok || !itemJson?.id) {
+            return {
+              error:
+                itemJson?.error?.message || `IG carousel slide failed (${itemRes.status})`,
+            };
+          }
+          childIds.push(itemJson.id);
+        }
+        containerBody.set("media_type", "CAROUSEL");
+        containerBody.set("children", childIds.join(","));
+      } else if (data.mediaType === "IMAGE") {
+        containerBody.set("image_url", data.mediaUrl);
+      } else {
         containerBody.set("video_url", data.mediaUrl);
         containerBody.set("media_type", data.mediaType);
       }
