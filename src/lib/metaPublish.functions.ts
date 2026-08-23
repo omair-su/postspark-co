@@ -485,6 +485,8 @@ export const publishToInstagram = createServerFn({ method: "POST" })
     z.object({
       caption: z.string().min(1).max(2200),
       mediaUrl: z.string().url(),
+      /** Extra images for a multi-slide carousel (mediaUrl is slide 1). */
+      mediaUrls: z.array(z.string().url()).max(10).optional(),
       mediaType: z.enum(["IMAGE", "REELS", "VIDEO"]).default("IMAGE"),
       pageRowId: z.string().uuid().optional(),
     }).parse,
