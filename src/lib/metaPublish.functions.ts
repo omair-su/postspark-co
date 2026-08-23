@@ -703,6 +703,8 @@ export const publishToThreads = createServerFn({ method: "POST" })
     z.object({
       text: z.string().min(1).max(500),
       mediaUrl: z.string().url().optional(),
+      /** Extra images for a Threads carousel (mediaUrl is slide 1). */
+      mediaUrls: z.array(z.string().url()).max(20).optional(),
       /** Storage path inside the private post-media bucket (preferred). */
       mediaPath: z.string().optional(),
       mediaType: z.enum(["TEXT", "IMAGE", "VIDEO"]).default("TEXT"),
