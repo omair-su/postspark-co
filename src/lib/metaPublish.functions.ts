@@ -745,8 +745,35 @@ export const publishToThreads = createServerFn({ method: "POST" })
         text: data.text,
         access_token: acct.access_token,
       };
-      if (mediaUrl && mediaType === "IMAGE") params.image_url = mediaUrl;
-      if (mediaUrl && mediaType === "VIDEO") params.video_url = mediaUrl;
+
+      // Carousel: every image gets its own item container first.
+      const slideUrls = Array.from(
+        new Set([mediaUrl, ...(data.mediaUrls ?? [])].filter(Boolean) as string[]),
+      ).slice(0, 20);
+      const isCarousel = mediaType === "IMAGE" && slideUrls.length > 1;
+      if (isCarousel) {
+        const childIds: string[] = [];
+        for (const url of slideUrls) {
+          // eslint-disable-next-line no-await-in-loop
+          const item = await threadsPost(`/${acct.platform_user_id}/threads`, {
+            media_type: "IMAGE",
+            image_url: url,
+            is_carousel_item: "true",
+            access_token: acct.access_token,
+          });
+          if (!item.res.ok || !item.json?.id) {
+            return {
+              error: threadsErrorMessage(item.json, item.res, "Threads carousel slide failed"),
+            };
+          }
+          childIds.push(item.json.id);
+        }
+        params.media_type = "CAROUSEL";
+        params.children = childIds.join(",");
+      } else {
+        if (mediaUrl && mediaType === "IMAGE") params.image_url = mediaUrl;
+        if (mediaUrl && mediaType === "VIDEO") params.video_url = mediaUrl;
+      }
       if (data.replyToId) params.reply_to_id = data.replyToId;
 
       const { res: containerRes, json: containerJson } = await threadsPost(
