@@ -38,6 +38,8 @@ export interface QueueRow {
   text: string;
   chain?: string[];
   mediaUrl: string;
+  /** Every attached image (carousel slides). mediaUrl is the first one. */
+  mediaUrls?: string[];
   autoThread: boolean;
   status: "queued" | "publishing" | "published" | "failed" | "skipped";
   message?: string;
@@ -60,6 +62,7 @@ export function rowsFromPieces(pieces: Piece[]): QueueRow[] {
         platform,
         text: p.text,
         mediaUrl: p.media?.[0] || "",
+        mediaUrls: p.media?.length ? [...p.media] : [],
         autoThread: platform === "twitter",
         status: "queued",
         sourceFormat: p.format,
@@ -108,6 +111,10 @@ export function PackQueue({
   const publishRow = async (row: QueueRow): Promise<{ ok: boolean; message?: string; url?: string }> => {
     const isVideo = /\.(mp4|webm|mov)$/i.test(row.mediaUrl);
     const media = row.mediaUrl.trim();
+    const allMedia = Array.from(
+      new Set([media, ...(row.mediaUrls ?? [])].map((u) => (u || "").trim()).filter(Boolean)),
+    );
+    const extraMedia = allMedia.slice(1);
     try {
       if (row.platform === "twitter") {
         const limit = PLATFORM_LIMITS.twitter;
@@ -119,7 +126,7 @@ export function PackQueue({
           const r: any = await publishToX({
             data: {
               text: part,
-              mediaUrls: i === 0 && media && !isVideo ? [media] : [],
+              mediaUrls: i === 0 && media && !isVideo ? allMedia.slice(0, 4) : [],
               ...(replyTo ? { inReplyToTweetId: replyTo } : {}),
             },
             ...authHeaders,
@@ -139,7 +146,13 @@ export function PackQueue({
           const r: any = await publishToThreads({
             data: {
               text: post.slice(0, PLATFORM_LIMITS.threads),
-              ...(media ? { mediaUrl: media, mediaType: isVideo ? "VIDEO" : "IMAGE" } : { mediaType: "TEXT" }),
+              ...(media
+                ? {
+                    mediaUrl: media,
+                    mediaType: isVideo ? "VIDEO" : "IMAGE",
+                    ...(!isVideo && extraMedia.length ? { mediaUrls: allMedia } : {}),
+                  }
+                : { mediaType: "TEXT" }),
               ...(parentId ? { replyToId: parentId } : {}),
             },
             ...authHeaders,
@@ -157,7 +170,14 @@ export function PackQueue({
         const r: any = await publishToLinkedIn({
           data: {
             commentary: row.text.slice(0, PLATFORM_LIMITS.linkedin),
-            ...(media ? { mediaUrl: media } : {}),
+            ...(allMedia.length > 1 && !isVideo
+              ? {
+                  mediaKind: "images" as const,
+                  mediaItems: allMedia.slice(0, 9).map((url) => ({ url })),
+                }
+              : media
+                ? { mediaUrl: media }
+                : {}),
           },
           ...authHeaders,
         } as any);
@@ -172,6 +192,7 @@ export function PackQueue({
             caption: row.text.slice(0, PLATFORM_LIMITS.instagram),
             mediaUrl: media,
             mediaType: isVideo ? "REELS" : "IMAGE",
+            ...(!isVideo && extraMedia.length ? { mediaUrls: allMedia.slice(0, 10) } : {}),
           },
           ...authHeaders,
         } as any);

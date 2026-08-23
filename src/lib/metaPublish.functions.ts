@@ -485,6 +485,8 @@ export const publishToInstagram = createServerFn({ method: "POST" })
     z.object({
       caption: z.string().min(1).max(2200),
       mediaUrl: z.string().url(),
+      /** Extra images for a multi-slide carousel (mediaUrl is slide 1). */
+      mediaUrls: z.array(z.string().url()).max(10).optional(),
       mediaType: z.enum(["IMAGE", "REELS", "VIDEO"]).default("IMAGE"),
       pageRowId: z.string().uuid().optional(),
     }).parse,
@@ -506,13 +508,46 @@ export const publishToInstagram = createServerFn({ method: "POST" })
         return { error: "No Instagram Business account connected. Link one to a Facebook Page first." };
       }
 
+      // Slide list for carousels: mediaUrl first, then any extra unique images.
+      const slideUrls = Array.from(
+        new Set([data.mediaUrl, ...(data.mediaUrls ?? [])].filter(Boolean)),
+      ).slice(0, 10);
+      const isCarousel = data.mediaType === "IMAGE" && slideUrls.length > 1;
+
       // 1) Create media container
       const containerBody = new URLSearchParams({
         caption: data.caption,
         access_token: page.page_access_token,
       });
-      if (data.mediaType === "IMAGE") containerBody.set("image_url", data.mediaUrl);
-      else {
+      if (isCarousel) {
+        // Each slide needs its own item container first.
+        const childIds: string[] = [];
+        for (const url of slideUrls) {
+          const itemBody = new URLSearchParams({
+            image_url: url,
+            is_carousel_item: "true",
+            access_token: page.page_access_token,
+          });
+          // eslint-disable-next-line no-await-in-loop
+          const itemRes = await fetch(
+            `${META_GRAPH}/${page.instagram_business_account_id}/media`,
+            { method: "POST", body: itemBody },
+          );
+          // eslint-disable-next-line no-await-in-loop
+          const itemJson: any = await itemRes.json().catch(() => ({}));
+          if (!itemRes.ok || !itemJson?.id) {
+            return {
+              error:
+                itemJson?.error?.message || `IG carousel slide failed (${itemRes.status})`,
+            };
+          }
+          childIds.push(itemJson.id);
+        }
+        containerBody.set("media_type", "CAROUSEL");
+        containerBody.set("children", childIds.join(","));
+      } else if (data.mediaType === "IMAGE") {
+        containerBody.set("image_url", data.mediaUrl);
+      } else {
         containerBody.set("video_url", data.mediaUrl);
         containerBody.set("media_type", data.mediaType);
       }
@@ -668,6 +703,8 @@ export const publishToThreads = createServerFn({ method: "POST" })
     z.object({
       text: z.string().min(1).max(500),
       mediaUrl: z.string().url().optional(),
+      /** Extra images for a Threads carousel (mediaUrl is slide 1). */
+      mediaUrls: z.array(z.string().url()).max(20).optional(),
       /** Storage path inside the private post-media bucket (preferred). */
       mediaPath: z.string().optional(),
       mediaType: z.enum(["TEXT", "IMAGE", "VIDEO"]).default("TEXT"),
@@ -708,8 +745,35 @@ export const publishToThreads = createServerFn({ method: "POST" })
         text: data.text,
         access_token: acct.access_token,
       };
-      if (mediaUrl && mediaType === "IMAGE") params.image_url = mediaUrl;
-      if (mediaUrl && mediaType === "VIDEO") params.video_url = mediaUrl;
+
+      // Carousel: every image gets its own item container first.
+      const slideUrls = Array.from(
+        new Set([mediaUrl, ...(data.mediaUrls ?? [])].filter(Boolean) as string[]),
+      ).slice(0, 20);
+      const isCarousel = mediaType === "IMAGE" && slideUrls.length > 1;
+      if (isCarousel) {
+        const childIds: string[] = [];
+        for (const url of slideUrls) {
+          // eslint-disable-next-line no-await-in-loop
+          const item = await threadsPost(`/${acct.platform_user_id}/threads`, {
+            media_type: "IMAGE",
+            image_url: url,
+            is_carousel_item: "true",
+            access_token: acct.access_token,
+          });
+          if (!item.res.ok || !item.json?.id) {
+            return {
+              error: threadsErrorMessage(item.json, item.res, "Threads carousel slide failed"),
+            };
+          }
+          childIds.push(item.json.id);
+        }
+        params.media_type = "CAROUSEL";
+        params.children = childIds.join(",");
+      } else {
+        if (mediaUrl && mediaType === "IMAGE") params.image_url = mediaUrl;
+        if (mediaUrl && mediaType === "VIDEO") params.video_url = mediaUrl;
+      }
       if (data.replyToId) params.reply_to_id = data.replyToId;
 
       const { res: containerRes, json: containerJson } = await threadsPost(
