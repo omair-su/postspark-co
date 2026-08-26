@@ -48,7 +48,8 @@ export async function countMonthlyUsedJobs(supabase: any, userId: string): Promi
 
   if (error) {
     console.error("countMonthlyUsedJobs error:", error);
-    return 0;
+    // Fail closed so a read error cannot be used to skip the free-tier cap.
+    return FREE_MONTHLY_LIMIT;
   }
 
   const rows = (data || []) as Array<{ id: string; outputs: unknown; created_at: string }>;
@@ -73,7 +74,45 @@ export async function countMonthlyUsedJobs(supabase: any, userId: string): Promi
   return used;
 }
 
-/** Creates the pack row if it isn't there yet. Safe to call from every format. */
+export type ClaimPackResult = { ok: true } | { ok: false; error: "LIMIT_REACHED" | string };
+
+/**
+ * Atomically reserves a monthly free-tier slot (or no-ops if the pack exists).
+ * Quota is enforced in Postgres under an advisory lock — never from client flags.
+ */
+export async function claimRepurposePack(
+  supabase: any,
+  opts: {
+    packId: string;
+    userId: string;
+    inputText: string;
+    title: string;
+    brandKitId: string | null;
+    workspaceId: string | null;
+  },
+): Promise<ClaimPackResult> {
+  const { data, error } = await supabase.rpc("claim_repurpose_pack", {
+    _pack_id: opts.packId,
+    _user_id: opts.userId,
+    _input_text: opts.inputText,
+    _title: opts.title,
+    _brand_kit_id: opts.brandKitId,
+    _workspace_id: opts.workspaceId,
+  });
+
+  if (error) {
+    console.error("claim_repurpose_pack RPC error:", error);
+    return { ok: false, error: "Could not start this pack" };
+  }
+
+  if (data === "limit_reached") {
+    return { ok: false, error: "LIMIT_REACHED" };
+  }
+
+  return { ok: true };
+}
+
+/** @deprecated Use claimRepurposePack — kept as an alias for pack reservation. */
 export async function ensurePackRow(
   supabase: any,
   opts: {
@@ -84,27 +123,6 @@ export async function ensurePackRow(
     brandKitId: string | null;
     workspaceId: string | null;
   },
-) {
-  const { data: existing } = await supabase
-    .from("repurpose_jobs")
-    .select("id")
-    .eq("id", opts.packId)
-    .eq("user_id", opts.userId)
-    .maybeSingle();
-  if (existing) return;
-
-  const { error } = await supabase.from("repurpose_jobs").insert({
-    id: opts.packId,
-    user_id: opts.userId,
-    input_text: opts.inputText,
-    title: opts.title,
-    outputs: {},
-    brand_kit_id: opts.brandKitId,
-    workspace_id: opts.workspaceId,
-    tool: "repurpose",
-  } as any);
-  // A duplicate-key error just means a sibling format won the race — fine.
-  if (error && !`${error.message}`.toLowerCase().includes("duplicate")) {
-    console.error("repurpose pack insert error:", error);
-  }
+): Promise<ClaimPackResult> {
+  return claimRepurposePack(supabase, opts);
 }

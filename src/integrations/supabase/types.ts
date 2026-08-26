@@ -1909,6 +1909,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      claim_repurpose_pack: {
+        Args: {
+          _pack_id: string
+          _user_id: string
+          _input_text: string
+          _title?: string
+          _brand_kit_id?: string | null
+          _workspace_id?: string | null
+        }
+        Returns: string
+      }
       cleanup_cron_job_run_details: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }

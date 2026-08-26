@@ -7,7 +7,7 @@ import {
   FREE_MONTHLY_LIMIT,
   rateLimited,
   FORMAT_ID,
-  ensurePackRow,
+  claimRepurposePack,
   countMonthlyUsedJobs,
   type PackBrandKit,
 } from "@/lib/repurposeLimits.server";
@@ -63,13 +63,32 @@ export const repurposeContent = createServerFn({ method: "POST" })
     const plan = profile?.plan || "free";
     const isPro = plan === "pro" || plan === "agency";
 
+    const packId = crypto.randomUUID();
+    const claimTitle = data.inputText.replace(/\s+/g, " ").trim().slice(0, 120);
+    const kitEarly = await resolveActiveBrandKit(supabase, userId);
+    let workspaceIdEarly: string | null = null;
+    const { data: membershipEarly } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+    if (membershipEarly?.workspace_id) workspaceIdEarly = membershipEarly.workspace_id as string;
+
+    const claim = await claimRepurposePack(supabase, {
+      packId,
+      userId,
+      inputText: data.inputText,
+      title: claimTitle,
+      brandKitId: kitEarly?.id ?? null,
+      workspaceId: workspaceIdEarly,
+    });
+    if (!claim.ok) {
+      return { output: "", error: claim.error === "LIMIT_REACHED" ? "LIMIT_REACHED" : claim.error };
+    }
+
     if (!isPro) {
       const count = await countMonthlyUsedJobs(supabase, userId);
-
-      if (count >= FREE_MONTHLY_LIMIT) {
-        return { output: "", error: "LIMIT_REACHED" };
-      }
-
       // Fire-and-forget: warn the user when they hit 2/3.
       if (count === FREE_MONTHLY_LIMIT - 1) {
         try {
@@ -127,24 +146,12 @@ export const repurposeContent = createServerFn({ method: "POST" })
 
     // Auto-apply the deterministic ACTIVE Brand Kit (tone + brand context)
     let effectiveTone = data.tone || "professional";
-    let brandKitId: string | null = null;
-    const kit = await resolveActiveBrandKit(supabase, userId);
-    if (kit) {
-      brandKitId = kit.id ?? null;
-      if (!data.tone && kit.preferred_tone) effectiveTone = kit.preferred_tone;
-    }
+    const kit = kitEarly;
+    const brandKitId: string | null = kit?.id ?? null;
+    if (kit && !data.tone && kit.preferred_tone) effectiveTone = kit.preferred_tone;
     const brandContext = brandKitPromptContext(kit);
 
-
-    // Resolve active workspace (Agency users)
-    let workspaceId: string | null = null;
-    const { data: membership } = await supabase
-      .from("workspace_members")
-      .select("workspace_id")
-      .eq("user_id", userId)
-      .limit(1)
-      .maybeSingle();
-    if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
+    const workspaceId = workspaceIdEarly;
 
     const mergedInstructions = brandContext
       ? `${data.customInstructions || ""}${data.customInstructions ? " " : ""}Brand context — ${brandContext}.`.trim()
@@ -160,21 +167,22 @@ export const repurposeContent = createServerFn({ method: "POST" })
       voiceProfile,
     );
 
-    let jobId: string | null = null;
+    let jobId: string | null = packId;
     if (!result.error && result.output) {
-      const { data: inserted } = await supabase
+      const { error: updErr } = await supabase
         .from("repurpose_jobs")
-        .insert({
-          user_id: userId,
-          input_text: data.inputText,
+        .update({
           outputs: { raw: result.output },
           brand_kit_id: brandKitId,
           workspace_id: workspaceId,
           tool: data.tool || "repurpose",
         } as any)
-        .select("id")
-        .single();
-      jobId = (inserted as any)?.id ?? null;
+        .eq("id", packId)
+        .eq("user_id", userId);
+      if (updErr) {
+        console.error("repurposeContent update error:", updErr);
+        jobId = null;
+      }
     }
 
     return { ...result, jobId };
@@ -265,18 +273,6 @@ export const startRepurposePack = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    const { data: profile } = await supabase
-      .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
-    const plan = profile?.plan || "free";
-    const isPro = plan === "pro" || plan === "agency";
-
-    if (!isPro) {
-      const used = await countMonthlyUsedJobs(supabase, userId);
-      if (used >= FREE_MONTHLY_LIMIT) {
-        return { ok: false, error: "LIMIT_REACHED", packId: null as string | null, brandKit: null as PackBrandKit };
-      }
-    }
-
     const kit = await resolveActiveBrandKit(supabase, userId);
 
     let workspaceId: string | null = null;
@@ -284,7 +280,7 @@ export const startRepurposePack = createServerFn({ method: "POST" })
       .from("workspace_members").select("workspace_id").eq("user_id", userId).limit(1).maybeSingle();
     if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
 
-    await ensurePackRow(supabase, {
+    const claim = await claimRepurposePack(supabase, {
       packId: data.packId,
       userId,
       inputText: data.inputText,
@@ -292,6 +288,14 @@ export const startRepurposePack = createServerFn({ method: "POST" })
       brandKitId: kit?.id ?? null,
       workspaceId,
     });
+    if (!claim.ok) {
+      return {
+        ok: false,
+        error: claim.error === "LIMIT_REACHED" ? "LIMIT_REACHED" : claim.error,
+        packId: null as string | null,
+        brandKit: null as PackBrandKit,
+      };
+    }
 
     return {
       ok: true,
@@ -308,6 +312,7 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       packId: z.string().uuid(),
+      // Accepted for backward compatibility only. Quota is never based on this flag.
       isFirstInPack: z.boolean().optional().default(false),
 
       inputText: z.string().min(1).max(50000),
@@ -333,14 +338,6 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
 
     const plan = profile?.plan || "free";
     const isPro = plan === "pro" || plan === "agency";
-
-    // Enforce monthly limit ONLY on the first format of a pack.
-    if (data.isFirstInPack && !isPro) {
-      const used = await countMonthlyUsedJobs(supabase, userId);
-      if (used >= FREE_MONTHLY_LIMIT) {
-        return { output: "", error: "LIMIT_REACHED", jobId: null };
-      }
-    }
 
     // Brand Voice (Pro)
     let brandVoiceSummary = "";
@@ -378,6 +375,25 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
       ? `${data.customInstructions || ""}${data.customInstructions ? " " : ""}Brand context — ${brandContext}.`.trim()
       : (data.customInstructions || "");
 
+    let workspaceId: string | null = null;
+    const { data: membership } = await supabase
+      .from("workspace_members").select("workspace_id").eq("user_id", userId).limit(1).maybeSingle();
+    if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
+
+    const packTitle = data.inputText.replace(/\s+/g, " ").trim().slice(0, 120);
+
+    const claim = await claimRepurposePack(supabase, {
+      packId: data.packId,
+      userId,
+      inputText: data.inputText,
+      title: packTitle,
+      brandKitId,
+      workspaceId,
+    });
+    if (!claim.ok) {
+      return { output: "", error: claim.error === "LIMIT_REACHED" ? "LIMIT_REACHED" : claim.error, jobId: null };
+    }
+
     const result = await generateOneFormat({
       inputText: data.inputText,
       format: data.format,
@@ -395,25 +411,6 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
     if (result.error || !result.output) {
       return { output: "", error: result.error || "Generation failed", jobId: null };
     }
-
-    // Resolve workspace
-    let workspaceId: string | null = null;
-    const { data: membership } = await supabase
-      .from("workspace_members").select("workspace_id").eq("user_id", userId).limit(1).maybeSingle();
-    if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
-
-    const packTitle = data.inputText.replace(/\s+/g, " ").trim().slice(0, 120);
-
-    // Ensure the pack row exists regardless of which format finishes first, so
-    // one failed format can never strand the rest of the pack.
-    await ensurePackRow(supabase, {
-      packId: data.packId,
-      userId,
-      inputText: data.inputText,
-      title: packTitle,
-      brandKitId,
-      workspaceId,
-    });
 
     // Atomic JSONB merge via RPC — avoids parallel-write race that drops formats
     const { error: rpcErr } = await (supabase as any).rpc("append_repurpose_outputs", {
