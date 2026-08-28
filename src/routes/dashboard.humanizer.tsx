@@ -412,7 +412,7 @@ function HumanizerPage() {
               <FileText className="h-3.5 w-3.5 text-muted-foreground" /> Your AI text
             </h2>
             <div className="flex items-center gap-2">
-              <DriveImportButton onImport={(t: string) => setInput(t)} />
+              <DriveImportButton onImported={(t) => setInput(t)} />
               <span className="text-[11px] tabular-nums text-muted-foreground">
                 {inputWords.toLocaleString()} words
               </span>
@@ -479,7 +479,7 @@ function HumanizerPage() {
                 <button onClick={sendToRepurpose} className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-muted">
                   <Repeat className="h-3.5 w-3.5" /> Repurpose
                 </button>
-                <ExportToGoogleDocs title="Humanized text" content={output} />
+                <ExportToGoogleDocs content={output} defaultTitle="Humanized text" sourceTool="humanizer" />
               </div>
             )}
           </div>
@@ -498,7 +498,7 @@ function HumanizerPage() {
           {loading && !output && (
             <div className="min-h-[46vh] space-y-2.5">
               {[...Array(9)].map((_, i) => (
-                <div key={i} className="lux-flow h-3.5 rounded-full bg-muted" style={{ width: `${60 + ((i * 13) % 38)}%` }} />
+                <div key={i} className="ps-skel h-3.5 rounded-full bg-muted" style={{ width: `${60 + ((i * 13) % 38)}%` }} />
               ))}
             </div>
           )}
