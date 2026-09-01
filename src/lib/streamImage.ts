@@ -8,7 +8,7 @@ export async function streamImage(
   body: Record<string, unknown>,
   onFrame: (dataUrl: string, isFinal: boolean) => void,
   opts: { headers?: Record<string, string>; signal?: AbortSignal } = {},
-): Promise<{ imageUrl: string | null; error?: string }> {
+): Promise<{ imageUrl: string | null; savedUrl?: string; error?: string }> {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
@@ -34,6 +34,8 @@ export async function streamImage(
   let buf = "";
   let last: string | null = null;
   let final: string | null = null;
+  /** Public storage URL emitted by the server once the tile is persisted. */
+  let savedUrl: string | undefined;
 
   const toDataUrl = (v: string) => (v.startsWith("data:") ? v : `data:image/png;base64,${v}`);
 
@@ -44,6 +46,18 @@ export async function streamImage(
     const frames = buf.split("\n\n");
     buf = frames.pop() || "";
     for (const frame of frames) {
+      if (/event:\s*studio\.saved/.test(frame)) {
+        for (const line of frame.split("\n")) {
+          if (!line.startsWith("data:")) continue;
+          try {
+            const j = JSON.parse(line.slice(5).trim());
+            if (j?.url) savedUrl = j.url as string;
+          } catch {
+            /* ignore */
+          }
+        }
+        continue;
+      }
       const isFinal = /event:\s*\S*completed/.test(frame);
       for (const line of frame.split("\n")) {
         if (!line.startsWith("data:")) continue;
@@ -69,5 +83,8 @@ export async function streamImage(
   }
 
   const result = final || last;
+  // Prefer the persisted storage URL: keeping a multi-MB data URL in React
+  // state causes jank and breaks downloads/exports.
+  if (savedUrl) return { imageUrl: savedUrl, savedUrl };
   return result ? { imageUrl: result } : { imageUrl: null, error: "NO_FRAMES" };
 }
