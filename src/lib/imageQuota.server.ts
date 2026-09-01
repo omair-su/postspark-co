@@ -92,6 +92,10 @@ export async function persistGeneratedImage(opts: {
   aspect?: string;
   template?: string;
   source?: string;
+  model?: string | null;
+  seed?: number | null;
+  negativePrompt?: string | null;
+  referenceUrl?: string | null;
 }): Promise<string | null> {
   try {
     let bytes: Uint8Array | null = null;
@@ -125,7 +129,7 @@ export async function persistGeneratedImage(opts: {
     const { data: pub } = supabaseAdmin.storage.from("generated-images").getPublicUrl(path);
     const publicUrl = pub.publicUrl;
 
-    const { error: insErr } = await supabaseAdmin.from("generated_images").insert({
+    const baseRow = {
       user_id: opts.userId,
       image_url: publicUrl,
       prompt: opts.prompt,
@@ -133,7 +137,23 @@ export async function persistGeneratedImage(opts: {
       aspect: opts.aspect,
       template: opts.template,
       source: opts.source || "generate",
-    });
+    };
+    // Recipe columns are additive; if the migration hasn't been applied yet the
+    // insert is retried without them so a render is never lost.
+    const recipeRow = {
+      ...baseRow,
+      model: opts.model ?? null,
+      seed: opts.seed ?? null,
+      negative_prompt: opts.negativePrompt ?? null,
+      reference_url: opts.referenceUrl ?? null,
+    };
+    let { error: insErr } = await supabaseAdmin
+      .from("generated_images")
+      .insert(recipeRow as any);
+    if (insErr) {
+      const retry = await supabaseAdmin.from("generated_images").insert(baseRow as any);
+      insErr = retry.error;
+    }
     if (insErr) console.error("persistGeneratedImage insert error:", insErr);
     return publicUrl;
   } catch (e) {
