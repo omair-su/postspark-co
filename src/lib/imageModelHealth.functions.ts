@@ -51,7 +51,7 @@ async function pingGemini(): Promise<Status> {
       signal: ctrl.signal,
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: STUDIO_TEXT_MODEL_LITE,
         messages: [{ role: "user", content: "ping" }],
         max_tokens: 5,
       }),
