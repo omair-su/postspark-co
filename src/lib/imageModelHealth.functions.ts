@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { STUDIO_TEXT_MODEL_LITE } from "@/lib/imageModels";
 
 type Status = { ok: boolean; latencyMs: number; error?: string };
 
