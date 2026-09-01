@@ -1,3 +1,10 @@
+import {
+  IMAGE_GATEWAY_MODELS,
+  OPENAI_IMAGE_MODELS,
+  STUDIO_TEXT_MODEL,
+  STUDIO_TEXT_MODEL_LITE,
+} from "@/lib/imageModels";
+
 export interface ImageGenResult {
   imageUrl: string; // data: URL or hosted URL
   error?: string;
@@ -44,10 +51,7 @@ export type ImageModel = "auto" | "flux" | "gpt" | "gemini";
 
 // Stable image models in fallback order. Lovable AI Gateway is used as the
 // fallback when Replicate is unavailable or for image-edit (multimodal) calls.
-const IMAGE_MODELS = [
-  "google/gemini-2.5-flash-image",
-  "google/gemini-3.1-flash-image-preview",
-];
+const IMAGE_MODELS = [...IMAGE_GATEWAY_MODELS];
 
 const REPLICATE_ASPECT: Record<string, string> = {
   square: "1:1",
@@ -72,7 +76,7 @@ async function callOpenAIImage(
   if (!key) return { imageUrl: "", error: "OpenAI key not configured" };
 
   const size = OPENAI_SIZE[aspect] || "1024x1024";
-  const models = ["gpt-image-2", "gpt-image-1"];
+  const models = [...OPENAI_IMAGE_MODELS];
   let lastErr = "OpenAI image generation failed";
 
   for (const model of models) {
@@ -422,7 +426,7 @@ export async function enhanceImagePrompt(
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: STUDIO_TEXT_MODEL,
         messages: [
           {
             role: "system",
@@ -478,7 +482,7 @@ export async function generateCarouselSet(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: STUDIO_TEXT_MODEL,
         messages: [
           {
             role: "system",
@@ -706,7 +710,7 @@ export async function checkPromptSafety(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: STUDIO_TEXT_MODEL_LITE,
         messages: [
           {
             role: "system",
@@ -742,7 +746,7 @@ export async function generateCaption(prompt: string): Promise<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: STUDIO_TEXT_MODEL_LITE,
         messages: [
           {
             role: "system",
