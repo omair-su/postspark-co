@@ -51,6 +51,8 @@ export const generateImage = createServerFn({ method: "POST" })
       quality: QUALITY,
       negativePrompt: z.string().max(500).optional(),
       originalPrompt: z.string().max(2000).optional(),
+      seed: z.number().int().min(0).max(999999999).optional(),
+      referenceUrl: z.string().max(2000).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -70,6 +72,7 @@ export const generateImage = createServerFn({ method: "POST" })
       data.model,
       data.quality,
       data.negativePrompt,
+      data.seed ?? null,
     );
     if (res.imageUrl) {
       const persisted = await persistGeneratedImage({
@@ -80,6 +83,10 @@ export const generateImage = createServerFn({ method: "POST" })
         aspect: data.aspect,
         template: data.template,
         source: data.template === "thumbnail" || data.template === "blog-cover" ? "thumbnail" : "generate",
+        model: data.model,
+        seed: data.seed ?? null,
+        negativePrompt: data.negativePrompt ?? null,
+        referenceUrl: data.referenceUrl ?? null,
       });
       if (persisted) res.imageUrl = persisted;
       const isThumb = data.template === "thumbnail" || data.template === "blog-cover";

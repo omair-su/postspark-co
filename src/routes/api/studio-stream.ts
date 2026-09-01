@@ -1,10 +1,17 @@
 /**
- * Streaming image generation for the Image Studio.
+ * Streaming image generation for the Image Studio (gateway/Gemini path only).
+ *
+ * The client only routes here when the selected model is the gateway model —
+ * Flux (Replicate) and GPT Image (OpenAI) have no SSE surface and go through the
+ * `generateImage` server function instead, so the model picker is never a lie.
  *
  * Quota is enforced up front (monthly image allowance) and every *completed*
  * tile is persisted to storage + `generated_images`, which is the same table the
- * monthly usage counter reads — so streamed renders count exactly like batch
- * renders. Partial frames are streamed to the client but never counted.
+ * monthly usage counter reads. Partial frames are streamed but never counted.
+ *
+ * After persisting, a trailing `studio.saved` SSE event carries the public
+ * storage URL so the client can keep a lightweight URL in state instead of a
+ * multi-megabyte base64 data URL.
  *
  * Cancellation: the client's AbortSignal is forwarded upstream, so an aborted
  * job produces no completed tile and therefore consumes no quota.
@@ -18,6 +25,7 @@ import {
   persistGeneratedImage,
   logToHistory,
 } from "@/lib/imageQuota.server";
+import { STREAM_IMAGE_MODEL_FAST, STREAM_IMAGE_MODEL_HD } from "@/lib/imageModels";
 
 const ASPECT_HINT: Record<string, string> = {
   square: "1:1 square composition",
@@ -55,6 +63,9 @@ export const Route = createFileRoute("/api/studio-stream")({
           style?: string;
           aspect?: string;
           template?: string;
+          negativePrompt?: string;
+          quality?: string;
+          seed?: number;
         } | null;
         const prompt = (body?.prompt || "").trim();
         if (prompt.length < 3 || prompt.length > 2000)
@@ -62,6 +73,9 @@ export const Route = createFileRoute("/api/studio-stream")({
         const aspect = body?.aspect === "portrait" || body?.aspect === "landscape" ? body.aspect : "square";
         const style = (body?.style || "").slice(0, 40);
         const template = (body?.template || "").slice(0, 40) || undefined;
+        const negativePrompt = (body?.negativePrompt || "").slice(0, 400).trim();
+        const quality = body?.quality === "hd" ? "hd" : "standard";
+        const seed = Number.isFinite(body?.seed) ? Number(body?.seed) : null;
 
         const plan = await getPlanFor(supabase, userId);
         const isThumb = template === "thumbnail" || template === "blog-cover";
@@ -76,7 +90,13 @@ export const Route = createFileRoute("/api/studio-stream")({
             headers: { "Content-Type": "application/json" },
           });
 
-        const fullPrompt = [prompt, style && `${style} style`, ASPECT_HINT[aspect]]
+        const gatewayModel = quality === "hd" ? STREAM_IMAGE_MODEL_HD : STREAM_IMAGE_MODEL_FAST;
+        const fullPrompt = [
+          prompt,
+          style && `${style} style`,
+          ASPECT_HINT[aspect],
+          negativePrompt && `Avoid: ${negativePrompt}`,
+        ]
           .filter(Boolean)
           .join(". ");
 
@@ -86,7 +106,7 @@ export const Route = createFileRoute("/api/studio-stream")({
             method: "POST",
             headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "google/gemini-3-pro-image",
+              model: gatewayModel,
               messages: [{ role: "user", content: fullPrompt }],
               modalities: ["image", "text"],
               stream: true,
@@ -100,69 +120,87 @@ export const Route = createFileRoute("/api/studio-stream")({
         if (!upstream.ok || !upstream.body)
           return new Response(await upstream.text(), { status: upstream.status });
 
-        // Tee the stream: one half goes to the client untouched, the other half is
-        // scanned server-side so the completed tile is persisted and counted.
-        const [toClient, toCounter] = upstream.body.tee();
+        // Pass every upstream chunk straight through (no buffering) while
+        // scanning for the completed frame, then append a `studio.saved` event
+        // carrying the persisted storage URL.
+        const decoder = new TextDecoder();
+        const encoder = new TextEncoder();
+        let scanBuf = "";
+        let finalB64: string | null = null;
 
-        (async () => {
-          const reader = toCounter.getReader();
-          const decoder = new TextDecoder();
-          let buf = "";
-          let finalB64: string | null = null;
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              buf += decoder.decode(value, { stream: true });
-              const frames = buf.split("\n\n");
-              buf = frames.pop() || "";
-              for (const frame of frames) {
-                const isFinal = /event:\s*\S*completed/.test(frame);
-                if (!isFinal) continue;
-                for (const line of frame.split("\n")) {
-                  if (!line.startsWith("data:")) continue;
-                  const payload = line.slice(5).trim();
-                  if (!payload || payload === "[DONE]") continue;
-                  try {
-                    const json = JSON.parse(payload);
-                    finalB64 =
-                      json.b64_json ||
-                      json?.data?.[0]?.b64_json ||
-                      json?.image?.b64_json ||
-                      json?.choices?.[0]?.message?.images?.[0]?.image_url?.url ||
-                      null;
-                  } catch {
-                    /* partial JSON — ignore */
-                  }
+        const relay = new TransformStream<Uint8Array, Uint8Array>({
+          transform(chunk, controller) {
+            controller.enqueue(chunk);
+            scanBuf += decoder.decode(chunk, { stream: true });
+            const frames = scanBuf.split("\n\n");
+            scanBuf = frames.pop() || "";
+            for (const frame of frames) {
+              if (!/event:\s*\S*completed/.test(frame)) continue;
+              for (const line of frame.split("\n")) {
+                if (!line.startsWith("data:")) continue;
+                const payload = line.slice(5).trim();
+                if (!payload || payload === "[DONE]") continue;
+                try {
+                  const json = JSON.parse(payload);
+                  finalB64 =
+                    json.b64_json ||
+                    json?.data?.[0]?.b64_json ||
+                    json?.image?.b64_json ||
+                    json?.choices?.[0]?.message?.images?.[0]?.image_url?.url ||
+                    null;
+                } catch {
+                  /* partial JSON — ignore */
                 }
               }
             }
-          } catch {
-            /* aborted or upstream error — nothing to count */
-          }
-          if (!finalB64) return;
-          const imageUrl = finalB64.startsWith("data:") ? finalB64 : `data:image/png;base64,${finalB64}`;
-          const persisted = await persistGeneratedImage({
-            userId,
-            imageUrl,
-            prompt,
-            style,
-            aspect,
-            template,
-            source: "stream",
-          });
-          if (persisted) {
-            await logToHistory({
-              userId,
-              tool: isThumb ? "thumbnail" : "image",
-              title: prompt.slice(0, 80),
-              inputText: prompt,
-              outputs: { image_url: persisted, style, aspect, template: template || "", prompt, streamed: true },
-            });
-          }
-        })();
+          },
+          async flush(controller) {
+            if (!finalB64) return;
+            const imageUrl = finalB64.startsWith("data:")
+              ? finalB64
+              : `data:image/png;base64,${finalB64}`;
+            try {
+              const persisted = await persistGeneratedImage({
+                userId,
+                imageUrl,
+                prompt,
+                style,
+                aspect,
+                template,
+                source: "stream",
+                model: gatewayModel,
+                seed,
+                negativePrompt: negativePrompt || undefined,
+              });
+              if (persisted) {
+                controller.enqueue(
+                  encoder.encode(
+                    `event: studio.saved\ndata: ${JSON.stringify({ url: persisted })}\n\n`,
+                  ),
+                );
+                await logToHistory({
+                  userId,
+                  tool: isThumb ? "thumbnail" : "image",
+                  title: prompt.slice(0, 80),
+                  inputText: prompt,
+                  outputs: {
+                    image_url: persisted,
+                    style,
+                    aspect,
+                    template: template || "",
+                    prompt,
+                    streamed: true,
+                    model: gatewayModel,
+                  },
+                });
+              }
+            } catch (e) {
+              console.error("studio-stream persist error:", e);
+            }
+          },
+        });
 
-        return new Response(toClient, {
+        return new Response(upstream.body.pipeThrough(relay), {
           headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
         });
       },

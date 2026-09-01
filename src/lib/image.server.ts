@@ -1,3 +1,10 @@
+import {
+  IMAGE_GATEWAY_MODELS,
+  OPENAI_IMAGE_MODELS,
+  STUDIO_TEXT_MODEL,
+  STUDIO_TEXT_MODEL_LITE,
+} from "@/lib/imageModels";
+
 export interface ImageGenResult {
   imageUrl: string; // data: URL or hosted URL
   error?: string;
@@ -44,10 +51,7 @@ export type ImageModel = "auto" | "flux" | "gpt" | "gemini";
 
 // Stable image models in fallback order. Lovable AI Gateway is used as the
 // fallback when Replicate is unavailable or for image-edit (multimodal) calls.
-const IMAGE_MODELS = [
-  "google/gemini-2.5-flash-image",
-  "google/gemini-3.1-flash-image-preview",
-];
+const IMAGE_MODELS = [...IMAGE_GATEWAY_MODELS];
 
 const REPLICATE_ASPECT: Record<string, string> = {
   square: "1:1",
@@ -72,7 +76,7 @@ async function callOpenAIImage(
   if (!key) return { imageUrl: "", error: "OpenAI key not configured" };
 
   const size = OPENAI_SIZE[aspect] || "1024x1024";
-  const models = ["gpt-image-2", "gpt-image-1"];
+  const models = [...OPENAI_IMAGE_MODELS];
   let lastErr = "OpenAI image generation failed";
 
   for (const model of models) {
@@ -134,6 +138,7 @@ async function callOpenAIImage(
 async function callReplicateFlux(
   prompt: string,
   aspect: "square" | "portrait" | "landscape" = "square",
+  seed?: number | null,
 ): Promise<ImageGenResult> {
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return { imageUrl: "", error: "REPLICATE_API_TOKEN not configured" };
@@ -171,6 +176,7 @@ async function callReplicateFlux(
             output_quality: 90,
             safety_tolerance: 2,
             prompt_upsampling: true,
+            ...(typeof seed === "number" && Number.isFinite(seed) ? { seed } : {}),
           },
         }),
       },
@@ -319,6 +325,7 @@ async function generateFromPrompt(
   aspect: "square" | "portrait" | "landscape",
   model: ImageModel = "auto",
   quality: "standard" | "hd" = "standard",
+  seed?: number | null,
 ): Promise<ImageGenResult> {
   if (model === "gpt") {
     const r = await callOpenAIImage(fullPrompt, aspect, quality);
@@ -331,7 +338,7 @@ async function generateFromPrompt(
 
   if (model === "flux") {
     if (process.env.REPLICATE_API_TOKEN) {
-      const r = await callReplicateFlux(fullPrompt, aspect);
+      const r = await callReplicateFlux(fullPrompt, aspect, seed);
       if (r.imageUrl) return r;
       // Soft fallback to Gemini
       const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
@@ -350,7 +357,7 @@ async function generateFromPrompt(
   if (primary.imageUrl) return primary;
   if (primary.error && /credits|rate limit/i.test(primary.error)) return primary;
   if (process.env.REPLICATE_API_TOKEN) {
-    const r = await callReplicateFlux(fullPrompt, aspect);
+    const r = await callReplicateFlux(fullPrompt, aspect, seed);
     if (r.imageUrl) return r;
     return r;
   }
@@ -365,13 +372,14 @@ export async function generateSocialImage(
   model: ImageModel = "auto",
   quality: "standard" | "hd" = "standard",
   negativePrompt?: string,
+  seed?: number | null,
 ): Promise<ImageGenResult> {
   let fullPrompt = buildPrompt(prompt, style, aspect, template);
   if (negativePrompt && negativePrompt.trim()) {
     fullPrompt += `. Avoid: ${negativePrompt.trim()}`;
   }
   const a = (aspect as "square" | "portrait" | "landscape") || "square";
-  return generateFromPrompt(fullPrompt, a, model, quality);
+  return generateFromPrompt(fullPrompt, a, model, quality, seed);
 }
 
 export async function generateVariations(
@@ -422,7 +430,7 @@ export async function enhanceImagePrompt(
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: STUDIO_TEXT_MODEL,
         messages: [
           {
             role: "system",
@@ -478,7 +486,7 @@ export async function generateCarouselSet(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: STUDIO_TEXT_MODEL,
         messages: [
           {
             role: "system",
@@ -706,7 +714,7 @@ export async function checkPromptSafety(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: STUDIO_TEXT_MODEL_LITE,
         messages: [
           {
             role: "system",
@@ -742,7 +750,7 @@ export async function generateCaption(prompt: string): Promise<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: STUDIO_TEXT_MODEL_LITE,
         messages: [
           {
             role: "system",
