@@ -245,7 +245,6 @@ function ImageStudioPage() {
   const [streamPreview, setStreamPreview] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const jobRef = useRef(0);
-  const cacheRef = useRef<Map<string, string[]>>(new Map());
   /** URLs the server already persisted (streamed tiles) — never re-upload these. */
   const autoSavedRef = useRef<Set<string>>(new Set());
 
@@ -348,20 +347,6 @@ function ImageStudioPage() {
     template,
   });
 
-  /** Stable cache key for a render request — identical settings replay instantly. */
-  const cacheKey = (r: Recipe, count: number) =>
-    JSON.stringify([
-      effectivePrompt(r.prompt),
-      r.negativePrompt || "",
-      r.style,
-      r.aspect,
-      r.model,
-      r.quality,
-      r.template || "",
-      count,
-      referenceUrl ? `ref:${refStrength}:${referenceUrl.slice(-40)}` : "",
-    ]);
-
   /** Cancel the in-flight render (streaming or RPC) without burning quota. */
   const cancelJob = () => {
     abortRef.current?.abort();
@@ -375,19 +360,9 @@ function ImageStudioPage() {
   const handleBatch = async (count = batch) => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
+    // No result caching: identical settings must still produce a fresh render,
+    // otherwise "generate again" silently replays the previous image.
     const r = currentRecipe();
-    const key = cacheKey(r, count);
-
-    // Instant replay for repeated settings — no AI call, no quota burn.
-    const cached = cacheRef.current.get(key);
-    if (cached?.length) {
-      setResults(cached);
-      setImageUrl(cached[0]);
-      setRecipe(r);
-      setStreamPreview(null);
-      toast.success("Loaded from this session's cache");
-      return;
-    }
 
     // Supersede any in-flight render so rapid iterations never race.
     abortRef.current?.abort();
@@ -421,15 +396,22 @@ function ImageStudioPage() {
         if (!res.imageUrl) return toast.error("No image returned");
         setResults([res.imageUrl]);
         setImageUrl(res.imageUrl);
-        cacheRef.current.set(key, [res.imageUrl]);
-      } else if (count === 1) {
+      } else if (count === 1 && (model === "auto" || model === "gemini")) {
         // Streaming render — progressive previews, cancelable, quota counted
         // server-side once the final tile is persisted.
         let streamed: string | null = null;
         try {
           const out = await streamImage(
             "/api/studio-stream",
-            { prompt: sent, style, aspect, template },
+            {
+              prompt: sent,
+              style,
+              aspect,
+              template,
+              negativePrompt: r.negativePrompt,
+              quality,
+              seed: seedLocked ? seed : undefined,
+            },
             (frame, isFinal) => {
               if (stale()) return;
               if (!isFinal) setStreamPreview(frame);
@@ -453,7 +435,6 @@ function ImageStudioPage() {
           autoSavedRef.current.add(streamed);
           setResults([streamed]);
           setImageUrl(streamed);
-          cacheRef.current.set(key, [streamed]);
           loadLibrary();
           refreshUsage();
           toast.success("Saved to your library");
@@ -470,6 +451,7 @@ function ImageStudioPage() {
                 quality,
                 negativePrompt: r.negativePrompt,
                 originalPrompt: originalPrompt || r.prompt,
+                seed: seedLocked ? seed : undefined,
               },
               headers: authHeaders,
               signal: controller.signal,
@@ -481,7 +463,6 @@ function ImageStudioPage() {
           if (!res.imageUrl) return toast.error("No image returned");
           setResults([res.imageUrl]);
           setImageUrl(res.imageUrl);
-          cacheRef.current.set(key, [res.imageUrl]);
         }
       } else {
         const res: any = await withAIProgress(
@@ -498,12 +479,12 @@ function ImageStudioPage() {
         if (!urls.length) return toast.error("No images returned");
         setResults(urls);
         setImageUrl(urls[0]);
-        cacheRef.current.set(key, urls);
       }
 
       if (!seedLocked) setSeed(randomSeed());
       setCaption(null);
       setRecipe(r);
+      setBoardAspect(r.aspect as typeof aspect);
       pushHistory(r.prompt);
       toast.success(count === 1 ? "Image ready" : `${count} images ready`);
       refreshUsage();
