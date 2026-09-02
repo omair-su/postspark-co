@@ -397,7 +397,10 @@ function ImageStudioPage() {
         if (!res.imageUrl) return toast.error("No image returned");
         setResults([res.imageUrl]);
         setImageUrl(res.imageUrl);
-      } else if (count === 1 && (model === "auto" || model === "gemini")) {
+        // Streaming exists only on the gateway (Gemini) path — Flux and GPT have
+        // no SSE surface, so they must use the non-streaming call to keep the
+        // model picker truthful.
+      } else if (count === 1 && model === "gemini") {
         // Streaming render — progressive previews, cancelable, quota counted
         // server-side once the final tile is persisted.
         let streamed: string | null = null;
