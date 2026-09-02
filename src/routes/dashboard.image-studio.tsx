@@ -251,7 +251,6 @@ function ImageStudioPage() {
   const autoSavedRef = useRef<Set<string>>(new Set());
 
   const [imageUrl, setImageUrl] = useState("");
-  const [variations, setVariations] = useState<string[]>([]);
   const [originalPrompt, setOriginalPrompt] = useState<string | null>(null);
   const [enhanceOpen, setEnhanceOpen] = useState(false);
   const [enhancedDraft, setEnhancedDraft] = useState("");
@@ -827,33 +826,6 @@ function ImageStudioPage() {
     if (tab === "library" && session) loadLibrary();
   }, [tab, session]);
 
-  const handleGenerate = async () => {
-    if (!session) return toast.error("Please sign in");
-    if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
-    setLoading(true);
-    setImageUrl("");
-    setStockAttribution(null);
-    try {
-      const res = await withAIProgress(generateImage({
-        data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined, originalPrompt: originalPrompt || undefined },
-        headers: authHeaders,
-      }));
-      if (res.error === "LIMIT_REACHED") { setLimitOpen(true); }
-      else if (res.error) toast.error(res.error);
-      else if (!res.imageUrl) toast.error("No image returned");
-      else {
-        setImageUrl(res.imageUrl);
-        toast.success("Image ready");
-        refreshUsage();
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Generation failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleEnhance = async () => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Add a basic prompt first");
@@ -886,35 +858,6 @@ function ImageStudioPage() {
   };
 
 
-  const handleVariations = async () => {
-    if (!session) return toast.error("Please sign in");
-    if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
-    setLoading(true);
-    setVariations([]);
-    try {
-      const res = await withAIProgress(generateImageVariations({
-        data: { prompt: prompt.trim(), style, aspect, template, count: 4, model, quality },
-        headers: authHeaders,
-      }));
-      if ((res.error as string) === "LIMIT_REACHED") setLimitOpen(true);
-      else if (res.error) {
-        toast.error(res.error);
-      } else {
-        const urls = (res.results || []).map((r: any) => r.imageUrl).filter(Boolean);
-        if (!urls.length) toast.error("No variations returned");
-        else {
-          setVariations(urls);
-          toast.success(`${urls.length} variations ready`);
-          refreshUsage();
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCarousel = async () => {
     if (!session) return toast.error("Please sign in");
