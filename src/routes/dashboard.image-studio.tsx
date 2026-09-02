@@ -1474,17 +1474,17 @@ function ImageStudioPage() {
             >
               {loading && <div className="is-rail mb-3" />}
               {loading && streamPreview ? (
-                <div className={`overflow-hidden rounded-xl border border-border ${aspectClass}`}>
+                <div className={`overflow-hidden rounded-xl border border-border bg-muted/40 ${composerAspectClass}`}>
                   <img
                     src={streamPreview}
                     alt="Streaming preview"
-                    className="h-full w-full object-cover blur-xl transition-[filter] duration-500"
+                    className="h-full w-full object-contain blur-xl transition-[filter] duration-500"
                   />
                 </div>
               ) : loading ? (
                 <div className={`grid gap-3 ${batch > 1 ? "sm:grid-cols-2" : ""}`}>
                   {Array.from({ length: batch }).map((_, i) => (
-                    <TileSkeleton key={i} aspectClass={aspectClass} />
+                    <TileSkeleton key={i} aspectClass={composerAspectClass} />
                   ))}
                 </div>
 
@@ -1529,7 +1529,7 @@ function ImageStudioPage() {
                   ))}
                 </div>
               ) : (
-                <div className={`is-tile ${aspectClass} grid place-items-center`}>
+                <div className={`is-tile ${composerAspectClass} grid place-items-center`}>
                   <div className="px-6 text-center">
                     <ImageIcon className="mx-auto mb-2 h-10 w-10 text-muted-foreground opacity-40" />
                     <p className="text-[12.5px] font-semibold">Your renders land here</p>
