@@ -235,6 +235,8 @@ function ImageStudioPage() {
   const [negativePrompt, setNegativePrompt] = useState("");
   const [style, setStyle] = useState<(typeof STYLES)[number]["id"]>("photorealistic");
   const [aspect, setAspect] = useState<(typeof ASPECTS)[number]["id"]>("square");
+  /** Aspect of the images currently on the board (frozen at render time). */
+  const [boardAspect, setBoardAspect] = useState<(typeof ASPECTS)[number]["id"]>("square");
   const [template, setTemplate] = useState<string | undefined>(undefined);
   const [model, setModel] = useState<ModelId>("flux");
   const [quality, setQuality] = useState<"standard" | "hd">("standard");
