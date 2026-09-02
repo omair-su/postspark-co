@@ -235,6 +235,8 @@ function ImageStudioPage() {
   const [negativePrompt, setNegativePrompt] = useState("");
   const [style, setStyle] = useState<(typeof STYLES)[number]["id"]>("photorealistic");
   const [aspect, setAspect] = useState<(typeof ASPECTS)[number]["id"]>("square");
+  /** Aspect of the images currently on the board (frozen at render time). */
+  const [boardAspect, setBoardAspect] = useState<(typeof ASPECTS)[number]["id"]>("square");
   const [template, setTemplate] = useState<string | undefined>(undefined);
   const [model, setModel] = useState<ModelId>("flux");
   const [quality, setQuality] = useState<"standard" | "hd">("standard");
@@ -245,12 +247,10 @@ function ImageStudioPage() {
   const [streamPreview, setStreamPreview] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const jobRef = useRef(0);
-  const cacheRef = useRef<Map<string, string[]>>(new Map());
   /** URLs the server already persisted (streamed tiles) — never re-upload these. */
   const autoSavedRef = useRef<Set<string>>(new Set());
 
   const [imageUrl, setImageUrl] = useState("");
-  const [variations, setVariations] = useState<string[]>([]);
   const [originalPrompt, setOriginalPrompt] = useState<string | null>(null);
   const [enhanceOpen, setEnhanceOpen] = useState(false);
   const [enhancedDraft, setEnhancedDraft] = useState("");
@@ -348,20 +348,6 @@ function ImageStudioPage() {
     template,
   });
 
-  /** Stable cache key for a render request — identical settings replay instantly. */
-  const cacheKey = (r: Recipe, count: number) =>
-    JSON.stringify([
-      effectivePrompt(r.prompt),
-      r.negativePrompt || "",
-      r.style,
-      r.aspect,
-      r.model,
-      r.quality,
-      r.template || "",
-      count,
-      referenceUrl ? `ref:${refStrength}:${referenceUrl.slice(-40)}` : "",
-    ]);
-
   /** Cancel the in-flight render (streaming or RPC) without burning quota. */
   const cancelJob = () => {
     abortRef.current?.abort();
@@ -375,19 +361,9 @@ function ImageStudioPage() {
   const handleBatch = async (count = batch) => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
+    // No result caching: identical settings must still produce a fresh render,
+    // otherwise "generate again" silently replays the previous image.
     const r = currentRecipe();
-    const key = cacheKey(r, count);
-
-    // Instant replay for repeated settings — no AI call, no quota burn.
-    const cached = cacheRef.current.get(key);
-    if (cached?.length) {
-      setResults(cached);
-      setImageUrl(cached[0]);
-      setRecipe(r);
-      setStreamPreview(null);
-      toast.success("Loaded from this session's cache");
-      return;
-    }
 
     // Supersede any in-flight render so rapid iterations never race.
     abortRef.current?.abort();
@@ -421,15 +397,25 @@ function ImageStudioPage() {
         if (!res.imageUrl) return toast.error("No image returned");
         setResults([res.imageUrl]);
         setImageUrl(res.imageUrl);
-        cacheRef.current.set(key, [res.imageUrl]);
-      } else if (count === 1) {
+        // Streaming exists only on the gateway (Gemini) path — Flux and GPT have
+        // no SSE surface, so they must use the non-streaming call to keep the
+        // model picker truthful.
+      } else if (count === 1 && model === "gemini") {
         // Streaming render — progressive previews, cancelable, quota counted
         // server-side once the final tile is persisted.
         let streamed: string | null = null;
         try {
           const out = await streamImage(
             "/api/studio-stream",
-            { prompt: sent, style, aspect, template },
+            {
+              prompt: sent,
+              style,
+              aspect,
+              template,
+              negativePrompt: r.negativePrompt,
+              quality,
+              seed: seedLocked ? seed : undefined,
+            },
             (frame, isFinal) => {
               if (stale()) return;
               if (!isFinal) setStreamPreview(frame);
@@ -453,7 +439,6 @@ function ImageStudioPage() {
           autoSavedRef.current.add(streamed);
           setResults([streamed]);
           setImageUrl(streamed);
-          cacheRef.current.set(key, [streamed]);
           loadLibrary();
           refreshUsage();
           toast.success("Saved to your library");
@@ -470,6 +455,7 @@ function ImageStudioPage() {
                 quality,
                 negativePrompt: r.negativePrompt,
                 originalPrompt: originalPrompt || r.prompt,
+                seed: seedLocked ? seed : undefined,
               },
               headers: authHeaders,
               signal: controller.signal,
@@ -481,7 +467,6 @@ function ImageStudioPage() {
           if (!res.imageUrl) return toast.error("No image returned");
           setResults([res.imageUrl]);
           setImageUrl(res.imageUrl);
-          cacheRef.current.set(key, [res.imageUrl]);
         }
       } else {
         const res: any = await withAIProgress(
@@ -498,12 +483,12 @@ function ImageStudioPage() {
         if (!urls.length) return toast.error("No images returned");
         setResults(urls);
         setImageUrl(urls[0]);
-        cacheRef.current.set(key, urls);
       }
 
       if (!seedLocked) setSeed(randomSeed());
       setCaption(null);
       setRecipe(r);
+      setBoardAspect(r.aspect as typeof aspect);
       pushHistory(r.prompt);
       toast.success(count === 1 ? "Image ready" : `${count} images ready`);
       refreshUsage();
@@ -796,12 +781,15 @@ function ImageStudioPage() {
     if (typeof window !== "undefined") localStorage.setItem("ps_safety_on", safetyOn ? "1" : "0");
   }, [safetyOn]);
 
-  const aspectClass =
-    aspect === "square"
-      ? "aspect-square"
-      : aspect === "portrait"
-        ? "aspect-[9/16]"
-        : "aspect-video";
+  /**
+   * Tiles must use the aspect that actually produced the images on the board,
+   * not the live composer value — otherwise changing the aspect picker crops
+   * already-rendered results.
+   */
+  const ratioClass = (a: typeof aspect) =>
+    a === "square" ? "aspect-square" : a === "portrait" ? "aspect-[9/16]" : "aspect-video";
+  const aspectClass = ratioClass(boardAspect);
+  const composerAspectClass = ratioClass(aspect);
 
   const refreshUsage = async () => {
     if (!authHeaders) return;
@@ -841,33 +829,6 @@ function ImageStudioPage() {
     if (tab === "library" && session) loadLibrary();
   }, [tab, session]);
 
-  const handleGenerate = async () => {
-    if (!session) return toast.error("Please sign in");
-    if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
-    setLoading(true);
-    setImageUrl("");
-    setStockAttribution(null);
-    try {
-      const res = await withAIProgress(generateImage({
-        data: { prompt: prompt.trim(), style, aspect, template, model, quality, negativePrompt: negativePrompt.trim() || undefined, originalPrompt: originalPrompt || undefined },
-        headers: authHeaders,
-      }));
-      if (res.error === "LIMIT_REACHED") { setLimitOpen(true); }
-      else if (res.error) toast.error(res.error);
-      else if (!res.imageUrl) toast.error("No image returned");
-      else {
-        setImageUrl(res.imageUrl);
-        toast.success("Image ready");
-        refreshUsage();
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Generation failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleEnhance = async () => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Add a basic prompt first");
@@ -900,35 +861,6 @@ function ImageStudioPage() {
   };
 
 
-  const handleVariations = async () => {
-    if (!session) return toast.error("Please sign in");
-    if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
-    setLoading(true);
-    setVariations([]);
-    try {
-      const res = await withAIProgress(generateImageVariations({
-        data: { prompt: prompt.trim(), style, aspect, template, count: 4, model, quality },
-        headers: authHeaders,
-      }));
-      if ((res.error as string) === "LIMIT_REACHED") setLimitOpen(true);
-      else if (res.error) {
-        toast.error(res.error);
-      } else {
-        const urls = (res.results || []).map((r: any) => r.imageUrl).filter(Boolean);
-        if (!urls.length) toast.error("No variations returned");
-        else {
-          setVariations(urls);
-          toast.success(`${urls.length} variations ready`);
-          refreshUsage();
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCarousel = async () => {
     if (!session) return toast.error("Please sign in");
@@ -1488,17 +1420,17 @@ function ImageStudioPage() {
             >
               {loading && <div className="is-rail mb-3" />}
               {loading && streamPreview ? (
-                <div className={`overflow-hidden rounded-xl border border-border ${aspectClass}`}>
+                <div className={`overflow-hidden rounded-xl border border-border bg-muted/40 ${composerAspectClass}`}>
                   <img
                     src={streamPreview}
                     alt="Streaming preview"
-                    className="h-full w-full object-cover blur-xl transition-[filter] duration-500"
+                    className="h-full w-full object-contain blur-xl transition-[filter] duration-500"
                   />
                 </div>
               ) : loading ? (
                 <div className={`grid gap-3 ${batch > 1 ? "sm:grid-cols-2" : ""}`}>
                   {Array.from({ length: batch }).map((_, i) => (
-                    <TileSkeleton key={i} aspectClass={aspectClass} />
+                    <TileSkeleton key={i} aspectClass={composerAspectClass} />
                   ))}
                 </div>
 
@@ -1543,7 +1475,7 @@ function ImageStudioPage() {
                   ))}
                 </div>
               ) : (
-                <div className={`is-tile ${aspectClass} grid place-items-center`}>
+                <div className={`is-tile ${composerAspectClass} grid place-items-center`}>
                   <div className="px-6 text-center">
                     <ImageIcon className="mx-auto mb-2 h-10 w-10 text-muted-foreground opacity-40" />
                     <p className="text-[12.5px] font-semibold">Your renders land here</p>
