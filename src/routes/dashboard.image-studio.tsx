@@ -777,12 +777,15 @@ function ImageStudioPage() {
     if (typeof window !== "undefined") localStorage.setItem("ps_safety_on", safetyOn ? "1" : "0");
   }, [safetyOn]);
 
-  const aspectClass =
-    aspect === "square"
-      ? "aspect-square"
-      : aspect === "portrait"
-        ? "aspect-[9/16]"
-        : "aspect-video";
+  /**
+   * Tiles must use the aspect that actually produced the images on the board,
+   * not the live composer value — otherwise changing the aspect picker crops
+   * already-rendered results.
+   */
+  const ratioClass = (a: typeof aspect) =>
+    a === "square" ? "aspect-square" : a === "portrait" ? "aspect-[9/16]" : "aspect-video";
+  const aspectClass = ratioClass(boardAspect);
+  const composerAspectClass = ratioClass(aspect);
 
   const refreshUsage = async () => {
     if (!authHeaders) return;
