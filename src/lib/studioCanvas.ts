@@ -4,6 +4,8 @@
  * All pure browser code — no server calls.
  */
 
+import { loadReadableImage, readCanvas } from "@/lib/sameOriginImage";
+
 export type ExportSize = { id: string; label: string; w: number; h: number };
 
 export const EXPORT_PACK: ExportSize[] = [
@@ -14,14 +16,12 @@ export const EXPORT_PACK: ExportSize[] = [
   { id: "yt", label: "YouTube thumbnail", w: 1280, h: 720 },
 ];
 
+/**
+ * Loads an image whose pixels are readable from canvas (bytes are pulled
+ * same-origin first, so `toDataURL` can never be blocked by a tainted canvas).
+ */
 export function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Could not load image"));
-    img.src = src;
-  });
+  return loadReadableImage(src);
 }
 
 /** Center-crop + cover-resize an image into an exact w×h data URL. */
@@ -35,7 +35,7 @@ export async function resizeCover(src: string, w: number, h: number): Promise<st
   const dw = img.naturalWidth * scale;
   const dh = img.naturalHeight * scale;
   ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
-  return canvas.toDataURL("image/png");
+  return readCanvas(canvas);
 }
 
 /**
@@ -61,7 +61,7 @@ export async function padToAspect(
   ctx.fillStyle = "#f2f2f2";
   ctx.fillRect(0, 0, w, h);
   ctx.drawImage(img, (w - iw) / 2, (h - ih) / 2);
-  return canvas.toDataURL("image/png");
+  return readCanvas(canvas);
 }
 
 /** Composite a logo onto an image at a corner, sized as a % of the width. */
@@ -83,7 +83,7 @@ export async function compositeLogo(
   const x = placement.includes("left") ? pad : canvas.width - lw - pad;
   const y = placement.includes("top") ? pad : canvas.height - lh - pad;
   ctx.drawImage(logo, x, y, lw, lh);
-  return canvas.toDataURL("image/png");
+  return readCanvas(canvas);
 }
 
 /** Random 9-digit seed used for consistency locking. */

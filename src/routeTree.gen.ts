@@ -141,6 +141,7 @@ import { Route as AuthFacebookCallbackRouteImport } from './routes/auth.facebook
 import { Route as AuthCanvaCallbackRouteImport } from './routes/auth.canva.callback'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicStockDownloadRouteImport } from './routes/api/public/stock-download'
+import { Route as ApiPublicImageProxyRouteImport } from './routes/api/public/image-proxy'
 import { Route as ApiPublicFunnelRouteImport } from './routes/api/public/funnel'
 import { Route as ApiPublicDemoStatusRouteImport } from './routes/api/public/demo-status'
 import { Route as ApiPublicDemoStatsRouteImport } from './routes/api/public/demo-stats'
@@ -867,6 +868,11 @@ const ApiPublicStockDownloadRoute = ApiPublicStockDownloadRouteImport.update({
   path: '/api/public/stock-download',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicImageProxyRoute = ApiPublicImageProxyRouteImport.update({
+  id: '/api/public/image-proxy',
+  path: '/api/public/image-proxy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicFunnelRoute = ApiPublicFunnelRouteImport.update({
   id: '/api/public/funnel',
   path: '/api/public/funnel',
@@ -1146,6 +1152,7 @@ export interface FileRoutesByFullPath {
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
+  '/api/public/image-proxy': typeof ApiPublicImageProxyRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/canva/callback': typeof AuthCanvaCallbackRoute
@@ -1308,6 +1315,7 @@ export interface FileRoutesByTo {
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
+  '/api/public/image-proxy': typeof ApiPublicImageProxyRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/canva/callback': typeof AuthCanvaCallbackRoute
@@ -1472,6 +1480,7 @@ export interface FileRoutesById {
   '/api/public/demo-stats': typeof ApiPublicDemoStatsRoute
   '/api/public/demo-status': typeof ApiPublicDemoStatusRoute
   '/api/public/funnel': typeof ApiPublicFunnelRoute
+  '/api/public/image-proxy': typeof ApiPublicImageProxyRoute
   '/api/public/stock-download': typeof ApiPublicStockDownloadRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/auth/canva/callback': typeof AuthCanvaCallbackRoute
@@ -1637,6 +1646,7 @@ export interface FileRouteTypes {
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
+    | '/api/public/image-proxy'
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/canva/callback'
@@ -1799,6 +1809,7 @@ export interface FileRouteTypes {
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
+    | '/api/public/image-proxy'
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/canva/callback'
@@ -1962,6 +1973,7 @@ export interface FileRouteTypes {
     | '/api/public/demo-stats'
     | '/api/public/demo-status'
     | '/api/public/funnel'
+    | '/api/public/image-proxy'
     | '/api/public/stock-download'
     | '/api/public/track'
     | '/auth/canva/callback'
@@ -2089,6 +2101,7 @@ export interface RootRouteChildren {
   ApiPublicDemoStatsRoute: typeof ApiPublicDemoStatsRoute
   ApiPublicDemoStatusRoute: typeof ApiPublicDemoStatusRoute
   ApiPublicFunnelRoute: typeof ApiPublicFunnelRoute
+  ApiPublicImageProxyRoute: typeof ApiPublicImageProxyRoute
   ApiPublicStockDownloadRoute: typeof ApiPublicStockDownloadRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   AuthCanvaCallbackRoute: typeof AuthCanvaCallbackRoute
@@ -3046,6 +3059,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStockDownloadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/image-proxy': {
+      id: '/api/public/image-proxy'
+      path: '/api/public/image-proxy'
+      fullPath: '/api/public/image-proxy'
+      preLoaderRoute: typeof ApiPublicImageProxyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/funnel': {
       id: '/api/public/funnel'
       path: '/api/public/funnel'
@@ -3508,6 +3528,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDemoStatsRoute: ApiPublicDemoStatsRoute,
   ApiPublicDemoStatusRoute: ApiPublicDemoStatusRoute,
   ApiPublicFunnelRoute: ApiPublicFunnelRoute,
+  ApiPublicImageProxyRoute: ApiPublicImageProxyRoute,
   ApiPublicStockDownloadRoute: ApiPublicStockDownloadRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   AuthCanvaCallbackRoute: AuthCanvaCallbackRoute,
