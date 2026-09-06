@@ -709,8 +709,10 @@ function ImageStudioPage() {
       if (logoOn && brandKit?.logo_url) {
         try {
           base = await compositeLogo(base, brandKit.logo_url, logoPlacement);
-        } catch {
-          /* keep base */
+        } catch (e) {
+          toast.dismiss(t);
+          setPackBusy(false);
+          return toast.error(`Brand logo could not be applied: ${classifyImageError(e).message}`);
         }
       }
       const zip = new JSZip();
@@ -731,7 +733,7 @@ function ImageStudioPage() {
     } catch (e) {
       console.error(e);
       toast.dismiss(t);
-      toast.error("Export failed — try downloading the image first");
+      toast.error(classifyImageError(e).message);
     } finally {
       setPackBusy(false);
     }
@@ -1056,9 +1058,14 @@ function ImageStudioPage() {
     let finalUrl = url;
     if (watermarkOn && watermarkText.trim()) {
       try {
-        finalUrl = await applyWatermark(url, watermarkText.trim(), { opacity: watermarkOpacity / 100, placement: watermarkPlacement });
-      } catch {
-        // fall back to original
+        finalUrl = await applyWatermark(url, watermarkText.trim(), {
+          opacity: watermarkOpacity / 100,
+          placement: watermarkPlacement,
+        });
+      } catch (e) {
+        // Never save silently unstamped — the user asked for a watermark.
+        toast.error(classifyImageError(e).message);
+        return;
       }
     }
     const t = toast.loading("Saving to library...");
@@ -1541,6 +1548,8 @@ function ImageStudioPage() {
                             </a>{" "}
                             on {stockAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
                           </>
+                        ) : typeof resultSeeds[i] === "number" ? (
+                          <>Seed {resultSeeds[i]}</>
                         ) : undefined
                       }
                     />

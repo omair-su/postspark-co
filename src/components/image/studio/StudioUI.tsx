@@ -259,6 +259,8 @@ export function ChipRow({
 /* ------------------------------- batch board ------------------------------ */
 
 export type Recipe = {
+  /** Seed the render was produced with — reproduces the exact frame. */
+  seed?: number;
   prompt: string;
   negativePrompt?: string;
   style: string;
