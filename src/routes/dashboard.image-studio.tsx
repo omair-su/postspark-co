@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { applyWatermark, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
 import { classifyImageError, type StudioError } from "@/lib/imageErrors";
+import { toSameOriginUrl } from "@/lib/sameOriginImage";
 import { StudioErrorCard, StreamingTile, type TileJob } from "@/components/image/studio/StudioError";
 import {
   generateImage,
@@ -1022,14 +1023,11 @@ function ImageStudioPage() {
   const download = async (url: string, name?: string) => {
     const filename = name || `postspark-${Date.now()}.png`;
     try {
-      let blob: Blob;
-      if (url.startsWith("data:")) {
-        blob = await (await fetch(url)).blob();
-      } else {
-        const res = await fetch(url, { mode: "cors", cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        blob = await res.blob();
-      }
+      // Route remote hosts through our own proxy when they refuse CORS, so a
+      // download is a real file save instead of a surprise new tab.
+      const { url: sameOrigin, revoke } = await toSameOriginUrl(url);
+      const blob = await (await fetch(sameOrigin)).blob();
+      revoke();
       const objectUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = objectUrl;
