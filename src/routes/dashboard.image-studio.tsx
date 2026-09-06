@@ -28,7 +28,10 @@ import {
   CheckSquare,
   X,
 } from "lucide-react";
-import { drawWatermarkOnCanvas, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
+import { applyWatermark, getWatermarkState, type WatermarkPlacement } from "@/lib/imageWatermark";
+import { classifyImageError, type StudioError } from "@/lib/imageErrors";
+import { toSameOriginUrl } from "@/lib/sameOriginImage";
+import { StudioErrorCard, StreamingTile, type TileJob } from "@/components/image/studio/StudioError";
 import {
   generateImage,
   generateImageVariations,
@@ -176,36 +179,6 @@ type LibImage = {
   created_at: string;
 };
 
-// Apply a watermark to an image data URL via canvas. Returns a new data URL.
-
-
-async function applyWatermark(
-  dataUrl: string,
-  text: string,
-  opts?: { opacity?: number; placement?: WatermarkPlacement },
-): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return resolve(dataUrl);
-      ctx.drawImage(img, 0, 0);
-      drawWatermarkOnCanvas(canvas, text, opts);
-      try {
-        resolve(canvas.toDataURL("image/png"));
-      } catch {
-        resolve(dataUrl);
-      }
-    };
-    img.onerror = () => resolve(dataUrl);
-    img.src = dataUrl;
-  });
-}
-
 async function fetchAsBlob(url: string): Promise<Blob | null> {
   try {
     const r = await fetch(url);
@@ -264,6 +237,12 @@ function ImageStudioPage() {
   const [lockedSettings, setLockedSettings] = useState(false);
   const [promptHistory, setPromptHistory] = useState<string[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  /** Structured failure for the canvas area (never a bare toast). */
+  const [genError, setGenError] = useState<StudioError | null>(null);
+  /** Per-tile progress for multi-image batches. */
+  const [tileJobs, setTileJobs] = useState<TileJob[]>([]);
+  /** Seed each board tile was rendered with, for copy / re-roll / remix. */
+  const [resultSeeds, setResultSeeds] = useState<number[]>([]);
 
   // seed / reference / brand lock / caption / export
   const [seed, setSeed] = useState<number>(() => randomSeed());
@@ -334,11 +313,11 @@ function ImageStudioPage() {
     if (brandLock && brandColors.length)
       parts.push(`Strictly use this brand palette: ${brandColors.join(", ")}`);
     if (brandLock && brandKit?.font_heading) parts.push(`Typography feel similar to ${brandKit.font_heading}`);
-    if (seedLocked) parts.push(`consistency seed ${seed}`);
     return parts.join(". ");
   };
 
   const currentRecipe = (): Recipe => ({
+    seed,
     prompt: prompt.trim(),
     negativePrompt: negativePrompt.trim() || undefined,
     style,
@@ -373,10 +352,18 @@ function ImageStudioPage() {
     const stale = () => job !== jobRef.current;
 
     setLoading(true);
+    setGenError(null);
     setResults([]);
+    setResultSeeds([]);
+    setTileJobs([]);
     setImageUrl("");
     setStreamPreview(null);
     setStockAttribution(null);
+    // Seeds actually sent to the engine: locked seed reproduces the exact frame,
+    // unlocked rolls a fresh one per tile so a batch gives real variety.
+    const seeds = Array.from({ length: count }, (_, i) =>
+      seedLocked ? seed : i === 0 ? seed : randomSeed(),
+    );
     try {
       const sent = effectivePrompt(r.prompt);
       if (referenceUrl) {
@@ -393,22 +380,18 @@ function ImageStudioPage() {
         );
         if (stale()) return;
         if ((res.error as string) === "LIMIT_REACHED") return setLimitOpen(true);
-        if (res.error) return toast.error(res.error);
-        if (!res.imageUrl) return toast.error("No image returned");
+        if (res.error) throw new Error(res.error as string);
+        if (!res.imageUrl) throw new Error("No image returned");
         setResults([res.imageUrl]);
+        setResultSeeds([seeds[0]]);
         setImageUrl(res.imageUrl);
-        // Streaming exists only on the gateway (Gemini) path — Flux and GPT have
-        // no SSE surface, so they must use the non-streaming call to keep the
-        // model picker truthful.
       } else if (count === 1) {
         // Streaming render — progressive previews, cancelable, quota counted
         // server-side once the final tile is persisted. Only Gemini has an SSE
         // surface; Flux and GPT go straight to the non-streaming call below.
         let streamed: string | null = null;
-        try {
-          if (model !== "gemini") throw new Error("no-stream");
+        if (model === "gemini") {
           const out = await streamImage(
-
             "/api/studio-stream",
             {
               prompt: sent,
@@ -417,7 +400,7 @@ function ImageStudioPage() {
               template,
               negativePrompt: r.negativePrompt,
               quality,
-              seed: seedLocked ? seed : undefined,
+              seed: seeds[0],
             },
             (frame, isFinal) => {
               if (stale()) return;
@@ -430,10 +413,8 @@ function ImageStudioPage() {
             setLimitOpen(true);
             return;
           }
+          if (out.error && !out.imageUrl) throw new Error(out.error);
           streamed = out.imageUrl;
-        } catch (e: any) {
-          if (e?.name === "AbortError" || controller.signal.aborted) return;
-          streamed = null; // fall through to the non-streaming path
         }
 
         if (streamed) {
@@ -441,12 +422,12 @@ function ImageStudioPage() {
           // counted it once — mark it so Save never re-uploads it.
           autoSavedRef.current.add(streamed);
           setResults([streamed]);
+          setResultSeeds([seeds[0]]);
           setImageUrl(streamed);
           loadLibrary();
           refreshUsage();
           toast.success("Saved to your library");
         } else {
-
           const res = await withAIProgress(
             generateImage({
               data: {
@@ -458,7 +439,7 @@ function ImageStudioPage() {
                 quality,
                 negativePrompt: r.negativePrompt,
                 originalPrompt: originalPrompt || r.prompt,
-                seed: seedLocked ? seed : undefined,
+                seed: seeds[0],
               },
               headers: authHeaders,
               signal: controller.signal,
@@ -466,11 +447,69 @@ function ImageStudioPage() {
           );
           if (stale()) return;
           if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
-          if (res.error) return toast.error(res.error);
-          if (!res.imageUrl) return toast.error("No image returned");
+          if (res.error) throw new Error(res.error);
+          if (!res.imageUrl) throw new Error("No image returned");
           setResults([res.imageUrl]);
+          setResultSeeds([seeds[0]]);
           setImageUrl(res.imageUrl);
         }
+      } else if (model === "gemini") {
+        // Batch with per-tile streaming: every tile renders its own blur-to-sharp
+        // preview in parallel instead of a frozen grid of skeletons.
+        setTileJobs(seeds.map((sd) => ({ preview: null, status: "pending", seed: sd })));
+        const patch = (i: number, next: Partial<TileJob>) =>
+          setTileJobs((jobs) => jobs.map((j, idx) => (idx === i ? { ...j, ...next } : j)));
+
+        const settled = await Promise.all(
+          seeds.map(async (sd, i) => {
+            try {
+              patch(i, { status: "streaming" });
+              const out = await streamImage(
+                "/api/studio-stream",
+                {
+                  prompt: sent,
+                  style,
+                  aspect,
+                  template,
+                  negativePrompt: r.negativePrompt,
+                  quality,
+                  seed: sd,
+                },
+                (frame, isFinal) => {
+                  if (stale()) return;
+                  patch(i, { preview: frame, status: isFinal ? "done" : "streaming" });
+                },
+                { headers: authHeaders, signal: controller.signal },
+              );
+              if (out.error === "LIMIT_REACHED") {
+                patch(i, { status: "error", message: "Out of images" });
+                return { limit: true as const };
+              }
+              if (!out.imageUrl) throw new Error(out.error || "No image returned");
+              patch(i, { status: "done", url: out.imageUrl });
+              return { url: out.imageUrl, seed: sd };
+            } catch (e: any) {
+              if (e?.name === "AbortError" || controller.signal.aborted) return null;
+              patch(i, { status: "error", message: classifyImageError(e).title });
+              return { failed: e };
+            }
+          }),
+        );
+        if (stale()) return;
+        const ok = settled.filter((x): x is { url: string; seed: number } => !!x && "url" in x);
+        if (settled.some((x) => x && "limit" in x) && !ok.length) {
+          setLimitOpen(true);
+          return;
+        }
+        if (!ok.length) {
+          const firstFail = settled.find((x) => x && "failed" in x) as { failed: unknown } | undefined;
+          throw firstFail ? firstFail.failed : new Error("No images returned");
+        }
+        ok.forEach((t) => autoSavedRef.current.add(t.url));
+        setResults(ok.map((t) => t.url));
+        setResultSeeds(ok.map((t) => t.seed));
+        setImageUrl(ok[0].url);
+        loadLibrary();
       } else {
         const res: any = await withAIProgress(
           generateImageVariations({
@@ -481,10 +520,11 @@ function ImageStudioPage() {
         );
         if (stale()) return;
         if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
-        if (res.error) return toast.error(res.error);
+        if (res.error) throw new Error(res.error);
         const urls = (res.results || []).map((x: any) => x.imageUrl).filter(Boolean);
-        if (!urls.length) return toast.error("No images returned");
+        if (!urls.length) throw new Error("No images returned");
         setResults(urls);
+        setResultSeeds(seeds.slice(0, urls.length));
         setImageUrl(urls[0]);
       }
 
@@ -498,14 +538,26 @@ function ImageStudioPage() {
     } catch (e: any) {
       if (e?.name === "AbortError" || controller.signal.aborted) return;
       console.error(e);
-      toast.error("Generation failed");
+      // Structured, actionable failure in the canvas instead of a bare toast.
+      setGenError(classifyImageError(e));
     } finally {
       if (!stale()) {
         setLoading(false);
         setStreamPreview(null);
+        setTileJobs([]);
         if (abortRef.current === controller) abortRef.current = null;
       }
     }
+  };
+
+  /** Swap to the next engine and re-render — used by the failure card. */
+  const retryWithOtherModel = () => {
+    const order: ModelId[] = ["gemini", "flux", "gpt"];
+    const next = order[(order.indexOf(model) + 1) % order.length];
+    setModel(next);
+    setGenError(null);
+    toast.message(`Switched to ${MODELS.find((m) => m.id === next)?.name}`);
+    setTimeout(() => handleBatch(), 0);
   };
 
   const reuseRecipe = () => {
@@ -658,8 +710,10 @@ function ImageStudioPage() {
       if (logoOn && brandKit?.logo_url) {
         try {
           base = await compositeLogo(base, brandKit.logo_url, logoPlacement);
-        } catch {
-          /* keep base */
+        } catch (e) {
+          toast.dismiss(t);
+          setPackBusy(false);
+          return toast.error(`Brand logo could not be applied: ${classifyImageError(e).message}`);
         }
       }
       const zip = new JSZip();
@@ -680,7 +734,7 @@ function ImageStudioPage() {
     } catch (e) {
       console.error(e);
       toast.dismiss(t);
-      toast.error("Export failed — try downloading the image first");
+      toast.error(classifyImageError(e).message);
     } finally {
       setPackBusy(false);
     }
@@ -969,14 +1023,11 @@ function ImageStudioPage() {
   const download = async (url: string, name?: string) => {
     const filename = name || `postspark-${Date.now()}.png`;
     try {
-      let blob: Blob;
-      if (url.startsWith("data:")) {
-        blob = await (await fetch(url)).blob();
-      } else {
-        const res = await fetch(url, { mode: "cors", cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        blob = await res.blob();
-      }
+      // Route remote hosts through our own proxy when they refuse CORS, so a
+      // download is a real file save instead of a surprise new tab.
+      const { url: sameOrigin, revoke } = await toSameOriginUrl(url);
+      const blob = await (await fetch(sameOrigin)).blob();
+      revoke();
       const objectUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = objectUrl;
@@ -1005,9 +1056,14 @@ function ImageStudioPage() {
     let finalUrl = url;
     if (watermarkOn && watermarkText.trim()) {
       try {
-        finalUrl = await applyWatermark(url, watermarkText.trim(), { opacity: watermarkOpacity / 100, placement: watermarkPlacement });
-      } catch {
-        // fall back to original
+        finalUrl = await applyWatermark(url, watermarkText.trim(), {
+          opacity: watermarkOpacity / 100,
+          placement: watermarkPlacement,
+        });
+      } catch (e) {
+        // Never save silently unstamped — the user asked for a watermark.
+        toast.error(classifyImageError(e).message);
+        return;
       }
     }
     const t = toast.loading("Saving to library...");
@@ -1422,7 +1478,13 @@ function ImageStudioPage() {
               }
             >
               {loading && <div className="is-rail mb-3" />}
-              {loading && streamPreview ? (
+              {loading && tileJobs.length > 1 ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {tileJobs.map((j, i) => (
+                    <StreamingTile key={i} job={j} index={i} aspectClass={composerAspectClass} />
+                  ))}
+                </div>
+              ) : loading && streamPreview ? (
                 <div className={`overflow-hidden rounded-xl border border-border bg-muted/40 ${composerAspectClass}`}>
                   <img
                     src={streamPreview}
@@ -1436,8 +1498,20 @@ function ImageStudioPage() {
                     <TileSkeleton key={i} aspectClass={composerAspectClass} />
                   ))}
                 </div>
-
+              ) : genError ? (
+                <StudioErrorCard
+                  error={genError}
+                  aspectClass={composerAspectClass}
+                  onRetry={() => {
+                    setGenError(null);
+                    handleBatch();
+                  }}
+                  onSwitchModel={retryWithOtherModel}
+                  onUpgrade={() => setLimitOpen(true)}
+                  onDismiss={() => setGenError(null)}
+                />
               ) : results.length ? (
+
                 <div className={`grid gap-3 ${results.length > 1 ? "sm:grid-cols-2" : ""}`}>
                   {results.map((url, i) => (
                     <ImageTile
@@ -1472,6 +1546,8 @@ function ImageStudioPage() {
                             </a>{" "}
                             on {stockAttribution.source === "unsplash" ? "Unsplash" : "Pexels"}
                           </>
+                        ) : typeof resultSeeds[i] === "number" ? (
+                          <>Seed {resultSeeds[i]}</>
                         ) : undefined
                       }
                     />

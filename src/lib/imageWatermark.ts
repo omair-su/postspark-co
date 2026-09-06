@@ -2,6 +2,8 @@
 // Brand Kit mirrors watermark_settings into localStorage on save so generators
 // can read the current settings synchronously.
 
+import { loadReadableImage, readCanvas, canvasToBlob, ImageAccessError } from "@/lib/sameOriginImage";
+
 const WM_ON_KEY = "ps_watermark_on";
 const WM_TEXT_KEY = "ps_watermark_text";
 const WM_OPACITY_KEY = "ps_watermark_opacity"; // 10..100 (percent)
@@ -85,36 +87,32 @@ export function drawWatermarkOnCanvas(
   ctx.restore();
 }
 
-// Apply watermark to a data: URL (or remote URL) and return a new PNG data URL.
-export async function applyWatermark(srcUrl: string, text: string): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return resolve(srcUrl);
-      ctx.drawImage(img, 0, 0);
-      drawWatermarkOnCanvas(canvas, text);
-      try { resolve(canvas.toDataURL("image/png")); } catch { resolve(srcUrl); }
-    };
-    img.onerror = () => resolve(srcUrl);
-    img.src = srcUrl;
-  });
+/**
+ * Apply the watermark to any image URL and return a new PNG data URL.
+ *
+ * Throws (ImageAccessError) instead of silently returning the original image —
+ * a stamp that quietly no-ops reads to users as "the feature turned itself off".
+ */
+export async function applyWatermark(
+  srcUrl: string,
+  text: string,
+  opts: WatermarkOptions = {},
+): Promise<string> {
+  const img = await loadReadableImage(srcUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new ImageAccessError("Your browser blocked image editing");
+  ctx.drawImage(img, 0, 0);
+  drawWatermarkOnCanvas(canvas, text, opts);
+  return readCanvas(canvas);
 }
 
 // Download any URL (data or remote) as a PNG file. Re-encodes when source is JPEG.
 export async function downloadAsPng(srcUrl: string, filename: string, watermarkText?: string) {
   try {
-    const img = await new Promise<HTMLImageElement>((res, rej) => {
-      const i = new window.Image();
-      i.crossOrigin = "anonymous";
-      i.onload = () => res(i);
-      i.onerror = rej;
-      i.src = srcUrl;
-    });
+    const img = await loadReadableImage(srcUrl);
     const canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
@@ -122,9 +120,7 @@ export async function downloadAsPng(srcUrl: string, filename: string, watermarkT
     if (!ctx) throw new Error("no ctx");
     ctx.drawImage(img, 0, 0);
     if (watermarkText) drawWatermarkOnCanvas(canvas, watermarkText);
-    const blob: Blob = await new Promise((res, rej) =>
-      canvas.toBlob((b) => (b ? res(b) : rej(new Error("toBlob failed"))), "image/png"),
-    );
+    const blob: Blob = await canvasToBlob(canvas);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
