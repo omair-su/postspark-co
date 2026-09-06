@@ -400,12 +400,15 @@ function ImageStudioPage() {
         // Streaming exists only on the gateway (Gemini) path — Flux and GPT have
         // no SSE surface, so they must use the non-streaming call to keep the
         // model picker truthful.
-      } else if (count === 1 && model === "gemini") {
+      } else if (count === 1) {
         // Streaming render — progressive previews, cancelable, quota counted
-        // server-side once the final tile is persisted.
+        // server-side once the final tile is persisted. Only Gemini has an SSE
+        // surface; Flux and GPT go straight to the non-streaming call below.
         let streamed: string | null = null;
         try {
+          if (model !== "gemini") throw new Error("no-stream");
           const out = await streamImage(
+
             "/api/studio-stream",
             {
               prompt: sent,
