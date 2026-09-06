@@ -1473,7 +1473,13 @@ function ImageStudioPage() {
               }
             >
               {loading && <div className="is-rail mb-3" />}
-              {loading && streamPreview ? (
+              {loading && tileJobs.length > 1 ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {tileJobs.map((j, i) => (
+                    <StreamingTile key={i} job={j} index={i} aspectClass={composerAspectClass} />
+                  ))}
+                </div>
+              ) : loading && streamPreview ? (
                 <div className={`overflow-hidden rounded-xl border border-border bg-muted/40 ${composerAspectClass}`}>
                   <img
                     src={streamPreview}
@@ -1487,8 +1493,20 @@ function ImageStudioPage() {
                     <TileSkeleton key={i} aspectClass={composerAspectClass} />
                   ))}
                 </div>
-
+              ) : genError ? (
+                <StudioErrorCard
+                  error={genError}
+                  aspectClass={composerAspectClass}
+                  onRetry={() => {
+                    setGenError(null);
+                    handleBatch();
+                  }}
+                  onSwitchModel={retryWithOtherModel}
+                  onUpgrade={() => setLimitOpen(true)}
+                  onDismiss={() => setGenError(null)}
+                />
               ) : results.length ? (
+
                 <div className={`grid gap-3 ${results.length > 1 ? "sm:grid-cols-2" : ""}`}>
                   {results.map((url, i) => (
                     <ImageTile
