@@ -288,6 +288,32 @@ function HumanizerPage() {
     navigate({ to: "/dashboard/repurpose" });
   };
 
+  /**
+   * Straight into the Publishing Center as a real post: the purpose picked in
+   * the composer decides the platform + how the rewrite is split.
+   */
+  const sendToPublishing = () => {
+    if (!output) return;
+    const format =
+      purpose === "Tweet/Thread" ? "tweets"
+      : purpose === "Email" ? "email"
+      : purpose === "Blog/Article" || purpose === "Academic/Formal" ? "seo"
+      : "linkedin";
+    const pieces = parsePieces(format, output);
+    if (!pieces.length) return toast.error("Nothing to publish yet");
+    try {
+      sessionStorage.setItem(
+        PUBLISH_PACK_KEY,
+        JSON.stringify({ pieces, createdAt: Date.now(), source: "humanizer" }),
+      );
+    } catch {
+      return toast.error("Could not hand this off — try copying the text instead.");
+    }
+    toast.success("Sent to the Publishing Center");
+    navigate({ to: "/dashboard/publishing" });
+  };
+
+
   async function openRun(r: HumanizerRunRow) {
     setInput(r.input_text);
     applyResult(
