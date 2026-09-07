@@ -37,6 +37,8 @@ import {
   generateImageVariations,
   generateCarousel,
   editUploadedImage,
+  inpaintImage,
+
   saveImageToLibrary,
   listLibraryImages,
   deleteLibraryImage,
@@ -514,6 +516,9 @@ function ImageStudioPage() {
         setImageUrl(ok[0].url);
         loadLibrary();
       } else {
+        // Flux / GPT batches render server-side in one call, so every tile shows
+        // its own live status + seed instead of one anonymous grid of skeletons.
+        setTileJobs(seeds.map((sd) => ({ preview: null, status: "streaming", seed: sd })));
         const res: any = await withAIProgress(
           generateImageVariations({
             data: { prompt: sent, style, aspect, template, count: count as 2 | 3 | 4, model: activeModel, quality },
@@ -526,10 +531,14 @@ function ImageStudioPage() {
         if (res.error) throw new Error(res.error);
         const urls = (res.results || []).map((x: any) => x.imageUrl).filter(Boolean);
         if (!urls.length) throw new Error("No images returned");
+        setTileJobs((jobs) =>
+          jobs.map((j, i) => (urls[i] ? { ...j, status: "done", preview: urls[i] } : { ...j, status: "error" })),
+        );
         setResults(urls);
         setResultSeeds(seeds.slice(0, urls.length));
         setImageUrl(urls[0]);
       }
+
 
       if (!seedLocked) setSeed(randomSeed());
       setCaption(null);
@@ -622,18 +631,20 @@ function ImageStudioPage() {
     }
   };
 
-  const runInpaint = async (maskedDataUrl: string, instruction: string) => {
+  const runInpaint = async (imageDataUrl: string, maskDataUrl: string, instruction: string) => {
     setInpaintBusy(true);
     try {
-      const res = await editUploadedImage({
-        data: {
-          imageDataUrl: maskedDataUrl,
-          instruction: `Only modify the area marked with the magenta overlay: ${instruction}. Remove the magenta marking entirely and blend the new content seamlessly with the untouched parts of the image.`,
-        },
+      const res = await inpaintImage({
+        data: { imageDataUrl, maskDataUrl, instruction },
         headers: authHeaders,
-      });
+      } as any);
+      if (res.error === "LIMIT_REACHED") {
+        setInpaintSrc(null);
+        return setLimitOpen(true);
+      }
       if (res.error) return toast.error(res.error);
       if (!res.imageUrl) return toast.error("No image returned");
+
       setResults((r) => (r.length ? [res.imageUrl, ...r.slice(1)] : [res.imageUrl]));
       setImageUrl(res.imageUrl);
       setInpaintSrc(null);

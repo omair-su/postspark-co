@@ -6,6 +6,8 @@ import {
   generateSocialImage,
   generateVariations,
   editImage,
+  editImageWithMask,
+
   generateCarouselSet,
   checkPromptSafety,
   generateCaption,
@@ -255,6 +257,40 @@ export const editUploadedImage = createServerFn({ method: "POST" })
     }
     return res;
   });
+
+/**
+ * Inpaint with a real mask: transparent pixels in the mask are the only
+ * region the model may repaint, so untouched areas stay pixel-identical.
+ */
+export const inpaintImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      imageDataUrl: z.string().min(20).max(20_000_000),
+      maskDataUrl: z.string().min(20).max(20_000_000),
+      instruction: z.string().min(3).max(1000),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const plan = await getPlan(supabase, userId);
+    if (!(await isPro(plan)))
+      return { imageUrl: "", error: "Inpainting is a Pro feature. Upgrade to unlock." };
+    if ((await imageQuotaRemaining(userId, plan)) < 1)
+      return { imageUrl: "", error: "LIMIT_REACHED" };
+    const res = await editImageWithMask(data.imageDataUrl, data.maskDataUrl, data.instruction);
+    if (res.imageUrl) {
+      const persisted = await persistGeneratedImage({
+        userId,
+        imageUrl: res.imageUrl,
+        prompt: data.instruction,
+        source: "inpaint",
+      });
+      if (persisted) res.imageUrl = persisted;
+    }
+    return res;
+  });
+
 
 export const removeImageBackground = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

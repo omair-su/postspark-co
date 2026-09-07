@@ -22,7 +22,9 @@ import {
   Sparkles,
 } from "lucide-react";
 import { StudioCard } from "./StudioUI";
+import { loadReadableImage, readCanvas } from "@/lib/sameOriginImage";
 import { EXPORT_PACK, type ExportSize } from "@/lib/studioCanvas";
+
 
 /* --------------------------------- seed ---------------------------------- */
 
@@ -234,46 +236,98 @@ export function InpaintDialog({
   src: string;
   busy: boolean;
   onClose: () => void;
-  onSubmit: (maskedDataUrl: string, instruction: string) => void;
+  /** (baseImage, mask where transparent = repaint this area, instruction) */
+  onSubmit: (imageDataUrl: string, maskDataUrl: string, instruction: string) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const maskRef = useRef<HTMLCanvasElement | null>(null);
   const [instruction, setInstruction] = useState("");
   const [size, setSize] = useState(46);
+  const [painted, setPainted] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const drawing = useRef(false);
   const baseRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
-    const img = new window.Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      baseRef.current = img;
-      const c = canvasRef.current;
-      if (!c) return;
-      c.width = img.naturalWidth;
-      c.height = img.naturalHeight;
-      c.getContext("2d")!.drawImage(img, 0, 0);
+    let cancelled = false;
+    setLoadError(null);
+    setPainted(false);
+    void (async () => {
+      try {
+        const img = await loadReadableImage(src);
+        if (cancelled) return;
+        baseRef.current = img;
+        const c = canvasRef.current;
+        if (!c) return;
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        c.getContext("2d")!.drawImage(img, 0, 0);
+        // Mask starts fully opaque: nothing is editable until the user paints.
+        const m = document.createElement("canvas");
+        m.width = img.naturalWidth;
+        m.height = img.naturalHeight;
+        const mctx = m.getContext("2d")!;
+        mctx.fillStyle = "#000000";
+        mctx.fillRect(0, 0, m.width, m.height);
+        maskRef.current = m;
+      } catch {
+        if (!cancelled) setLoadError("This image can't be opened for editing. Try saving it, then re-uploading.");
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-    img.src = src;
   }, [src]);
 
   const paint = (e: React.PointerEvent) => {
     const c = canvasRef.current;
-    if (!c || !drawing.current) return;
+    const m = maskRef.current;
+    if (!c || !m || !drawing.current) return;
     const rect = c.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * c.width;
     const y = ((e.clientY - rect.top) / rect.height) * c.height;
+    const radius = (size / 100) * (c.width / 8);
+
+    // Visual feedback on the preview…
     const ctx = c.getContext("2d")!;
-    ctx.fillStyle = "rgba(255,0,200,0.6)";
+    ctx.fillStyle = "rgba(255,0,200,0.45)";
     ctx.beginPath();
-    ctx.arc(x, y, (size / 100) * (c.width / 8), 0, Math.PI * 2);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
+
+    // …and the real cut-out on the mask the model receives.
+    const mctx = m.getContext("2d")!;
+    mctx.save();
+    mctx.globalCompositeOperation = "destination-out";
+    mctx.beginPath();
+    mctx.arc(x, y, radius, 0, Math.PI * 2);
+    mctx.fill();
+    mctx.restore();
+    setPainted(true);
   };
 
   const reset = () => {
     const c = canvasRef.current;
     const img = baseRef.current;
-    if (!c || !img) return;
+    const m = maskRef.current;
+    if (!c || !img || !m) return;
     c.getContext("2d")!.drawImage(img, 0, 0);
+    const mctx = m.getContext("2d")!;
+    mctx.globalCompositeOperation = "source-over";
+    mctx.fillStyle = "#000000";
+    mctx.fillRect(0, 0, m.width, m.height);
+    setPainted(false);
+  };
+
+  const submit = () => {
+    const img = baseRef.current;
+    const m = maskRef.current;
+    if (!img || !m) return;
+    const base = document.createElement("canvas");
+    base.width = img.naturalWidth;
+    base.height = img.naturalHeight;
+    base.getContext("2d")!.drawImage(img, 0, 0);
+    onSubmit(readCanvas(base), readCanvas(m), instruction.trim());
   };
 
   return (
@@ -286,8 +340,10 @@ export function InpaintDialog({
           </button>
         </div>
         <p className="text-[11.5px] text-muted-foreground">
-          Paint over the area you want changed, then describe the replacement.
+          Paint over the area you want changed, then describe the replacement. Everything you don't
+          paint stays exactly as it is.
         </p>
+        {loadError && <p className="text-[11.5px] font-medium text-red-500">{loadError}</p>}
         <canvas
           ref={canvasRef}
           onPointerDown={(e) => {
@@ -305,6 +361,9 @@ export function InpaintDialog({
           <button onClick={reset} className="is-btn-ghost" type="button">
             <Eraser className="h-3.5 w-3.5" /> Reset mask
           </button>
+          <span className="text-[11px] text-muted-foreground">
+            {painted ? "Mask ready" : "Paint an area to unlock"}
+          </span>
         </div>
         <input
           value={instruction}
@@ -313,12 +372,8 @@ export function InpaintDialog({
           className="is-input"
         />
         <button
-          onClick={() => {
-            const c = canvasRef.current;
-            if (!c) return;
-            onSubmit(c.toDataURL("image/png"), instruction.trim());
-          }}
-          disabled={busy || instruction.trim().length < 3}
+          onClick={submit}
+          disabled={busy || !painted || instruction.trim().length < 3}
           className="is-btn"
           type="button"
         >
@@ -328,6 +383,7 @@ export function InpaintDialog({
     </div>
   );
 }
+
 
 /* -------------------------------- captions -------------------------------- */
 
