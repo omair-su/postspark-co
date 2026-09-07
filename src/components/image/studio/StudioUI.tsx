@@ -5,7 +5,6 @@
  * All colors come from semantic tokens or per-model accent variables.
  */
 import type { ReactNode } from "react";
-import { StyleIcon } from "@/components/BrandIcon";
 import {
   Download,
   Save,
