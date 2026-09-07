@@ -41,6 +41,7 @@ import {
 
   saveImageToLibrary,
   listLibraryImages,
+  setImageFavorite,
   deleteLibraryImage,
   getImageUsage,
   captionForImage,
@@ -58,6 +59,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { trackUnsplashUse } from "@/lib/stockMedia.functions";
 import type { StockPhoto } from "@/lib/stockMedia.server";
 import { Images } from "lucide-react";
+import { CalendarPlus } from "lucide-react";
 import { StyleIcon } from "@/components/BrandIcon";
 import { HeroArt } from "@/components/dashboard/HeroArt";
 import {
@@ -92,6 +94,7 @@ import {
 import { EXPORT_PACK, resizeCover, padToAspect, compositeLogo, randomSeed, type ExportSize } from "@/lib/studioCanvas";
 import { streamImage } from "@/lib/streamImage";
 import { getBrandKit } from "@/lib/brandKit.functions";
+import { createScheduledPost } from "@/lib/calendar.functions";
 
 
 
