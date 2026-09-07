@@ -458,15 +458,36 @@ export const listLibraryImages = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("generated_images")
-      .select("id, image_url, prompt, style, aspect, template, source, created_at")
+      .select(
+        "id, image_url, prompt, style, aspect, template, source, created_at, model, seed, negative_prompt, reference_url, is_favorite",
+      )
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(200);
     if (error) {
       console.error("list library error:", error);
       return { images: [] as any[] };
     }
     return { images: data || [] };
   });
+
+/** Favorites live in the database so they follow the user across devices. */
+export const setImageFavorite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ id: z.string().uuid(), favorite: z.boolean() }).parse)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("generated_images")
+      .update({ is_favorite: data.favorite })
+      .eq("id", data.id)
+      .eq("user_id", userId);
+    if (error) {
+      console.error("favorite toggle error:", error);
+      return { success: false, error: "Could not update favorite" };
+    }
+    return { success: true };
+  });
+
 
 export const deleteLibraryImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
