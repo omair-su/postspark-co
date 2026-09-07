@@ -508,7 +508,11 @@ function HumanizerPage() {
                 <button onClick={sendToRepurpose} className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-muted">
                   <Repeat className="h-3.5 w-3.5" /> Repurpose
                 </button>
+                <button onClick={sendToPublishing} className="inline-flex items-center gap-1 rounded-lg border border-primary/50 bg-primary/10 px-2 py-1.5 text-[11px] font-semibold text-primary hover:bg-primary/15">
+                  <Send className="h-3.5 w-3.5" /> Publish
+                </button>
                 <ExportToGoogleDocs content={output} defaultTitle="Humanized text" sourceTool="humanizer" />
+
               </div>
             )}
           </div>
