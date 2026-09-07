@@ -41,6 +41,7 @@ import {
 
   saveImageToLibrary,
   listLibraryImages,
+  setImageFavorite,
   deleteLibraryImage,
   getImageUsage,
   captionForImage,
@@ -58,6 +59,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { trackUnsplashUse } from "@/lib/stockMedia.functions";
 import type { StockPhoto } from "@/lib/stockMedia.server";
 import { Images } from "lucide-react";
+import { CalendarPlus } from "lucide-react";
 import { StyleIcon } from "@/components/BrandIcon";
 import { HeroArt } from "@/components/dashboard/HeroArt";
 import {
@@ -92,6 +94,7 @@ import {
 import { EXPORT_PACK, resizeCover, padToAspect, compositeLogo, randomSeed, type ExportSize } from "@/lib/studioCanvas";
 import { streamImage } from "@/lib/streamImage";
 import { getBrandKit } from "@/lib/brandKit.functions";
+import { createScheduledPost } from "@/lib/calendar.functions";
 
 
 
@@ -179,7 +182,13 @@ type LibImage = {
   template?: string | null;
   source?: string | null;
   created_at: string;
+  model?: string | null;
+  seed?: number | null;
+  negative_prompt?: string | null;
+  reference_url?: string | null;
+  is_favorite?: boolean | null;
 };
+
 
 async function fetchAsBlob(url: string): Promise<Blob | null> {
   try {
@@ -266,16 +275,19 @@ function ImageStudioPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [libStyle, setLibStyle] = useState<string>("all");
   const [libFavOnly, setLibFavOnly] = useState(false);
+  const [libModel, setLibModel] = useState<string>("all");
+  const [libRange, setLibRange] = useState<"all" | "7d" | "30d" | "90d">("all");
+  const [scheduling, setScheduling] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
       setSavedRefs(JSON.parse(localStorage.getItem("ps_studio_refs") || "[]"));
-      setFavorites(JSON.parse(localStorage.getItem("ps_studio_favs") || "[]"));
     } catch {
       /* ignore */
     }
   }, []);
+
 
   const persistRefs = (refs: { id: string; name: string; url: string }[]) => {
     setSavedRefs(refs);
@@ -286,17 +298,19 @@ function ImageStudioPage() {
     }
   };
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((f) => {
-      const next = f.includes(id) ? f.filter((x) => x !== id) : [...f, id];
-      try {
-        localStorage.setItem("ps_studio_favs", JSON.stringify(next));
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
+  /** Favorites are stored on the row, so they follow the user to any device. */
+  const toggleFavorite = async (id: string) => {
+    const next = !favorites.includes(id);
+    setFavorites((f) => (next ? [...f, id] : f.filter((x) => x !== id)));
+    setLibrary((l) => l.map((i) => (i.id === id ? { ...i, is_favorite: next } : i)));
+    if (!authHeaders) return;
+    const res = await setImageFavorite({ data: { id, favorite: next }, headers: authHeaders } as any);
+    if (!res?.success) {
+      setFavorites((f) => (next ? f.filter((x) => x !== id) : [...f, id]));
+      toast.error("Could not save favorite");
+    }
   };
+
 
   const brandColors: string[] = useMemo(() => {
     const k = brandKit;
@@ -890,11 +904,54 @@ function ImageStudioPage() {
     setLibLoading(true);
     try {
       const res = await listLibraryImages({ headers: authHeaders });
-      setLibrary((res.images as LibImage[]) || []);
+      const rows = (res.images as LibImage[]) || [];
+      setLibrary(rows);
+      setFavorites(rows.filter((r) => r.is_favorite).map((r) => r.id));
     } finally {
       setLibLoading(false);
     }
   };
+
+  /**
+   * One click from a render to a real scheduled post: the picture becomes the
+   * post's media and its recipe travels along as the draft copy.
+   */
+  const scheduleFromLibrary = async (img: LibImage) => {
+    if (!authHeaders) return;
+    setScheduling(img.id);
+    try {
+      const when = new Date();
+      when.setDate(when.getDate() + 1);
+      when.setHours(9, 0, 0, 0);
+      const recipeLines = [
+        img.prompt,
+        "",
+        `Recipe — ${img.model || "gemini"}${img.style ? ` · ${img.style}` : ""}${img.aspect ? ` · ${img.aspect}` : ""}${
+          img.seed != null ? ` · seed ${img.seed}` : ""
+        }`,
+        img.negative_prompt ? `Avoided: ${img.negative_prompt}` : "",
+      ].filter(Boolean);
+      const res = await createScheduledPost({
+        data: {
+          title: img.prompt.replace(/\s+/g, " ").slice(0, 70) || "Generated image",
+          content: recipeLines.join("\n"),
+          platform: "instagram",
+          scheduled_for: when.toISOString(),
+          media_url: img.image_url,
+          media_type: "image" as const,
+          tool: "image-studio",
+        },
+        headers: authHeaders,
+      } as any);
+      if (!res?.success) return toast.error(res?.error || "Could not schedule this image");
+      toast.success("Scheduled for tomorrow 9:00 AM — open the Calendar to adjust");
+    } catch {
+      toast.error("Could not schedule this image");
+    } finally {
+      setScheduling(null);
+    }
+  };
+
 
   useEffect(() => {
     if (tab === "library" && session) loadLibrary();
@@ -1125,11 +1182,15 @@ function ImageStudioPage() {
   // Filtered + sorted library
   const filteredLibrary = useMemo(() => {
     const q = libQuery.trim().toLowerCase();
+    const days = libRange === "7d" ? 7 : libRange === "30d" ? 30 : libRange === "90d" ? 90 : 0;
+    const cutoff = days ? Date.now() - days * 86_400_000 : 0;
     let arr = library.filter((i) => {
       if (libTemplate !== "all" && (i.template || "none") !== libTemplate) return false;
       if (libStyle !== "all" && (i.style || "") !== libStyle) return false;
+      if (libModel !== "all" && (i.model || "gemini") !== libModel) return false;
+      if (cutoff && new Date(i.created_at).getTime() < cutoff) return false;
       if (libFavOnly && !favorites.includes(i.id)) return false;
-      if (q && !i.prompt.toLowerCase().includes(q)) return false;
+      if (q && !`${i.prompt} ${i.negative_prompt || ""} ${i.style || ""}`.toLowerCase().includes(q)) return false;
       return true;
     });
     arr = [...arr].sort((a, b) => {
@@ -1138,7 +1199,8 @@ function ImageStudioPage() {
       return libSort === "newest" ? db - da : da - db;
     });
     return arr;
-  }, [library, libQuery, libTemplate, libSort, libStyle, libFavOnly, favorites]);
+  }, [library, libQuery, libTemplate, libSort, libStyle, libModel, libRange, libFavOnly, favorites]);
+
 
   const templateOptions = useMemo(() => {
     const set = new Set<string>();
@@ -1955,6 +2017,29 @@ function ImageStudioPage() {
               ))}
             </select>
             <select
+              value={libModel}
+              onChange={(e) => setLibModel(e.target.value)}
+              className="is-input !w-auto !py-2 !text-[12px]"
+            >
+              <option value="all">All engines</option>
+              {MODELS.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={libRange}
+              onChange={(e) => setLibRange(e.target.value as any)}
+              className="is-input !w-auto !py-2 !text-[12px]"
+            >
+              <option value="all">Any date</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
+
+            <select
               value={libSort}
               onChange={(e) => setLibSort(e.target.value as any)}
               className="is-input !w-auto !py-2 !text-[12px]"
@@ -2085,6 +2170,20 @@ function ImageStudioPage() {
                       >
                         <Info className="mx-auto h-3.5 w-3.5" />
                       </button>
+                      <button
+                        onClick={() => scheduleFromLibrary(img)}
+                        disabled={scheduling === img.id}
+                        className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-center text-xs hover:bg-accent disabled:opacity-60"
+                        aria-label="Schedule this image"
+                        title="Schedule this image"
+                      >
+                        {scheduling === img.id ? (
+                          <Loader2 className="mx-auto h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <CalendarPlus className="mx-auto h-3.5 w-3.5" />
+                        )}
+                      </button>
+
                       <button
                         onClick={() => removeFromLibrary(img.id)}
                         className="flex-1 rounded-md border border-destructive/40 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10"

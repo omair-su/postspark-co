@@ -45,6 +45,9 @@ export const createScheduledPost = createServerFn({ method: "POST" })
       content: z.string().min(1).max(10000),
       platform: z.enum(["twitter", "threads", "linkedin", "instagram", "facebook", "tiktok", "youtube", "blog", "email"]),
       scheduled_for: z.string().datetime(),
+      media_url: z.string().url().max(2000).optional(),
+      media_type: z.enum(["image", "video"]).optional(),
+      tool: z.string().max(40).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -58,9 +61,12 @@ export const createScheduledPost = createServerFn({ method: "POST" })
         content: data.content,
         platform: data.platform,
         scheduled_for: data.scheduled_for,
+        ...(data.media_url ? { media_url: data.media_url, media_type: data.media_type || "image" } : {}),
+        ...(data.tool ? { tool: data.tool } : {}),
       })
       .select()
       .single();
+
     if (error) {
       console.error("Create scheduled post error:", error);
       return { success: false, error: "Failed to schedule post." };
