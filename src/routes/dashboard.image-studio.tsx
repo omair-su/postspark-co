@@ -393,7 +393,7 @@ function ImageStudioPage() {
         // server-side once the final tile is persisted. Only Gemini has an SSE
         // surface; Flux and GPT go straight to the non-streaming call below.
         let streamed: string | null = null;
-        if (model === "gemini") {
+        if (activeModel === "gemini") {
           const out = await streamImage(
             "/api/studio-stream",
             {
@@ -438,7 +438,7 @@ function ImageStudioPage() {
                 style,
                 aspect,
                 template,
-                model,
+                model: activeModel,
                 quality,
                 negativePrompt: r.negativePrompt,
                 originalPrompt: originalPrompt || r.prompt,
@@ -456,7 +456,7 @@ function ImageStudioPage() {
           setResultSeeds([seeds[0]]);
           setImageUrl(res.imageUrl);
         }
-      } else if (model === "gemini") {
+      } else if (activeModel === "gemini") {
         // Batch with per-tile streaming: every tile renders its own blur-to-sharp
         // preview in parallel instead of a frozen grid of skeletons.
         setTileJobs(seeds.map((sd) => ({ preview: null, status: "pending", seed: sd })));
@@ -516,7 +516,7 @@ function ImageStudioPage() {
       } else {
         const res: any = await withAIProgress(
           generateImageVariations({
-            data: { prompt: sent, style, aspect, template, count: count as 2 | 3 | 4, model, quality },
+            data: { prompt: sent, style, aspect, template, count: count as 2 | 3 | 4, model: activeModel, quality },
             headers: authHeaders,
             signal: controller.signal,
           } as any),
@@ -560,7 +560,7 @@ function ImageStudioPage() {
     setModel(next);
     setGenError(null);
     toast.message(`Switched to ${MODELS.find((m) => m.id === next)?.name}`);
-    setTimeout(() => handleBatch(), 0);
+    setTimeout(() => handleBatch(batch, next), 0);
   };
 
   const reuseRecipe = () => {
