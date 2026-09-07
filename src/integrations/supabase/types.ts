@@ -840,6 +840,57 @@ export type Database = {
         }
         Relationships: []
       }
+      humanizer_runs: {
+        Row: {
+          created_at: string
+          id: string
+          input_text: string
+          meaning: Json | null
+          metrics_after: Json | null
+          metrics_before: Json | null
+          output_text: string
+          settings: Json
+          source_hash: string
+          title: string | null
+          updated_at: string
+          user_id: string
+          version: number
+          word_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input_text: string
+          meaning?: Json | null
+          metrics_after?: Json | null
+          metrics_before?: Json | null
+          output_text: string
+          settings?: Json
+          source_hash: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+          version?: number
+          word_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input_text?: string
+          meaning?: Json | null
+          metrics_after?: Json | null
+          metrics_before?: Json | null
+          output_text?: string
+          settings?: Json
+          source_hash?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+          version?: number
+          word_count?: number
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           account_connected: boolean
