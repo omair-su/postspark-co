@@ -2168,6 +2168,20 @@ function ImageStudioPage() {
                         <Info className="mx-auto h-3.5 w-3.5" />
                       </button>
                       <button
+                        onClick={() => scheduleFromLibrary(img)}
+                        disabled={scheduling === img.id}
+                        className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-center text-xs hover:bg-accent disabled:opacity-60"
+                        aria-label="Schedule this image"
+                        title="Schedule this image"
+                      >
+                        {scheduling === img.id ? (
+                          <Loader2 className="mx-auto h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <CalendarPlus className="mx-auto h-3.5 w-3.5" />
+                        )}
+                      </button>
+
+                      <button
                         onClick={() => removeFromLibrary(img.id)}
                         className="flex-1 rounded-md border border-destructive/40 bg-background px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
                         aria-label="Delete"
