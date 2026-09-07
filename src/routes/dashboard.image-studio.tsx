@@ -2024,7 +2024,7 @@ function ImageStudioPage() {
               <option value="all">All engines</option>
               {MODELS.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.label}
+                  {m.name}
                 </option>
               ))}
             </select>
