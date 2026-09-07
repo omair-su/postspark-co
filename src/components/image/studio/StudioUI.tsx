@@ -5,7 +5,6 @@
  * All colors come from semantic tokens or per-model accent variables.
  */
 import type { ReactNode } from "react";
-import { StyleIcon } from "@/components/BrandIcon";
 import {
   Download,
   Save,
@@ -121,6 +120,31 @@ export function ModelPicker<T extends string>({
   );
 }
 
+/**
+ * Style thumbnails: each style gets its own layered gradient "artwork" so the
+ * rail reads as a visual library, not a row of emoji labels.
+ */
+const STYLE_ART: Record<string, string> = {
+  photorealistic:
+    "radial-gradient(120% 90% at 25% 15%, rgba(255,255,255,0.55), transparent 60%), linear-gradient(150deg,#8d7256,#3b2c22 70%)",
+  "3d-render":
+    "radial-gradient(90% 80% at 70% 20%, rgba(125,211,252,0.85), transparent 65%), linear-gradient(160deg,#6d28d9,#0f172a)",
+  illustration:
+    "linear-gradient(135deg,#f97316 0%,#f97316 33%,#fbbf24 33%,#fbbf24 66%,#14b8a6 66%)",
+  minimal:
+    "radial-gradient(60% 60% at 50% 45%, rgba(0,0,0,0.12), transparent 70%), linear-gradient(180deg,#f8fafc,#e2e8f0)",
+  cinematic:
+    "linear-gradient(0deg, rgba(0,0,0,0.85) 0 18%, transparent 18% 82%, rgba(0,0,0,0.85) 82% 100%), linear-gradient(120deg,#0f766e,#f59e0b)",
+  cyberpunk:
+    "radial-gradient(80% 70% at 20% 80%, rgba(236,72,153,0.9), transparent 60%), radial-gradient(80% 70% at 85% 20%, rgba(34,211,238,0.9), transparent 60%), #0b1020",
+  "oil-painting":
+    "conic-gradient(from 40deg,#b45309,#f59e0b,#7c2d12,#a16207,#b45309)",
+  anime:
+    "radial-gradient(70% 60% at 50% 25%, rgba(255,255,255,0.7), transparent 60%), linear-gradient(160deg,#f9a8d4,#60a5fa)",
+  architectural:
+    "repeating-linear-gradient(90deg, rgba(255,255,255,0.28) 0 2px, transparent 2px 12px), linear-gradient(160deg,#475569,#0f172a)",
+};
+
 export function StylePicker<T extends string>({
   styles,
   value,
@@ -139,13 +163,18 @@ export function StylePicker<T extends string>({
           className={`is-style ${value === s.id ? "is-style-on" : ""}`}
           title={s.label}
         >
-          <StyleIcon styleId={s.id as any} size={44} />
+          <span
+            className="block h-[52px] w-[52px] rounded-xl border border-white/15 shadow-lg shadow-black/25"
+            style={{ background: STYLE_ART[s.id as string] || STYLE_ART.photorealistic }}
+            aria-hidden
+          />
           <span className="mt-2 block text-[11px] font-semibold leading-tight">{s.label}</span>
         </button>
       ))}
     </div>
   );
 }
+
 
 const ASPECT_SHAPE: Record<string, { w: number; h: number; px: string }> = {
   square: { w: 26, h: 26, px: "1024 × 1024" },

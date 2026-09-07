@@ -5898,7 +5898,31 @@ html:not(.dark) .dashboard-shell .pod-hero h1 {
 
 /* tiles */
 .is-tile-wrap { animation: is-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+/* staggered pop-in so a batch lands like a deck being dealt, not all at once */
+.is-tile-wrap:nth-child(2) { animation-delay: 70ms; }
+.is-tile-wrap:nth-child(3) { animation-delay: 140ms; }
+.is-tile-wrap:nth-child(4) { animation-delay: 210ms; }
+.is-tile-wrap:nth-child(5) { animation-delay: 280ms; }
+.is-tile-wrap:nth-child(6) { animation-delay: 350ms; }
 @keyframes is-pop { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
+
+/* per-model accent aura around the canvas board */
+.is-aura { position: relative; }
+.is-aura::before {
+  content: "";
+  position: absolute;
+  inset: -18px -18px auto -18px;
+  height: 120px;
+  border-radius: 32px;
+  background: radial-gradient(60% 100% at 50% 0%, color-mix(in oklab, var(--is-accent, var(--primary)) 32%, transparent), transparent 75%);
+  filter: blur(22px);
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.5s ease, background 0.5s ease;
+}
+.is-aura > * { position: relative; z-index: 1; }
+
 .is-tile {
   position: relative; width: 100%; overflow: hidden;
   border-radius: 20px;

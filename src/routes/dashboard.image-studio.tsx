@@ -37,6 +37,8 @@ import {
   generateImageVariations,
   generateCarousel,
   editUploadedImage,
+  inpaintImage,
+
   saveImageToLibrary,
   listLibraryImages,
   deleteLibraryImage,
@@ -514,6 +516,9 @@ function ImageStudioPage() {
         setImageUrl(ok[0].url);
         loadLibrary();
       } else {
+        // Flux / GPT batches render server-side in one call, so every tile shows
+        // its own live status + seed instead of one anonymous grid of skeletons.
+        setTileJobs(seeds.map((sd) => ({ preview: null, status: "streaming", seed: sd })));
         const res: any = await withAIProgress(
           generateImageVariations({
             data: { prompt: sent, style, aspect, template, count: count as 2 | 3 | 4, model: activeModel, quality },
@@ -526,10 +531,14 @@ function ImageStudioPage() {
         if (res.error) throw new Error(res.error);
         const urls = (res.results || []).map((x: any) => x.imageUrl).filter(Boolean);
         if (!urls.length) throw new Error("No images returned");
+        setTileJobs((jobs) =>
+          jobs.map((j, i) => (urls[i] ? { ...j, status: "done", preview: urls[i] } : { ...j, status: "error" })),
+        );
         setResults(urls);
         setResultSeeds(seeds.slice(0, urls.length));
         setImageUrl(urls[0]);
       }
+
 
       if (!seedLocked) setSeed(randomSeed());
       setCaption(null);
@@ -622,18 +631,20 @@ function ImageStudioPage() {
     }
   };
 
-  const runInpaint = async (maskedDataUrl: string, instruction: string) => {
+  const runInpaint = async (imageDataUrl: string, maskDataUrl: string, instruction: string) => {
     setInpaintBusy(true);
     try {
-      const res = await editUploadedImage({
-        data: {
-          imageDataUrl: maskedDataUrl,
-          instruction: `Only modify the area marked with the magenta overlay: ${instruction}. Remove the magenta marking entirely and blend the new content seamlessly with the untouched parts of the image.`,
-        },
+      const res = await inpaintImage({
+        data: { imageDataUrl, maskDataUrl, instruction },
         headers: authHeaders,
-      });
+      } as any);
+      if (res.error === "LIMIT_REACHED") {
+        setInpaintSrc(null);
+        return setLimitOpen(true);
+      }
       if (res.error) return toast.error(res.error);
       if (!res.imageUrl) return toast.error("No image returned");
+
       setResults((r) => (r.length ? [res.imageUrl, ...r.slice(1)] : [res.imageUrl]));
       setImageUrl(res.imageUrl);
       setInpaintSrc(null);
@@ -1340,10 +1351,29 @@ function ImageStudioPage() {
                 placeholder="e.g. A matte black espresso machine on travertine, single hard light, editorial luxury still life"
                 className="is-input resize-y"
               />
-              <div className="mt-1.5 flex items-center justify-between text-[10.5px] text-muted-foreground">
-                <span>{prompt.trim().length} chars</span>
+              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-[10.5px] text-muted-foreground">
+                <span>
+                  {prompt.trim().length} chars · ~{Math.ceil(prompt.trim().split(/\s+/).filter(Boolean).length * 1.35)} tokens
+                  {prompt.trim().length > 1200 && <span className="ml-1 font-semibold text-amber-500">very long</span>}
+                </span>
                 {originalPrompt && <span>Enhanced · original kept</span>}
               </div>
+              <details className="mt-2 rounded-lg border border-border/70 bg-background/40 p-2">
+                <summary className="cursor-pointer text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Exact prompt sent to the engine
+                </summary>
+                <p className="mt-1.5 whitespace-pre-wrap break-words text-[11px] leading-relaxed text-foreground">
+                  {effectivePrompt(prompt.trim()) || "—"}
+                  {negativePrompt.trim() && (
+                    <span className="mt-1 block text-muted-foreground">Avoid: {negativePrompt.trim()}</span>
+                  )}
+                  <span className="mt-1 block text-muted-foreground">
+                    Seed {seed}
+                    {seedLocked ? " (locked)" : ""} · {style} · {aspect}
+                  </span>
+                </p>
+              </details>
+
 
               <div className="mt-3 space-y-2.5">
                 {PROMPT_CHIPS.map((g) => (
@@ -1464,8 +1494,12 @@ function ImageStudioPage() {
           </div>
 
           {/* ------------------------------ canvas board --------------------------- */}
-          <div className="space-y-4">
+          <div
+            className="is-aura space-y-4"
+            style={{ ["--is-accent" as any]: MODELS.find((m) => m.id === model)?.color } as any}
+          >
             <StudioCard
+
               label="Canvas"
               hint={results.length ? `${results.length} render${results.length > 1 ? "s" : ""} on the board` : "Your board is empty — pick a prompt idea below."}
               action={

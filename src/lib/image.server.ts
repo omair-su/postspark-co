@@ -450,7 +450,73 @@ export async function enhanceImagePrompt(
   }
 }
 
+/** data: URL → Blob, for multipart uploads to the image edits endpoint. */
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [head, b64] = dataUrl.split(",");
+  const mime = /data:([^;]+)/.exec(head || "")?.[1] || "image/png";
+  const bin = atob(b64 || "");
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+/**
+ * True inpainting: the mask PNG is sent to /v1/images/edits, where fully
+ * transparent pixels mark the region the model may repaint. This is a real
+ * mask, not a coloured overlay baked into the prompt.
+ */
+export async function editImageWithMask(
+  imageDataUrl: string,
+  maskDataUrl: string,
+  instruction: string,
+): Promise<ImageGenResult> {
+  const key = process.env.Openai_api || process.env.OPENAI_API_KEY;
+  if (!key) {
+    // No masking-capable provider configured — fall back to the guided edit.
+    return editImage(imageDataUrl, instruction);
+  }
+  if (!imageDataUrl.startsWith("data:") || !maskDataUrl.startsWith("data:")) {
+    return { imageUrl: "", error: "Inpaint needs the image and mask as uploaded data." };
+  }
+
+  try {
+    const form = new FormData();
+    form.append("model", OPENAI_IMAGE_MODELS[0]);
+    form.append("image", dataUrlToBlob(imageDataUrl), "image.png");
+    form.append("mask", dataUrlToBlob(maskDataUrl), "mask.png");
+    form.append("prompt", instruction.slice(0, 4000));
+    form.append("n", "1");
+
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 170_000);
+    const res = await fetch("https://api.openai.com/v1/images/edits", {
+      method: "POST",
+      signal: ctrl.signal,
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+    }).finally(() => clearTimeout(t));
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Inpaint edits error:", res.status, text.slice(0, 300));
+      if (res.status === 429) return { imageUrl: "", error: "Rate limit reached. Try again shortly." };
+      if (res.status === 402) return { imageUrl: "", error: "Image credits exhausted." };
+      return { imageUrl: "", error: `Inpaint failed (${res.status}).` };
+    }
+    const j: any = await res.json();
+    const item = j?.data?.[0];
+    if (item?.b64_json) return { imageUrl: `data:image/png;base64,${item.b64_json}` };
+    if (item?.url) return { imageUrl: item.url };
+    return { imageUrl: "", error: "Inpaint returned no image." };
+  } catch (err: any) {
+    console.error("Inpaint request error:", err?.message || err);
+    if (err?.name === "AbortError") return { imageUrl: "", error: "Inpaint timed out. Try a smaller area." };
+    return { imageUrl: "", error: "Inpaint failed. Try again." };
+  }
+}
+
 export async function editImage(
+
   imageDataUrl: string,
   instruction: string,
 ): Promise<ImageGenResult> {

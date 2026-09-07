@@ -2,8 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Wand2, Loader2, Copy, Check, Save, Repeat, Sliders, X, History as HistoryIcon,
-  Sparkles, GaugeCircle, GitCompare, FileText, Layers, Trash2,
+  Sparkles, GaugeCircle, GitCompare, FileText, Layers, Trash2, Send,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { withAIProgress } from "@/lib/aiProgress";
 import { humanizeRun, rerollSentence, listHumanizerRuns, listRunVersions, deleteHumanizerRun } from "@/lib/humanize.functions";
@@ -19,6 +20,8 @@ import { DiffView } from "@/components/humanizer/DiffView";
 import { HistoryRail } from "@/components/humanizer/HistoryRail";
 import { DriveImportButton } from "@/components/google/DriveImportButton";
 import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
+import { PUBLISH_PACK_KEY, parsePieces } from "@/lib/pieces";
+
 
 export const Route = createFileRoute("/dashboard/humanizer")({
   component: HumanizerPage,
@@ -285,6 +288,32 @@ function HumanizerPage() {
     navigate({ to: "/dashboard/repurpose" });
   };
 
+  /**
+   * Straight into the Publishing Center as a real post: the purpose picked in
+   * the composer decides the platform + how the rewrite is split.
+   */
+  const sendToPublishing = () => {
+    if (!output) return;
+    const format =
+      purpose === "Tweet/Thread" ? "tweets"
+      : purpose === "Email" ? "email"
+      : purpose === "Blog/Article" || purpose === "Academic/Formal" ? "seo"
+      : "linkedin";
+    const pieces = parsePieces(format, output);
+    if (!pieces.length) return toast.error("Nothing to publish yet");
+    try {
+      sessionStorage.setItem(
+        PUBLISH_PACK_KEY,
+        JSON.stringify({ pieces, createdAt: Date.now(), source: "humanizer" }),
+      );
+    } catch {
+      return toast.error("Could not hand this off — try copying the text instead.");
+    }
+    toast.success("Sent to the Publishing Center");
+    navigate({ to: "/dashboard/publishing" });
+  };
+
+
   async function openRun(r: HumanizerRunRow) {
     setInput(r.input_text);
     applyResult(
@@ -479,7 +508,11 @@ function HumanizerPage() {
                 <button onClick={sendToRepurpose} className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-muted">
                   <Repeat className="h-3.5 w-3.5" /> Repurpose
                 </button>
+                <button onClick={sendToPublishing} className="inline-flex items-center gap-1 rounded-lg border border-primary/50 bg-primary/10 px-2 py-1.5 text-[11px] font-semibold text-primary hover:bg-primary/15">
+                  <Send className="h-3.5 w-3.5" /> Publish
+                </button>
                 <ExportToGoogleDocs content={output} defaultTitle="Humanized text" sourceTool="humanizer" />
+
               </div>
             )}
           </div>
