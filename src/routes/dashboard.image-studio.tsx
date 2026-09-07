@@ -337,7 +337,10 @@ function ImageStudioPage() {
     toast.message("Render canceled");
   };
 
-  const handleBatch = async (count = batch) => {
+  // modelOverride lets "Try another engine" pass the NEW engine explicitly —
+  // relying on setModel state would race (the closure keeps the old value).
+  const handleBatch = async (count = batch, modelOverride?: ModelId) => {
+    const activeModel = modelOverride ?? model;
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Describe your image (3+ chars)");
     // No result caching: identical settings must still produce a fresh render,
