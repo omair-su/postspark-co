@@ -156,7 +156,7 @@ export async function runHumanize(ctx: Ctx, data: RunInput): Promise<HumanizeRun
       .limit(1);
     version = (prev?.[0]?.version ?? 0) + 1;
 
-    const { data: inserted } = await supabase
+    const { data: inserted, error: insertError } = await supabase
       .from("humanizer_runs")
       .insert({
         user_id: userId,
@@ -179,6 +179,7 @@ export async function runHumanize(ctx: Ctx, data: RunInput): Promise<HumanizeRun
       } as any)
       .select("id")
       .maybeSingle();
+    if (insertError) console.error("humanizer run save failed", insertError);
     runId = inserted?.id;
 
     // Keep the shared monthly counter honest — one row per successful run.
