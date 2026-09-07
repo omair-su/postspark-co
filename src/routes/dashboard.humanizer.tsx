@@ -2,8 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Wand2, Loader2, Copy, Check, Save, Repeat, Sliders, X, History as HistoryIcon,
-  Sparkles, GaugeCircle, GitCompare, FileText, Layers, Trash2,
+  Sparkles, GaugeCircle, GitCompare, FileText, Layers, Trash2, Send,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { withAIProgress } from "@/lib/aiProgress";
 import { humanizeRun, rerollSentence, listHumanizerRuns, listRunVersions, deleteHumanizerRun } from "@/lib/humanize.functions";
