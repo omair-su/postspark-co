@@ -1351,10 +1351,29 @@ function ImageStudioPage() {
                 placeholder="e.g. A matte black espresso machine on travertine, single hard light, editorial luxury still life"
                 className="is-input resize-y"
               />
-              <div className="mt-1.5 flex items-center justify-between text-[10.5px] text-muted-foreground">
-                <span>{prompt.trim().length} chars</span>
+              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-[10.5px] text-muted-foreground">
+                <span>
+                  {prompt.trim().length} chars · ~{Math.ceil(prompt.trim().split(/\s+/).filter(Boolean).length * 1.35)} tokens
+                  {prompt.trim().length > 1200 && <span className="ml-1 font-semibold text-amber-500">very long</span>}
+                </span>
                 {originalPrompt && <span>Enhanced · original kept</span>}
               </div>
+              <details className="mt-2 rounded-lg border border-border/70 bg-background/40 p-2">
+                <summary className="cursor-pointer text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Exact prompt sent to the engine
+                </summary>
+                <p className="mt-1.5 whitespace-pre-wrap break-words text-[11px] leading-relaxed text-foreground">
+                  {effectivePrompt(prompt.trim()) || "—"}
+                  {negativePrompt.trim() && (
+                    <span className="mt-1 block text-muted-foreground">Avoid: {negativePrompt.trim()}</span>
+                  )}
+                  <span className="mt-1 block text-muted-foreground">
+                    Seed {seed}
+                    {seedLocked ? " (locked)" : ""} · {style} · {aspect}
+                  </span>
+                </p>
+              </details>
+
 
               <div className="mt-3 space-y-2.5">
                 {PROMPT_CHIPS.map((g) => (
