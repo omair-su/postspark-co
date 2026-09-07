@@ -1494,8 +1494,12 @@ function ImageStudioPage() {
           </div>
 
           {/* ------------------------------ canvas board --------------------------- */}
-          <div className="space-y-4">
+          <div
+            className="is-aura space-y-4"
+            style={{ ["--is-accent" as any]: MODELS.find((m) => m.id === model)?.color } as any}
+          >
             <StudioCard
+
               label="Canvas"
               hint={results.length ? `${results.length} render${results.length > 1 ? "s" : ""} on the board` : "Your board is empty — pick a prompt idea below."}
               action={
