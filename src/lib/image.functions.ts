@@ -148,6 +148,27 @@ export const generateImage = createServerFn({ method: "POST" })
     return res;
   });
 
+/**
+ * Finish the caller's own abandoned background renders (tab closed, cancelled).
+ * Called when the studio/library loads, so no permanent polling job is needed.
+ */
+export const finishMyImageJobs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("image_jobs")
+      .select("id")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true })
+      .limit(10);
+    let finished = 0;
+    for (const row of ((data as any[]) || [])) {
+      const out = await advanceImageJob(row.id, context.userId);
+      if (out.status === "succeeded") finished += 1;
+    }
+    return { finished };
+  });
+
 /** Poll a background render started by `generateImage`. */
 export const pollImageJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

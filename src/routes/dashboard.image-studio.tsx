@@ -35,6 +35,7 @@ import { StudioErrorCard, StreamingTile, type TileJob } from "@/components/image
 import {
   generateImage,
   pollImageJob,
+  finishMyImageJobs,
   generateImageVariations,
   generateCarousel,
   editUploadedImage,

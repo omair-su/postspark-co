@@ -163,7 +163,6 @@ import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/pub
 import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/api/public/hooks/publish-scheduled-x'
 import { Route as ApiPublicHooksPublishScheduledLinkedinRouteImport } from './routes/api/public/hooks/publish-scheduled-linkedin'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
-import { Route as ApiPublicCronImageJobsRouteImport } from './routes/api/public/cron/image-jobs'
 import { Route as ApiPublicWebhooksThreadsUninstallRouteImport } from './routes/api/public/webhooks/threads.uninstall'
 import { Route as ApiPublicWebhooksThreadsDeleteRouteImport } from './routes/api/public/webhooks/threads.delete'
 import { Route as ApiPublicWebhooksMetaDeauthorizeRouteImport } from './routes/api/public/webhooks/meta.deauthorize'
@@ -989,11 +988,6 @@ const ApiPublicHooksEmailDripRoute = ApiPublicHooksEmailDripRouteImport.update({
   path: '/api/public/hooks/email-drip',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicCronImageJobsRoute = ApiPublicCronImageJobsRouteImport.update({
-  id: '/api/public/cron/image-jobs',
-  path: '/api/public/cron/image-jobs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicWebhooksThreadsUninstallRoute =
   ApiPublicWebhooksThreadsUninstallRouteImport.update({
     id: '/uninstall',
@@ -1182,7 +1176,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/api/public/cron/image-jobs': typeof ApiPublicCronImageJobsRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1346,7 +1339,6 @@ export interface FileRoutesByTo {
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/api/public/cron/image-jobs': typeof ApiPublicCronImageJobsRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1512,7 +1504,6 @@ export interface FileRoutesById {
   '/dashboard/settings/threads': typeof DashboardSettingsThreadsRoute
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
-  '/api/public/cron/image-jobs': typeof ApiPublicCronImageJobsRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
   '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
@@ -1679,7 +1670,6 @@ export interface FileRouteTypes {
     | '/dashboard/settings/threads'
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
-    | '/api/public/cron/image-jobs'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
@@ -1843,7 +1833,6 @@ export interface FileRouteTypes {
     | '/dashboard/settings/threads'
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
-    | '/api/public/cron/image-jobs'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
@@ -2008,7 +1997,6 @@ export interface FileRouteTypes {
     | '/dashboard/settings/threads'
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
-    | '/api/public/cron/image-jobs'
     | '/api/public/hooks/email-drip'
     | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
@@ -2124,7 +2112,6 @@ export interface RootRouteChildren {
   BlogAuthorSlugRoute: typeof BlogAuthorSlugRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
-  ApiPublicCronImageJobsRoute: typeof ApiPublicCronImageJobsRoute
   ApiPublicHooksEmailDripRoute: typeof ApiPublicHooksEmailDripRoute
   ApiPublicHooksPublishScheduledLinkedinRoute: typeof ApiPublicHooksPublishScheduledLinkedinRoute
   ApiPublicHooksPublishScheduledXRoute: typeof ApiPublicHooksPublishScheduledXRoute
@@ -3226,13 +3213,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksEmailDripRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/cron/image-jobs': {
-      id: '/api/public/cron/image-jobs'
-      path: '/api/public/cron/image-jobs'
-      fullPath: '/api/public/cron/image-jobs'
-      preLoaderRoute: typeof ApiPublicCronImageJobsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/webhooks/threads/uninstall': {
       id: '/api/public/webhooks/threads/uninstall'
       path: '/uninstall'
@@ -3559,7 +3539,6 @@ const rootRouteChildren: RootRouteChildren = {
   BlogAuthorSlugRoute: BlogAuthorSlugRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
-  ApiPublicCronImageJobsRoute: ApiPublicCronImageJobsRoute,
   ApiPublicHooksEmailDripRoute: ApiPublicHooksEmailDripRoute,
   ApiPublicHooksPublishScheduledLinkedinRoute:
     ApiPublicHooksPublishScheduledLinkedinRoute,
