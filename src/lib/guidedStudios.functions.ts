@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -8,13 +9,6 @@ import {
 
 const FREE_MONTHLY_LIMIT = 3;
 
-const RATE_BUCKET = new Map<string, number[]>();
-function rateLimited(userId: string) {
-  const now = Date.now();
-  const arr = (RATE_BUCKET.get(userId) || []).filter(t => now - t < 60_000);
-  if (arr.length >= 10) { RATE_BUCKET.set(userId, arr); return true; }
-  arr.push(now); RATE_BUCKET.set(userId, arr); return false;
-}
 
 async function loadCtx(supabase: any, userId: string) {
   const { data: profile } = await supabase.from("profiles").select("plan").eq("user_id", userId).single();
@@ -58,7 +52,7 @@ export const generateFounderHooksFn = createServerFn({ method: "POST" })
   }).parse)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { hooks: [], error: "Rate limit hit." };
+    if (await rateLimitedDurable(userId, "guided")) return { hooks: [], error: "Rate limit hit." };
     const { voice } = await loadCtx(supabase, userId);
     return generateFounderHooks(data.lesson, data.story, data.audience, data.lessonType, data.hookStyle, voice);
   });
@@ -78,7 +72,7 @@ export const generateFounderLessonFn = createServerFn({ method: "POST" })
   }).parse)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { output: "", error: "Rate limit hit." };
+    if (await rateLimitedDurable(userId, "guided")) return { output: "", error: "Rate limit hit." };
     const { isPro, voice } = await loadCtx(supabase, userId);
     const q = await enforceQuota(supabase, userId, isPro); if (q) return { output: "", error: q };
     const result = await generateFounderLesson({ ...data, voice });
@@ -100,7 +94,7 @@ export const generateCreatorPlaybookFn = createServerFn({ method: "POST" })
   }).parse)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { output: "", error: "Rate limit hit." };
+    if (await rateLimitedDurable(userId, "guided")) return { output: "", error: "Rate limit hit." };
     const { isPro, voice } = await loadCtx(supabase, userId);
     const q = await enforceQuota(supabase, userId, isPro); if (q) return { output: "", error: q };
     const result = await generateCreatorPlaybook({ ...data, voice });
@@ -130,7 +124,7 @@ export const generateProductLaunchFn = createServerFn({ method: "POST" })
   }).parse)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { output: "", error: "Rate limit hit." };
+    if (await rateLimitedDurable(userId, "guided")) return { output: "", error: "Rate limit hit." };
     const { isPro, voice } = await loadCtx(supabase, userId);
     const q = await enforceQuota(supabase, userId, isPro); if (q) return { output: "", error: q };
     const result = await generateProductLaunch({ ...data, voice });
@@ -155,7 +149,7 @@ export const generateMarketingTipFn = createServerFn({ method: "POST" })
   }).parse)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { output: "", error: "Rate limit hit." };
+    if (await rateLimitedDurable(userId, "guided")) return { output: "", error: "Rate limit hit." };
     const { isPro, voice } = await loadCtx(supabase, userId);
     const q = await enforceQuota(supabase, userId, isPro); if (q) return { output: "", error: q };
     const result = await generateMarketingTip({ ...data, voice });
@@ -172,7 +166,7 @@ export const editStudioOutputFn = createServerFn({ method: "POST" })
     instruction: z.string().min(1).max(500),
   }).parse)
   .handler(async ({ data, context }) => {
-    if (rateLimited(context.userId)) return { output: "", error: "Rate limit hit." };
+    if (await rateLimitedDurable(context.userId, "guided")) return { output: "", error: "Rate limit hit." };
     return editStudioOutput(data.content, data.instruction);
   });
 

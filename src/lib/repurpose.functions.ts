@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -50,7 +51,7 @@ export const repurposeContent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    if (rateLimited(userId)) {
+    if (await rateLimitedDurable(userId, "repurpose")) {
       return { output: "", error: "Rate limit: please wait a minute and try again." };
     }
 
@@ -326,7 +327,7 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    if (rateLimited(userId)) {
+    if (await rateLimitedDurable(userId, "repurpose")) {
       return { output: "", error: "Rate limit: please wait a minute and try again.", jobId: null };
     }
 

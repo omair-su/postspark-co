@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 /**
  * Humanizer server operations: quota, brand context, persistence.
  * Server-only.
@@ -11,24 +12,12 @@ import type { HumanizerRunRow, HumanizeRunResponse } from "./humanizeTypes";
 const FREE_MONTHLY_LIMIT = 3;
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 40;
-const RATE_BUCKET = new Map<string, number[]>();
 
 interface Ctx {
   supabase: any;
   userId: string;
 }
 
-function rateLimited(userId: string): boolean {
-  const now = Date.now();
-  const arr = (RATE_BUCKET.get(userId) || []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (arr.length >= RATE_MAX) {
-    RATE_BUCKET.set(userId, arr);
-    return true;
-  }
-  arr.push(now);
-  RATE_BUCKET.set(userId, arr);
-  return false;
-}
 
 async function planFor(supabase: any, userId: string): Promise<{ plan: string; isPro: boolean }> {
   const { data } = await supabase.from("profiles").select("plan").eq("user_id", userId).maybeSingle();
@@ -124,7 +113,7 @@ export interface RunInput {
 
 export async function runHumanize(ctx: Ctx, data: RunInput): Promise<HumanizeRunResponse> {
   const { supabase, userId } = ctx;
-  if (rateLimited(userId)) {
+  if (await rateLimitedDurable(userId, "humanize")) {
     return { output: "", error: "Rate limit: please wait a minute and try again." };
   }
 
@@ -238,7 +227,7 @@ export async function rerollOneSentence(
   },
 ): Promise<{ text: string; error?: string }> {
   const { supabase, userId } = ctx;
-  if (rateLimited(userId)) return { text: "", error: "Rate limit: please wait a minute." };
+  if (await rateLimitedDurable(userId, "humanize")) return { text: "", error: "Rate limit: please wait a minute." };
   const brand = await brandContextFor(supabase, userId, data.useBrandVoice);
   return rewriteSingleSentence({
     sentence: data.sentence,

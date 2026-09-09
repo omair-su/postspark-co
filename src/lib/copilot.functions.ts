@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -5,20 +6,6 @@ import { humanizeText, generateReplies } from "@/lib/copilot.server";
 
 const FREE_MONTHLY_LIMIT = 3;
 
-const RATE_BUCKET = new Map<string, number[]>();
-const RATE_WINDOW_MS = 60_000;
-const RATE_MAX = 15;
-function rateLimited(userId: string): boolean {
-  const now = Date.now();
-  const arr = (RATE_BUCKET.get(userId) || []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (arr.length >= RATE_MAX) {
-    RATE_BUCKET.set(userId, arr);
-    return true;
-  }
-  arr.push(now);
-  RATE_BUCKET.set(userId, arr);
-  return false;
-}
 
 async function checkUsageAndPlan(supabase: any, userId: string) {
   const { data: profile } = await supabase
@@ -57,7 +44,7 @@ export const humanize = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { output: "", error: "Rate limit: please wait a minute and try again." };
+    if (await rateLimitedDurable(userId, "copilot")) return { output: "", error: "Rate limit: please wait a minute and try again." };
 
     const usage = await checkUsageAndPlan(supabase, userId);
     if (!usage.ok) return { output: "", error: "LIMIT_REACHED" };
@@ -97,7 +84,7 @@ export const replies = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { replies: [], error: "Rate limit: please wait a minute and try again." };
+    if (await rateLimitedDurable(userId, "copilot")) return { replies: [], error: "Rate limit: please wait a minute and try again." };
 
     const usage = await checkUsageAndPlan(supabase, userId);
     if (!usage.ok) return { replies: [], error: "LIMIT_REACHED" };
@@ -202,7 +189,7 @@ export const sparkChat = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { reply: "", error: "Rate limit reached. Try again in a moment.", conversationId: data.conversationId ?? null };
+    if (await rateLimitedDurable(userId, "copilot")) return { reply: "", error: "Rate limit reached. Try again in a moment.", conversationId: data.conversationId ?? null };
 
     const usage = await checkUsageAndPlan(supabase, userId);
     if (!usage.ok) return { reply: "", error: "LIMIT_REACHED", conversationId: data.conversationId ?? null };

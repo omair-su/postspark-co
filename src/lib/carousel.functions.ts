@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { resolveActiveBrandKit } from "@/lib/activeBrandKit.server";
@@ -6,18 +7,6 @@ import { generateCarousel, rewriteSlideClaude, regenerateCaption } from "@/lib/c
 
 const FREE_MONTHLY_LIMIT = 3;
 
-const RATE_BUCKET = new Map<string, number[]>();
-function rateLimited(userId: string): boolean {
-  const now = Date.now();
-  const arr = (RATE_BUCKET.get(userId) || []).filter((t) => now - t < 60_000);
-  if (arr.length >= 12) {
-    RATE_BUCKET.set(userId, arr);
-    return true;
-  }
-  arr.push(now);
-  RATE_BUCKET.set(userId, arr);
-  return false;
-}
 
 async function checkPlan(supabase: any, userId: string) {
   const { data: profile } = await supabase
@@ -65,7 +54,7 @@ export const createCarousel = createServerFn({ method: "POST" })
     try {
       const { supabase, userId } = context;
       const empty = { slides: [], hashtags: [], caption: "" };
-      if (rateLimited(userId))
+      if (await rateLimitedDurable(userId, "carousel"))
         return { ...empty, error: "Rate limit reached. Wait a minute." };
 
       const usage = await checkPlan(supabase, userId);
@@ -146,7 +135,7 @@ export const rewriteSlide = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
       const { supabase, userId } = context;
-      if (rateLimited(userId))
+      if (await rateLimitedDurable(userId, "carousel"))
         return { title: data.title, body: data.body, error: "Rate limit. Try again." };
       const usage = await checkPlan(supabase, userId);
       if (!usage.ok) return { title: data.title, body: data.body, error: "LIMIT_REACHED" };
@@ -171,7 +160,7 @@ export const refreshCaption = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
       const { supabase, userId } = context;
-      if (rateLimited(userId)) return { caption: "", hashtags: [], error: "Rate limit. Try again." };
+      if (await rateLimitedDurable(userId, "carousel")) return { caption: "", hashtags: [], error: "Rate limit. Try again." };
       const usage = await checkPlan(supabase, userId);
       if (!usage.ok) return { caption: "", hashtags: [], error: "LIMIT_REACHED" };
       return await regenerateCaption(data);

@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -6,18 +7,6 @@ import { generateShortsScript, generateShortsSeriesScripts } from "@/lib/shorts.
 const FREE_MONTHLY_LIMIT = 3;
 const TOOL = "shorts_studio";
 
-const RATE_BUCKET = new Map<string, number[]>();
-function rateLimited(userId: string): boolean {
-  const now = Date.now();
-  const arr = (RATE_BUCKET.get(userId) || []).filter((t) => now - t < 60_000);
-  if (arr.length >= 10) {
-    RATE_BUCKET.set(userId, arr);
-    return true;
-  }
-  arr.push(now);
-  RATE_BUCKET.set(userId, arr);
-  return false;
-}
 
 export const generateShorts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -33,7 +22,7 @@ export const generateShorts = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    if (rateLimited(userId)) {
+    if (await rateLimitedDurable(userId, "shorts")) {
       return { script: null, error: "Rate limit: wait a minute and try again." };
     }
 
@@ -128,7 +117,7 @@ export const generateShortsSeries = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (rateLimited(userId)) return { scripts: [], error: "Rate limit: wait a minute and try again." };
+    if (await rateLimitedDurable(userId, "shorts")) return { scripts: [], error: "Rate limit: wait a minute and try again." };
 
     const { data: profile } = await supabase
       .from("profiles").select("plan").eq("user_id", userId).single();
