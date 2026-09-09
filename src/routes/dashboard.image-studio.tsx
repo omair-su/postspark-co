@@ -1029,6 +1029,30 @@ function ImageStudioPage() {
     if (tab === "library" && session) loadLibrary();
   }, [tab, session]);
 
+  // Renders the user walked away from finish here, on their next visit — no
+  // permanent background polling, and no lost credits.
+  useEffect(() => {
+    if (!authHeaders) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const out: any = await finishMyImageJobs({ headers: authHeaders } as any);
+        if (!cancelled && out?.finished) {
+          toast.success(
+            `${out.finished} earlier render${out.finished > 1 ? "s" : ""} finished — saved to your library`,
+          );
+          loadLibrary();
+          refreshUsage();
+        }
+      } catch {
+        /* non-critical */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authHeaders]);
+
   const handleEnhance = async () => {
     if (!session) return toast.error("Please sign in");
     if (prompt.trim().length < 3) return toast.error("Add a basic prompt first");
