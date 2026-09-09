@@ -468,6 +468,11 @@ function ImageStudioPage() {
           if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
           if (res.error) throw new Error(res.error);
           if (!res.imageUrl) throw new Error("No image returned");
+          // Never pretend the chosen engine rendered it.
+          if ((res as any).fellBackTo)
+            toast.message(
+              `${MODEL_LABEL[activeModel] ?? activeModel} was unavailable — rendered with Gemini instead`,
+            );
           setResults([res.imageUrl]);
           setResultSeeds([seeds[0]]);
           setImageUrl(res.imageUrl);
@@ -535,7 +540,17 @@ function ImageStudioPage() {
         setTileJobs(seeds.map((sd) => ({ preview: null, status: "streaming", seed: sd })));
         const res: any = await withAIProgress(
           generateImageVariations({
-            data: { prompt: sent, style, aspect, template, count: count as 2 | 3 | 4, model: activeModel, quality },
+            data: {
+              prompt: sent,
+              style,
+              aspect,
+              template,
+              count: count as 2 | 3 | 4,
+              model: activeModel,
+              quality,
+              negativePrompt: r.negativePrompt,
+              seeds,
+            },
             headers: authHeaders,
             signal: controller.signal,
           } as any),
@@ -543,6 +558,10 @@ function ImageStudioPage() {
         if (stale()) return;
         if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
         if (res.error) throw new Error(res.error);
+        if ((res.results || []).some((x: any) => x?.fellBackTo))
+          toast.message(
+            `${MODEL_LABEL[activeModel] ?? activeModel} was unavailable for some tiles — Gemini rendered those`,
+          );
         const urls = (res.results || []).map((x: any) => x.imageUrl).filter(Boolean);
         if (!urls.length) throw new Error("No images returned");
         setTileJobs((jobs) =>
