@@ -823,8 +823,14 @@ function ImageStudioPage() {
       }
     }
     // Hotlinked provider URL — never re-hosted.
-    if (target === "generate") setImageUrl(photo.regularUrl);
-    else setUploadedUrl(photo.regularUrl);
+    if (target === "generate") {
+      // Put it on the board too, otherwise the picked photo appears nowhere.
+      setImageUrl(photo.regularUrl);
+      setResults([photo.regularUrl]);
+      setResultSeeds([]);
+      setTileJobs([]);
+      setStreamPreview(null);
+    } else setUploadedUrl(photo.regularUrl);
     setStockAttribution({
       name: photo.photographerName,
       profileUrl: photo.photographerUrl,
