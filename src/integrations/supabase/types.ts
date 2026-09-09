@@ -752,6 +752,7 @@ export type Database = {
           model: string | null
           negative_prompt: string | null
           prompt: string
+          quality: string | null
           reference_url: string | null
           seed: number | null
           source: string
@@ -769,6 +770,7 @@ export type Database = {
           model?: string | null
           negative_prompt?: string | null
           prompt: string
+          quality?: string | null
           reference_url?: string | null
           seed?: number | null
           source?: string
@@ -786,6 +788,7 @@ export type Database = {
           model?: string | null
           negative_prompt?: string | null
           prompt?: string
+          quality?: string | null
           reference_url?: string | null
           seed?: number | null
           source?: string
@@ -888,6 +891,84 @@ export type Database = {
           user_id?: string
           version?: number
           word_count?: number
+        }
+        Relationships: []
+      }
+      image_jobs: {
+        Row: {
+          aspect: string | null
+          attempts: number
+          created_at: string
+          error: string | null
+          full_prompt: string | null
+          id: string
+          image_url: string | null
+          model: string | null
+          negative_prompt: string | null
+          poll_url: string
+          prediction_id: string | null
+          prompt: string
+          provider: string
+          quality: string | null
+          reference_url: string | null
+          reservation_id: string | null
+          seed: number | null
+          source: string
+          status: string
+          style: string | null
+          template: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aspect?: string | null
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          full_prompt?: string | null
+          id?: string
+          image_url?: string | null
+          model?: string | null
+          negative_prompt?: string | null
+          poll_url: string
+          prediction_id?: string | null
+          prompt: string
+          provider?: string
+          quality?: string | null
+          reference_url?: string | null
+          reservation_id?: string | null
+          seed?: number | null
+          source?: string
+          status?: string
+          style?: string | null
+          template?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aspect?: string | null
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          full_prompt?: string | null
+          id?: string
+          image_url?: string | null
+          model?: string | null
+          negative_prompt?: string | null
+          poll_url?: string
+          prediction_id?: string | null
+          prompt?: string
+          provider?: string
+          quality?: string | null
+          reference_url?: string | null
+          reservation_id?: string | null
+          seed?: number | null
+          source?: string
+          status?: string
+          style?: string | null
+          template?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
