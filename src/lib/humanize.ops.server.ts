@@ -57,7 +57,7 @@ async function brandContextFor(
   const [voiceRes, kit] = await Promise.all([
     supabase
       .from("brand_voices")
-      .select("style_summary, tone_attributes, sample_snippets")
+      .select("style_summary, samples, tone_sliders, dos, donts")
       .eq("user_id", userId)
       .eq("is_active", true)
       .order("updated_at", { ascending: false })
@@ -68,13 +68,27 @@ async function brandContextFor(
   const v = voiceRes?.data?.[0];
   const parts: string[] = [];
   if (v?.style_summary) parts.push(String(v.style_summary));
-  if (Array.isArray(v?.tone_attributes) && v.tone_attributes.length) {
-    parts.push(`Tone attributes: ${v.tone_attributes.slice(0, 12).join(", ")}`);
+  if (v?.tone_sliders && typeof v.tone_sliders === "object" && !Array.isArray(v.tone_sliders)) {
+    const sliders = Object.entries(v.tone_sliders as Record<string, unknown>)
+      .filter(([, val]) => typeof val === "number" || typeof val === "string")
+      .slice(0, 12)
+      .map(([k, val]) => `${k}: ${val}`);
+    if (sliders.length) parts.push(`Tone dials: ${sliders.join(", ")}`);
   }
-  if (Array.isArray(v?.sample_snippets) && v.sample_snippets.length) {
-    parts.push(
-      `Authentic samples:\n${v.sample_snippets.slice(0, 3).map((s: string) => `- ${String(s).slice(0, 320)}`).join("\n")}`,
-    );
+  if (Array.isArray(v?.dos) && v.dos.length) {
+    parts.push(`Always: ${v.dos.slice(0, 8).map((s: unknown) => String(s)).join("; ")}`);
+  }
+  if (Array.isArray(v?.donts) && v.donts.length) {
+    parts.push(`Never: ${v.donts.slice(0, 8).map((s: unknown) => String(s)).join("; ")}`);
+  }
+  if (Array.isArray(v?.samples) && v.samples.length) {
+    const texts = v.samples
+      .map((s: any) => (typeof s === "string" ? s : String(s?.text ?? s?.content ?? "")))
+      .filter(Boolean)
+      .slice(0, 3);
+    if (texts.length) {
+      parts.push(`Authentic samples:\n${texts.map((s: string) => `- ${s.slice(0, 320)}`).join("\n")}`);
+    }
   }
 
   return {
