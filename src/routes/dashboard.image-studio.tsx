@@ -471,7 +471,7 @@ function ImageStudioPage() {
           // Never pretend the chosen engine rendered it.
           if ((res as any).fellBackTo)
             toast.message(
-              `${MODEL_LABEL[activeModel] ?? activeModel} was unavailable — rendered with Gemini instead`,
+              `${MODELS.find((m) => m.id === activeModel)?.name ?? activeModel} was unavailable — rendered with Gemini instead`,
             );
           setResults([res.imageUrl]);
           setResultSeeds([seeds[0]]);
@@ -560,7 +560,7 @@ function ImageStudioPage() {
         if (res.error) throw new Error(res.error);
         if ((res.results || []).some((x: any) => x?.fellBackTo))
           toast.message(
-            `${MODEL_LABEL[activeModel] ?? activeModel} was unavailable for some tiles — Gemini rendered those`,
+            `${MODELS.find((m) => m.id === activeModel)?.name ?? activeModel} was unavailable for some tiles — Gemini rendered those`,
           );
         const urls = (res.results || []).map((x: any) => x.imageUrl).filter(Boolean);
         if (!urls.length) throw new Error("No images returned");
