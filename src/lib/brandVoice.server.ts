@@ -1,3 +1,4 @@
+import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
 import { callClaude } from "./anthropic.server";
 
 export async function summarizeBrandVoice(samples: string[]): Promise<{ summary: string; score: number; error?: string }> {
@@ -42,16 +43,28 @@ Return ONLY the style guide as plain prose. No preamble. Start directly with "Vo
 
 /** Fetch a public URL and extract visible text (best effort, server-side). */
 export async function scrapeUrlSamples(url: string): Promise<{ samples: string[]; error?: string }> {
+  if (!isSafePublicUrl(url)) {
+    return { samples: [], error: "That address can't be fetched. Use a public https page." };
+  }
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; PostSparkBot/1.0)",
         Accept: "text/html,application/xhtml+xml",
       },
-      redirect: "follow",
+      signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return { samples: [], error: `Could not fetch URL (${res.status}).` };
-    const html = await res.text();
+    const ctype = (res.headers.get("content-type") || "").toLowerCase();
+    if (ctype && !/text\/html|xhtml|text\/plain/.test(ctype)) {
+      return { samples: [], error: "That link isn't a web page." };
+    }
+    const raw = await res.arrayBuffer();
+    const MAX_BYTES = 2_000_000;
+    if (raw.byteLength > MAX_BYTES) {
+      return { samples: [], error: "That page is too large to read." };
+    }
+    const html = new TextDecoder("utf-8").decode(raw);
     // Strip scripts/styles/nav
     const cleaned = html
       .replace(/<script[\s\S]*?<\/script>/gi, " ")

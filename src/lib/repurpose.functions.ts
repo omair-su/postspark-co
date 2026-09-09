@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -5,7 +6,6 @@ import { generateRepurposedContent, generateOneFormat } from "@/lib/repurpose.se
 import { resolveActiveBrandKit, brandKitPromptContext } from "@/lib/activeBrandKit.server";
 import {
   FREE_MONTHLY_LIMIT,
-  rateLimited,
   FORMAT_ID,
   claimRepurposePack,
   countMonthlyUsedJobs,
@@ -50,7 +50,7 @@ export const repurposeContent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    if (rateLimited(userId)) {
+    if (await rateLimitedDurable(userId, "repurpose")) {
       return { output: "", error: "Rate limit: please wait a minute and try again." };
     }
 
@@ -312,9 +312,6 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       packId: z.string().uuid(),
-      // Accepted for backward compatibility only. Quota is never based on this flag.
-      isFirstInPack: z.boolean().optional().default(false),
-
       inputText: z.string().min(1).max(50000),
       format: FORMAT_ID,
       count: z.number().int().min(1).max(30).optional(),
@@ -329,7 +326,7 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    if (rateLimited(userId)) {
+    if (await rateLimitedDurable(userId, "repurpose")) {
       return { output: "", error: "Rate limit: please wait a minute and try again.", jobId: null };
     }
 

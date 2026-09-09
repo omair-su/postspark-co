@@ -20,6 +20,9 @@ import {
   logToHistory,
   checkRepurposeQuota,
   imageQuotaRemaining,
+  reserveImageQuota,
+  settleImageQuota,
+  countLedgerUsage,
   countMonthlyGenerations,
   monthlyImageLimit,
   getPlanFor as getPlan,
@@ -36,7 +39,7 @@ export const getImageUsage = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const plan = await getPlan(supabase, userId);
-    const used = await countMonthlyGenerations(userId);
+    const used = await countLedgerUsage(userId);
     const limit = monthlyImageLimit(plan);
     return { plan, used, limit, remaining: Math.max(0, limit - used) };
   });
@@ -64,8 +67,8 @@ export const generateImage = createServerFn({ method: "POST" })
       return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)) && data.template !== "thumbnail" && data.template !== "blog-cover")
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
-    if ((await imageQuotaRemaining(userId, plan)) < 1)
-      return { imageUrl: "", error: "LIMIT_REACHED" };
+    const reservation = await reserveImageQuota(userId, plan);
+    if (!reservation.ok) return { imageUrl: "", error: "LIMIT_REACHED" };
     const res = await generateSocialImage(
       data.prompt,
       data.style,
@@ -76,7 +79,9 @@ export const generateImage = createServerFn({ method: "POST" })
       data.negativePrompt,
       data.seed ?? null,
     );
+    if (!res.imageUrl) await settleImageQuota(reservation.id, false);
     if (res.imageUrl) {
+      await settleImageQuota(reservation.id, true);
       const persisted = await persistGeneratedImage({
         userId,
         imageUrl: res.imageUrl,
@@ -147,12 +152,20 @@ export const generateImageVariations = createServerFn({ method: "POST" })
     const remaining = await imageQuotaRemaining(userId, plan);
     if (remaining < 1) return { results: [], error: "LIMIT_REACHED" };
     const wanted = Math.min(data.count, remaining);
+    // One reservation per tile, so parallel batches cannot overshoot the plan.
+    const tileReservations: Array<string | null> = [];
+    for (let i = 0; i < wanted; i++) {
+      const r = await reserveImageQuota(userId, plan);
+      if (!r.ok) break;
+      tileReservations.push(r.id);
+    }
+    if (!tileReservations.length) return { results: [], error: "LIMIT_REACHED" };
     const results = await generateVariations(
       data.prompt,
       data.style,
       data.aspect,
       data.template,
-      wanted,
+      tileReservations.length,
       data.model,
       data.quality,
     );
@@ -171,6 +184,11 @@ export const generateImageVariations = createServerFn({ method: "POST" })
         if (persisted) r.imageUrl = persisted;
       }),
     );
+    // Give back credits for tiles that failed to render.
+    const produced = results.filter((r) => r.imageUrl).length;
+    for (let i = 0; i < tileReservations.length; i++) {
+      await settleImageQuota(tileReservations[i], i < produced);
+    }
     return { results };
   });
 
@@ -243,9 +261,10 @@ export const editUploadedImage = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Image editing is a Pro feature. Upgrade to unlock." };
-    if ((await imageQuotaRemaining(userId, plan)) < 1)
-      return { imageUrl: "", error: "LIMIT_REACHED" };
+    const reservation = await reserveImageQuota(userId, plan);
+    if (!reservation.ok) return { imageUrl: "", error: "LIMIT_REACHED" };
     const res = await editImage(data.imageDataUrl, data.instruction);
+    await settleImageQuota(reservation.id, !!res.imageUrl);
     if (res.imageUrl) {
       const persisted = await persistGeneratedImage({
         userId,
@@ -276,9 +295,10 @@ export const inpaintImage = createServerFn({ method: "POST" })
     const plan = await getPlan(supabase, userId);
     if (!(await isPro(plan)))
       return { imageUrl: "", error: "Inpainting is a Pro feature. Upgrade to unlock." };
-    if ((await imageQuotaRemaining(userId, plan)) < 1)
-      return { imageUrl: "", error: "LIMIT_REACHED" };
+    const reservation = await reserveImageQuota(userId, plan);
+    if (!reservation.ok) return { imageUrl: "", error: "LIMIT_REACHED" };
     const res = await editImageWithMask(data.imageDataUrl, data.maskDataUrl, data.instruction);
+    await settleImageQuota(reservation.id, !!res.imageUrl);
     if (res.imageUrl) {
       const persisted = await persistGeneratedImage({
         userId,

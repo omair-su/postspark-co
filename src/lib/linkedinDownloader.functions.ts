@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -7,20 +8,6 @@ const FREE_MONTHLY_LIMIT = 3;
 const TOOL = "linkedin_downloader";
 
 // Per-instance rate limiter: max 6 calls / minute / user
-const RATE_BUCKET = new Map<string, number[]>();
-const RATE_WINDOW_MS = 60_000;
-const RATE_MAX = 6;
-function rateLimited(userId: string): boolean {
-  const now = Date.now();
-  const arr = (RATE_BUCKET.get(userId) || []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (arr.length >= RATE_MAX) {
-    RATE_BUCKET.set(userId, arr);
-    return true;
-  }
-  arr.push(now);
-  RATE_BUCKET.set(userId, arr);
-  return false;
-}
 
 async function countMonthly(supabase: any, userId: string): Promise<number> {
   const startOfMonth = new Date();
@@ -78,7 +65,7 @@ export const downloadLinkedInVideo = createServerFn({ method: "POST" })
     try {
     const { supabase, userId } = context;
 
-    if (rateLimited(userId)) {
+    if (await rateLimitedDurable(userId, "linkedin-download")) {
       return { ok: false as const, error: "Rate limit: wait a moment and try again." };
     }
 

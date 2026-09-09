@@ -1,3 +1,4 @@
+import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -12,17 +13,6 @@ const ORIENTATION = z.enum(["landscape", "portrait", "squarish", "any"]).default
 
 // Very light in-memory per-user rate limit (30 req/min).
 const RATE = new Map<string, number[]>();
-function rateLimited(userId: string): boolean {
-  const now = Date.now();
-  const arr = (RATE.get(userId) || []).filter((t) => now - t < 60_000);
-  if (arr.length >= 30) {
-    RATE.set(userId, arr);
-    return true;
-  }
-  arr.push(now);
-  RATE.set(userId, arr);
-  return false;
-}
 
 export const searchStockPhotos = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -36,7 +26,7 @@ export const searchStockPhotos = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
-    if (rateLimited(context.userId)) return { photos: [], error: "Rate limit reached." };
+    if (await rateLimitedDurable(context.userId, "stock")) return { photos: [], error: "Rate limit reached." };
     return searchStockPhotosServer(data);
   } catch (e: any) {
       console.error('[server-fn] error:', e);
@@ -59,7 +49,7 @@ export const searchStockVideos = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
-    if (rateLimited(context.userId)) return { videos: [], error: "Rate limit reached." };
+    if (await rateLimitedDurable(context.userId, "stock")) return { videos: [], error: "Rate limit reached." };
     return searchStockVideosServer(data);
   } catch (e: any) {
       console.error('[server-fn] error:', e);

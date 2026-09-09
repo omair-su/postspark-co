@@ -21,7 +21,8 @@ import { createClient } from "@supabase/supabase-js";
 import {
   getPlanFor,
   isProPlan,
-  imageQuotaRemaining,
+  reserveImageQuota,
+  settleImageQuota,
   persistGeneratedImage,
   logToHistory,
 } from "@/lib/imageQuota.server";
@@ -84,7 +85,8 @@ export const Route = createFileRoute("/api/studio-stream")({
             status: 402,
             headers: { "Content-Type": "application/json" },
           });
-        if ((await imageQuotaRemaining(userId, plan)) < 1)
+        const reservation = await reserveImageQuota(userId, plan);
+        if (!reservation.ok)
           return new Response(JSON.stringify({ error: "LIMIT_REACHED" }), {
             status: 402,
             headers: { "Content-Type": "application/json" },
@@ -114,11 +116,14 @@ export const Route = createFileRoute("/api/studio-stream")({
             signal: request.signal,
           });
         } catch (e) {
+          await settleImageQuota(reservation.id, false);
           if (request.signal.aborted) return new Response(null, { status: 499 });
           throw e;
         }
-        if (!upstream.ok || !upstream.body)
+        if (!upstream.ok || !upstream.body) {
+          await settleImageQuota(reservation.id, false);
           return new Response(await upstream.text(), { status: upstream.status });
+        }
 
         // Pass every upstream chunk straight through (no buffering) while
         // scanning for the completed frame, then append a `studio.saved` event
@@ -155,7 +160,11 @@ export const Route = createFileRoute("/api/studio-stream")({
             }
           },
           async flush(controller) {
-            if (!finalB64) return;
+            if (!finalB64) {
+              await settleImageQuota(reservation.id, false);
+              return;
+            }
+            await settleImageQuota(reservation.id, true);
             const imageUrl = finalB64.startsWith("data:")
               ? finalB64
               : `data:image/png;base64,${finalB64}`;

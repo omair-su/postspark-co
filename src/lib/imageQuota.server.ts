@@ -44,10 +44,71 @@ export function monthlyImageLimit(plan: string) {
   return isProPlan(plan) ? PRO_MONTHLY_LIMIT : FREE_MONTHLY_LIMIT;
 }
 
-/** How many renders the user may still start this month. */
+/**
+ * Usage recorded in the durable ledger for this month (reserved + consumed).
+ * The ledger — not a row count — is what enforcement is based on, so two
+ * requests arriving together can no longer both pass the same check.
+ */
+export async function countLedgerUsage(userId: string, kind = "image"): Promise<number> {
+  const monthStart = new Date();
+  const period = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1)
+    .toISOString()
+    .slice(0, 10);
+  const { data } = await (supabaseAdmin as any)
+    .from("usage_reservations")
+    .select("units")
+    .eq("user_id", userId)
+    .eq("kind", kind)
+    .eq("period_start", period)
+    .in("state", ["reserved", "consumed"]);
+  return ((data as Array<{ units: number }>) || []).reduce((n, r) => n + (r.units || 1), 0);
+}
+
+/** How many renders the user may still start this month (indicative; reserve is authoritative). */
 export async function imageQuotaRemaining(userId: string, plan: string): Promise<number> {
-  const used = await countMonthlyGenerations(userId);
+  const used = await countLedgerUsage(userId);
   return Math.max(0, monthlyImageLimit(plan) - used);
+}
+
+export type ImageReservation = { ok: true; id: string | null } | { ok: false };
+
+/**
+ * Atomically reserves one render against the monthly allowance.
+ * Settle it afterwards: success keeps the credit, failure gives it back.
+ */
+export async function reserveImageQuota(
+  userId: string,
+  plan: string,
+  units = 1,
+  idempotencyKey?: string,
+): Promise<ImageReservation> {
+  const { data, error } = await (supabaseAdmin as any).rpc("reserve_usage", {
+    _user_id: userId,
+    _kind: "image",
+    _limit: monthlyImageLimit(plan),
+    _idempotency_key: idempotencyKey ?? null,
+    _units: units,
+  });
+  if (error) {
+    console.error("reserve_usage error:", error);
+    // Fail closed: a ledger outage must not become free unlimited generation.
+    return { ok: false };
+  }
+  const status = (data as any)?.status;
+  if (status === "allowed" || status === "duplicate") {
+    return { ok: true, id: ((data as any)?.reservation_id as string) ?? null };
+  }
+  return { ok: false };
+}
+
+/** Settles a reservation. `success: false` releases the credit. */
+export async function settleImageQuota(id: string | null, success: boolean): Promise<void> {
+  if (!id) return;
+  const { error } = await (supabaseAdmin as any).rpc("settle_usage", {
+    _reservation_id: id,
+    _success: success,
+  });
+  if (error) console.error("settle_usage error:", error);
 }
 
 export async function checkRepurposeQuota(userId: string, plan: string): Promise<boolean> {

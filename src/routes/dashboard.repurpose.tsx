@@ -512,7 +512,7 @@ function RepurposePage() {
     try {
       const res = await withAIProgress(repurposeOneFormat({
         data: {
-          packId, isFirstInPack: false,
+          packId,
           inputText: inputText.slice(0, 50000), format: formatId,
           count: pick.count, style: pick.style, length: pick.length,
           tone: useBrandTone ? undefined : tone,

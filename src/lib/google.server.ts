@@ -1,3 +1,4 @@
+import { oauthNonce, oauthStateSecret, timingSafeEqual } from "@/lib/oauthState";
 /**
  * Google Workspace (Drive + Docs) OAuth + REST primitives. Server-only.
  *
@@ -58,11 +59,11 @@ async function hmacHex(secret: string, payload: string): Promise<string> {
 }
 
 function stateSecret(): string {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY || "google-fallback-state-secret";
+  return oauthStateSecret();
 }
 
 export async function buildGoogleState(userId: string, returnTo?: string): Promise<string> {
-  const nonce = Math.random().toString(36).slice(2, 10);
+  const nonce = oauthNonce(8);
   const ret = returnTo ? btoa(returnTo).replace(/=+$/, "") : "-";
   const payload = `${userId}~${Date.now()}~${nonce}~${ret}`;
   const sig = (await hmacHex(stateSecret(), `google:${payload}`)).slice(0, 32);
@@ -76,7 +77,7 @@ export async function verifyGoogleState(
   if (parts.length !== 5) return null;
   const [uid, ts, nonce, ret, sig] = parts;
   const expected = (await hmacHex(stateSecret(), `google:${uid}~${ts}~${nonce}~${ret}`)).slice(0, 32);
-  if (sig !== expected) return null;
+  if (!timingSafeEqual(sig, expected)) return null;
   if (Date.now() - parseInt(ts, 10) > 15 * 60 * 1000) return null;
   let returnTo: string | null = null;
   if (ret && ret !== "-") {
