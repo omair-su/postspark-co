@@ -34,6 +34,7 @@ import { toSameOriginUrl } from "@/lib/sameOriginImage";
 import { StudioErrorCard, StreamingTile, type TileJob } from "@/components/image/studio/StudioError";
 import {
   generateImage,
+  pollImageJob,
   generateImageVariations,
   generateCarousel,
   editUploadedImage,
@@ -351,6 +352,31 @@ function ImageStudioPage() {
     setLoading(false);
     setStreamPreview(null);
     toast.message("Render canceled");
+  };
+
+  /**
+   * Follow a background render (Replicate jobs that outlive one request) until it
+   * finishes. Cancelling only stops us watching — the job still completes and
+   * lands in the library, so no paid render is thrown away.
+   */
+  const waitForImageJob = async (
+    jobId: string,
+    signal: AbortSignal,
+    stale: () => boolean,
+  ): Promise<{ imageUrl?: string; seed?: number | null; error?: string } | null> => {
+    const deadline = Date.now() + 6 * 60 * 1000;
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 4000));
+      if (signal.aborted || stale()) return null;
+      try {
+        const out: any = await pollImageJob({ data: { jobId }, headers: authHeaders } as any);
+        if (out?.status === "succeeded") return { imageUrl: out.imageUrl, seed: out.seed };
+        if (out?.status === "failed") return { error: out.error || "Render failed" };
+      } catch {
+        /* transient — keep waiting */
+      }
+    }
+    return { error: "This render is taking unusually long. It will appear in your library when it finishes." };
   };
 
   // modelOverride lets "Try another engine" pass the NEW engine explicitly —
