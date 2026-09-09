@@ -218,6 +218,23 @@ export const generateCarousel = createServerFn({ method: "POST" })
         slides: [],
         error: "Carousel generation is a Pro feature. Upgrade to unlock.",
       };
+    // A carousel is five renders — reserve all five up front so a set can never
+    // blow past the monthly image allowance.
+    const SLIDES = 5;
+    const slideReservations: Array<string | null> = [];
+    for (let i = 0; i < SLIDES; i++) {
+      const r = await reserveImageQuota(userId, plan);
+      if (!r.ok) break;
+      slideReservations.push(r.id);
+    }
+    if (slideReservations.length < SLIDES) {
+      await Promise.all(slideReservations.map((id) => settleImageQuota(id, false)));
+      return {
+        results: [],
+        slides: [],
+        error: "LIMIT_REACHED",
+      };
+    }
     const out = await generateCarouselSet(data.topic, data.style, data.model);
     await Promise.all(
       (out.results || []).map(async (r: any, i: number) => {
@@ -231,10 +248,15 @@ export const generateCarousel = createServerFn({ method: "POST" })
           aspect: "square",
           template: "carousel",
           source: "carousel",
+          model: data.model,
         });
         if (persisted) r.imageUrl = persisted;
       }),
     );
+    const rendered = (out.results || []).filter((r: any) => r?.imageUrl).length;
+    for (let i = 0; i < slideReservations.length; i++) {
+      await settleImageQuota(slideReservations[i], i < rendered);
+    }
     const urls = (out.results || []).map((r: any) => r?.imageUrl).filter(Boolean);
     if (urls.length) {
       await logToHistory({
