@@ -294,12 +294,11 @@ function HumanizerPage() {
    */
   const sendToPublishing = () => {
     if (!output) return;
-    const format =
-      purpose === "Tweet/Thread" ? "tweets"
-      : purpose === "Email" ? "email"
-      : purpose === "Blog/Article" || purpose === "Academic/Formal" ? "seo"
-      : "linkedin";
-    const pieces = parsePieces(format, output);
+    // The Publishing Center only queues social posts — long-form document
+    // formats (seo/email) are filtered out there, so route everything that
+    // isn't a tweet through the LinkedIn-style single post format.
+    const format = purpose === "Tweet/Thread" ? "tweets" : "linkedin";
+    const pieces = parsePieces(format, output).filter((p) => !p.document && p.text.trim());
     if (!pieces.length) return toast.error("Nothing to publish yet");
     try {
       sessionStorage.setItem(
