@@ -447,7 +447,7 @@ function ImageStudioPage() {
           refreshUsage();
           toast.success("Saved to your library");
         } else {
-          const res = await withAIProgress(
+          const res: any = await withAIProgress(
             generateImage({
               data: {
                 prompt: sent,
@@ -459,6 +459,7 @@ function ImageStudioPage() {
                 negativePrompt: r.negativePrompt,
                 originalPrompt: originalPrompt || r.prompt,
                 seed: seeds[0],
+                referenceUrl: referenceUrl || undefined,
               },
               headers: authHeaders,
               signal: controller.signal,
@@ -466,16 +467,35 @@ function ImageStudioPage() {
           );
           if (stale()) return;
           if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
-          if (res.error) throw new Error(res.error);
-          if (!res.imageUrl) throw new Error("No image returned");
-          // Never pretend the chosen engine rendered it.
-          if ((res as any).fellBackTo)
-            toast.message(
-              `${MODELS.find((m) => m.id === activeModel)?.name ?? activeModel} was unavailable — rendered with Gemini instead`,
-            );
-          setResults([res.imageUrl]);
-          setResultSeeds([seeds[0]]);
-          setImageUrl(res.imageUrl);
+          // Long render: it keeps going upstream, so follow the job instead of
+          // discarding a render the user already paid for.
+          if (res.status === "pending" && res.jobId) {
+            setTileJobs([
+              { preview: null, status: "streaming", seed: seeds[0], message: "Still rendering…" },
+            ]);
+            const finished = await waitForImageJob(res.jobId, controller.signal, stale);
+            if (stale()) return;
+            if (!finished?.imageUrl) throw new Error(finished?.error || "Render did not finish");
+            autoSavedRef.current.add(finished.imageUrl);
+            setTileJobs([]);
+            setResults([finished.imageUrl]);
+            setResultSeeds([finished.seed ?? seeds[0]]);
+            setImageUrl(finished.imageUrl);
+            loadLibrary();
+            refreshUsage();
+            toast.success("Render finished and saved to your library");
+          } else {
+            if (res.error) throw new Error(res.error);
+            if (!res.imageUrl) throw new Error("No image returned");
+            // Never pretend the chosen engine rendered it.
+            if (res.fellBackTo)
+              toast.message(
+                `${MODELS.find((m) => m.id === activeModel)?.name ?? activeModel} was unavailable — rendered with Gemini instead`,
+              );
+            setResults([res.imageUrl]);
+            setResultSeeds([res.seed ?? seeds[0]]);
+            setImageUrl(res.imageUrl);
+          }
         }
       } else if (activeModel === "gemini") {
         // Batch with per-tile streaming: every tile renders its own blur-to-sharp
