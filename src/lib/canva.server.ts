@@ -1,3 +1,4 @@
+import { oauthNonce, oauthStateSecret, timingSafeEqual } from "@/lib/oauthState";
 /**
  * Canva Connect API — server-only helpers.
  *
@@ -45,7 +46,7 @@ async function hmacHex(secret: string, payload: string): Promise<string> {
 }
 
 function stateSecret(): string {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY || "canva-fallback-state-secret";
+  return oauthStateSecret();
 }
 
 /**
@@ -62,7 +63,7 @@ export async function codeChallengeFor(verifier: string): Promise<string> {
 }
 
 export async function buildCanvaState(userId: string): Promise<{ state: string; payload: string }> {
-  const payload = `${userId}.${Date.now()}.${Math.random().toString(36).slice(2, 10)}`;
+  const payload = `${userId}.${Date.now()}.${oauthNonce(8)}`;
   const sig = (await hmacHex(stateSecret(), `canva:${payload}`)).slice(0, 32);
   return { state: `${payload}.${sig}`, payload };
 }
@@ -75,7 +76,7 @@ export async function verifyCanvaState(
   const [uid, ts, nonce, sig] = parts;
   const payload = `${uid}.${ts}.${nonce}`;
   const expected = (await hmacHex(stateSecret(), `canva:${payload}`)).slice(0, 32);
-  if (sig !== expected) return null;
+  if (!timingSafeEqual(sig, expected)) return null;
   if (Date.now() - parseInt(ts, 10) > 15 * 60 * 1000) return null;
   return { userId: uid, payload };
 }

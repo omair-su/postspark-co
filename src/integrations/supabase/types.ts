@@ -1087,6 +1087,27 @@ export type Database = {
           },
         ]
       }
+      rate_limit_hits: {
+        Row: {
+          action: string
+          created_at: string
+          id: number
+          subject: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: number
+          subject: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: number
+          subject?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           created_at: string
@@ -1702,6 +1723,42 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_reservations: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          kind: string
+          period_start: string
+          settled_at: string | null
+          state: string
+          units: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          kind: string
+          period_start?: string
+          settled_at?: string | null
+          state?: string
+          units?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          kind?: string
+          period_start?: string
+          settled_at?: string | null
+          state?: string
+          units?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_canva_designs: {
         Row: {
           canva_design_id: string
@@ -2002,6 +2059,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      check_rate_limit: {
+        Args: {
+          _action: string
+          _max: number
+          _subject: string
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       cleanup_cron_job_run_details: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -2045,6 +2111,16 @@ export type Database = {
           read_ct: number
         }[]
       }
+      reserve_usage: {
+        Args: {
+          _idempotency_key?: string
+          _kind: string
+          _limit: number
+          _units?: number
+          _user_id: string
+        }
+        Returns: Json
+      }
       respond_to_approval: {
         Args: {
           _client_comment: string
@@ -2052,6 +2128,10 @@ export type Database = {
           _status: string
           _token: string
         }
+        Returns: boolean
+      }
+      settle_usage: {
+        Args: { _reservation_id: string; _success: boolean }
         Returns: boolean
       }
       workspace_role: {

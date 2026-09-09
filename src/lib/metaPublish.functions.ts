@@ -6,6 +6,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { hmacHex, oauthNonce, oauthStateSecret, timingSafeEqual } from "@/lib/oauthState";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CANONICAL_SITE_URL, getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 
@@ -119,20 +120,7 @@ function buildMetaOAuthDiagnostics(appId: string | undefined, state: string) {
 }
 
 async function signState(payload: string): Promise<string> {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-state-secret";
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 32);
+  return (await hmacHex(oauthStateSecret(), payload)).slice(0, 32);
 }
 
 export async function verifyMetaOAuthState(state: string): Promise<{ userId: string } | null> {
@@ -141,7 +129,7 @@ export async function verifyMetaOAuthState(state: string): Promise<{ userId: str
   const [uid, ts, nonce, sig] = parts;
   const payload = `${uid}.${ts}.${nonce}`;
   const expected = await signState(payload);
-  if (sig !== expected) return null;
+  if (!timingSafeEqual(sig, expected)) return null;
   if (Date.now() - parseInt(ts, 10) > 10 * 60 * 1000) return null;
   return { userId: uid };
 }
@@ -161,7 +149,7 @@ export const getMetaAuthUrl = createServerFn({ method: "POST" })
         };
       }
       const ts = Date.now();
-      const nonce = Math.random().toString(36).slice(2, 10);
+      const nonce = oauthNonce(8);
       const payload = `${context.userId}.${ts}.${nonce}`;
       const sig = await signState(payload);
       const state = `${payload}.${sig}`;
@@ -922,7 +910,7 @@ export const getThreadsAuthUrl = createServerFn({ method: "POST" })
         };
       }
       const ts = Date.now();
-      const nonce = Math.random().toString(36).slice(2, 10);
+      const nonce = oauthNonce(8);
       const payload = `${context.userId}.${ts}.${nonce}`;
       const sig = await signState(payload);
       const state = `${payload}.${sig}`;

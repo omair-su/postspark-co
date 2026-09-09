@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getCorrectedCanonicalUrl, getSafePublicBaseUrl } from "@/lib/siteUrls";
 import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
+import { hmacHex, oauthNonce, oauthStateSecret, timingSafeEqual } from "@/lib/oauthState";
 const YT_SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
   "https://www.googleapis.com/auth/youtube.readonly",
@@ -14,20 +15,7 @@ function getRedirectUri() {
 }
 
 async function signState(payload: string): Promise<string> {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-state-secret";
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 32);
+  return (await hmacHex(oauthStateSecret(), payload)).slice(0, 32);
 }
 
 export const getYouTubeAuthUrl = createServerFn({ method: "POST" })
@@ -36,7 +24,7 @@ export const getYouTubeAuthUrl = createServerFn({ method: "POST" })
     const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
     if (!clientId) return { error: "YouTube publishing not configured (missing Google OAuth credentials)." };
     const ts = Date.now();
-    const nonce = Math.random().toString(36).slice(2, 10);
+    const nonce = oauthNonce(8);
     const payload = `${context.userId}.${ts}.${nonce}`;
     const sig = await signState(payload);
     const state = `${payload}.${sig}`;
@@ -310,7 +298,7 @@ export async function verifyOAuthState(state: string): Promise<{ userId: string 
   const [uid, ts, nonce, sig] = parts;
   const payload = `${uid}.${ts}.${nonce}`;
   const expected = await signState(payload);
-  if (sig !== expected) return null;
+  if (!timingSafeEqual(sig, expected)) return null;
   if (Date.now() - parseInt(ts, 10) > 10 * 60 * 1000) return null;
   return { userId: uid };
 }
@@ -332,7 +320,7 @@ export const getTikTokAuthUrl = createServerFn({ method: "POST" })
     const clientKey = process.env.TIKTOK_CLIENT_KEY;
     if (!clientKey) return { error: "TikTok integration not configured (missing TIKTOK_CLIENT_KEY)." };
     const ts = Date.now();
-    const nonce = Math.random().toString(36).slice(2, 10);
+    const nonce = oauthNonce(8);
     const payload = `${context.userId}.${ts}.${nonce}`;
     const sig = await signState(payload);
     const state = `${payload}.${sig}`;
@@ -424,7 +412,7 @@ export const getLinkedInAuthUrl = createServerFn({ method: "POST" })
     const clientId = process.env.LINKEDIN_CLIENT_ID;
     if (!clientId) return { error: "LinkedIn integration not configured (missing LINKEDIN_CLIENT_ID)." };
     const ts = Date.now();
-    const nonce = Math.random().toString(36).slice(2, 10);
+    const nonce = oauthNonce(8);
     const payload = `${context.userId}.${ts}.${nonce}`;
     const sig = await signState(payload);
     const state = `${payload}.${sig}`;
@@ -691,7 +679,7 @@ export async function verifyXOAuthState(
   const [, uid, ts, verifier, sig] = parts;
   const payload = `x.${uid}.${ts}.${verifier}`;
   const expected = await signState(payload);
-  if (sig !== expected) return null;
+  if (!timingSafeEqual(sig, expected)) return null;
   if (Date.now() - parseInt(ts, 10) > 10 * 60 * 1000) return null;
   return { userId: uid, codeVerifier: verifier };
 }

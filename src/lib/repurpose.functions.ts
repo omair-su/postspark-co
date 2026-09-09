@@ -312,9 +312,6 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       packId: z.string().uuid(),
-      // Accepted for backward compatibility only. Quota is never based on this flag.
-      isFirstInPack: z.boolean().optional().default(false),
-
       inputText: z.string().min(1).max(50000),
       format: FORMAT_ID,
       count: z.number().int().min(1).max(30).optional(),

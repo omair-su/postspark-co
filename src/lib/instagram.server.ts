@@ -1,3 +1,4 @@
+import { hmacHex, oauthNonce, oauthStateSecret, timingSafeEqual } from "@/lib/oauthState";
 /**
  * Instagram integration — server-only helpers.
  *
@@ -65,24 +66,11 @@ export function getInstagramRedirectUri() {
 
 /** HMAC-signed OAuth state (same shape as the Meta/Threads flows). */
 export async function signInstagramState(payload: string): Promise<string> {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-state-secret";
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 32);
+  return (await hmacHex(oauthStateSecret(), payload)).slice(0, 32);
 }
 
 export async function createInstagramState(userId: string) {
-  const payload = `${userId}.${Date.now()}.${Math.random().toString(36).slice(2, 10)}`;
+  const payload = `${userId}.${Date.now()}.${oauthNonce(8)}`;
   return `${payload}.${await signInstagramState(payload)}`;
 }
 
@@ -91,7 +79,7 @@ export async function verifyInstagramState(state: string): Promise<{ userId: str
   if (parts.length !== 4) return null;
   const [uid, ts, nonce, sig] = parts;
   const expected = await signInstagramState(`${uid}.${ts}.${nonce}`);
-  if (sig !== expected) return null;
+  if (!timingSafeEqual(sig, expected)) return null;
   if (Date.now() - parseInt(ts, 10) > 10 * 60 * 1000) return null;
   return { userId: uid };
 }
@@ -436,7 +424,7 @@ export async function checkInstagramWebhookVerification() {
       detail: "INSTAGRAM_WEBHOOK_VERIFY_TOKEN is not set, so Meta's handshake will always fail.",
     };
   }
-  const challenge = `ps-${Math.random().toString(36).slice(2, 10)}`;
+  const challenge = `ps-${oauthNonce(8)}`;
   const url = new URL(IG_WEBHOOK_CALLBACK_URL);
   url.searchParams.set("hub.mode", "subscribe");
   url.searchParams.set("hub.verify_token", token);
