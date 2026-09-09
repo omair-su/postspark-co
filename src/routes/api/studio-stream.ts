@@ -93,14 +93,9 @@ export const Route = createFileRoute("/api/studio-stream")({
           });
 
         const gatewayModel = quality === "hd" ? STREAM_IMAGE_MODEL_HD : STREAM_IMAGE_MODEL_FAST;
-        const fullPrompt = [
-          prompt,
-          style && `${style} style`,
-          ASPECT_HINT[aspect],
-          negativePrompt && `Avoid: ${negativePrompt}`,
-        ]
-          .filter(Boolean)
-          .join(". ");
+        // Same prompt builder as the non-streaming path, so one click can no
+        // longer produce two different images depending on which path ran.
+        const fullPrompt = buildImagePrompt(prompt, { style, aspect, template, negativePrompt });
 
         let upstream: Response;
         try {
