@@ -305,9 +305,9 @@ async function generateFromPrompt(
   if (model === "gpt") {
     const r = await callOpenAIImage(fullPrompt, aspect, quality);
     if (r.imageUrl) return r;
-    // Soft fallback to Gemini so users aren't blocked
+    // Soft fallback to Gemini so users aren't blocked — but flagged, never silent.
     const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
-    if (fb.imageUrl) return fb;
+    if (fb.imageUrl) return { ...fb, fellBackTo: "gemini" };
     return r;
   }
 
@@ -315,12 +315,12 @@ async function generateFromPrompt(
     if (process.env.REPLICATE_API_TOKEN) {
       const r = await callReplicateFlux(fullPrompt, aspect, seed);
       if (r.imageUrl) return r;
-      // Soft fallback to Gemini
       const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
-      if (fb.imageUrl) return fb;
+      if (fb.imageUrl) return { ...fb, fellBackTo: "gemini" };
       return r;
     }
-    return callImageAI([{ role: "user", content: fullPrompt }]);
+    const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
+    return fb.imageUrl ? { ...fb, fellBackTo: "gemini" } : fb;
   }
 
   if (model === "gemini") {
@@ -332,9 +332,7 @@ async function generateFromPrompt(
   if (primary.imageUrl) return primary;
   if (primary.error && /credits|rate limit/i.test(primary.error)) return primary;
   if (process.env.REPLICATE_API_TOKEN) {
-    const r = await callReplicateFlux(fullPrompt, aspect, seed);
-    if (r.imageUrl) return r;
-    return r;
+    return callReplicateFlux(fullPrompt, aspect, seed);
   }
   return primary;
 }
@@ -349,10 +347,7 @@ export async function generateSocialImage(
   negativePrompt?: string,
   seed?: number | null,
 ): Promise<ImageGenResult> {
-  let fullPrompt = buildPrompt(prompt, style, aspect, template);
-  if (negativePrompt && negativePrompt.trim()) {
-    fullPrompt += `. Avoid: ${negativePrompt.trim()}`;
-  }
+  const fullPrompt = buildImagePrompt(prompt, { style, aspect, template, negativePrompt });
   const a = (aspect as "square" | "portrait" | "landscape") || "square";
   return generateFromPrompt(fullPrompt, a, model, quality, seed);
 }
@@ -365,6 +360,8 @@ export async function generateVariations(
   count: number,
   model: ImageModel = "auto",
   quality: "standard" | "hd" = "standard",
+  negativePrompt?: string,
+  seeds?: (number | null)[],
 ): Promise<ImageGenResult[]> {
   const variants = [
     "",
@@ -375,13 +372,13 @@ export async function generateVariations(
   const a = (aspect as "square" | "portrait" | "landscape") || "square";
   const tasks = Array.from({ length: count }).map((_, i) => {
     const variantHint = variants[i % variants.length];
-    const finalPrompt = buildPrompt(
-      variantHint ? `${prompt} (${variantHint})` : prompt,
+    const finalPrompt = buildImagePrompt(variantHint ? `${prompt} (${variantHint})` : prompt, {
       style,
       aspect,
       template,
-    );
-    return generateFromPrompt(finalPrompt, a, model, quality);
+      negativePrompt,
+    });
+    return generateFromPrompt(finalPrompt, a, model, quality, seeds?.[i] ?? null);
   });
   return Promise.all(tasks);
 }
