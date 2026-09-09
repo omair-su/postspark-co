@@ -6,7 +6,6 @@ import { generateRepurposedContent, generateOneFormat } from "@/lib/repurpose.se
 import { resolveActiveBrandKit, brandKitPromptContext } from "@/lib/activeBrandKit.server";
 import {
   FREE_MONTHLY_LIMIT,
-  rateLimited,
   FORMAT_ID,
   claimRepurposePack,
   countMonthlyUsedJobs,

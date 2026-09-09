@@ -5,7 +5,6 @@
  * exceed the limit simply by being routed elsewhere. Hits are now recorded in
  * Postgres under an advisory lock, so the limit holds for the whole app.
  */
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export async function rateLimitedDurable(
   subject: string,
@@ -14,6 +13,7 @@ export async function rateLimitedDurable(
   windowSeconds = 60,
 ): Promise<boolean> {
   try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await (supabaseAdmin as any).rpc("check_rate_limit", {
       _subject: subject,
       _action: action,
