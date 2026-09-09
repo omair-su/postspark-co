@@ -4,47 +4,22 @@ import {
   STUDIO_TEXT_MODEL,
   STUDIO_TEXT_MODEL_LITE,
 } from "@/lib/imageModels";
+import { STYLE_HINTS, buildImagePrompt } from "@/lib/imagePrompt";
 
 export interface ImageGenResult {
   imageUrl: string; // data: URL or hosted URL
   error?: string;
+  /**
+   * Set when the requested engine failed and another one produced the image.
+   * The UI must surface this — a silent swap makes the model picker a lie.
+   */
+  fellBackTo?: "gemini";
 }
 
-const styleHints: Record<string, string> = {
-  photorealistic: "ultra-realistic photography, natural lighting, depth of field, 8k",
-  "3d-render": "modern 3D render, octane, soft lighting, vibrant colors",
-  illustration: "clean vector illustration, flat design, bold colors",
-  minimal: "minimalist design, lots of negative space, single focal subject",
-  cinematic: "cinematic composition, dramatic lighting, film grain, moody",
-  cyberpunk: "cyberpunk aesthetic, neon, holographic, futuristic",
-};
-
-const aspectHints: Record<string, string> = {
-  square: "square 1:1 composition, perfectly centered",
-  portrait: "vertical 9:16 composition for stories/reels",
-  landscape: "horizontal 16:9 composition for blog/twitter cards",
-};
-
-const templateHints: Record<string, string> = {
-  "quote-card":
-    "Beautiful quote card design with elegant typography, the quote text rendered clearly and centered, decorative background, social-share ready",
-  thumbnail:
-    "YouTube thumbnail style, bold large text overlay, high-contrast subject, dramatic lighting, eye-catching colors, click-worthy composition",
-  carousel:
-    "Instagram carousel slide, bold heading at top, clean modern layout, brand-friendly, designed as slide 1 of a multi-slide post",
-  "blog-cover":
-    "Blog cover image, clean editorial style, subtle title space at top, professional and modern",
-  "product-mockup":
-    "Premium product mockup, studio lighting, clean background, marketing-grade",
-};
+const styleHints = STYLE_HINTS;
 
 function buildPrompt(prompt: string, style?: string, aspect?: string, template?: string) {
-  const parts = [prompt];
-  if (template && templateHints[template]) parts.push(templateHints[template]);
-  if (style && styleHints[style]) parts.push(styleHints[style]);
-  if (aspect && aspectHints[aspect]) parts.push(aspectHints[aspect]);
-  parts.push("High quality, professional, share-worthy social media visual.");
-  return parts.join(". ");
+  return buildImagePrompt(prompt, { style, aspect, template });
 }
 
 export type ImageModel = "auto" | "flux" | "gpt" | "gemini";
@@ -330,9 +305,9 @@ async function generateFromPrompt(
   if (model === "gpt") {
     const r = await callOpenAIImage(fullPrompt, aspect, quality);
     if (r.imageUrl) return r;
-    // Soft fallback to Gemini so users aren't blocked
+    // Soft fallback to Gemini so users aren't blocked — but flagged, never silent.
     const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
-    if (fb.imageUrl) return fb;
+    if (fb.imageUrl) return { ...fb, fellBackTo: "gemini" };
     return r;
   }
 
@@ -340,12 +315,12 @@ async function generateFromPrompt(
     if (process.env.REPLICATE_API_TOKEN) {
       const r = await callReplicateFlux(fullPrompt, aspect, seed);
       if (r.imageUrl) return r;
-      // Soft fallback to Gemini
       const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
-      if (fb.imageUrl) return fb;
+      if (fb.imageUrl) return { ...fb, fellBackTo: "gemini" };
       return r;
     }
-    return callImageAI([{ role: "user", content: fullPrompt }]);
+    const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
+    return fb.imageUrl ? { ...fb, fellBackTo: "gemini" } : fb;
   }
 
   if (model === "gemini") {
@@ -357,9 +332,7 @@ async function generateFromPrompt(
   if (primary.imageUrl) return primary;
   if (primary.error && /credits|rate limit/i.test(primary.error)) return primary;
   if (process.env.REPLICATE_API_TOKEN) {
-    const r = await callReplicateFlux(fullPrompt, aspect, seed);
-    if (r.imageUrl) return r;
-    return r;
+    return callReplicateFlux(fullPrompt, aspect, seed);
   }
   return primary;
 }
@@ -374,10 +347,7 @@ export async function generateSocialImage(
   negativePrompt?: string,
   seed?: number | null,
 ): Promise<ImageGenResult> {
-  let fullPrompt = buildPrompt(prompt, style, aspect, template);
-  if (negativePrompt && negativePrompt.trim()) {
-    fullPrompt += `. Avoid: ${negativePrompt.trim()}`;
-  }
+  const fullPrompt = buildImagePrompt(prompt, { style, aspect, template, negativePrompt });
   const a = (aspect as "square" | "portrait" | "landscape") || "square";
   return generateFromPrompt(fullPrompt, a, model, quality, seed);
 }
@@ -390,6 +360,8 @@ export async function generateVariations(
   count: number,
   model: ImageModel = "auto",
   quality: "standard" | "hd" = "standard",
+  negativePrompt?: string,
+  seeds?: (number | null)[],
 ): Promise<ImageGenResult[]> {
   const variants = [
     "",
@@ -400,13 +372,13 @@ export async function generateVariations(
   const a = (aspect as "square" | "portrait" | "landscape") || "square";
   const tasks = Array.from({ length: count }).map((_, i) => {
     const variantHint = variants[i % variants.length];
-    const finalPrompt = buildPrompt(
-      variantHint ? `${prompt} (${variantHint})` : prompt,
+    const finalPrompt = buildImagePrompt(variantHint ? `${prompt} (${variantHint})` : prompt, {
       style,
       aspect,
       template,
-    );
-    return generateFromPrompt(finalPrompt, a, model, quality);
+      negativePrompt,
+    });
+    return generateFromPrompt(finalPrompt, a, model, quality, seeds?.[i] ?? null);
   });
   return Promise.all(tasks);
 }

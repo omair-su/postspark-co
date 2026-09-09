@@ -141,6 +141,8 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       count: z.number().int().min(2).max(4).default(4),
       model: IMAGE_MODEL,
       quality: QUALITY,
+      negativePrompt: z.string().max(500).optional(),
+      seeds: z.array(z.number().int().min(0).max(999999999)).max(4).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -168,9 +170,11 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       tileReservations.length,
       data.model,
       data.quality,
+      data.negativePrompt,
+      data.seeds,
     );
     await Promise.all(
-      results.map(async (r) => {
+      results.map(async (r, i) => {
         if (!r.imageUrl) return;
         const persisted = await persistGeneratedImage({
           userId,
@@ -180,6 +184,10 @@ export const generateImageVariations = createServerFn({ method: "POST" })
           aspect: data.aspect,
           template: data.template,
           source: "variations",
+          // Full recipe, so the library can actually reproduce this tile.
+          model: data.model,
+          seed: data.seeds?.[i] ?? null,
+          negativePrompt: data.negativePrompt ?? null,
         });
         if (persisted) r.imageUrl = persisted;
       }),
@@ -210,6 +218,23 @@ export const generateCarousel = createServerFn({ method: "POST" })
         slides: [],
         error: "Carousel generation is a Pro feature. Upgrade to unlock.",
       };
+    // A carousel is five renders — reserve all five up front so a set can never
+    // blow past the monthly image allowance.
+    const SLIDES = 5;
+    const slideReservations: Array<string | null> = [];
+    for (let i = 0; i < SLIDES; i++) {
+      const r = await reserveImageQuota(userId, plan);
+      if (!r.ok) break;
+      slideReservations.push(r.id);
+    }
+    if (slideReservations.length < SLIDES) {
+      await Promise.all(slideReservations.map((id) => settleImageQuota(id, false)));
+      return {
+        results: [],
+        slides: [],
+        error: "LIMIT_REACHED",
+      };
+    }
     const out = await generateCarouselSet(data.topic, data.style, data.model);
     await Promise.all(
       (out.results || []).map(async (r: any, i: number) => {
@@ -223,10 +248,15 @@ export const generateCarousel = createServerFn({ method: "POST" })
           aspect: "square",
           template: "carousel",
           source: "carousel",
+          model: data.model,
         });
         if (persisted) r.imageUrl = persisted;
       }),
     );
+    const rendered = (out.results || []).filter((r: any) => r?.imageUrl).length;
+    for (let i = 0; i < slideReservations.length; i++) {
+      await settleImageQuota(slideReservations[i], i < rendered);
+    }
     const urls = (out.results || []).map((r: any) => r?.imageUrl).filter(Boolean);
     if (urls.length) {
       await logToHistory({
