@@ -34,6 +34,8 @@ import { toSameOriginUrl } from "@/lib/sameOriginImage";
 import { StudioErrorCard, StreamingTile, type TileJob } from "@/components/image/studio/StudioError";
 import {
   generateImage,
+  pollImageJob,
+  finishMyImageJobs,
   generateImageVariations,
   generateCarousel,
   editUploadedImage,
@@ -353,6 +355,31 @@ function ImageStudioPage() {
     toast.message("Render canceled");
   };
 
+  /**
+   * Follow a background render (Replicate jobs that outlive one request) until it
+   * finishes. Cancelling only stops us watching — the job still completes and
+   * lands in the library, so no paid render is thrown away.
+   */
+  const waitForImageJob = async (
+    jobId: string,
+    signal: AbortSignal,
+    stale: () => boolean,
+  ): Promise<{ imageUrl?: string; seed?: number | null; error?: string } | null> => {
+    const deadline = Date.now() + 6 * 60 * 1000;
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 4000));
+      if (signal.aborted || stale()) return null;
+      try {
+        const out: any = await pollImageJob({ data: { jobId }, headers: authHeaders } as any);
+        if (out?.status === "succeeded") return { imageUrl: out.imageUrl, seed: out.seed };
+        if (out?.status === "failed") return { error: out.error || "Render failed" };
+      } catch {
+        /* transient — keep waiting */
+      }
+    }
+    return { error: "This render is taking unusually long. It will appear in your library when it finishes." };
+  };
+
   // modelOverride lets "Try another engine" pass the NEW engine explicitly —
   // relying on setModel state would race (the closure keeps the old value).
   const handleBatch = async (count = batch, modelOverride?: ModelId) => {
@@ -447,7 +474,7 @@ function ImageStudioPage() {
           refreshUsage();
           toast.success("Saved to your library");
         } else {
-          const res = await withAIProgress(
+          const res: any = await withAIProgress(
             generateImage({
               data: {
                 prompt: sent,
@@ -459,6 +486,7 @@ function ImageStudioPage() {
                 negativePrompt: r.negativePrompt,
                 originalPrompt: originalPrompt || r.prompt,
                 seed: seeds[0],
+                referenceUrl: referenceUrl || undefined,
               },
               headers: authHeaders,
               signal: controller.signal,
@@ -466,16 +494,35 @@ function ImageStudioPage() {
           );
           if (stale()) return;
           if (res.error === "LIMIT_REACHED") return setLimitOpen(true);
-          if (res.error) throw new Error(res.error);
-          if (!res.imageUrl) throw new Error("No image returned");
-          // Never pretend the chosen engine rendered it.
-          if ((res as any).fellBackTo)
-            toast.message(
-              `${MODELS.find((m) => m.id === activeModel)?.name ?? activeModel} was unavailable — rendered with Gemini instead`,
-            );
-          setResults([res.imageUrl]);
-          setResultSeeds([seeds[0]]);
-          setImageUrl(res.imageUrl);
+          // Long render: it keeps going upstream, so follow the job instead of
+          // discarding a render the user already paid for.
+          if (res.status === "pending" && res.jobId) {
+            setTileJobs([
+              { preview: null, status: "streaming", seed: seeds[0], message: "Still rendering…" },
+            ]);
+            const finished = await waitForImageJob(res.jobId, controller.signal, stale);
+            if (stale()) return;
+            if (!finished?.imageUrl) throw new Error(finished?.error || "Render did not finish");
+            autoSavedRef.current.add(finished.imageUrl);
+            setTileJobs([]);
+            setResults([finished.imageUrl]);
+            setResultSeeds([finished.seed ?? seeds[0]]);
+            setImageUrl(finished.imageUrl);
+            loadLibrary();
+            refreshUsage();
+            toast.success("Render finished and saved to your library");
+          } else {
+            if (res.error) throw new Error(res.error);
+            if (!res.imageUrl) throw new Error("No image returned");
+            // Never pretend the chosen engine rendered it.
+            if (res.fellBackTo)
+              toast.message(
+                `${MODELS.find((m) => m.id === activeModel)?.name ?? activeModel} was unavailable — rendered with Gemini instead`,
+              );
+            setResults([res.imageUrl]);
+            setResultSeeds([res.seed ?? seeds[0]]);
+            setImageUrl(res.imageUrl);
+          }
         }
       } else if (activeModel === "gemini") {
         // Batch with per-tile streaming: every tile renders its own blur-to-sharp
@@ -981,6 +1028,30 @@ function ImageStudioPage() {
   useEffect(() => {
     if (tab === "library" && session) loadLibrary();
   }, [tab, session]);
+
+  // Renders the user walked away from finish here, on their next visit — no
+  // permanent background polling, and no lost credits.
+  useEffect(() => {
+    if (!authHeaders) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const out: any = await finishMyImageJobs({ headers: authHeaders } as any);
+        if (!cancelled && out?.finished) {
+          toast.success(
+            `${out.finished} earlier render${out.finished > 1 ? "s" : ""} finished — saved to your library`,
+          );
+          loadLibrary();
+          refreshUsage();
+        }
+      } catch {
+        /* non-critical */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authHeaders]);
 
   const handleEnhance = async () => {
     if (!session) return toast.error("Please sign in");

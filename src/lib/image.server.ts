@@ -14,6 +14,14 @@ export interface ImageGenResult {
    * The UI must surface this — a silent swap makes the model picker a lie.
    */
   fellBackTo?: "gemini";
+  /**
+   * Replicate render that outlived the Worker's wall-clock budget. The image is
+   * still being produced upstream, so the caller records an `image_jobs` row and
+   * the poll route finishes it — the render is never thrown away.
+   */
+  pending?: { predictionId: string | null; pollUrl: string };
+  /** Seed actually used by the engine, so the tile/recipe can show the truth. */
+  seed?: number | null;
 }
 
 const styleHints = STYLE_HINTS;
@@ -114,6 +122,11 @@ async function callReplicateFlux(
   prompt: string,
   aspect: "square" | "portrait" | "landscape" = "square",
   seed?: number | null,
+  /**
+   * When set, the render goes through Flux Kontext Pro (image-to-image) instead
+   * of Flux 1.1 Pro, so "reference image" on the Flux chip really is Flux.
+   */
+  referenceImage?: string | null,
 ): Promise<ImageGenResult> {
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return { imageUrl: "", error: "REPLICATE_API_TOKEN not configured" };
@@ -135,8 +148,11 @@ async function callReplicateFlux(
 
   let prediction: any;
   try {
+    const fluxModel = referenceImage
+      ? "black-forest-labs/flux-kontext-pro"
+      : "black-forest-labs/flux-1.1-pro";
     const createRes = await fetchWithTimeout(
-      "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions",
+      `https://api.replicate.com/v1/models/${fluxModel}/predictions`,
       {
         method: "POST",
         headers: {
@@ -150,7 +166,9 @@ async function callReplicateFlux(
             output_format: "jpg",
             output_quality: 90,
             safety_tolerance: 2,
-            prompt_upsampling: true,
+            ...(referenceImage
+              ? { input_image: referenceImage }
+              : { prompt_upsampling: true }),
             ...(typeof seed === "number" && Number.isFinite(seed) ? { seed } : {}),
           },
         }),
@@ -197,10 +215,13 @@ async function callReplicateFlux(
       console.warn(
         `Replicate poll exceeded ${MAX_WAIT_MS}ms (last status=${prediction?.status}, id=${prediction?.id})`,
       );
+      // Hand the still-running prediction back so it can be finished in the
+      // background instead of being abandoned mid-render.
       return {
         imageUrl: "",
+        pending: { predictionId: prediction?.id ?? null, pollUrl: getUrl },
         error:
-          "Replicate is taking longer than expected. The image may still complete — check back in a moment, or try again.",
+          "Still rendering — this one is taking longer than usual. We'll finish it in the background.",
       };
     }
     await sleep(POLL_INTERVAL_MS);
@@ -228,7 +249,9 @@ async function callReplicateFlux(
   if (prediction?.status === "succeeded") {
     const out = prediction.output;
     const url = Array.isArray(out) ? out[0] : typeof out === "string" ? out : null;
-    if (url) return { imageUrl: url };
+    const usedSeed =
+      typeof prediction?.input?.seed === "number" ? prediction.input.seed : (seed ?? null);
+    if (url) return { imageUrl: url, seed: usedSeed };
     console.error("Replicate succeeded with no output:", JSON.stringify(prediction).slice(0, 300));
     return { imageUrl: "", error: "Replicate returned no image URL" };
   }
@@ -301,6 +324,7 @@ async function generateFromPrompt(
   model: ImageModel = "auto",
   quality: "standard" | "hd" = "standard",
   seed?: number | null,
+  referenceImage?: string | null,
 ): Promise<ImageGenResult> {
   if (model === "gpt") {
     const r = await callOpenAIImage(fullPrompt, aspect, quality);
@@ -313,8 +337,8 @@ async function generateFromPrompt(
 
   if (model === "flux") {
     if (process.env.REPLICATE_API_TOKEN) {
-      const r = await callReplicateFlux(fullPrompt, aspect, seed);
-      if (r.imageUrl) return r;
+      const r = await callReplicateFlux(fullPrompt, aspect, seed, referenceImage);
+      if (r.imageUrl || r.pending) return r;
       const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
       if (fb.imageUrl) return { ...fb, fellBackTo: "gemini" };
       return r;
@@ -346,10 +370,11 @@ export async function generateSocialImage(
   quality: "standard" | "hd" = "standard",
   negativePrompt?: string,
   seed?: number | null,
+  referenceImage?: string | null,
 ): Promise<ImageGenResult> {
   const fullPrompt = buildImagePrompt(prompt, { style, aspect, template, negativePrompt });
   const a = (aspect as "square" | "portrait" | "landscape") || "square";
-  return generateFromPrompt(fullPrompt, a, model, quality, seed);
+  return generateFromPrompt(fullPrompt, a, model, quality, seed, referenceImage);
 }
 
 export async function generateVariations(

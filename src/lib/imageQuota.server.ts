@@ -157,6 +157,7 @@ export async function persistGeneratedImage(opts: {
   seed?: number | null;
   negativePrompt?: string | null;
   referenceUrl?: string | null;
+  quality?: string | null;
 }): Promise<string | null> {
   try {
     let bytes: Uint8Array | null = null;
@@ -207,6 +208,7 @@ export async function persistGeneratedImage(opts: {
       seed: opts.seed ?? null,
       negative_prompt: opts.negativePrompt ?? null,
       reference_url: opts.referenceUrl ?? null,
+      quality: opts.quality ?? null,
     };
     let { error: insErr } = await supabaseAdmin
       .from("generated_images")

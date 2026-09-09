@@ -28,6 +28,7 @@ import {
   getPlanFor as getPlan,
   isProPlan as isPro,
 } from "@/lib/imageQuota.server";
+import { createImageJob, advanceImageJob } from "@/lib/imageJobs.server";
 
 const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
 const QUALITY = z.enum(["standard", "hd"]).default("standard");
@@ -69,6 +70,8 @@ export const generateImage = createServerFn({ method: "POST" })
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
     const reservation = await reserveImageQuota(userId, plan);
     if (!reservation.ok) return { imageUrl: "", error: "LIMIT_REACHED" };
+    const usableReference =
+      data.referenceUrl && /^https?:\/\//i.test(data.referenceUrl) ? data.referenceUrl : null;
     const res = await generateSocialImage(
       data.prompt,
       data.style,
@@ -78,7 +81,33 @@ export const generateImage = createServerFn({ method: "POST" })
       data.quality,
       data.negativePrompt,
       data.seed ?? null,
+      // Flux Kontext (image-to-image) only — other engines take reference images
+      // through their own edit endpoints.
+      data.model === "flux" ? usableReference : null,
     );
+    // Long Replicate render: keep the reserved credit, record the job, and let
+    // the poll route finish it in the background instead of losing the render.
+    if (!res.imageUrl && res.pending) {
+      const jobId = await createImageJob({
+        userId,
+        predictionId: res.pending.predictionId,
+        pollUrl: res.pending.pollUrl,
+        model: data.model,
+        prompt: data.prompt,
+        style: data.style,
+        aspect: data.aspect,
+        template: data.template ?? null,
+        quality: data.quality,
+        seed: data.seed ?? null,
+        negativePrompt: data.negativePrompt ?? null,
+        referenceUrl: data.referenceUrl ?? null,
+        source: data.template === "thumbnail" || data.template === "blog-cover" ? "thumbnail" : "generate",
+        reservationId: reservation.id,
+      });
+      if (jobId) return { imageUrl: "", status: "pending" as const, jobId, error: res.error };
+      await settleImageQuota(reservation.id, false);
+      return { imageUrl: "", error: res.error };
+    }
     if (!res.imageUrl) await settleImageQuota(reservation.id, false);
     if (res.imageUrl) {
       await settleImageQuota(reservation.id, true);
@@ -91,9 +120,10 @@ export const generateImage = createServerFn({ method: "POST" })
         template: data.template,
         source: data.template === "thumbnail" || data.template === "blog-cover" ? "thumbnail" : "generate",
         model: data.model,
-        seed: data.seed ?? null,
+        seed: res.seed ?? data.seed ?? null,
         negativePrompt: data.negativePrompt ?? null,
         referenceUrl: data.referenceUrl ?? null,
+        quality: data.quality,
       });
       if (persisted) res.imageUrl = persisted;
       const isThumb = data.template === "thumbnail" || data.template === "blog-cover";
@@ -110,10 +140,41 @@ export const generateImage = createServerFn({ method: "POST" })
           model: data.model,
           prompt: data.prompt,
           original_prompt: data.originalPrompt || null,
+          seed: res.seed ?? data.seed ?? null,
+          quality: data.quality,
         },
       });
     }
     return res;
+  });
+
+/**
+ * Finish the caller's own abandoned background renders (tab closed, cancelled).
+ * Called when the studio/library loads, so no permanent polling job is needed.
+ */
+export const finishMyImageJobs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("image_jobs")
+      .select("id")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true })
+      .limit(10);
+    let finished = 0;
+    for (const row of ((data as any[]) || [])) {
+      const out = await advanceImageJob(row.id, context.userId);
+      if (out.status === "succeeded") finished += 1;
+    }
+    return { finished };
+  });
+
+/** Poll a background render started by `generateImage`. */
+export const pollImageJob = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ jobId: z.string().uuid() }).parse)
+  .handler(async ({ data, context }) => {
+    return advanceImageJob(data.jobId, context.userId);
   });
 
 
