@@ -141,6 +141,8 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       count: z.number().int().min(2).max(4).default(4),
       model: IMAGE_MODEL,
       quality: QUALITY,
+      negativePrompt: z.string().max(500).optional(),
+      seeds: z.array(z.number().int().min(0).max(999999999)).max(4).optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -168,9 +170,11 @@ export const generateImageVariations = createServerFn({ method: "POST" })
       tileReservations.length,
       data.model,
       data.quality,
+      data.negativePrompt,
+      data.seeds,
     );
     await Promise.all(
-      results.map(async (r) => {
+      results.map(async (r, i) => {
         if (!r.imageUrl) return;
         const persisted = await persistGeneratedImage({
           userId,
@@ -180,6 +184,10 @@ export const generateImageVariations = createServerFn({ method: "POST" })
           aspect: data.aspect,
           template: data.template,
           source: "variations",
+          // Full recipe, so the library can actually reproduce this tile.
+          model: data.model,
+          seed: data.seeds?.[i] ?? null,
+          negativePrompt: data.negativePrompt ?? null,
         });
         if (persisted) r.imageUrl = persisted;
       }),
