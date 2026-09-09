@@ -27,12 +27,7 @@ import {
   logToHistory,
 } from "@/lib/imageQuota.server";
 import { STREAM_IMAGE_MODEL_FAST, STREAM_IMAGE_MODEL_HD } from "@/lib/imageModels";
-
-const ASPECT_HINT: Record<string, string> = {
-  square: "1:1 square composition",
-  portrait: "9:16 vertical composition",
-  landscape: "16:9 widescreen composition",
-};
+import { buildImagePrompt } from "@/lib/imagePrompt";
 
 export const Route = createFileRoute("/api/studio-stream")({
   server: {
