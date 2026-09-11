@@ -8,7 +8,7 @@ import { withAIProgress } from "@/lib/aiProgress";
 import {
   Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Eye, FileText,
   Youtube, Link as LinkIcon, Calendar as CalendarIcon, Save, X, Repeat, Type as TypeIcon,
-  Languages, Bookmark, Wand2, Circle, ChevronDown, Send, Layers, Clock, ShieldCheck,
+  Languages, Bookmark, Wand2, Circle, ChevronDown, Send, Layers, Clock, ShieldCheck, LayoutGrid,
 } from "lucide-react";
 import { repurposeOneFormat, startRepurposePack, getMonthlyUsage, saveToSwipeFile, refinePiece } from "@/lib/repurpose.functions";
 import { importFromUrl } from "@/lib/import.functions";
@@ -36,6 +36,13 @@ import { BulkModeDialog, type BulkSource } from "@/components/repurpose/BulkMode
 import { nextBestSlot, type BestTimePlatform } from "@/lib/bestTime";
 import { generateImage } from "@/lib/image.functions";
 import { createApprovalRequest } from "@/lib/approvals.functions";
+import { StudioCommandBar } from "@/components/repurpose/StudioCommandBar";
+import { QualityMeter } from "@/components/repurpose/QualityMeter";
+import { PieceGrid } from "@/components/repurpose/PieceGrid";
+import { PlatformChrome } from "@/components/repurpose/PlatformChrome";
+import emptyPackArt from "@/assets/premium/repurpose-empty-pack.jpg";
+import languageDropArt from "@/assets/premium/repurpose-language-drop.jpg";
+import bulkModeArt from "@/assets/premium/repurpose-bulk-mode.jpg";
 
 
 // -------- Format catalog (the new world-class spec) --------------------
@@ -325,7 +332,7 @@ function RepurposePage() {
       : selectedIds.length <= 5 && totalPieces <= 14 ? "Good"
       : "Compressed";
   const qualityPct = qualityLabel === "Excellent" ? 95 : qualityLabel === "Good" ? 55 : 25;
-  const qualityClass = qualityLabel === "Excellent" ? "bg-emerald-500" : qualityLabel === "Good" ? "bg-amber-500" : "bg-red-500";
+  
 
   // Every generated post as a discrete piece — powers preview + publishing.
   const packPieces = useMemo(
@@ -775,8 +782,11 @@ function RepurposePage() {
 
   /** Recent packs rail: reopen a saved pack read-only into the editor. */
   const reopenPack = (pack: LoadedPack) => {
-    const formats = Object.keys(pack.outputs).filter((k) => pack.outputs[k]?.trim()) as FormatId[];
+    const formats = Object.keys(pack.outputs).filter(
+      (k) => typeof pack.outputs[k] === "string" && pack.outputs[k]!.trim() && FORMAT_BY_ID[k as FormatId],
+    ) as FormatId[];
     if (!formats.length) { toast.error("That pack has no saved content"); return; }
+    const validOutputs = Object.fromEntries(formats.map((id) => [id, pack.outputs[id]!])) as Partial<Record<FormatId, string>>;
     const nextPicks: Partial<Record<FormatId, FormatPick>> = {};
     formats.forEach((id) => {
       const def = FORMAT_BY_ID[id];
@@ -786,8 +796,8 @@ function RepurposePage() {
     setInputText(pack.inputText);
     setImportMeta(`Reopened: ${pack.title}`);
     setPackId(pack.id);
-    setResults(pack.outputs as Partial<Record<FormatId, string>>);
-    setLangResults({ [language]: pack.outputs as Partial<Record<FormatId, string>> });
+    setResults(validOutputs);
+    setLangResults({ [language]: validOutputs });
     setStatuses(Object.fromEntries(formats.map((id) => [id, "done"])) as Partial<Record<FormatId, FormatStatus>>);
     setActiveOutputTab(formats[0]!);
     setPieceMedia({});
@@ -798,7 +808,9 @@ function RepurposePage() {
 
   /** Duplicate: same source and format mix, ready to generate a fresh pack. */
   const duplicatePack = (pack: LoadedPack) => {
-    const formats = Object.keys(pack.outputs).filter((k) => pack.outputs[k]?.trim()) as FormatId[];
+    const formats = Object.keys(pack.outputs).filter(
+      (k) => typeof pack.outputs[k] === "string" && pack.outputs[k]!.trim() && FORMAT_BY_ID[k as FormatId],
+    ) as FormatId[];
     const nextPicks: Partial<Record<FormatId, FormatPick>> = {};
     formats.forEach((id) => {
       const def = FORMAT_BY_ID[id];
@@ -888,20 +900,42 @@ function RepurposePage() {
 
   // -------- Render --------
   return (
-    <div className="mx-auto max-w-5xl pb-24 md:pb-8">
+    <div className="mx-auto max-w-[1700px] pb-28 md:pb-8">
       {/* ============== HERO ============== */}
-      <ToolHero
-        eyebrow="Repurpose Studio"
-        icon={<Repeat className="h-3 w-3" />}
-        title="One source. Every platform."
-        subtitle="Paste a blog, YouTube video, podcast, or URL — PostSpark turns it into a full content drop in seconds."
-        art="repurpose"
-        steps={["Add source", "Pick formats", "Generate & publish"]}
+      <div className="rp-aurora rounded-3xl">
+        <ToolHero
+          eyebrow="Repurpose Studio"
+          icon={<Repeat className="h-3 w-3" />}
+          title="One source. Every platform."
+          subtitle="Paste a blog, YouTube video, podcast, or URL — PostSpark turns it into a full content drop in seconds."
+          art="repurpose"
+          steps={["Add source", "Pick formats", "Generate & publish"]}
+        />
+      </div>
+
+      {/* ============== STICKY COMMAND BAR ============== */}
+      <StudioCommandBar
+        wordCount={wordCount}
+        formatCount={selectedIds.length}
+        pieceCount={totalPieces}
+        qualityPct={qualityPct}
+        qualityLabel={qualityLabel}
+        creditsText={isUnlimited ? "Unlimited credits" : `${Math.max(0, remaining ?? 0)} left this month`}
+        creditsLow={!isUnlimited && remaining !== null && remaining <= 2}
+        loading={loading}
+        disabled={loading || selectedIds.length === 0 || !inputText.trim()}
+        onGenerate={handleGenerate}
+        onBulk={() => setBulkOpen(true)}
+        bulkLabel={bulkRunning ? `Bulk ${bulkRunning.done + 1}/${bulkRunning.total}` : "Bulk mode"}
       />
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <div className="pw-surface p-4"><HeroStat num="10+" label="Formats" /></div>
-        <div className="pw-surface p-4"><HeroStat num="30+" label="Languages" /></div>
-        <div className="pw-surface p-4"><HeroStat num="1" label="Source" /></div>
+
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)_minmax(0,440px)]">
+      {/* ══════════ LEFT PANE — SOURCE ══════════ */}
+      <div className="min-w-0 space-y-4">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="pw-surface p-3"><HeroStat num="10+" label="Formats" /></div>
+        <div className="pw-surface p-3"><HeroStat num="30+" label="Languages" /></div>
+        <div className="pw-surface p-3"><HeroStat num="1" label="Source" /></div>
       </div>
 
       {/* ============== RECENT PACKS RAIL ============== */}
@@ -1027,18 +1061,20 @@ function RepurposePage() {
               </p>
             )}
             {ytStatus === "transcript" && (
-              <p className="mt-2 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400">
-                ✓ Transcript loaded ({ytWords.toLocaleString()} words)
+              <p className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400">
+                <Check className="h-3.5 w-3.5" aria-hidden="true" /> Transcript loaded ({ytWords.toLocaleString()} words)
               </p>
             )}
             {ytStatus === "metadata" && (
-              <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[13px] text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-                ⚠ No transcript found — repurposing from title &amp; description only. Results may be less specific.
+              <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[13px] text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>No transcript found — repurposing from title &amp; description only. Results may be less specific.</span>
               </div>
             )}
             {ytStatus === "failed" && (
-              <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3 text-[13px] text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-                ✗ Could not fetch this video. Try pasting the transcript manually.
+              <div className="mt-2 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-[13px] text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+                <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Could not fetch this video. Try pasting the transcript manually.</span>
               </div>
             )}
             {ytStatus === "idle" && (
@@ -1118,6 +1154,9 @@ function RepurposePage() {
           }}
         />
       </StepCard>
+      </div>
+      {/* ══════════ CENTRE PANE — COMPOSER ══════════ */}
+      <div className="min-w-0">
 
       {/* ============== STEP 2 — FORMATS ============== */}
       <StepCard step="2" title="Choose Your Formats">
@@ -1176,7 +1215,7 @@ function RepurposePage() {
                   {groupSelectedAll ? "Clear group" : "Select all"}
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
                 {items.map((f) => (
                   <FormatCard
                     key={f.id}
@@ -1194,18 +1233,10 @@ function RepurposePage() {
         {/* Quality budget meter */}
         <div className="mt-2 flex flex-col gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-foreground">
-                {selectedIds.length} format{selectedIds.length === 1 ? "" : "s"} · {totalPieces} piece{totalPieces === 1 ? "" : "s"}
-              </span>
-              <span className={`font-semibold ${
-                qualityLabel === "Excellent" ? "text-emerald-600 dark:text-emerald-400" :
-                qualityLabel === "Good" ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"
-              }`}>Quality: {qualityLabel}</span>
+            <div className="mb-1 text-xs font-medium text-foreground">
+              {selectedIds.length} format{selectedIds.length === 1 ? "" : "s"} · {totalPieces} piece{totalPieces === 1 ? "" : "s"}
             </div>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div className={`h-full rounded-full transition-all duration-500 ${qualityClass}`} style={{ width: `${qualityPct}%` }} />
-            </div>
+            <QualityMeter pct={qualityPct} label={qualityLabel} />
             <p className="mt-1.5 text-[11px] text-muted-foreground">
               {qualityLabel === "Excellent" ? "Each format gets full AI focus." :
                qualityLabel === "Good" ? "Output is solid. For peak quality, try 3–4 formats per run." :
@@ -1297,12 +1328,20 @@ function RepurposePage() {
         </div>
 
         {/* Multi-language drop */}
-        <div className="mt-5 rounded-xl border border-border/70 bg-muted/30 p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="mt-5 overflow-hidden rounded-xl border border-border/70 bg-muted/30 p-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <img
+              src={languageDropArt}
+              alt=""
+              loading="lazy"
+              width={1024}
+              height={640}
+              className="h-12 w-20 shrink-0 rounded-lg object-cover"
+            />
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Language drop — same source, extra languages
             </p>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="ml-auto text-[11px] text-muted-foreground">
               {extraLangs.length ? `${extraLangs.length} extra · 1 credit each` : "Up to 4 extra languages"}
             </span>
           </div>
@@ -1428,6 +1467,13 @@ function RepurposePage() {
                       <span className="ml-0.5 inline-block h-3 w-1 animate-pulse bg-primary align-middle" />
                     </p>
                   )}
+                  {(st === "waiting" || (st === "generating" && !live)) && (
+                    <div className="mt-2 space-y-1.5" aria-hidden="true">
+                      <span className="rp-write block h-2.5 w-[92%] rounded-full" />
+                      <span className="rp-write block h-2.5 w-[78%] rounded-full" />
+                      <span className="rp-write block h-2.5 w-[86%] rounded-full" />
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1443,10 +1489,33 @@ function RepurposePage() {
           </p>
         </div>
       )}
+      </div>
+
+      {/* ══════════ RIGHT PANE — LIVE OUTPUT ══════════ */}
+      <div className="rp-pane-sticky min-w-0">
+      {!hasAnyResult && !loading && (
+        <div className="pw-surface rp-stagger overflow-hidden rounded-2xl">
+          <img
+            src={emptyPackArt}
+            alt=""
+            loading="lazy"
+            width={1024}
+            height={768}
+            className="h-40 w-full object-cover"
+          />
+          <div className="p-5 text-center">
+            <h3 className="text-sm font-semibold text-foreground">Your pack lands here</h3>
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+              Add a source, pick your formats, then hit Repurpose now — every post shows up in this
+              pane with a live platform preview.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ============== OUTPUT ============== */}
       {hasAnyResult && (
-        <section className="mt-6 animate-fade-in">
+        <section className="animate-fade-in">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-bold text-foreground">
               <Sparkles className="mr-1.5 inline h-4 w-4 text-primary" />
@@ -1599,6 +1668,8 @@ function RepurposePage() {
           )}
         </section>
       )}
+      </div>
+      </div>
 
       {/* ============== MODALS ============== */}
       {showUpgradeModal && (
@@ -1807,22 +1878,30 @@ function FormatCard({ def, pick, onToggle, onUpdate }: {
   return (
     <div
       data-selected={selected}
-      style={{ ["--brand" as any]: brandColor(def.id), ["--cat" as any]: brandColor(def.id) }}
-      className={`group relative rounded-xl border p-3 lux-brand-card lux-glow lux-shimmer lux-spring ${
+      style={{
+        ["--brand" as any]: brandColor(def.id),
+        ["--cat" as any]: brandColor(def.id),
+        ["--rp-accent" as any]: brandColor(def.id),
+      }}
+      className={`group relative rounded-xl border p-3 lux-brand-card lux-glow lux-shimmer rp-aura rp-spring ${
         selected ? "border-transparent bg-card shadow-sm" : "border-border bg-card"
       }`}
     >
-      <button onClick={onToggle} className="relative z-[1] block w-full text-left">
+      <button
+        onClick={onToggle}
+        aria-pressed={selected}
+        className="rp-focus relative z-[1] block w-full rounded-lg text-left"
+      >
         {selected && (
           <span
-            className="absolute right-1.5 top-1.5 flex h-[20px] w-[20px] items-center justify-center rounded-full border border-white/25 text-[10px] font-bold text-white shadow-md backdrop-blur-sm"
+            className="absolute right-1.5 top-1.5 flex h-[20px] w-[20px] items-center justify-center rounded-full border border-white/25 text-white shadow-md backdrop-blur-sm"
             style={{ background: "color-mix(in oklab, var(--brand) 78%, #0A0A0C)" }}
           >
-            ✓
+            <Check className="h-3 w-3" aria-hidden="true" />
           </span>
         )}
         <BrandIcon brand={def.id as BrandKey} size={40} />
-        <div className="mt-1.5 text-[13px] font-semibold text-foreground">{def.name}</div>
+        <div className="mt-1.5 break-words text-[13px] font-semibold leading-snug text-foreground">{def.name}</div>
       </button>
 
 
@@ -1889,39 +1968,45 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
   media?: Record<string, string>;
 }) {
   const def = FORMAT_BY_ID[formatId];
+  if (!def) return null;
   const previewable = true;
-  const [view, setView] = useState<"raw"|"preview">(previewable ? "preview" : "raw");
+  const [view, setView] = useState<"raw"|"preview"|"grid">("preview");
   const [edited, setEdited] = useState(content);
   useEffect(() => { setEdited(content); }, [content]);
   const wordCount = edited.split(/\s+/).filter(Boolean).length;
   const isCopied = copied === formatId;
+  const accent = brandColor(def.id);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div
+      className="rp-aura rounded-2xl border border-border bg-card p-5 shadow-sm"
+      style={{ ["--rp-accent" as any]: accent } as React.CSSProperties}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold text-foreground inline-flex items-center gap-2"><BrandGlyph brand={def.id as BrandKey} size={16} /> {def.name}</h3>
           <p className="text-[11px] text-muted-foreground">{wordCount} words · {edited.length} chars</p>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {previewable && (
-            <div className="flex overflow-hidden rounded-lg border border-border bg-card">
-              <button onClick={() => setView("preview")} className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium ${view==="preview" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-                <Eye className="h-3 w-3" /> Preview
-              </button>
-              <button onClick={() => setView("raw")} className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium ${view==="raw" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-                <FileText className="h-3 w-3" /> Raw
-              </button>
-            </div>
-          )}
-          <button onClick={() => onCopy(edited, formatId)} className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${isCopied ? "border-emerald-500 text-emerald-600" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}>
-            {isCopied ? <><Check className="h-3 w-3" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
+          <div className="flex overflow-hidden rounded-lg border border-border bg-card" role="group" aria-label="Output view">
+            <button onClick={() => setView("preview")} aria-pressed={view==="preview"} className={`rp-focus flex items-center gap-1 px-2.5 py-1 text-xs font-medium ${view==="preview" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <Eye className="h-3 w-3" aria-hidden="true" /> Feed
+            </button>
+            <button onClick={() => setView("grid")} aria-pressed={view==="grid"} className={`rp-focus flex items-center gap-1 px-2.5 py-1 text-xs font-medium ${view==="grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <LayoutGrid className="h-3 w-3" aria-hidden="true" /> Grid
+            </button>
+            <button onClick={() => setView("raw")} aria-pressed={view==="raw"} className={`rp-focus flex items-center gap-1 px-2.5 py-1 text-xs font-medium ${view==="raw" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              <FileText className="h-3 w-3" aria-hidden="true" /> Raw
+            </button>
+          </div>
+          <button onClick={() => onCopy(edited, formatId)} className={`rp-focus ${isCopied ? "rp-copy" : ""} inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${isCopied ? "border-emerald-500 text-emerald-600" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}>
+            {isCopied ? <><Check className="h-3 w-3" aria-hidden="true" /> Copied</> : <><Copy className="h-3 w-3" aria-hidden="true" /> Copy</>}
           </button>
-          <button onClick={onSaveSwipe} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary">
-            <Bookmark className="h-3 w-3" /> Save
+          <button onClick={onSaveSwipe} className="rp-focus inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary">
+            <Bookmark className="h-3 w-3" aria-hidden="true" /> Save
           </button>
-          <button onClick={onRegenerate} disabled={regenerating} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-60">
-            <RefreshCw className={`h-3 w-3 ${regenerating ? "animate-spin" : ""}`} /> {regenerating ? "Regenerating…" : "Regenerate"}
+          <button onClick={onRegenerate} disabled={regenerating} className="rp-focus inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary disabled:opacity-60">
+            <RefreshCw className={`h-3 w-3 ${regenerating ? "animate-spin" : ""}`} aria-hidden="true" /> {regenerating ? "Regenerating…" : "Regenerate"}
           </button>
           <ExportToGoogleDocs
             content={edited}
@@ -1933,31 +2018,46 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
       </div>
 
       {regenerating ? (
-        <div className="mt-4 space-y-2">
-          <div className="h-3 w-[90%] animate-pulse rounded bg-muted" />
-          <div className="h-3 w-[75%] animate-pulse rounded bg-muted" />
-          <div className="h-3 w-[85%] animate-pulse rounded bg-muted" />
+        <div className="mt-4 space-y-2" aria-hidden="true">
+          <div className="rp-write h-3 w-[90%] rounded-full" />
+          <div className="rp-write h-3 w-[75%] rounded-full" />
+          <div className="rp-write h-3 w-[85%] rounded-full" />
+        </div>
+      ) : view === "grid" ? (
+        <div className="mt-4 animate-fade-in">
+          <p className="mb-2.5 text-[11px] text-muted-foreground">
+            Drag a card — or use the arrows — to set the order your posts go out in.
+          </p>
+          <PieceGrid
+            formatId={formatId}
+            content={edited}
+            accent={accent}
+            onChange={(value) => { setEdited(value); onEdit(value); }}
+          />
         </div>
       ) : view === "preview" && previewable ? (
         <div className="mt-4 animate-fade-in">
-          <VisualPreview
-            typeId={formatId}
-            content={edited}
-            label={def.name}
-            onChange={(value) => { setEdited(value); onEdit(value); }}
-            onRefine={onRefinePiece}
-            onPublishPiece={onPublishPiece}
-            onSchedulePiece={onSchedulePiece}
-            onVoiceScore={onVoiceScore}
-            onGenerateImage={onGenerateImage}
-            media={media}
-          />
+          <PlatformChrome formatId={formatId} label={def.name} accent={accent}>
+            <VisualPreview
+              typeId={formatId}
+              content={edited}
+              label={def.name}
+              onChange={(value) => { setEdited(value); onEdit(value); }}
+              onRefine={onRefinePiece}
+              onPublishPiece={onPublishPiece}
+              onSchedulePiece={onSchedulePiece}
+              onVoiceScore={onVoiceScore}
+              onGenerateImage={onGenerateImage}
+              media={media}
+            />
+          </PlatformChrome>
         </div>
       ) : (
         <textarea
           value={edited}
           onChange={(e) => { setEdited(e.target.value); onEdit(e.target.value); }}
-          className="mt-4 min-h-[260px] w-full resize-y rounded-xl border border-input bg-muted/30 p-4 text-sm leading-relaxed text-foreground focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
+          aria-label={`${def.name} raw text`}
+          className="rp-focus mt-4 min-h-[260px] w-full resize-y rounded-xl border border-input bg-muted/30 p-4 text-sm leading-relaxed text-foreground focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
         />
       )}
     </div>
@@ -1965,10 +2065,27 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
 }
 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"><X className="h-4 w-4" /></button>
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="rp-focus absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
         {children}
       </div>
     </div>
