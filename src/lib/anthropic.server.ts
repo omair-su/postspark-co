@@ -168,3 +168,89 @@ export async function callClaudeWithTool<T = unknown>({
     return { data: null, error: "Failed to connect to AI service." };
   }
 }
+
+/**
+ * Streaming text completion. Calls `onDelta` with every token chunk and
+ * resolves with the full text once the stream closes.
+ *
+ * No artificial timeout: generation takes as long as the model needs. The only
+ * cancellation path is the caller's `signal` (an explicit user cancel).
+ */
+export async function streamClaude({
+  systemPrompt,
+  userPrompt,
+  maxTokens = 4000,
+  model = DEFAULT_MODEL,
+  signal,
+  onDelta,
+}: CallOptions & {
+  signal?: AbortSignal;
+  onDelta: (chunk: string) => void;
+}): Promise<ClaudeTextResult> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return { text: "", error: "AI service not configured (missing ANTHROPIC_API_KEY)." };
+  }
+
+  try {
+    const res = await fetch(CLAUDE_API_URL, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+        "Content-Type": "application/json",
+      },
+      signal,
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        stream: true,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+
+    if (!res.ok || !res.body) {
+      const body = await res.text().catch(() => "");
+      return { text: "", error: mapStatusError(res.status, body) };
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let text = "";
+
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload) as {
+            type?: string;
+            delta?: { type?: string; text?: string };
+            error?: { message?: string };
+          };
+          if (evt.type === "content_block_delta" && typeof evt.delta?.text === "string") {
+            text += evt.delta.text;
+            onDelta(evt.delta.text);
+          } else if (evt.type === "error") {
+            return { text, error: evt.error?.message || "AI stream error." };
+          }
+        } catch { /* ignore keep-alive / partial frames */ }
+      }
+    }
+
+    if (!text.trim()) return { text: "", error: "No content returned." };
+    return { text };
+  } catch (err) {
+    if ((err as Error)?.name === "AbortError") return { text: "", error: "CANCELLED" };
+    console.error("Claude stream error:", err);
+    return { text: "", error: "Failed to connect to AI service." };
+  }
+}
