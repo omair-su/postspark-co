@@ -637,7 +637,7 @@ function RepurposePage() {
     const stamp = new Date().toISOString().slice(0, 10);
     const filename = `${brand ? `${brand.replace(/[^a-z0-9-_]+/gi, "-")}-` : ""}content-pack-${stamp}`;
     const all = (Object.entries(results) as [FormatId, string][])
-      .filter(([k]) => k !== "carousel")
+      .filter(([, v]) => !!v?.trim())
       .map(([k, v]) => ({ title: `${FORMAT_BY_ID[k].emoji} ${FORMAT_BY_ID[k].name}`, content: v }));
     if (!all.length) return toast.error("Nothing to export yet");
     exportToPdf(all, filename, { watermark: tier === "free" });
@@ -1212,7 +1212,7 @@ function RepurposePage() {
                   <h3 className="text-sm font-bold text-foreground">🖼️ Open in Carousel Designer</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">Pick a theme, edit slides inline, export PNG/PDF.</p>
                 </div>
-                <Link to="/dashboard/carousel" search={{ topic: inputText.slice(0, 500) } as any}
+                <Link to="/dashboard/carousel" search={{ topic: (results.carousel || inputText).slice(0, 2000) } as any}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-violet-500 px-4 py-2 text-xs font-bold text-primary-foreground shadow hover:opacity-90">
                   <Sparkles className="h-3.5 w-3.5" /> Open designer
                 </Link>
