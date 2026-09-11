@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { streamRepurposeFormat } from "@/lib/repurposeStream";
+import { getActiveBrandVoice, scoreContentAgainstVoice } from "@/lib/brandVoice.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import {
   Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Eye, FileText,
@@ -139,7 +141,7 @@ const PLATFORM_MAP: Record<string, "twitter"|"threads"|"linkedin"|"instagram"|"f
 // -------- State types --------------------------------------------------
 
 interface FormatPick { count?: number; style?: string; length?: string }
-type FormatStatus = "idle" | "waiting" | "generating" | "done" | "error";
+type FormatStatus = "idle" | "waiting" | "generating" | "done" | "error" | "cancelled";
 
 export const Route = createFileRoute("/dashboard/repurpose")({
   component: RepurposePage,
@@ -188,6 +190,10 @@ function RepurposePage() {
   const [statuses, setStatuses] = useState<Partial<Record<FormatId, FormatStatus>>>({});
   const [results, setResults] = useState<Partial<Record<FormatId, string>>>({});
   const [timings, setTimings] = useState<Partial<Record<FormatId, number>>>({});
+  // Live streamed text per format (tokens as they arrive) + per-format cancel.
+  const [streamText, setStreamText] = useState<Partial<Record<FormatId, string>>>({});
+  const abortsRef = useRef<Map<FormatId, AbortController>>(new Map());
+  const [activeVoiceId, setActiveVoiceId] = useState<string | null>(null);
   const [packId, setPackId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeOutputTab, setActiveOutputTab] = useState<FormatId | null>(null);
@@ -220,6 +226,9 @@ function RepurposePage() {
           });
         }
       }).catch(()=>{});
+      getActiveBrandVoice(auth)
+        .then((res: any) => setActiveVoiceId(res?.voice?.id ?? null))
+        .catch(() => {});
     }
   }, [user, session]);
 
@@ -476,6 +485,34 @@ function RepurposePage() {
   };
 
 
+  const scorePieceVoice = async (piece: Piece): Promise<number | null> => {
+    if (!session || !activeVoiceId) {
+      toast.info("Train a Brand Voice first to see match scores");
+      return null;
+    }
+    try {
+      const res: any = await scoreContentAgainstVoice({
+        data: { voiceId: activeVoiceId, content: piece.text.slice(0, 6000) },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res?.success || typeof res.score !== "number") {
+        toast.error(res?.error || "Couldn't score this post");
+        return null;
+      }
+      return Math.round(res.score);
+    } catch {
+      toast.error("Couldn't score this post");
+      return null;
+    }
+  };
+
+  const cancelFormat = (formatId: FormatId) => {
+    abortsRef.current.get(formatId)?.abort();
+  };
+  const cancelAll = () => {
+    abortsRef.current.forEach((c) => c.abort());
+  };
+
   const handleGenerate = async () => {
     if (!session) return toast.error("Please sign in");
     if (!inputText.trim()) { toast.error("Add some source content first"); return; }
@@ -499,11 +536,17 @@ function RepurposePage() {
 
     const runOne = async (formatId: FormatId): Promise<void> => {
       setStatuses((s) => ({ ...s, [formatId]: "generating" }));
+      setStreamText((t) => ({ ...t, [formatId]: "" }));
       const start = Date.now();
+      const controller = new AbortController();
+      abortsRef.current.set(formatId, controller);
       try {
         const pick = picks[formatId] || {};
-        const res = await repurposeOneFormat({
-          data: {
+        const res = await streamRepurposeFormat({
+          token: session.access_token,
+          signal: controller.signal,
+          onDelta: (full) => setStreamText((t) => ({ ...t, [formatId]: full })),
+          body: {
             packId: newPackId,
             inputText: inputText.slice(0, 50000),
             format: formatId,
@@ -515,12 +558,14 @@ function RepurposePage() {
             customInstructions: customInstructions || undefined,
             language,
           },
-          headers: authHeaders,
         });
+
+        if (res.cancelled) {
+          setStatuses((s) => ({ ...s, [formatId]: "cancelled" }));
+          return;
+        }
         if (res.error) {
-          if (res.error === "LIMIT_REACHED") {
-            setShowUpgradeModal(true);
-          }
+          if (res.error === "LIMIT_REACHED") setShowUpgradeModal(true);
           setStatuses((s) => ({ ...s, [formatId]: "error" }));
           toast.error(`${FORMAT_BY_ID[formatId].name}: ${res.error}`);
           return;
@@ -531,6 +576,9 @@ function RepurposePage() {
         setActiveOutputTab((curr) => curr || formatId);
       } catch {
         setStatuses((s) => ({ ...s, [formatId]: "error" }));
+      } finally {
+        abortsRef.current.delete(formatId);
+        setStreamText((t) => { const next = { ...t }; delete next[formatId]; return next; });
       }
     };
 
@@ -1089,25 +1137,66 @@ function RepurposePage() {
             <div className="h-full bg-gradient-to-r from-primary to-violet-500 transition-all duration-500" style={{ width: `${progressPct}%` }} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">{progressPct}% — {doneCount} of {selectedIds.length} pieces done</p>
-          <div className="mt-4 space-y-1">
+          <div className="mt-4 space-y-1.5">
             {selectedIds.map((id) => {
               const st = statuses[id] || "waiting"; const def = FORMAT_BY_ID[id];
+              const live = streamText[id] || "";
+              const target = Math.max(400, (picks[id]?.count || def.defaultQty || 1) * 320);
+              const ring = st === "done" ? 100 : st === "generating" ? Math.min(96, Math.round((live.length / target) * 100)) : 0;
               return (
-                <div key={id} className="flex items-center gap-3 border-b border-border/40 py-2 text-sm last:border-b-0">
-                  <span className="w-5 shrink-0 text-center">
-                    {st === "done"    && <Check className="mx-auto h-4 w-4 text-emerald-500" />}
-                    {st === "generating" && <Loader2 className="mx-auto h-4 w-4 animate-spin text-primary" />}
-                    {st === "waiting" && <Circle className="mx-auto h-3.5 w-3.5 text-muted-foreground" />}
-                    {st === "error"   && <AlertTriangle className="mx-auto h-4 w-4 text-red-500" />}
-                  </span>
-                  <span className="flex-1 text-foreground inline-flex items-center gap-1.5"><BrandGlyph brand={def.id as BrandKey} size={14} /> {def.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {st === "done" ? `Done in ${timings[id] ?? "?"}s` : st === "generating" ? "Generating…" : st === "waiting" ? "Waiting" : "Error"}
-                  </span>
+                <div key={id} className="rounded-xl border border-border/50 bg-background/40 px-3 py-2">
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="relative h-7 w-7 shrink-0">
+                      <svg viewBox="0 0 36 36" className="h-7 w-7 -rotate-90">
+                        <circle cx="18" cy="18" r="15" fill="none" strokeWidth="3" className="stroke-muted" />
+                        <circle
+                          cx="18" cy="18" r="15" fill="none" strokeWidth="3" strokeLinecap="round"
+                          className={st === "error" || st === "cancelled" ? "stroke-red-500" : st === "done" ? "stroke-emerald-500" : "stroke-primary"}
+                          strokeDasharray={`${(ring / 100) * 94.2} 94.2`}
+                          style={{ transition: "stroke-dasharray 400ms ease" }}
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        {st === "done" && <Check className="h-3.5 w-3.5 text-emerald-500" />}
+                        {st === "generating" && <span className="text-[9px] font-bold text-primary">{ring}</span>}
+                        {st === "waiting" && <Circle className="h-2.5 w-2.5 text-muted-foreground" />}
+                        {(st === "error" || st === "cancelled") && <AlertTriangle className="h-3.5 w-3.5 text-red-500" />}
+                      </span>
+                    </span>
+                    <span className="flex-1 inline-flex items-center gap-1.5 font-medium text-foreground">
+                      <BrandGlyph brand={def.id as BrandKey} size={14} /> {def.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {st === "done" ? `Done in ${timings[id] ?? "?"}s`
+                        : st === "generating" ? `${live.split(/\s+/).filter(Boolean).length} words`
+                        : st === "waiting" ? "Queued"
+                        : st === "cancelled" ? "Cancelled" : "Error"}
+                    </span>
+                    {st === "generating" && (
+                      <button
+                        onClick={() => cancelFormat(id)}
+                        className="rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-red-400/50 hover:text-red-500"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                  {st === "generating" && live && (
+                    <p className="mt-1.5 max-h-16 overflow-hidden whitespace-pre-wrap break-words text-[11px] leading-relaxed text-muted-foreground/80">
+                      {live.slice(-320)}
+                      <span className="ml-0.5 inline-block h-3 w-1 animate-pulse bg-primary align-middle" />
+                    </p>
+                  )}
                 </div>
               );
             })}
           </div>
+          <button
+            onClick={cancelAll}
+            className="mt-3 w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-red-400/50 hover:text-red-500"
+          >
+            Cancel all remaining
+          </button>
           <p className="mt-4 text-center text-xs italic text-muted-foreground">
             AI is giving each format its full attention for maximum quality.
           </p>
@@ -1195,6 +1284,7 @@ function RepurposePage() {
                 regenerating={statuses[activeOutputTab] === "generating"}
                 onEdit={(value) => setResults((r) => ({ ...r, [activeOutputTab]: value }))}
                 onRefinePiece={(piece, kind) => refineOnePiece(activeOutputTab, piece, kind)}
+                onVoiceScore={scorePieceVoice}
                 onPublishPiece={sendPieceToPublishing}
                 onSchedulePiece={schedulePiece}
               />
@@ -1466,11 +1556,12 @@ function SelectRow({ label, value, onChange, options }: {
   );
 }
 
-function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece }: {
+function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece, onVoiceScore }: {
   formatId: FormatId; content: string; onCopy: (text: string, id: string) => void; copied: string | null;
   onRegenerate: () => void; onSaveSwipe: () => void; regenerating: boolean;
   onEdit: (value: string) => void;
   onRefinePiece: (piece: Piece, kind: RefineKind) => Promise<string | null>;
+  onVoiceScore?: (piece: Piece) => Promise<number | null>;
   onPublishPiece: (piece: Piece) => void;
   onSchedulePiece: (piece: Piece) => void;
 }) {
@@ -1534,6 +1625,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
             onRefine={onRefinePiece}
             onPublishPiece={onPublishPiece}
             onSchedulePiece={onSchedulePiece}
+            onVoiceScore={onVoiceScore}
           />
         </div>
       ) : (

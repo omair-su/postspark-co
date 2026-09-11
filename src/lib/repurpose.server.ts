@@ -1,4 +1,4 @@
-import { callClaude } from "@/lib/anthropic.server";
+import { callClaude, streamClaude } from "@/lib/anthropic.server";
 
 export interface VoiceProfile {
   tone_sliders?: { formality?: number; humor?: number; enthusiasm?: number; complexity?: number };
@@ -445,6 +445,62 @@ SLIDE 2:
   }
 }
 
+export interface GenerateFormatOpts {
+  inputText: string;
+  format: string;
+  count?: number;
+  style?: string;
+  length?: string;
+  tone: string;
+  styleModifiers: string[];
+  customInstructions: string;
+  brandVoiceSummary: string;
+  language: string;
+  voiceProfile?: VoiceProfile;
+}
+
+/** Shared prompt build for both the buffered and the streaming path. */
+export function buildOneFormatPrompt(opts: GenerateFormatOpts): { systemPrompt: string; maxTokens: number } {
+  const { system, maxTokens } = buildFormatPrompt(
+    { format: opts.format, count: opts.count, style: opts.style, length: opts.length },
+    opts.tone,
+    opts.styleModifiers,
+    opts.customInstructions,
+    opts.brandVoiceSummary,
+    opts.language,
+    opts.voiceProfile,
+  );
+
+  const isYouTubeSource =
+    /Video source: https?:\/\/(www\.)?(youtube\.com|youtu\.be)/i.test(opts.inputText);
+
+  const systemPrompt = isYouTubeSource
+    ? `${system}
+
+YOUTUBE CONTEXT: You are repurposing a YouTube video transcript. The user has provided the transcript (or, when unavailable, the video title and channel). Extract the most valuable insights, key quotes, and actionable points. Create content that feels like it came from someone who actually watched and understood the video deeply. Never mention that you were given a transcript.`
+    : system;
+
+  return { systemPrompt, maxTokens };
+}
+
+/** Streaming generation — emits tokens as they arrive, cancellable via `signal`. */
+export async function streamOneFormat(
+  opts: GenerateFormatOpts,
+  onDelta: (chunk: string) => void,
+  signal?: AbortSignal,
+): Promise<{ output: string; error?: string }> {
+  const { systemPrompt, maxTokens } = buildOneFormatPrompt(opts);
+  const result = await streamClaude({
+    systemPrompt,
+    userPrompt: opts.inputText,
+    maxTokens,
+    signal,
+    onDelta,
+  });
+  if (result.error) return { output: result.text, error: result.error };
+  return { output: result.text };
+}
+
 export async function generateOneFormat(opts: {
   inputText: string;
   format: string;
@@ -458,24 +514,7 @@ export async function generateOneFormat(opts: {
   language: string;
   voiceProfile?: VoiceProfile;
 }): Promise<{ output: string; error?: string }> {
-  const { system, maxTokens } = buildFormatPrompt(
-    { format: opts.format, count: opts.count, style: opts.style, length: opts.length },
-    opts.tone,
-    opts.styleModifiers,
-    opts.customInstructions,
-    opts.brandVoiceSummary,
-    opts.language,
-    opts.voiceProfile,
-  );
-
-  // Extra guidance when the source is a YouTube transcript import.
-  const isYouTubeSource =
-    /Video source: https?:\/\/(www\.)?(youtube\.com|youtu\.be)/i.test(opts.inputText);
-  const systemPrompt = isYouTubeSource
-    ? `${system}
-
-YOUTUBE CONTEXT: You are repurposing a YouTube video transcript. The user has provided the transcript (or, when unavailable, the video title and channel). Extract the most valuable insights, key quotes, and actionable points. Create content that feels like it came from someone who actually watched and understood the video deeply. Never mention that you were given a transcript.`
-    : system;
+  const { systemPrompt, maxTokens } = buildOneFormatPrompt(opts);
 
   const result = await callClaude({
     systemPrompt,

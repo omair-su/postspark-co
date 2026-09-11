@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateOneFormat, refinePieceText } from "@/lib/repurpose.server";
 import { resolveActiveBrandKit, brandKitPromptContext } from "@/lib/activeBrandKit.server";
+import { prepareFormatGeneration, persistFormatOutput } from "@/lib/repurposePrep.server";
 import {
   FREE_MONTHLY_LIMIT,
   FORMAT_ID,
@@ -213,104 +214,17 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
       return { output: "", error: "Rate limit: please wait a minute and try again.", jobId: null };
     }
 
-    const { data: profile } = await supabase
-      .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+    const prep = await prepareFormatGeneration(supabase, userId, data);
+    if (!prep.ok) return { output: "", error: prep.error, jobId: null };
 
-    const plan = profile?.plan || "free";
-    const isPro = plan === "pro" || plan === "agency";
-
-    // Brand Voice (Pro)
-    let brandVoiceSummary = "";
-    let voiceProfile: any = undefined;
-    if (isPro) {
-      const { data: voice } = await supabase
-        .from("brand_voices")
-        .select("style_summary, style_override, tone_sliders, dos, donts, emoji_density, sentence_length, cta_style")
-        .eq("user_id", userId).eq("is_active", true).maybeSingle();
-      const v: any = voice;
-      brandVoiceSummary = (v?.style_override as string) || (v?.style_summary as string) || "";
-      if (v) {
-        voiceProfile = {
-          tone_sliders: v.tone_sliders || undefined,
-          dos: Array.isArray(v.dos) ? v.dos : undefined,
-          donts: Array.isArray(v.donts) ? v.donts : undefined,
-          emoji_density: v.emoji_density || undefined,
-          sentence_length: v.sentence_length || undefined,
-          cta_style: v.cta_style || undefined,
-        };
-      }
-    }
-
-    // Brand Kit (deterministic active kit → auto tone + context)
-    let effectiveTone = data.tone || "professional";
-    let brandKitId: string | null = null;
-    const kit = await resolveActiveBrandKit(supabase, userId);
-    if (kit) {
-      brandKitId = kit.id ?? null;
-      if (!data.tone && kit.preferred_tone) effectiveTone = kit.preferred_tone;
-    }
-    const brandContext = brandKitPromptContext(kit);
-
-    const mergedInstructions = brandContext
-      ? `${data.customInstructions || ""}${data.customInstructions ? " " : ""}Brand context — ${brandContext}.`.trim()
-      : (data.customInstructions || "");
-
-    let workspaceId: string | null = null;
-    const { data: membership } = await supabase
-      .from("workspace_members").select("workspace_id").eq("user_id", userId).limit(1).maybeSingle();
-    if (membership?.workspace_id) workspaceId = membership.workspace_id as string;
-
-    const packTitle = data.inputText.replace(/\s+/g, " ").trim().slice(0, 120);
-
-    const claim = await claimRepurposePack(supabase, {
-      packId: data.packId,
-      userId,
-      inputText: data.inputText,
-      title: packTitle,
-      brandKitId,
-      workspaceId,
-    });
-    if (!claim.ok) {
-      return { output: "", error: claim.error === "LIMIT_REACHED" ? "LIMIT_REACHED" : claim.error, jobId: null };
-    }
-
-    const result = await generateOneFormat({
-      inputText: data.inputText,
-      format: data.format,
-      count: data.count,
-      style: data.style,
-      length: data.length,
-      tone: effectiveTone,
-      styleModifiers: data.styleModifiers || [],
-      customInstructions: mergedInstructions,
-      brandVoiceSummary,
-      language: data.language || "English",
-      voiceProfile,
-    });
-
+    const result = await generateOneFormat(prep.opts);
     if (result.error || !result.output) {
       return { output: "", error: result.error || "Generation failed", jobId: null };
     }
 
-    // Atomic JSONB merge via RPC — avoids parallel-write race that drops formats
-    const { error: rpcErr } = await (supabase as any).rpc("append_repurpose_outputs", {
-      _job_id: data.packId,
-      _user_id: userId,
-      _patch: { [data.format]: result.output },
-      _title: packTitle,
-    });
-    if (rpcErr) {
-      console.error("append_repurpose_outputs RPC error, falling back:", rpcErr);
-      const { data: existing } = await supabase
-        .from("repurpose_jobs").select("outputs").eq("id", data.packId).eq("user_id", userId).maybeSingle();
-      const prev = ((existing as any)?.outputs as Record<string, unknown>) || {};
-      await supabase
-        .from("repurpose_jobs")
-        .update({ outputs: { ...prev, [data.format]: result.output } as any, title: packTitle })
-        .eq("id", data.packId).eq("user_id", userId);
-    }
-
-
+    await persistFormatOutput(
+      supabase, userId, data.packId, data.format, result.output, prep.packTitle,
+    );
 
     return { output: result.output, error: undefined as string | undefined, jobId: data.packId };
   });

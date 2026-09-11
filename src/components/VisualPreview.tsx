@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { parsePieces, limitFor, serializePieces, type Piece } from "@/lib/pieces";
+import { analyzePiece, autoFixPiece } from "@/lib/pieceQuality";
 import { BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 
 export type RefineKind = "regenerate" | "shorter" | "punchier" | "specific";
@@ -43,6 +44,8 @@ interface Props {
   onRefine?: (piece: Piece, kind: RefineKind) => Promise<string | null>;
   onPublishPiece?: (piece: Piece) => void;
   onSchedulePiece?: (piece: Piece) => void;
+  /** Optional on-demand Brand Voice match score (0-100), Pro only. */
+  onVoiceScore?: (piece: Piece) => Promise<number | null>;
 }
 
 /**
@@ -50,7 +53,7 @@ interface Props {
  * into fragments — segmentation comes from `parsePieces`, not from guessing.
  */
 export function VisualPreview({
-  typeId, content, label, onChange, onRefine, onPublishPiece, onSchedulePiece,
+  typeId, content, label, onChange, onRefine, onPublishPiece, onSchedulePiece, onVoiceScore,
 }: Props) {
   const pieces = useMemo(() => parsePieces(typeId, content), [typeId, content]);
 
@@ -80,12 +83,13 @@ export function VisualPreview({
         <div key={piece.id} className="lux-enter" style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
           <PieceCard
             piece={piece}
-            siblings={pieces.filter((_, j) => j !== i).map((p) => p.text)}
+            siblings={pieces}
             editable={!!onChange}
             onSave={(text) => replacePiece(i, text)}
             onRefine={onRefine}
             onPublishPiece={onPublishPiece}
             onSchedulePiece={onSchedulePiece}
+            onVoiceScore={onVoiceScore}
           />
         </div>
       ))}
@@ -101,21 +105,26 @@ const REFINE_ACTIONS: { kind: RefineKind; label: string; icon: typeof Scissors }
 ];
 
 function PieceCard({
-  piece, editable, onSave, onRefine, onPublishPiece, onSchedulePiece,
+  piece, siblings, editable, onSave, onRefine, onPublishPiece, onSchedulePiece, onVoiceScore,
 }: {
   piece: Piece;
-  siblings: string[];
+  siblings: Piece[];
   editable: boolean;
   onSave: (text: string) => void;
   onRefine?: (piece: Piece, kind: RefineKind) => Promise<string | null>;
   onPublishPiece?: (piece: Piece) => void;
   onSchedulePiece?: (piece: Piece) => void;
+  onVoiceScore?: (piece: Piece) => Promise<number | null>;
 }) {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(piece.text);
   const [busy, setBusy] = useState<RefineKind | null>(null);
+  const [voiceScore, setVoiceScore] = useState<number | null>(null);
+  const [voiceBusy, setVoiceBusy] = useState(false);
+  const signals = useMemo(() => analyzePiece(piece, siblings), [piece, siblings]);
+  const fix = useMemo(() => (piece.document ? null : autoFixPiece(piece)), [piece]);
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "You";
   const handle = (user?.email || "you").split("@")[0]!;
   const avatar = user?.user_metadata?.avatar_url as string | undefined;
@@ -187,6 +196,45 @@ function PieceCard({
           )}
         </div>
       </div>
+
+      {/* Quality signals */}
+      {!editing && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5 px-1">
+          {!piece.document && (
+            <QualityChip label="Length" value={signals.overBy > 0 ? `+${signals.overBy} over` : `${signals.fillPct}% of limit`} tone={signals.overBy > 0 ? "bad" : signals.fillPct > 85 ? "warn" : "good"} />
+          )}
+          <QualityChip label="Hook" value={`${signals.hook}`} tone={signals.hook >= 65 ? "good" : signals.hook >= 45 ? "warn" : "bad"} />
+          <QualityChip label="Readability" value={`${signals.readability}`} tone={signals.readability >= 60 ? "good" : signals.readability >= 40 ? "warn" : "bad"} />
+          {signals.similarTo && (
+            <QualityChip label="Similar" value={`${signals.similarity}% like post ${signals.similarTo}`} tone="warn" />
+          )}
+          {onVoiceScore && (
+            voiceScore === null ? (
+              <button
+                onClick={async () => {
+                  if (voiceBusy) return;
+                  setVoiceBusy(true);
+                  try { setVoiceScore(await onVoiceScore(piece)); } finally { setVoiceBusy(false); }
+                }}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+              >
+                {voiceBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+                Brand voice match
+              </button>
+            ) : (
+              <QualityChip label="Voice" value={`${voiceScore}% match`} tone={voiceScore >= 75 ? "good" : voiceScore >= 50 ? "warn" : "bad"} />
+            )
+          )}
+          {fix && editable && (
+            <button
+              onClick={() => onSave(fix.chain ? fix.chain.join("\n\n") : fix.text)}
+              className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
+            >
+              <Scissors className="h-3 w-3" /> Auto-fix · {fix.note}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Per-post rewrite bar */}
       {onRefine && !editing && (
@@ -528,5 +576,19 @@ function FacebookCard({ name, avatar, text }: { name: string; avatar?: string; t
         <span className="flex items-center justify-center gap-1.5 py-2"><Send className="h-4 w-4" /> Share</span>
       </div>
     </div>
+  );
+}
+
+function QualityChip({ label, value, tone }: { label: string; value: string; tone: "good" | "warn" | "bad" }) {
+  const cls =
+    tone === "good"
+      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+      : tone === "warn"
+        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+        : "bg-red-500/10 text-red-500";
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cls}`}>
+      <span className="opacity-70">{label}</span> {value}
+    </span>
   );
 }
