@@ -108,6 +108,7 @@ import { Route as CallbacksXRouteImport } from './routes/callbacks.x'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApiStudioStreamRouteImport } from './routes/api/studio-stream'
+import { Route as ApiRepurposeStreamRouteImport } from './routes/api/repurpose-stream'
 import { Route as ApiNarrateShortRouteImport } from './routes/api/narrate-short'
 import { Route as ApiDeepgramTranscribeRouteImport } from './routes/api/deepgram-transcribe'
 import { Route as AlternativesTypefullyVsPostsparkRouteImport } from './routes/alternatives.typefully-vs-postspark'
@@ -685,6 +686,11 @@ const ApiStudioStreamRoute = ApiStudioStreamRouteImport.update({
   path: '/api/studio-stream',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRepurposeStreamRoute = ApiRepurposeStreamRouteImport.update({
+  id: '/api/repurpose-stream',
+  path: '/api/repurpose-stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNarrateShortRoute = ApiNarrateShortRouteImport.update({
   id: '/api/narrate-short',
   path: '/api/narrate-short',
@@ -1066,6 +1072,7 @@ export interface FileRoutesByFullPath {
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/api/deepgram-transcribe': typeof ApiDeepgramTranscribeRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
+  '/api/repurpose-stream': typeof ApiRepurposeStreamRoute
   '/api/studio-stream': typeof ApiStudioStreamRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -1229,6 +1236,7 @@ export interface FileRoutesByTo {
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/api/deepgram-transcribe': typeof ApiDeepgramTranscribeRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
+  '/api/repurpose-stream': typeof ApiRepurposeStreamRoute
   '/api/studio-stream': typeof ApiStudioStreamRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -1394,6 +1402,7 @@ export interface FileRoutesById {
   '/alternatives/typefully-vs-postspark': typeof AlternativesTypefullyVsPostsparkRoute
   '/api/deepgram-transcribe': typeof ApiDeepgramTranscribeRoute
   '/api/narrate-short': typeof ApiNarrateShortRoute
+  '/api/repurpose-stream': typeof ApiRepurposeStreamRoute
   '/api/studio-stream': typeof ApiStudioStreamRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -1560,6 +1569,7 @@ export interface FileRouteTypes {
     | '/alternatives/typefully-vs-postspark'
     | '/api/deepgram-transcribe'
     | '/api/narrate-short'
+    | '/api/repurpose-stream'
     | '/api/studio-stream'
     | '/auth/callback'
     | '/blog/$slug'
@@ -1723,6 +1733,7 @@ export interface FileRouteTypes {
     | '/alternatives/typefully-vs-postspark'
     | '/api/deepgram-transcribe'
     | '/api/narrate-short'
+    | '/api/repurpose-stream'
     | '/api/studio-stream'
     | '/auth/callback'
     | '/blog/$slug'
@@ -1887,6 +1898,7 @@ export interface FileRouteTypes {
     | '/alternatives/typefully-vs-postspark'
     | '/api/deepgram-transcribe'
     | '/api/narrate-short'
+    | '/api/repurpose-stream'
     | '/api/studio-stream'
     | '/auth/callback'
     | '/blog/$slug'
@@ -2052,6 +2064,7 @@ export interface RootRouteChildren {
   AlternativesTypefullyVsPostsparkRoute: typeof AlternativesTypefullyVsPostsparkRoute
   ApiDeepgramTranscribeRoute: typeof ApiDeepgramTranscribeRoute
   ApiNarrateShortRoute: typeof ApiNarrateShortRoute
+  ApiRepurposeStreamRoute: typeof ApiRepurposeStreamRoute
   ApiStudioStreamRoute: typeof ApiStudioStreamRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -2828,6 +2841,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudioStreamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/repurpose-stream': {
+      id: '/api/repurpose-stream'
+      path: '/api/repurpose-stream'
+      fullPath: '/api/repurpose-stream'
+      preLoaderRoute: typeof ApiRepurposeStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/narrate-short': {
       id: '/api/narrate-short'
       path: '/api/narrate-short'
@@ -3478,6 +3498,7 @@ const rootRouteChildren: RootRouteChildren = {
   AlternativesTypefullyVsPostsparkRoute: AlternativesTypefullyVsPostsparkRoute,
   ApiDeepgramTranscribeRoute: ApiDeepgramTranscribeRoute,
   ApiNarrateShortRoute: ApiNarrateShortRoute,
+  ApiRepurposeStreamRoute: ApiRepurposeStreamRoute,
   ApiStudioStreamRoute: ApiStudioStreamRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,
