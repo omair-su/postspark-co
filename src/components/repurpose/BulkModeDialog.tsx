@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Loader2, X, Layers, Rss, Link as LinkIcon, Crown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { bulkExtractSources } from "@/lib/repurposePacks.functions";
+import bulkModeArt from "@/assets/premium/repurpose-bulk-mode.jpg";
 
 export interface BulkSource {
   url: string;
@@ -58,22 +59,40 @@ export function BulkModeDialog({ open, onClose, onRun, isPro }: Props) {
 
   return (
     <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="max-h-[88vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-card p-5" onClick={(e) => e.stopPropagation()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Bulk mode"
+        className="max-h-[88vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-card p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-1 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Layers className="h-4 w-4 text-primary" />
+            <Layers className="h-4 w-4 text-primary" aria-hidden="true" />
             <h4 className="text-base font-semibold">Bulk mode</h4>
             {!isPro && (
               <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                <Crown className="h-3 w-3" /> Pro
+                <Crown className="h-3 w-3" aria-hidden="true" /> Pro
               </span>
             )}
           </div>
-          <button onClick={onClose} className="rounded-lg p-1 hover:bg-muted"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} aria-label="Close" className="rp-focus rounded-lg p-1.5 hover:bg-muted">
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
-        <p className="mb-4 text-xs text-muted-foreground">
-          Drop up to 10 links or one feed. Each source becomes its own content pack, generated one after another.
-        </p>
+        <div className="mb-4 flex items-center gap-3">
+          <img
+            src={bulkModeArt}
+            alt=""
+            loading="lazy"
+            width={1024}
+            height={640}
+            className="h-14 w-24 shrink-0 rounded-lg object-cover"
+          />
+          <p className="text-xs text-muted-foreground">
+            Drop up to 10 links or one feed. Each source becomes its own content pack, generated one after another.
+          </p>
+        </div>
 
         <div className="mb-3 flex gap-2">
           <button
