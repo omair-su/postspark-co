@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { streamRepurposeFormat } from "@/lib/repurposeStream";
 import { withAIProgress } from "@/lib/aiProgress";
 import {
   Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Eye, FileText,
@@ -139,7 +140,7 @@ const PLATFORM_MAP: Record<string, "twitter"|"threads"|"linkedin"|"instagram"|"f
 // -------- State types --------------------------------------------------
 
 interface FormatPick { count?: number; style?: string; length?: string }
-type FormatStatus = "idle" | "waiting" | "generating" | "done" | "error";
+type FormatStatus = "idle" | "waiting" | "generating" | "done" | "error" | "cancelled";
 
 export const Route = createFileRoute("/dashboard/repurpose")({
   component: RepurposePage,
@@ -188,6 +189,9 @@ function RepurposePage() {
   const [statuses, setStatuses] = useState<Partial<Record<FormatId, FormatStatus>>>({});
   const [results, setResults] = useState<Partial<Record<FormatId, string>>>({});
   const [timings, setTimings] = useState<Partial<Record<FormatId, number>>>({});
+  // Live streamed text per format (tokens as they arrive) + per-format cancel.
+  const [streamText, setStreamText] = useState<Partial<Record<FormatId, string>>>({});
+  const abortsRef = useRef<Map<FormatId, AbortController>>(new Map());
   const [packId, setPackId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeOutputTab, setActiveOutputTab] = useState<FormatId | null>(null);
@@ -476,6 +480,13 @@ function RepurposePage() {
   };
 
 
+  const cancelFormat = (formatId: FormatId) => {
+    abortsRef.current.get(formatId)?.abort();
+  };
+  const cancelAll = () => {
+    abortsRef.current.forEach((c) => c.abort());
+  };
+
   const handleGenerate = async () => {
     if (!session) return toast.error("Please sign in");
     if (!inputText.trim()) { toast.error("Add some source content first"); return; }
@@ -499,11 +510,17 @@ function RepurposePage() {
 
     const runOne = async (formatId: FormatId): Promise<void> => {
       setStatuses((s) => ({ ...s, [formatId]: "generating" }));
+      setStreamText((t) => ({ ...t, [formatId]: "" }));
       const start = Date.now();
+      const controller = new AbortController();
+      abortsRef.current.set(formatId, controller);
       try {
         const pick = picks[formatId] || {};
-        const res = await repurposeOneFormat({
-          data: {
+        const res = await streamRepurposeFormat({
+          token: session.access_token,
+          signal: controller.signal,
+          onDelta: (full) => setStreamText((t) => ({ ...t, [formatId]: full })),
+          body: {
             packId: newPackId,
             inputText: inputText.slice(0, 50000),
             format: formatId,
@@ -515,12 +532,14 @@ function RepurposePage() {
             customInstructions: customInstructions || undefined,
             language,
           },
-          headers: authHeaders,
         });
+
+        if (res.cancelled) {
+          setStatuses((s) => ({ ...s, [formatId]: "cancelled" }));
+          return;
+        }
         if (res.error) {
-          if (res.error === "LIMIT_REACHED") {
-            setShowUpgradeModal(true);
-          }
+          if (res.error === "LIMIT_REACHED") setShowUpgradeModal(true);
           setStatuses((s) => ({ ...s, [formatId]: "error" }));
           toast.error(`${FORMAT_BY_ID[formatId].name}: ${res.error}`);
           return;
@@ -531,6 +550,9 @@ function RepurposePage() {
         setActiveOutputTab((curr) => curr || formatId);
       } catch {
         setStatuses((s) => ({ ...s, [formatId]: "error" }));
+      } finally {
+        abortsRef.current.delete(formatId);
+        setStreamText((t) => { const next = { ...t }; delete next[formatId]; return next; });
       }
     };
 
