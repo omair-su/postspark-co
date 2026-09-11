@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { streamRepurposeFormat } from "@/lib/repurposeStream";
@@ -1111,25 +1111,66 @@ function RepurposePage() {
             <div className="h-full bg-gradient-to-r from-primary to-violet-500 transition-all duration-500" style={{ width: `${progressPct}%` }} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">{progressPct}% — {doneCount} of {selectedIds.length} pieces done</p>
-          <div className="mt-4 space-y-1">
+          <div className="mt-4 space-y-1.5">
             {selectedIds.map((id) => {
               const st = statuses[id] || "waiting"; const def = FORMAT_BY_ID[id];
+              const live = streamText[id] || "";
+              const target = Math.max(400, (picks[id]?.count || def.defaultQty || 1) * 320);
+              const ring = st === "done" ? 100 : st === "generating" ? Math.min(96, Math.round((live.length / target) * 100)) : 0;
               return (
-                <div key={id} className="flex items-center gap-3 border-b border-border/40 py-2 text-sm last:border-b-0">
-                  <span className="w-5 shrink-0 text-center">
-                    {st === "done"    && <Check className="mx-auto h-4 w-4 text-emerald-500" />}
-                    {st === "generating" && <Loader2 className="mx-auto h-4 w-4 animate-spin text-primary" />}
-                    {st === "waiting" && <Circle className="mx-auto h-3.5 w-3.5 text-muted-foreground" />}
-                    {st === "error"   && <AlertTriangle className="mx-auto h-4 w-4 text-red-500" />}
-                  </span>
-                  <span className="flex-1 text-foreground inline-flex items-center gap-1.5"><BrandGlyph brand={def.id as BrandKey} size={14} /> {def.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {st === "done" ? `Done in ${timings[id] ?? "?"}s` : st === "generating" ? "Generating…" : st === "waiting" ? "Waiting" : "Error"}
-                  </span>
+                <div key={id} className="rounded-xl border border-border/50 bg-background/40 px-3 py-2">
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="relative h-7 w-7 shrink-0">
+                      <svg viewBox="0 0 36 36" className="h-7 w-7 -rotate-90">
+                        <circle cx="18" cy="18" r="15" fill="none" strokeWidth="3" className="stroke-muted" />
+                        <circle
+                          cx="18" cy="18" r="15" fill="none" strokeWidth="3" strokeLinecap="round"
+                          className={st === "error" || st === "cancelled" ? "stroke-red-500" : st === "done" ? "stroke-emerald-500" : "stroke-primary"}
+                          strokeDasharray={`${(ring / 100) * 94.2} 94.2`}
+                          style={{ transition: "stroke-dasharray 400ms ease" }}
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        {st === "done" && <Check className="h-3.5 w-3.5 text-emerald-500" />}
+                        {st === "generating" && <span className="text-[9px] font-bold text-primary">{ring}</span>}
+                        {st === "waiting" && <Circle className="h-2.5 w-2.5 text-muted-foreground" />}
+                        {(st === "error" || st === "cancelled") && <AlertTriangle className="h-3.5 w-3.5 text-red-500" />}
+                      </span>
+                    </span>
+                    <span className="flex-1 inline-flex items-center gap-1.5 font-medium text-foreground">
+                      <BrandGlyph brand={def.id as BrandKey} size={14} /> {def.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {st === "done" ? `Done in ${timings[id] ?? "?"}s`
+                        : st === "generating" ? `${live.split(/\s+/).filter(Boolean).length} words`
+                        : st === "waiting" ? "Queued"
+                        : st === "cancelled" ? "Cancelled" : "Error"}
+                    </span>
+                    {st === "generating" && (
+                      <button
+                        onClick={() => cancelFormat(id)}
+                        className="rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-red-400/50 hover:text-red-500"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                  {st === "generating" && live && (
+                    <p className="mt-1.5 max-h-16 overflow-hidden whitespace-pre-wrap break-words text-[11px] leading-relaxed text-muted-foreground/80">
+                      {live.slice(-320)}
+                      <span className="ml-0.5 inline-block h-3 w-1 animate-pulse bg-primary align-middle" />
+                    </p>
+                  )}
                 </div>
               );
             })}
           </div>
+          <button
+            onClick={cancelAll}
+            className="mt-3 w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-red-400/50 hover:text-red-500"
+          >
+            Cancel all remaining
+          </button>
           <p className="mt-4 text-center text-xs italic text-muted-foreground">
             AI is giving each format its full attention for maximum quality.
           </p>
