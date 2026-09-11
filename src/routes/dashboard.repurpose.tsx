@@ -8,7 +8,7 @@ import { withAIProgress } from "@/lib/aiProgress";
 import {
   Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Eye, FileText,
   Youtube, Link as LinkIcon, Calendar as CalendarIcon, Save, X, Repeat, Type as TypeIcon,
-  Languages, Bookmark, Wand2, Circle, ChevronDown, Send,
+  Languages, Bookmark, Wand2, Circle, ChevronDown, Send, Layers, Clock, ShieldCheck,
 } from "lucide-react";
 import { repurposeOneFormat, startRepurposePack, getMonthlyUsage, saveToSwipeFile, refinePiece } from "@/lib/repurpose.functions";
 import { importFromUrl } from "@/lib/import.functions";
@@ -31,6 +31,11 @@ import { brandColor } from "@/lib/brandColors";
 import { GoogleDriveFilePicker } from "@/components/google/GoogleDriveFilePicker";
 import { ExportToGoogleDocs } from "@/components/google/ExportToGoogleDocs";
 import { GoogleDriveIcon } from "@/components/google/GoogleIcons";
+import { RecentPacksRail, type LoadedPack, type EvergreenAngle } from "@/components/repurpose/RecentPacksRail";
+import { BulkModeDialog, type BulkSource } from "@/components/repurpose/BulkModeDialog";
+import { nextBestSlot, type BestTimePlatform } from "@/lib/bestTime";
+import { generateImage } from "@/lib/image.functions";
+import { createApprovalRequest } from "@/lib/approvals.functions";
 
 
 // -------- Format catalog (the new world-class spec) --------------------
@@ -177,6 +182,20 @@ function RepurposePage() {
   const [customInstructions, setCustomInstructions] = useState("");
   const [language, setLanguage] = useState("English");
   const [langQuery, setLangQuery] = useState("");
+  /** Multi-language drop: the same pack, generated again in these languages. */
+  const [extraLangs, setExtraLangs] = useState<string[]>([]);
+  const [langResults, setLangResults] = useState<Record<string, Partial<Record<FormatId, string>>>>({});
+  const [activeLang, setActiveLang] = useState<string>("English");
+
+  // Recent packs / bulk mode / per-post visuals / approvals
+  const [packVersion, setPackVersion] = useState(0);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkRunning, setBulkRunning] = useState<{ done: number; total: number } | null>(null);
+  const [pieceMedia, setPieceMedia] = useState<Record<string, string>>({});
+  const [useBestTimes, setUseBestTimes] = useState(true);
+  const [approvalBusy, setApprovalBusy] = useState(false);
+  const [approvalLink, setApprovalLink] = useState<string | null>(null);
+
 
   // Brand kit
   const [brandKit, setBrandKit] = useState<{ brand_name: string|null; tagline: string|null; preferred_tone: string|null } | null>(null);
@@ -315,12 +334,19 @@ function RepurposePage() {
   );
   const packPieceCount = packPieces.length;
 
+  /** Attaches this post's generated visual so publishing/scheduling carry it. */
+  const withMedia = (piece: Piece): Piece => {
+    const url = pieceMedia[piece.id];
+    return url ? { ...piece, media: [...(piece.media || []), url] } : piece;
+  };
+
+
   const sendPackToPublishing = () => {
     if (!packPieces.length) return;
     try {
       sessionStorage.setItem(
         PUBLISH_PACK_KEY,
-        JSON.stringify({ pieces: packPieces, at: Date.now() }),
+        JSON.stringify({ pieces: packPieces.map(withMedia), at: Date.now() }),
       );
     } catch {}
     navigate({ to: "/dashboard/publishing" });
@@ -329,31 +355,86 @@ function RepurposePage() {
   /** Sends exactly one post to the Publishing Center. */
   const sendPieceToPublishing = (piece: Piece) => {
     try {
-      sessionStorage.setItem(PUBLISH_PACK_KEY, JSON.stringify({ pieces: [piece], at: Date.now() }));
+      sessionStorage.setItem(PUBLISH_PACK_KEY, JSON.stringify({ pieces: [withMedia(piece)], at: Date.now() }));
     } catch {}
     navigate({ to: "/dashboard/publishing" });
   };
 
-  /** Schedules one post for tomorrow at 09:00 on its own platform. */
+  /** Schedules one post at the next best time for its own platform. */
   const schedulePiece = async (piece: Piece) => {
     if (!session) return;
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(9, 0, 0, 0);
+    const slot = nextBestSlot(piece.platform as BestTimePlatform);
+    const image = pieceMedia[piece.id];
     try {
       const res = await createScheduledPost({
         data: {
           title: `${FORMAT_BY_ID[piece.format as FormatId]?.name || piece.format}${piece.total > 1 ? ` ${piece.index}/${piece.total}` : ""}`,
           content: piece.text.slice(0, 10000),
           platform: piece.platform,
-          scheduled_for: d.toISOString(),
+          scheduled_for: slot.date.toISOString(),
+          ...(image ? { media_url: image, media_type: "image" as const } : {}),
         },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      if (res.success) toast.success(`Scheduled for tomorrow 9:00 AM — edit it in the Calendar`);
+      if (res.success) toast.success(`Scheduled for ${slot.label} — ${slot.reason.toLowerCase()}`);
       else toast.error("Could not schedule this post");
     } catch {
       toast.error("Could not schedule this post");
+    }
+  };
+
+  /** Generates a visual for one post through Image Studio and attaches it. */
+  const generatePieceImage = async (piece: Piece): Promise<string | null> => {
+    if (!session) { toast.error("Please sign in"); return null; }
+    const brand = brandKit?.brand_name?.trim();
+    const prompt =
+      `Scroll-stopping social visual for this post: "${piece.text.replace(/\s+/g, " ").slice(0, 400)}". ` +
+      `Clean, premium, editorial. No text overlays.${brand ? ` Brand: ${brand}.` : ""}`;
+    try {
+      const res: any = await withAIProgress(generateImage({
+        data: {
+          prompt: prompt.slice(0, 2000),
+          style: "photorealistic",
+          aspect: piece.platform === "instagram" || piece.platform === "tiktok" ? "portrait" : "landscape",
+          model: "gemini",
+          quality: "standard",
+        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }));
+      if (res?.error || !res?.imageUrl) {
+        toast.error(res?.error === "LIMIT_REACHED" ? "You've used your image credits for this month" : (res?.error || "Could not create a visual"));
+        return null;
+      }
+      setPieceMedia((m) => ({ ...m, [piece.id]: res.imageUrl }));
+      toast.success("Visual attached — it travels with this post");
+      return res.imageUrl as string;
+    } catch {
+      toast.error("Could not create a visual");
+      return null;
+    }
+  };
+
+  /** Agency: creates a client approval link for the saved pack. */
+  const requestApproval = async () => {
+    if (!session || !packId) return;
+    setApprovalBusy(true);
+    try {
+      const res: any = await createApprovalRequest({
+        data: { jobId: packId },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res?.success || !res?.token) {
+        toast.error("Client approvals are part of the Agency plan");
+        return;
+      }
+      const link = `${window.location.origin}/review/${res.token}`;
+      setApprovalLink(link);
+      try { await navigator.clipboard.writeText(link); } catch {}
+      toast.success("Approval link copied — send it to your client");
+    } catch {
+      toast.error("Could not create an approval link");
+    } finally {
+      setApprovalBusy(false);
     }
   };
 
@@ -513,26 +594,36 @@ function RepurposePage() {
     abortsRef.current.forEach((c) => c.abort());
   };
 
-  const handleGenerate = async () => {
-    if (!session) return toast.error("Please sign in");
-    if (!inputText.trim()) { toast.error("Add some source content first"); return; }
-    if (selectedIds.length === 0) { toast.error("Choose at least one format"); return; }
-    if (remaining !== null && remaining <= 0) { setShowUpgradeModal(true); return; }
-
+  /**
+   * Runs ONE pack: creates the row, then streams every selected format.
+   * Reused by normal generation, the multi-language drop, and bulk mode —
+   * each call is its own pack and its own monthly credit.
+   */
+  const runPack = async (
+    sourceText: string,
+    lang: string,
+    opts: { live?: boolean } = { live: true },
+  ): Promise<{ packId: string | null; results: Partial<Record<FormatId, string>> }> => {
+    if (!session) return { packId: null, results: {} };
+    const live = opts.live !== false;
     const newPackId = crypto.randomUUID();
-    setPackId(newPackId);
-    setResults({}); setTimings({});
-    const initial: Partial<Record<FormatId, FormatStatus>> = {};
-    selectedIds.forEach((id) => { initial[id] = "waiting"; });
-    setStatuses(initial);
-    setLoading(true);
-    setActiveOutputTab(null);
+    const collected: Partial<Record<FormatId, string>> = {};
 
     const useBrandTone = !!brandKit?.preferred_tone && !overrideTone;
     const effectiveTone = useBrandTone ? undefined : tone;
     const modifierLabels = Array.from(styleModifiers).map((id) => STYLE_MODIFIERS.find((m) => m.id === id)?.label || id);
-
     const authHeaders = { Authorization: `Bearer ${session.access_token}` };
+
+    const startRes = await startRepurposePack({
+      data: { packId: newPackId, inputText: sourceText.slice(0, 50000) },
+      headers: authHeaders,
+    });
+    if (!startRes.ok) {
+      const startErr = String(startRes.error || "");
+      if (startErr === "LIMIT_REACHED") setShowUpgradeModal(true);
+      else toast.error(startErr || "Could not start this pack");
+      return { packId: null, results: {} };
+    }
 
     const runOne = async (formatId: FormatId): Promise<void> => {
       setStatuses((s) => ({ ...s, [formatId]: "generating" }));
@@ -548,7 +639,7 @@ function RepurposePage() {
           onDelta: (full) => setStreamText((t) => ({ ...t, [formatId]: full })),
           body: {
             packId: newPackId,
-            inputText: inputText.slice(0, 50000),
+            inputText: sourceText.slice(0, 50000),
             format: formatId,
             count: pick.count,
             style: pick.style,
@@ -556,7 +647,7 @@ function RepurposePage() {
             tone: effectiveTone,
             styleModifiers: modifierLabels,
             customInstructions: customInstructions || undefined,
-            language,
+            language: lang,
           },
         });
 
@@ -570,10 +661,13 @@ function RepurposePage() {
           toast.error(`${FORMAT_BY_ID[formatId].name}: ${res.error}`);
           return;
         }
-        setResults((r) => ({ ...r, [formatId]: res.output }));
+        collected[formatId] = res.output;
+        if (live) {
+          setResults((r) => ({ ...r, [formatId]: res.output }));
+          setActiveOutputTab((curr) => curr || formatId);
+        }
         setTimings((t) => ({ ...t, [formatId]: Math.round((Date.now() - start) / 100) / 10 }));
         setStatuses((s) => ({ ...s, [formatId]: "done" }));
-        setActiveOutputTab((curr) => curr || formatId);
       } catch {
         setStatuses((s) => ({ ...s, [formatId]: "error" }));
       } finally {
@@ -582,56 +676,152 @@ function RepurposePage() {
       }
     };
 
+    // Every format runs independently — one failure never blocks the others.
+    // Capped concurrency keeps long packs under the generation rate limit.
+    const CONCURRENCY = 3;
+    const queue = [...selectedIds];
+    const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+      for (;;) {
+        const next = queue.shift();
+        if (!next) return;
+        await runOne(next);
+      }
+    });
+    await withAIProgress(Promise.all(workers));
+
+    getMonthlyUsage({ headers: authHeaders }).then(setUsage).catch(() => {});
+    return { packId: newPackId, results: collected };
+  };
+
+  const handleGenerate = async () => {
+    if (!session) return toast.error("Please sign in");
+    if (!inputText.trim()) { toast.error("Add some source content first"); return; }
+    if (selectedIds.length === 0) { toast.error("Choose at least one format"); return; }
+    if (remaining !== null && remaining <= 0) { setShowUpgradeModal(true); return; }
+
+    setResults({}); setTimings({}); setLangResults({}); setPieceMedia({}); setApprovalLink(null);
+    const initial: Partial<Record<FormatId, FormatStatus>> = {};
+    selectedIds.forEach((id) => { initial[id] = "waiting"; });
+    setStatuses(initial);
+    setLoading(true);
+    setActiveOutputTab(null);
+    setActiveLang(language);
+
     try {
-      // Create the pack (and check the monthly limit) once, up-front.
-      const startRes = await startRepurposePack({
-        data: { packId: newPackId, inputText: inputText.slice(0, 50000) },
-        headers: authHeaders,
-      });
-      if (!startRes.ok) {
-        const startErr = String(startRes.error || "");
-        if (startErr === "LIMIT_REACHED") setShowUpgradeModal(true);
-        else toast.error(startErr || "Could not start this pack");
-        setStatuses({});
-        setLoading(false);
-        return;
+      const primary = await runPack(inputText, language);
+      if (!primary.packId) { setStatuses({}); return; }
+      setPackId(primary.packId);
+      setLangResults({ [language]: primary.results });
+
+      const done = Object.keys(primary.results).length;
+      if (done === 0) toast.error("No formats generated — retry any card below");
+      else if (done < selectedIds.length)
+        toast.warning(`${done}/${selectedIds.length} formats ready — retry the rest individually`);
+      else toast.success("Content pack ready");
+
+      // Multi-language drop: the same source, one extra pack per language.
+      for (const lang of extraLangs) {
+        toast.info(`Generating the ${lang} version…`);
+        const extra = await runPack(inputText, lang, { live: false });
+        if (!extra.packId) break;
+        setLangResults((prev) => ({ ...prev, [lang]: extra.results }));
       }
+      if (extraLangs.length) toast.success(`Ready in ${extraLangs.length + 1} languages`);
 
-
-      // Every format runs independently — one failure never blocks the others.
-      // Capped concurrency keeps long packs under the generation rate limit.
-      const CONCURRENCY = 3;
-      const queue = [...selectedIds];
-      const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
-        for (;;) {
-          const next = queue.shift();
-          if (!next) return;
-          await runOne(next);
-        }
-      });
-      await withAIProgress(Promise.all(workers));
-
-
-      if (session) {
-        getMonthlyUsage({ headers: authHeaders }).then(setUsage).catch(()=>{});
-      }
       try {
         if (typeof window !== "undefined" && localStorage.getItem("ps_pwa_ready_v1") !== "1") {
           localStorage.setItem("ps_pwa_ready_v1", "1");
           window.dispatchEvent(new Event("postspark:pwa-ready"));
         }
       } catch {}
-      setResults((r) => {
-        const done = Object.keys(r).length;
-        if (done === 0) toast.error("No formats generated — retry any card below");
-        else if (done < selectedIds.length)
-          toast.warning(`${done}/${selectedIds.length} formats ready — retry the rest individually`);
-        else toast.success("Content pack ready");
-        return r;
-      });
     } finally {
       setLoading(false);
+      setPackVersion((v) => v + 1);
     }
+  };
+
+  /** Bulk mode: one pack per source, run one after another. */
+  const runBulk = async (sources: BulkSource[]) => {
+    if (!session) return toast.error("Please sign in");
+    if (selectedIds.length === 0) return toast.error("Choose at least one format first");
+    setLoading(true);
+    setBulkRunning({ done: 0, total: sources.length });
+    let ok = 0;
+    try {
+      for (let i = 0; i < sources.length; i++) {
+        const src = sources[i]!;
+        setBulkRunning({ done: i, total: sources.length });
+        setStatuses(Object.fromEntries(selectedIds.map((id) => [id, "waiting"])) as Partial<Record<FormatId, FormatStatus>>);
+        const res = await runPack(src.text, language, { live: i === sources.length - 1 });
+        if (!res.packId) break;
+        ok++;
+        if (i === sources.length - 1) {
+          setInputText(src.text);
+          setImportMeta(`From: ${src.title}`);
+          setPackId(res.packId);
+          setResults(res.results);
+          setLangResults({ [language]: res.results });
+          setActiveOutputTab(Object.keys(res.results)[0] as FormatId ?? null);
+        }
+      }
+      if (ok) toast.success(`${ok} pack${ok === 1 ? "" : "s"} generated — open them in Recent packs`);
+      else toast.error("No packs were generated");
+    } finally {
+      setBulkRunning(null);
+      setLoading(false);
+      setPackVersion((v) => v + 1);
+    }
+  };
+
+  /** Recent packs rail: reopen a saved pack read-only into the editor. */
+  const reopenPack = (pack: LoadedPack) => {
+    const formats = Object.keys(pack.outputs).filter((k) => pack.outputs[k]?.trim()) as FormatId[];
+    if (!formats.length) { toast.error("That pack has no saved content"); return; }
+    const nextPicks: Partial<Record<FormatId, FormatPick>> = {};
+    formats.forEach((id) => {
+      const def = FORMAT_BY_ID[id];
+      if (def) nextPicks[id] = { count: def.defaultQty, style: def.styles?.[0], length: def.lengths?.[1] };
+    });
+    setPicks(nextPicks);
+    setInputText(pack.inputText);
+    setImportMeta(`Reopened: ${pack.title}`);
+    setPackId(pack.id);
+    setResults(pack.outputs as Partial<Record<FormatId, string>>);
+    setLangResults({ [language]: pack.outputs as Partial<Record<FormatId, string>> });
+    setStatuses(Object.fromEntries(formats.map((id) => [id, "done"])) as Partial<Record<FormatId, FormatStatus>>);
+    setActiveOutputTab(formats[0]!);
+    setPieceMedia({});
+    setApprovalLink(null);
+    toast.success(`Reopened “${pack.title}”`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  /** Duplicate: same source and format mix, ready to generate a fresh pack. */
+  const duplicatePack = (pack: LoadedPack) => {
+    const formats = Object.keys(pack.outputs).filter((k) => pack.outputs[k]?.trim()) as FormatId[];
+    const nextPicks: Partial<Record<FormatId, FormatPick>> = {};
+    formats.forEach((id) => {
+      const def = FORMAT_BY_ID[id];
+      if (def) nextPicks[id] = { count: def.defaultQty, style: def.styles?.[0], length: def.lengths?.[1] };
+    });
+    if (Object.keys(nextPicks).length) setPicks(nextPicks);
+    setInputText(pack.inputText);
+    setImportMeta(`Duplicate of: ${pack.title}`);
+    setResults({}); setStatuses({}); setPackId(null); setActiveOutputTab(null);
+    toast.success("Loaded — hit Generate for a fresh version");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  /** Evergreen recycling: reuse a past winner from a genuinely new angle. */
+  const applyEvergreenAngle = (pack: LoadedPack, angle: EvergreenAngle) => {
+    setInputText(pack.inputText);
+    setImportMeta(`Evergreen: ${pack.title}`);
+    setCustomInstructions(
+      `New angle — ${angle.title}: ${angle.angle}${angle.hook ? ` Open with something like: "${angle.hook}"` : ""}`.slice(0, 500),
+    );
+    setResults({}); setStatuses({}); setPackId(null); setActiveOutputTab(null);
+    toast.success(`Angle loaded — “${angle.title}”`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const regenerateOne = async (formatId: FormatId) => {
@@ -713,6 +903,16 @@ function RepurposePage() {
         <div className="pw-surface p-4"><HeroStat num="30+" label="Languages" /></div>
         <div className="pw-surface p-4"><HeroStat num="1" label="Source" /></div>
       </div>
+
+      {/* ============== RECENT PACKS RAIL ============== */}
+      <RecentPacksRail
+        refreshKey={packVersion}
+        formatLabel={(id) => FORMAT_BY_ID[id as FormatId]?.name || id}
+        onReopen={reopenPack}
+        onDuplicate={duplicatePack}
+        onEvergreen={applyEvergreenAngle}
+      />
+
 
 
 
@@ -1095,6 +1295,36 @@ function RepurposePage() {
           )}
           <p className="mt-2 text-xs text-muted-foreground">Current: <span className="font-medium text-foreground">{language}</span></p>
         </div>
+
+        {/* Multi-language drop */}
+        <div className="mt-5 rounded-xl border border-border/70 bg-muted/30 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Language drop — same source, extra languages
+            </p>
+            <span className="text-[11px] text-muted-foreground">
+              {extraLangs.length ? `${extraLangs.length} extra · 1 credit each` : "Up to 4 extra languages"}
+            </span>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {POPULAR_LANGUAGES.filter((l) => l.name !== language).map((l) => {
+              const on = extraLangs.includes(l.name);
+              return (
+                <button
+                  key={l.name}
+                  onClick={() => setExtraLangs((prev) =>
+                    prev.includes(l.name) ? prev.filter((x) => x !== l.name) : prev.length >= 4 ? prev : [...prev, l.name],
+                  )}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    on ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  }`}
+                >
+                  <span>{l.flag}</span>{l.name}{on && <Check className="h-3 w-3" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </StepCard>
 
       {/* ============== GENERATE SUMMARY + BUTTON ============== */}
@@ -1114,7 +1344,8 @@ function RepurposePage() {
           })}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          {totalPieces} content piece{totalPieces===1?"":"s"} · Est. ~{Math.max(8, selectedIds.length * 6)} seconds · 1 generation credit
+          {totalPieces} content piece{totalPieces===1?"":"s"} · Est. ~{Math.max(8, selectedIds.length * 6)} seconds ·{" "}
+          {extraLangs.length ? `${extraLangs.length + 1} generation credits (one per language)` : "1 generation credit"}
         </p>
         <button
           onClick={handleGenerate}
@@ -1124,6 +1355,16 @@ function RepurposePage() {
           <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-all duration-700 group-hover:left-full" />
           {loading ? (<><Loader2 className="h-5 w-5 animate-spin" /> Generating your content pack…</>)
             : (<><Sparkles className="h-5 w-5" /> Repurpose Now</>)}
+        </button>
+        <button
+          onClick={() => setBulkOpen(true)}
+          disabled={loading}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary disabled:opacity-60"
+        >
+          <Layers className="h-4 w-4" />
+          {bulkRunning
+            ? `Bulk mode — pack ${bulkRunning.done + 1} of ${bulkRunning.total}…`
+            : "Bulk mode — many links or an RSS feed"}
         </button>
       </div>
 
@@ -1224,8 +1465,53 @@ function RepurposePage() {
               <button onClick={() => { setTemplateName(`My pack · ${new Date().toLocaleDateString()}`); setShowSaveTemplateModal(true); }} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/40 hover:text-primary">
                 <Save className="h-3.5 w-3.5" /> Save template
               </button>
+              {packId && (
+                <button
+                  onClick={requestApproval}
+                  disabled={approvalBusy}
+                  title="Send this pack to a client for approval"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/40 hover:text-primary disabled:opacity-60"
+                >
+                  {approvalBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  Client approval
+                </button>
+              )}
             </div>
           </div>
+
+          {approvalLink && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs">
+              <span className="text-foreground">Approval link ready (copied to your clipboard).</span>
+              <a href={approvalLink} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">
+                Open review page
+              </a>
+            </div>
+          )}
+
+          {/* Language versions of this drop */}
+          {Object.keys(langResults).length > 1 && (
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Languages className="h-3.5 w-3.5" /> Language
+              </span>
+              {Object.keys(langResults).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => {
+                    setActiveLang(lang);
+                    const r = langResults[lang] || {};
+                    setResults(r);
+                    setActiveOutputTab((Object.keys(r)[0] as FormatId) ?? null);
+                  }}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                    activeLang === lang ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+          )}
 
           {restoredDraft && (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2 text-xs">
@@ -1287,6 +1573,8 @@ function RepurposePage() {
                 onVoiceScore={scorePieceVoice}
                 onPublishPiece={sendPieceToPublishing}
                 onSchedulePiece={schedulePiece}
+                onGenerateImage={generatePieceImage}
+                media={pieceMedia}
               />
             </div>
           )}
@@ -1336,17 +1624,32 @@ function RepurposePage() {
             <div><h2 className="text-base font-bold text-foreground">Schedule this pack</h2><p className="text-xs text-muted-foreground">Saves each individual post to your calendar.</p></div>
           </div>
           <div className="space-y-3">
-            <label className="block text-xs font-medium text-foreground">Start date
-              <input type="date" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} min={new Date().toISOString().slice(0,10)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+            <button
+              onClick={() => setUseBestTimes((v) => !v)}
+              className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-xs ${
+                useBestTimes ? "border-primary bg-primary/5" : "border-border"
+              }`}
+            >
+              <Clock className={`h-4 w-4 ${useBestTimes ? "text-primary" : "text-muted-foreground"}`} />
+              <span className="flex-1">
+                <span className="font-semibold text-foreground">Use best times</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  Each post lands in its own platform's peak window — e.g. {nextBestSlot("linkedin").label} for LinkedIn.
+                </span>
+              </span>
+              <span className={`h-4 w-4 shrink-0 rounded-full border-[1.5px] ${useBestTimes ? "border-primary bg-primary" : "border-input"}`} />
+            </button>
+            <label className={`block text-xs font-medium text-foreground ${useBestTimes ? "opacity-50" : ""}`}>Start date
+              <input type="date" disabled={useBestTimes} value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} min={new Date().toISOString().slice(0,10)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none" />
             </label>
-            <label className="block text-xs font-medium text-foreground">Time of day
-              <input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+            <label className={`block text-xs font-medium text-foreground ${useBestTimes ? "opacity-50" : ""}`}>Time of day
+              <input type="time" disabled={useBestTimes} value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none" />
             </label>
-            <div>
+            <div className={useBestTimes ? "opacity-50" : ""}>
               <span className="text-xs font-medium text-foreground">Spread</span>
               <div className="mt-1 grid grid-cols-2 gap-2">
-                <button onClick={() => setScheduleSpread("daily")} className={`rounded-lg border px-3 py-2 text-xs font-medium ${scheduleSpread==="daily"?"border-primary bg-primary/10":"border-border text-muted-foreground"}`}>One per day</button>
-                <button onClick={() => setScheduleSpread("same")} className={`rounded-lg border px-3 py-2 text-xs font-medium ${scheduleSpread==="same"?"border-primary bg-primary/10":"border-border text-muted-foreground"}`}>All same day</button>
+                <button disabled={useBestTimes} onClick={() => setScheduleSpread("daily")} className={`rounded-lg border px-3 py-2 text-xs font-medium ${scheduleSpread==="daily"?"border-primary bg-primary/10":"border-border text-muted-foreground"}`}>One per day</button>
+                <button disabled={useBestTimes} onClick={() => setScheduleSpread("same")} className={`rounded-lg border px-3 py-2 text-xs font-medium ${scheduleSpread==="same"?"border-primary bg-primary/10":"border-border text-muted-foreground"}`}>All same day</button>
               </div>
             </div>
           </div>
@@ -1358,14 +1661,24 @@ function RepurposePage() {
               // Schedule every individual post, not whole format blobs.
               const queue = packPieces;
               const [h, m] = scheduleTime.split(":").map((n) => parseInt(n,10) || 0);
+              const perPlatform: Record<string, number> = {};
               let ok=0, fail=0;
               for (let i=0; i<queue.length; i++) {
                 const piece = queue[i]!;
-                const d = new Date(`${scheduleDate}T00:00:00`);
-                if (scheduleSpread === "daily") d.setDate(d.getDate() + i);
-                d.setHours(h, m, 0, 0);
-                // Same-day packs are spaced 90 minutes apart so feeds don't get flooded.
-                if (scheduleSpread === "same") d.setMinutes(d.getMinutes() + i * 90);
+                let d: Date;
+                if (useBestTimes) {
+                  // Walk each platform's own peak windows so nothing collides.
+                  const seen = perPlatform[piece.platform] ?? 0;
+                  perPlatform[piece.platform] = seen + 1;
+                  d = nextBestSlot(piece.platform as BestTimePlatform, seen).date;
+                } else {
+                  d = new Date(`${scheduleDate}T00:00:00`);
+                  if (scheduleSpread === "daily") d.setDate(d.getDate() + i);
+                  d.setHours(h, m, 0, 0);
+                  // Same-day packs are spaced 90 minutes apart so feeds don't get flooded.
+                  if (scheduleSpread === "same") d.setMinutes(d.getMinutes() + i * 90);
+                }
+                const image = pieceMedia[piece.id];
                 try {
                   const res = await createScheduledPost({
                     data: {
@@ -1373,6 +1686,7 @@ function RepurposePage() {
                       content: piece.text.slice(0, 10000),
                       platform: piece.platform,
                       scheduled_for: d.toISOString(),
+                      ...(image ? { media_url: image, media_type: "image" as const } : {}),
                     },
                     headers: { Authorization: `Bearer ${session.access_token}` },
                   });
@@ -1422,6 +1736,13 @@ function RepurposePage() {
           </button>
         </Modal>
       )}
+
+      <BulkModeDialog
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        onRun={runBulk}
+        isPro={tier !== "free"}
+      />
     </div>
   );
 }
@@ -1556,7 +1877,7 @@ function SelectRow({ label, value, onChange, options }: {
   );
 }
 
-function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece, onVoiceScore }: {
+function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece, onVoiceScore, onGenerateImage, media }: {
   formatId: FormatId; content: string; onCopy: (text: string, id: string) => void; copied: string | null;
   onRegenerate: () => void; onSaveSwipe: () => void; regenerating: boolean;
   onEdit: (value: string) => void;
@@ -1564,6 +1885,8 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
   onVoiceScore?: (piece: Piece) => Promise<number | null>;
   onPublishPiece: (piece: Piece) => void;
   onSchedulePiece: (piece: Piece) => void;
+  onGenerateImage?: (piece: Piece) => Promise<string | null>;
+  media?: Record<string, string>;
 }) {
   const def = FORMAT_BY_ID[formatId];
   const previewable = true;
@@ -1626,6 +1949,8 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
             onPublishPiece={onPublishPiece}
             onSchedulePiece={onSchedulePiece}
             onVoiceScore={onVoiceScore}
+            onGenerateImage={onGenerateImage}
+            media={media}
           />
         </div>
       ) : (
