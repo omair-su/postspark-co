@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { streamRepurposeFormat } from "@/lib/repurposeStream";
+import { getActiveBrandVoice, scoreContentAgainstVoice } from "@/lib/brandVoice.functions";
 import { withAIProgress } from "@/lib/aiProgress";
 import {
   Sparkles, Loader2, Copy, Check, RefreshCw, AlertTriangle, Download, Eye, FileText,
@@ -192,6 +193,7 @@ function RepurposePage() {
   // Live streamed text per format (tokens as they arrive) + per-format cancel.
   const [streamText, setStreamText] = useState<Partial<Record<FormatId, string>>>({});
   const abortsRef = useRef<Map<FormatId, AbortController>>(new Map());
+  const [activeVoiceId, setActiveVoiceId] = useState<string | null>(null);
   const [packId, setPackId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeOutputTab, setActiveOutputTab] = useState<FormatId | null>(null);
@@ -479,6 +481,27 @@ function RepurposePage() {
     toast.success("Transcript added");
   };
 
+
+  const scorePieceVoice = async (piece: Piece): Promise<number | null> => {
+    if (!session || !activeVoiceId) {
+      toast.info("Train a Brand Voice first to see match scores");
+      return null;
+    }
+    try {
+      const res: any = await scoreContentAgainstVoice({
+        data: { voiceId: activeVoiceId, content: piece.text.slice(0, 6000) },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!res?.success || typeof res.score !== "number") {
+        toast.error(res?.error || "Couldn't score this post");
+        return null;
+      }
+      return Math.round(res.score);
+    } catch {
+      toast.error("Couldn't score this post");
+      return null;
+    }
+  };
 
   const cancelFormat = (formatId: FormatId) => {
     abortsRef.current.get(formatId)?.abort();
@@ -1258,6 +1281,7 @@ function RepurposePage() {
                 regenerating={statuses[activeOutputTab] === "generating"}
                 onEdit={(value) => setResults((r) => ({ ...r, [activeOutputTab]: value }))}
                 onRefinePiece={(piece, kind) => refineOnePiece(activeOutputTab, piece, kind)}
+                onVoiceScore={scorePieceVoice}
                 onPublishPiece={sendPieceToPublishing}
                 onSchedulePiece={schedulePiece}
               />
@@ -1529,11 +1553,12 @@ function SelectRow({ label, value, onChange, options }: {
   );
 }
 
-function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece }: {
+function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece, onVoiceScore }: {
   formatId: FormatId; content: string; onCopy: (text: string, id: string) => void; copied: string | null;
   onRegenerate: () => void; onSaveSwipe: () => void; regenerating: boolean;
   onEdit: (value: string) => void;
   onRefinePiece: (piece: Piece, kind: RefineKind) => Promise<string | null>;
+  onVoiceScore?: (piece: Piece) => Promise<number | null>;
   onPublishPiece: (piece: Piece) => void;
   onSchedulePiece: (piece: Piece) => void;
 }) {
@@ -1597,6 +1622,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
             onRefine={onRefinePiece}
             onPublishPiece={onPublishPiece}
             onSchedulePiece={onSchedulePiece}
+            onVoiceScore={onVoiceScore}
           />
         </div>
       ) : (
