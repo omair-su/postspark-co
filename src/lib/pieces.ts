@@ -184,6 +184,17 @@ export function limitFor(platform: PublishPlatform): number {
   return PLATFORM_LIMITS[platform] ?? 3000;
 }
 
+/**
+ * Rebuild one format's stored text from (possibly edited) pieces, so an inline
+ * edit or a single-piece rewrite round-trips through the same parser.
+ */
+export function serializePieces(format: string, pieces: Piece[]): string {
+  const texts = pieces.map((p) => p.text.trim()).filter(Boolean);
+  if (!texts.length) return "";
+  if (SINGLE_DOC_FORMATS.has(format) || format === "thread") return texts.join("\n\n");
+  return texts.join(`\n${PIECE_DELIMITER}\n`);
+}
+
 /** Split an over-long text into platform-sized chunks at sentence boundaries. */
 export function autoChunk(text: string, limit: number): string[] {
   const clean = text.trim();

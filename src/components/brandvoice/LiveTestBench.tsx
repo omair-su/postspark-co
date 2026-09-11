@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Beaker, Loader2, RefreshCw, Copy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { repurposeContent } from "@/lib/repurpose.functions";
+import { repurposeOneFormat, startRepurposePack } from "@/lib/repurpose.functions";
 import { scoreContentAgainstVoice } from "@/lib/brandVoice.functions";
 
 interface Props {
@@ -31,11 +31,15 @@ export function LiveTestBench({ activeVoiceId }: Props) {
     setOutput("");
     setScore(null);
     try {
-      const res = await repurposeContent({
-        data: {
-          inputText: `Topic: ${topic.trim()}. Write a short, high-quality sample post in my voice.`,
-          selectedTypes: [format],
-        },
+      const packId = crypto.randomUUID();
+      const inputText = `Topic: ${topic.trim()}. Write a short, high-quality sample post in my voice.`;
+      const start = await startRepurposePack({ data: { packId, inputText }, headers: auth });
+      if (!start.ok) {
+        toast.error(start.error === "LIMIT_REACHED" ? "Monthly limit reached — upgrade to keep testing" : (start.error || "Could not start test"));
+        return;
+      }
+      const res = await repurposeOneFormat({
+        data: { packId, inputText, format, count: 1 },
         headers: auth,
       });
       if (res.error || !res.output) {
