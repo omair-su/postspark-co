@@ -123,6 +123,20 @@ export const Route = createFileRoute("/api/studio-stream")({
         let scanBuf = "";
         let finalB64: string | null = null;
 
+        // A cancelled stream never reaches `flush()`, so the reserved credit has
+        // to be released from the abort signal — otherwise hitting Cancel (or
+        // starting a new render) silently burns a monthly generation.
+        let settled = false;
+        const settleOnce = async (success: boolean) => {
+          if (settled) return;
+          settled = true;
+          await settleImageQuota(reservation.id, success);
+        };
+        request.signal.addEventListener("abort", () => {
+          void settleOnce(false);
+        });
+
+
         const relay = new TransformStream<Uint8Array, Uint8Array>({
           transform(chunk, controller) {
             controller.enqueue(chunk);
@@ -151,10 +165,10 @@ export const Route = createFileRoute("/api/studio-stream")({
           },
           async flush(controller) {
             if (!finalB64) {
-              await settleImageQuota(reservation.id, false);
+              await settleOnce(false);
               return;
             }
-            await settleImageQuota(reservation.id, true);
+            await settleOnce(true);
             const imageUrl = finalB64.startsWith("data:")
               ? finalB64
               : `data:image/png;base64,${finalB64}`;

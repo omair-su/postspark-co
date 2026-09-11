@@ -91,8 +91,16 @@ export async function advanceImageJob(jobId: string, userId?: string): Promise<I
   if (row.status === "failed" || row.status === "canceled")
     return { status: "failed", error: row.error || "Render failed" };
 
+  // Safety valve: a job we can never finish must not hold its reserved credit
+  // forever. After 30 minutes (or 60 poll attempts) it is failed and refunded.
+  const ageMs = Date.now() - new Date(row.created_at).getTime();
+  if (ageMs > 30 * 60 * 1000 || (row.attempts || 0) > 60) {
+    return await failJob(jobId, row, "Render timed out — credit refunded");
+  }
+
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return { status: "pending" };
+
 
   let prediction: any;
   try {
