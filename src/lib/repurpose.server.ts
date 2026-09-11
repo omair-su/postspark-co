@@ -48,69 +48,71 @@ export function buildVoiceProfileBlock(vp?: VoiceProfile): string {
 }
 
 
-export async function generateRepurposedContent(
-  inputText: string,
-  selectedTypes: string[],
-  tone: string = "professional",
-  customInstructions: string = "",
-  brandVoiceSummary: string = "",
-  language: string = "English",
-  voiceProfile?: VoiceProfile,
-): Promise<{ output: string; error?: string }> {
-  const typeInstructions = selectedTypes
-    .map((t) => {
-      switch (t) {
-        case "tweets":
-          return "exactly 10 short punchy tweets (under 280 chars each, numbered 1-10, max 2 hashtags per tweet)";
-        case "linkedin":
-          return "exactly 5 LinkedIn posts (professional storytelling hooks, 150-300 words each, line breaks for readability, numbered 1-5)";
-        case "email":
-          return "1 email newsletter (subject line + preview text + body with greeting, 3 sections, and CTA, ~300 words)";
-        case "video":
-          return "1 video script (Hook 0-30s, Main Content 30s-4min with bullet points, CTA 4-5min, ~400 words)";
-        case "instagram":
-          return "5 Instagram captions (~150 chars each + 10 hashtags each, numbered 1-5)";
-        case "facebook":
-          return "3 Facebook posts (conversational, shareable, 100-200 words each, numbered 1-3)";
-        case "seo":
-          return "1 blog summary (150 words) + 3 SEO meta descriptions (under 160 chars each)";
-        case "tiktok":
-          return "3 TikTok/Reels scripts (hook in first 3 seconds, 60-90 seconds each, numbered 1-3)";
-        case "podcast":
-          return "1 set of podcast show notes (title, summary, key takeaways, timestamps outline, ~300 words)";
-        case "thread":
-          return "1 Threads (Meta) post chain (8-12 connected posts, numbered, with a compelling hook)";
-        default:
-          return "";
-      }
-    })
-    .filter(Boolean)
-    .join(", ");
+/* ---------------------------------------------------------------------------
+ * SINGLE-PIECE REFINEMENT
+ * Rewrites exactly ONE post inside an existing pack — never touches siblings.
+ * ------------------------------------------------------------------------ */
 
-  const toneInstruction = tone !== "professional" ? ` Use a ${tone} tone throughout.` : "";
-  const customBlock = customInstructions.trim()
-    ? ` Additional instructions: ${customInstructions.trim()}`
+export type RefineInstruction = "regenerate" | "shorter" | "punchier" | "specific";
+
+const REFINE_BRIEF: Record<RefineInstruction, string> = {
+  regenerate:
+    "Rewrite this post from scratch with a COMPLETELY different angle, hook and structure. Same source material, new take.",
+  shorter:
+    "Tighten this post hard. Cut every word that isn't earning its place. Keep the strongest idea and the hook; lose the rest. Aim for roughly 40% shorter.",
+  punchier:
+    "Make this punchier: sharper hook in the first line, shorter sentences, stronger verbs, more rhythm. Same length, far more energy.",
+  specific:
+    "Make this concrete: swap every vague claim for a specific number, name, example or moment drawn from the source. No generic advice.",
+};
+
+export async function refinePieceText(opts: {
+  pieceText: string;
+  format: string;
+  instruction: RefineInstruction;
+  charLimit?: number;
+  siblings?: string[];
+  tone: string;
+  styleModifiers: string[];
+  customInstructions: string;
+  brandVoiceSummary: string;
+  language: string;
+  voiceProfile?: VoiceProfile;
+}): Promise<{ output: string; error?: string }> {
+  const suffix = buildSharedSuffix(
+    opts.tone,
+    opts.styleModifiers,
+    opts.customInstructions,
+    opts.brandVoiceSummary,
+    opts.language,
+    opts.voiceProfile,
+  );
+
+  const limitLine = opts.charLimit
+    ? `\nHARD LIMIT: stay under ${opts.charLimit} characters.`
     : "";
-  const voiceBlock = brandVoiceSummary.trim()
-    ? `\n\nCRITICAL — Match this user's personal brand voice EXACTLY. Mimic their tone, sentence rhythm, vocabulary, punctuation quirks, and formatting habits:\n${brandVoiceSummary.trim()}`
-    : "";
-  const languageBlock = language && language !== "English"
-    ? ` Write ALL output in ${language}. Use native idioms and natural phrasing for that language.`
+  const siblingBlock = opts.siblings?.length
+    ? `\n\nThese are the OTHER posts in the same pack. Your rewrite must not repeat their ideas, hooks or opening words:\n${opts.siblings
+        .slice(0, 6)
+        .map((s, i) => `(${i + 1}) ${s.slice(0, 400)}`)
+        .join("\n")}`
     : "";
 
-  const guardrails = buildVoiceProfileBlock(voiceProfile);
-  const systemPrompt = `You are PostSpark's AI content engine. You are an expert content strategist and copywriter who specializes in repurposing content for maximum reach across multiple platforms. Always produce high-quality, platform-native content that sounds human and engaging — never robotic or generic.
+  const system = `You are an elite ${opts.format} copywriter editing ONE post inside a content pack.
 
-For this request, generate: ${typeInstructions}. Format each section with a clear markdown header (e.g. "## Tweets"). Be engaging, value-driven, and platform-appropriate.${toneInstruction}${languageBlock}${customBlock}${voiceBlock}${guardrails}`;
+BRIEF: ${REFINE_BRIEF[opts.instruction]}${limitLine}
+${DEPTH_RULES}${siblingBlock}
+
+OUTPUT: the rewritten post only. No commentary, no headers, no numbering, no alternatives, no quotation marks around it.${suffix}`;
 
   const result = await callClaude({
-    systemPrompt,
-    userPrompt: inputText,
-    maxTokens: 4000,
+    systemPrompt: system,
+    userPrompt: opts.pieceText,
+    maxTokens: 2000,
   });
 
   if (result.error) return { output: "", error: result.error };
-  return { output: result.text };
+  return { output: result.text.trim() };
 }
 
 /* ---------------------------------------------------------------------------

@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Heart, MessageCircle, Repeat2, Send, Bookmark, MoreHorizontal, ThumbsUp,
   Globe, Music, Mail, Copy, Check, FileText, ChevronLeft, ChevronRight,
+  Pencil, RefreshCw, Scissors, Zap, Target, Loader2, X, CalendarClock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { parsePieces, limitFor, type Piece } from "@/lib/pieces";
+import { parsePieces, limitFor, serializePieces, type Piece } from "@/lib/pieces";
 import { BrandGlyph, type BrandKey } from "@/components/BrandIcon";
+
+export type RefineKind = "regenerate" | "shorter" | "punchier" | "specific";
 
 type Platform = "twitter" | "threads" | "linkedin" | "instagram" | "facebook" | "tiktok" | "email" | "doc";
 
@@ -34,14 +37,22 @@ interface Props {
   content: string;
   /** Optional label override, e.g. "Tweets". */
   label?: string;
+  /** Called with the rebuilt format text after an inline edit or a rewrite. */
+  onChange?: (content: string) => void;
+  /** Rewrites a single post server-side; resolve with the new text or null. */
+  onRefine?: (piece: Piece, kind: RefineKind) => Promise<string | null>;
+  onPublishPiece?: (piece: Piece) => void;
+  onSchedulePiece?: (piece: Piece) => void;
 }
 
 /**
  * One generated post = exactly ONE preview card. Never splits a single post
  * into fragments — segmentation comes from `parsePieces`, not from guessing.
  */
-export function VisualPreview({ typeId, content, label }: Props) {
-  const pieces = parsePieces(typeId, content);
+export function VisualPreview({
+  typeId, content, label, onChange, onRefine, onPublishPiece, onSchedulePiece,
+}: Props) {
+  const pieces = useMemo(() => parsePieces(typeId, content), [typeId, content]);
 
   if (!pieces.length) {
     return (
@@ -51,6 +62,12 @@ export function VisualPreview({ typeId, content, label }: Props) {
     );
   }
 
+  const replacePiece = (index: number, text: string) => {
+    if (!onChange) return;
+    const next = pieces.map((p, i) => (i === index ? { ...p, text } : p));
+    onChange(serializePieces(typeId, next));
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between text-[11px] text-muted-foreground">
@@ -59,16 +76,46 @@ export function VisualPreview({ typeId, content, label }: Props) {
         </span>
         <span>Each card is one complete, publishable post</span>
       </div>
-      {pieces.map((piece) => (
-        <PieceCard key={piece.id} piece={piece} />
+      {pieces.map((piece, i) => (
+        <div key={piece.id} className="lux-enter" style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
+          <PieceCard
+            piece={piece}
+            siblings={pieces.filter((_, j) => j !== i).map((p) => p.text)}
+            editable={!!onChange}
+            onSave={(text) => replacePiece(i, text)}
+            onRefine={onRefine}
+            onPublishPiece={onPublishPiece}
+            onSchedulePiece={onSchedulePiece}
+          />
+        </div>
       ))}
     </div>
   );
 }
 
-function PieceCard({ piece }: { piece: Piece }) {
+const REFINE_ACTIONS: { kind: RefineKind; label: string; icon: typeof Scissors }[] = [
+  { kind: "regenerate", label: "New angle", icon: RefreshCw },
+  { kind: "shorter", label: "Shorter", icon: Scissors },
+  { kind: "punchier", label: "Punchier", icon: Zap },
+  { kind: "specific", label: "More specific", icon: Target },
+];
+
+function PieceCard({
+  piece, editable, onSave, onRefine, onPublishPiece, onSchedulePiece,
+}: {
+  piece: Piece;
+  siblings: string[];
+  editable: boolean;
+  onSave: (text: string) => void;
+  onRefine?: (piece: Piece, kind: RefineKind) => Promise<string | null>;
+  onPublishPiece?: (piece: Piece) => void;
+  onSchedulePiece?: (piece: Piece) => void;
+}) {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(piece.text);
+  const [busy, setBusy] = useState<RefineKind | null>(null);
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "You";
   const handle = (user?.email || "you").split("@")[0]!;
   const avatar = user?.user_metadata?.avatar_url as string | undefined;
@@ -86,6 +133,20 @@ function PieceCard({ piece }: { piece: Piece }) {
       setTimeout(() => setCopied(false), 1600);
     } catch {}
   };
+
+  const refine = async (kind: RefineKind) => {
+    if (!onRefine || busy) return;
+    setBusy(kind);
+    try {
+      const next = await onRefine(piece, kind);
+      if (next) onSave(next);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const startEdit = () => { setDraft(piece.text); setEditing(true); };
+  const saveEdit = () => { onSave(draft.trim()); setEditing(false); };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-muted/40 to-transparent p-3 shadow-sm">
@@ -109,14 +170,78 @@ function PieceCard({ piece }: { piece: Piece }) {
             {len.toLocaleString()} / {limit.toLocaleString()}
           </span>
         )}
-        <button
-          onClick={copy}
-          className="ml-auto inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-        >
-          {copied ? <><Check className="h-3 w-3" /> Copied</> : <><Copy className="h-3 w-3" /> Copy post</>}
-        </button>
+        <div className="ml-auto flex flex-wrap items-center gap-1.5">
+          {editable && !editing && (
+            <PieceAction onClick={startEdit} icon={<Pencil className="h-3 w-3" />} label="Edit" />
+          )}
+          <PieceAction
+            onClick={copy}
+            icon={copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            label={copied ? "Copied" : "Copy"}
+          />
+          {onPublishPiece && !piece.document && (
+            <PieceAction onClick={() => onPublishPiece(piece)} icon={<Send className="h-3 w-3" />} label="Publish" />
+          )}
+          {onSchedulePiece && !piece.document && (
+            <PieceAction onClick={() => onSchedulePiece(piece)} icon={<CalendarClock className="h-3 w-3" />} label="Schedule" />
+          )}
+        </div>
       </div>
 
+      {/* Per-post rewrite bar */}
+      {onRefine && !editing && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5 px-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Rewrite this post
+          </span>
+          {REFINE_ACTIONS.map((a) => (
+            <button
+              key={a.kind}
+              onClick={() => refine(a.kind)}
+              disabled={!!busy}
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50"
+            >
+              {busy === a.kind ? <Loader2 className="h-3 w-3 animate-spin" /> : <a.icon className="h-3 w-3" />}
+              {a.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {editing ? (
+        <div className="rounded-xl border border-primary/30 bg-card p-3">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={Math.min(18, Math.max(5, Math.round(draft.length / 70) + 2))}
+            className="w-full resize-y rounded-lg border border-input bg-background p-3 text-sm leading-relaxed text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <span className={`text-[11px] font-medium ${draft.length > limit ? "text-red-500" : "text-muted-foreground"}`}>
+              {draft.length.toLocaleString()} / {limit.toLocaleString()}
+            </span>
+            <button
+              onClick={saveEdit}
+              className="ml-auto inline-flex items-center gap-1 rounded-lg gradient-electric px-3 py-1.5 text-[11px] font-bold text-primary-foreground hover:opacity-90"
+            >
+              <Check className="h-3 w-3" /> Save post
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3 w-3" /> Cancel
+            </button>
+          </div>
+        </div>
+      ) : busy ? (
+        <div className="space-y-2 rounded-xl border border-border bg-card p-4">
+          <div className="ps-skel h-3 w-[92%]" />
+          <div className="ps-skel h-3 w-[78%]" />
+          <div className="ps-skel h-3 w-[85%]" />
+        </div>
+      ) : (
+        <>
       {chrome === "twitter" && <TwitterCard name={name} handle={handle} avatar={avatar} text={piece.text} />}
       {chrome === "threads" && <ThreadsCard handle={handle} avatar={avatar} piece={piece} />}
       {chrome === "linkedin" && <LinkedInCard name={name} avatar={avatar} text={piece.text} />}
@@ -125,7 +250,23 @@ function PieceCard({ piece }: { piece: Piece }) {
       {chrome === "tiktok" && <TikTokCard handle={handle} avatar={avatar} text={piece.text} />}
       {chrome === "email" && <EmailCard name={name} text={piece.text} />}
       {chrome === "doc" && <DocCard format={piece.format} text={piece.text} />}
+        </>
+      )}
     </div>
+  );
+}
+
+function PieceAction({
+  onClick, icon, label,
+}: { onClick: () => void; icon: React.ReactNode; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 

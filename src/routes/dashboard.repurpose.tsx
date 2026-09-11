@@ -8,7 +8,7 @@ import {
   Youtube, Link as LinkIcon, Calendar as CalendarIcon, Save, X, Repeat, Type as TypeIcon,
   Languages, Bookmark, Wand2, Circle, ChevronDown, Send,
 } from "lucide-react";
-import { repurposeOneFormat, startRepurposePack, getMonthlyUsage, saveToSwipeFile } from "@/lib/repurpose.functions";
+import { repurposeOneFormat, startRepurposePack, getMonthlyUsage, saveToSwipeFile, refinePiece } from "@/lib/repurpose.functions";
 import { importFromUrl } from "@/lib/import.functions";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
@@ -16,11 +16,11 @@ import { PostToLinkedInButton } from "@/components/PostToLinkedInButton";
 import { createTemplate } from "@/lib/templates.functions";
 import { exportToPdf } from "@/lib/exportPdf";
 import { useSubscription } from "@/hooks/useSubscription";
-import { VisualPreview } from "@/components/VisualPreview";
+import { VisualPreview, type RefineKind } from "@/components/VisualPreview";
 import { BrandIcon, BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
-import { parsePack, PUBLISH_PACK_KEY } from "@/lib/pieces";
+import { parsePack, parsePieces, limitFor, PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
 import { HookABTester } from "@/components/HookABTester";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ToolHero } from "@/components/dashboard/ToolHero";
@@ -317,6 +317,79 @@ function RepurposePage() {
     navigate({ to: "/dashboard/publishing" });
   };
 
+  /** Sends exactly one post to the Publishing Center. */
+  const sendPieceToPublishing = (piece: Piece) => {
+    try {
+      sessionStorage.setItem(PUBLISH_PACK_KEY, JSON.stringify({ pieces: [piece], at: Date.now() }));
+    } catch {}
+    navigate({ to: "/dashboard/publishing" });
+  };
+
+  /** Schedules one post for tomorrow at 09:00 on its own platform. */
+  const schedulePiece = async (piece: Piece) => {
+    if (!session) return;
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(9, 0, 0, 0);
+    try {
+      const res = await createScheduledPost({
+        data: {
+          title: `${FORMAT_BY_ID[piece.format as FormatId]?.name || piece.format}${piece.total > 1 ? ` ${piece.index}/${piece.total}` : ""}`,
+          content: piece.text.slice(0, 10000),
+          platform: piece.platform,
+          scheduled_for: d.toISOString(),
+        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.success) toast.success(`Scheduled for tomorrow 9:00 AM — edit it in the Calendar`);
+      else toast.error("Could not schedule this post");
+    } catch {
+      toast.error("Could not schedule this post");
+    }
+  };
+
+  /** Rewrites a single post inside the pack and returns the new text. */
+  const refineOnePiece = async (
+    formatId: FormatId,
+    piece: Piece,
+    kind: "regenerate" | "shorter" | "punchier" | "specific",
+  ): Promise<string | null> => {
+    if (!session) return null;
+    const useBrandTone = !!brandKit?.preferred_tone && !overrideTone;
+    const modifierLabels = Array.from(styleModifiers).map(
+      (id) => STYLE_MODIFIERS.find((m) => m.id === id)?.label || id,
+    );
+    const siblings = parsePieces(formatId, results[formatId] || "")
+      .filter((p) => p.id !== piece.id)
+      .map((p) => p.text);
+    try {
+      const res = await refinePiece({
+        data: {
+          format: formatId,
+          pieceText: piece.text,
+          instruction: kind,
+          charLimit: piece.document ? undefined : limitFor(piece.platform),
+          siblings,
+          tone: useBrandTone ? undefined : tone,
+          styleModifiers: modifierLabels,
+          customInstructions: customInstructions || undefined,
+          language,
+        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.error || !res.output) {
+        toast.error(res.error || "Rewrite failed");
+        return null;
+      }
+      toast.success("Post rewritten");
+      return res.output;
+    } catch {
+      toast.error("Rewrite failed");
+      return null;
+    }
+  };
+
+
   const wordCount = useMemo(() => inputText.trim() ? inputText.trim().split(/\s+/).length : 0, [inputText]);
   const wordQuality: "too-short"|"good"|"too-long"|"empty" =
     wordCount === 0 ? "empty" : wordCount < 100 ? "too-short" : wordCount > 5000 ? "too-long" : "good";
@@ -478,7 +551,17 @@ function RepurposePage() {
 
 
       // Every format runs independently — one failure never blocks the others.
-      await withAIProgress(Promise.all(selectedIds.map((id) => runOne(id))));
+      // Capped concurrency keeps long packs under the generation rate limit.
+      const CONCURRENCY = 3;
+      const queue = [...selectedIds];
+      const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+        for (;;) {
+          const next = queue.shift();
+          if (!next) return;
+          await runOne(next);
+        }
+      });
+      await withAIProgress(Promise.all(workers));
 
 
       if (session) {
@@ -554,7 +637,7 @@ function RepurposePage() {
     const stamp = new Date().toISOString().slice(0, 10);
     const filename = `${brand ? `${brand.replace(/[^a-z0-9-_]+/gi, "-")}-` : ""}content-pack-${stamp}`;
     const all = (Object.entries(results) as [FormatId, string][])
-      .filter(([k]) => k !== "carousel")
+      .filter(([, v]) => !!v?.trim())
       .map(([k, v]) => ({ title: `${FORMAT_BY_ID[k].emoji} ${FORMAT_BY_ID[k].name}`, content: v }));
     if (!all.length) return toast.error("Nothing to export yet");
     exportToPdf(all, filename, { watermark: tier === "free" });
@@ -1111,6 +1194,9 @@ function RepurposePage() {
                 onSaveSwipe={() => handleSaveToSwipe(activeOutputTab)}
                 regenerating={statuses[activeOutputTab] === "generating"}
                 onEdit={(value) => setResults((r) => ({ ...r, [activeOutputTab]: value }))}
+                onRefinePiece={(piece, kind) => refineOnePiece(activeOutputTab, piece, kind)}
+                onPublishPiece={sendPieceToPublishing}
+                onSchedulePiece={schedulePiece}
               />
             </div>
           )}
@@ -1126,7 +1212,7 @@ function RepurposePage() {
                   <h3 className="text-sm font-bold text-foreground">🖼️ Open in Carousel Designer</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">Pick a theme, edit slides inline, export PNG/PDF.</p>
                 </div>
-                <Link to="/dashboard/carousel" search={{ topic: inputText.slice(0, 500) } as any}
+                <Link to="/dashboard/carousel" search={{ topic: (results.carousel || inputText).slice(0, 2000) } as any}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary to-violet-500 px-4 py-2 text-xs font-bold text-primary-foreground shadow hover:opacity-90">
                   <Sparkles className="h-3.5 w-3.5" /> Open designer
                 </Link>
@@ -1157,7 +1243,7 @@ function RepurposePage() {
         <Modal onClose={() => !scheduleBusy && setShowScheduleModal(false)}>
           <div className="mb-4 flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-500 text-white"><CalendarIcon className="h-4 w-4" /></div>
-            <div><h2 className="text-base font-bold text-foreground">Schedule this pack</h2><p className="text-xs text-muted-foreground">Saves every post to your calendar.</p></div>
+            <div><h2 className="text-base font-bold text-foreground">Schedule this pack</h2><p className="text-xs text-muted-foreground">Saves each individual post to your calendar.</p></div>
           </div>
           <div className="space-y-3">
             <label className="block text-xs font-medium text-foreground">Start date
@@ -1179,17 +1265,25 @@ function RepurposePage() {
             onClick={async () => {
               if (!session) return;
               setScheduleBusy(true);
-              const entries = (Object.entries(results) as [FormatId, string][]).filter(([k, v]) => PLATFORM_MAP[k] && v?.trim());
+              // Schedule every individual post, not whole format blobs.
+              const queue = packPieces;
               const [h, m] = scheduleTime.split(":").map((n) => parseInt(n,10) || 0);
               let ok=0, fail=0;
-              for (let i=0; i<entries.length; i++) {
-                const [key, content] = entries[i];
+              for (let i=0; i<queue.length; i++) {
+                const piece = queue[i]!;
                 const d = new Date(`${scheduleDate}T00:00:00`);
                 if (scheduleSpread === "daily") d.setDate(d.getDate() + i);
                 d.setHours(h, m, 0, 0);
+                // Same-day packs are spaced 90 minutes apart so feeds don't get flooded.
+                if (scheduleSpread === "same") d.setMinutes(d.getMinutes() + i * 90);
                 try {
                   const res = await createScheduledPost({
-                    data: { title: FORMAT_BY_ID[key].name, content: content.slice(0, 10000), platform: PLATFORM_MAP[key], scheduled_for: d.toISOString() },
+                    data: {
+                      title: `${FORMAT_BY_ID[piece.format as FormatId]?.name || piece.format}${piece.total > 1 ? ` ${piece.index}/${piece.total}` : ""}`,
+                      content: piece.text.slice(0, 10000),
+                      platform: piece.platform,
+                      scheduled_for: d.toISOString(),
+                    },
                     headers: { Authorization: `Bearer ${session.access_token}` },
                   });
                   if (res.success) ok++; else fail++;
@@ -1372,10 +1466,13 @@ function SelectRow({ label, value, onChange, options }: {
   );
 }
 
-function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit }: {
+function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece }: {
   formatId: FormatId; content: string; onCopy: (text: string, id: string) => void; copied: string | null;
   onRegenerate: () => void; onSaveSwipe: () => void; regenerating: boolean;
   onEdit: (value: string) => void;
+  onRefinePiece: (piece: Piece, kind: RefineKind) => Promise<string | null>;
+  onPublishPiece: (piece: Piece) => void;
+  onSchedulePiece: (piece: Piece) => void;
 }) {
   const def = FORMAT_BY_ID[formatId];
   const previewable = true;
@@ -1428,7 +1525,17 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
           <div className="h-3 w-[85%] animate-pulse rounded bg-muted" />
         </div>
       ) : view === "preview" && previewable ? (
-        <div className="mt-4 animate-fade-in"><VisualPreview typeId={formatId} content={edited} label={def.name} /></div>
+        <div className="mt-4 animate-fade-in">
+          <VisualPreview
+            typeId={formatId}
+            content={edited}
+            label={def.name}
+            onChange={(value) => { setEdited(value); onEdit(value); }}
+            onRefine={onRefinePiece}
+            onPublishPiece={onPublishPiece}
+            onSchedulePiece={onSchedulePiece}
+          />
+        </div>
       ) : (
         <textarea
           value={edited}
@@ -1443,7 +1550,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"><X className="h-4 w-4" /></button>
         {children}
       </div>
