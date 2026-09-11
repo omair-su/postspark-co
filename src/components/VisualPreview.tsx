@@ -3,6 +3,7 @@ import {
   Heart, MessageCircle, Repeat2, Send, Bookmark, MoreHorizontal, ThumbsUp,
   Globe, Music, Mail, Copy, Check, FileText, ChevronLeft, ChevronRight,
   Pencil, RefreshCw, Scissors, Zap, Target, Loader2, X, CalendarClock,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { parsePieces, limitFor, serializePieces, type Piece } from "@/lib/pieces";
@@ -46,6 +47,10 @@ interface Props {
   onSchedulePiece?: (piece: Piece) => void;
   /** Optional on-demand Brand Voice match score (0-100), Pro only. */
   onVoiceScore?: (piece: Piece) => Promise<number | null>;
+  /** Generates a visual for one post via Image Studio; resolve with the URL. */
+  onGenerateImage?: (piece: Piece) => Promise<string | null>;
+  /** Visuals already attached, keyed by piece id. */
+  media?: Record<string, string>;
 }
 
 /**
@@ -54,6 +59,7 @@ interface Props {
  */
 export function VisualPreview({
   typeId, content, label, onChange, onRefine, onPublishPiece, onSchedulePiece, onVoiceScore,
+  onGenerateImage, media,
 }: Props) {
   const pieces = useMemo(() => parsePieces(typeId, content), [typeId, content]);
 
@@ -90,6 +96,8 @@ export function VisualPreview({
             onPublishPiece={onPublishPiece}
             onSchedulePiece={onSchedulePiece}
             onVoiceScore={onVoiceScore}
+            onGenerateImage={onGenerateImage}
+            mediaUrl={media?.[piece.id]}
           />
         </div>
       ))}
@@ -106,6 +114,7 @@ const REFINE_ACTIONS: { kind: RefineKind; label: string; icon: typeof Scissors }
 
 function PieceCard({
   piece, siblings, editable, onSave, onRefine, onPublishPiece, onSchedulePiece, onVoiceScore,
+  onGenerateImage, mediaUrl,
 }: {
   piece: Piece;
   siblings: Piece[];
@@ -115,6 +124,8 @@ function PieceCard({
   onPublishPiece?: (piece: Piece) => void;
   onSchedulePiece?: (piece: Piece) => void;
   onVoiceScore?: (piece: Piece) => Promise<number | null>;
+  onGenerateImage?: (piece: Piece) => Promise<string | null>;
+  mediaUrl?: string;
 }) {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -123,6 +134,7 @@ function PieceCard({
   const [busy, setBusy] = useState<RefineKind | null>(null);
   const [voiceScore, setVoiceScore] = useState<number | null>(null);
   const [voiceBusy, setVoiceBusy] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
   const signals = useMemo(() => analyzePiece(piece, siblings), [piece, siblings]);
   const fix = useMemo(() => (piece.document ? null : autoFixPiece(piece)), [piece]);
   const name = user?.user_metadata?.full_name || user?.user_metadata?.name || "You";
@@ -194,8 +206,26 @@ function PieceCard({
           {onSchedulePiece && !piece.document && (
             <PieceAction onClick={() => onSchedulePiece(piece)} icon={<CalendarClock className="h-3 w-3" />} label="Schedule" />
           )}
+          {onGenerateImage && !piece.document && (
+            <PieceAction
+              onClick={async () => {
+                if (imageBusy) return;
+                setImageBusy(true);
+                try { await onGenerateImage(piece); } finally { setImageBusy(false); }
+              }}
+              icon={imageBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
+              label={mediaUrl ? "New image" : "Add image"}
+            />
+          )}
         </div>
       </div>
+
+      {/* Attached visual — carried through to publishing and scheduling */}
+      {mediaUrl && (
+        <div className="mb-3 overflow-hidden rounded-xl border border-border/70">
+          <img src={mediaUrl} alt={`Visual for post ${piece.index}`} loading="lazy" className="max-h-72 w-full object-cover" />
+        </div>
+      )}
 
       {/* Quality signals */}
       {!editing && (

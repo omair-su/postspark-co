@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateOneFormat, refinePieceText } from "@/lib/repurpose.server";
 import { resolveActiveBrandKit, brandKitPromptContext } from "@/lib/activeBrandKit.server";
 import { prepareFormatGeneration, persistFormatOutput } from "@/lib/repurposePrep.server";
+import { smartPackTitle } from "@/lib/packTitle";
 import {
   FREE_MONTHLY_LIMIT,
   FORMAT_ID,
@@ -133,7 +134,8 @@ export const startRepurposePack = createServerFn({ method: "POST" })
       packId: data.packId,
       userId,
       inputText: data.inputText,
-      title: data.inputText.replace(/\s+/g, " ").trim().slice(0, 120),
+      // Auto-named from the source so the Recent packs rail reads like a library.
+      title: smartPackTitle(data.inputText),
       brandKitId: kit?.id ?? null,
       workspaceId,
     });
