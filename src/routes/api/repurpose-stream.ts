@@ -15,10 +15,10 @@ import { rateLimitedDurable } from "@/lib/rateLimit.server";
 import { streamOneFormat } from "@/lib/repurpose.server";
 import { prepareFormatGeneration, persistFormatOutput } from "@/lib/repurposePrep.server";
 
+/** Must mirror the Repurpose Studio format catalogue (src/routes/dashboard.repurpose.tsx). */
 const FORMATS = new Set([
-  "twitter", "thread", "linkedin", "instagram", "threads", "youtube",
-  "newsletter", "blog", "tiktok", "carousel", "quotes", "facebook", "reddit",
-  "pinterest", "email", "seo",
+  "tweets", "linkedin", "instagram", "facebook", "tiktok", "thread",
+  "email", "video", "seo", "podcast", "carousel",
 ]);
 
 export const Route = createFileRoute("/api/repurpose-stream")({
