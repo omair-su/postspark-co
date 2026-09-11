@@ -72,19 +72,26 @@ export const generateImage = createServerFn({ method: "POST" })
     if (!reservation.ok) return { imageUrl: "", error: "LIMIT_REACHED" };
     const usableReference =
       data.referenceUrl && /^https?:\/\//i.test(data.referenceUrl) ? data.referenceUrl : null;
-    const res = await generateSocialImage(
-      data.prompt,
-      data.style,
-      data.aspect,
-      data.template,
-      data.model,
-      data.quality,
-      data.negativePrompt,
-      data.seed ?? null,
-      // Flux Kontext (image-to-image) only — other engines take reference images
-      // through their own edit endpoints.
-      data.model === "flux" ? usableReference : null,
-    );
+    let res: Awaited<ReturnType<typeof generateSocialImage>>;
+    try {
+      res = await generateSocialImage(
+        data.prompt,
+        data.style,
+        data.aspect,
+        data.template,
+        data.model,
+        data.quality,
+        data.negativePrompt,
+        data.seed ?? null,
+        // Flux Kontext (image-to-image) only — other engines take reference images
+        // through their own edit endpoints.
+        data.model === "flux" ? usableReference : null,
+      );
+    } catch (e) {
+      // A thrown provider/network error must give the reserved credit back.
+      await settleImageQuota(reservation.id, false);
+      throw e;
+    }
     // Long Replicate render: keep the reserved credit, record the job, and let
     // the poll route finish it in the background instead of losing the render.
     if (!res.imageUrl && res.pending) {

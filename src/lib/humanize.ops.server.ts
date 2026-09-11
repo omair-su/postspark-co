@@ -113,7 +113,7 @@ export interface RunInput {
 
 export async function runHumanize(ctx: Ctx, data: RunInput): Promise<HumanizeRunResponse> {
   const { supabase, userId } = ctx;
-  if (await rateLimitedDurable(userId, "humanize")) {
+  if (await rateLimitedDurable(userId, "humanize", RATE_MAX, RATE_WINDOW_MS / 1000)) {
     return { output: "", error: "Rate limit: please wait a minute and try again." };
   }
 
@@ -227,7 +227,8 @@ export async function rerollOneSentence(
   },
 ): Promise<{ text: string; error?: string }> {
   const { supabase, userId } = ctx;
-  if (await rateLimitedDurable(userId, "humanize")) return { text: "", error: "Rate limit: please wait a minute." };
+  if (await rateLimitedDurable(userId, "humanize", RATE_MAX, RATE_WINDOW_MS / 1000))
+    return { text: "", error: "Rate limit: please wait a minute." };
   const brand = await brandContextFor(supabase, userId, data.useBrandVoice);
   return rewriteSingleSentence({
     sentence: data.sentence,

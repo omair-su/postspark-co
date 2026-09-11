@@ -44,7 +44,7 @@ export const humanize = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (await rateLimitedDurable(userId, "copilot")) return { output: "", error: "Rate limit: please wait a minute and try again." };
+    if (await rateLimitedDurable(userId, "copilot", 15, 60)) return { output: "", error: "Rate limit: please wait a minute and try again." };
 
     const usage = await checkUsageAndPlan(supabase, userId);
     if (!usage.ok) return { output: "", error: "LIMIT_REACHED" };
@@ -84,7 +84,7 @@ export const replies = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (await rateLimitedDurable(userId, "copilot")) return { replies: [], error: "Rate limit: please wait a minute and try again." };
+    if (await rateLimitedDurable(userId, "copilot", 15, 60)) return { replies: [], error: "Rate limit: please wait a minute and try again." };
 
     const usage = await checkUsageAndPlan(supabase, userId);
     if (!usage.ok) return { replies: [], error: "LIMIT_REACHED" };
@@ -189,7 +189,7 @@ export const sparkChat = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (await rateLimitedDurable(userId, "copilot")) return { reply: "", error: "Rate limit reached. Try again in a moment.", conversationId: data.conversationId ?? null };
+    if (await rateLimitedDurable(userId, "copilot", 15, 60)) return { reply: "", error: "Rate limit reached. Try again in a moment.", conversationId: data.conversationId ?? null };
 
     const usage = await checkUsageAndPlan(supabase, userId);
     if (!usage.ok) return { reply: "", error: "LIMIT_REACHED", conversationId: data.conversationId ?? null };
