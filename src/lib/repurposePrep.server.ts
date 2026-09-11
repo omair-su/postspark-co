@@ -35,8 +35,8 @@ export async function prepareFormatGeneration(
   userId: string,
   data: FormatRequest,
 ): Promise<
-  | { error: string; opts?: undefined; packTitle?: undefined }
-  | { error?: undefined; opts: GenerateFormatOpts; packTitle: string }
+  | { ok: false; error: string }
+  | { ok: true; opts: GenerateFormatOpts; packTitle: string }
 > {
   const { data: profile } = await supabase
     .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
@@ -93,10 +93,11 @@ export async function prepareFormatGeneration(
     workspaceId,
   });
   if (!claim.ok) {
-    return { error: claim.error === "LIMIT_REACHED" ? "LIMIT_REACHED" : (claim.error || "Could not start pack") };
+    return { ok: false, error: claim.error === "LIMIT_REACHED" ? "LIMIT_REACHED" : (claim.error || "Could not start pack") };
   }
 
   return {
+    ok: true,
     packTitle,
     opts: {
       inputText: data.inputText,

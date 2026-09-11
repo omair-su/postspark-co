@@ -71,7 +71,7 @@ export const Route = createFileRoute("/api/repurpose-stream")({
           language: body?.language ? String(body.language).slice(0, 40) : undefined,
         });
 
-        if (prep.error) {
+        if (!prep.ok) {
           return new Response(JSON.stringify({ error: prep.error }), {
             status: prep.error === "LIMIT_REACHED" ? 402 : 400,
             headers: { "Content-Type": "application/json" },

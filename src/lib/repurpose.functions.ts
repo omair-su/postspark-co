@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateOneFormat, refinePieceText } from "@/lib/repurpose.server";
+import { resolveActiveBrandKit, brandKitPromptContext } from "@/lib/activeBrandKit.server";
 import { prepareFormatGeneration, persistFormatOutput } from "@/lib/repurposePrep.server";
 import {
   FREE_MONTHLY_LIMIT,
@@ -214,7 +215,7 @@ export const repurposeOneFormat = createServerFn({ method: "POST" })
     }
 
     const prep = await prepareFormatGeneration(supabase, userId, data);
-    if (prep.error) return { output: "", error: prep.error, jobId: null };
+    if (!prep.ok) return { output: "", error: prep.error, jobId: null };
 
     const result = await generateOneFormat(prep.opts);
     if (result.error || !result.output) {
