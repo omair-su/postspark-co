@@ -226,6 +226,9 @@ function RepurposePage() {
           });
         }
       }).catch(()=>{});
+      getActiveBrandVoice(auth)
+        .then((res: any) => setActiveVoiceId(res?.voice?.id ?? null))
+        .catch(() => {});
     }
   }, [user, session]);
 
