@@ -2149,6 +2149,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      claim_repurpose_pack: {
+        Args: {
+          _brand_kit_id?: string
+          _input_text: string
+          _pack_id: string
+          _title?: string
+          _user_id: string
+          _workspace_id?: string
+        }
+        Returns: string
+      }
       cleanup_cron_job_run_details: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
