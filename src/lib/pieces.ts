@@ -215,3 +215,11 @@ export function autoChunk(text: string, limit: number): string[] {
   const total = chunks.length;
   return chunks.map((c, i) => (total > 1 ? `${c} ${i + 1}/${total}` : c));
 }
+
+/**
+ * Stable per-post media key: `parsePieces` and `parsePack` assign different
+ * `id`s to the same post, so attachments key off format + per-format index.
+ */
+export function mediaKey(piece: Pick<Piece, "format" | "index">): string {
+  return `${piece.format}-${piece.index}`;
+}

@@ -6,7 +6,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { parsePieces, limitFor, serializePieces, type Piece } from "@/lib/pieces";
+import { parsePieces, limitFor, mediaKey, serializePieces, type Piece } from "@/lib/pieces";
 import { analyzePiece, autoFixPiece } from "@/lib/pieceQuality";
 import { BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 
@@ -71,9 +71,14 @@ export function VisualPreview({
     );
   }
 
-  const replacePiece = (index: number, text: string) => {
+  const replacePiece = (index: number, text: string, chain?: string[]) => {
     if (!onChange) return;
-    const next = pieces.map((p, i) => (i === index ? { ...p, text } : p));
+    // A thread split replaces one post with several real posts.
+    const next = pieces.flatMap((p, i) =>
+      i === index
+        ? (chain && chain.length > 1 ? chain : [text]).map((t) => ({ ...p, text: t }))
+        : [p],
+    );
     onChange(serializePieces(typeId, next));
   };
 
@@ -91,13 +96,13 @@ export function VisualPreview({
             piece={piece}
             siblings={pieces}
             editable={!!onChange}
-            onSave={(text) => replacePiece(i, text)}
+            onSave={(text, chain) => replacePiece(i, text, chain)}
             onRefine={onRefine}
             onPublishPiece={onPublishPiece}
             onSchedulePiece={onSchedulePiece}
             onVoiceScore={onVoiceScore}
             onGenerateImage={onGenerateImage}
-            mediaUrl={media?.[piece.id]}
+            mediaUrl={media?.[mediaKey(piece)]}
           />
         </div>
       ))}
@@ -119,7 +124,7 @@ function PieceCard({
   piece: Piece;
   siblings: Piece[];
   editable: boolean;
-  onSave: (text: string) => void;
+  onSave: (text: string, chain?: string[]) => void;
   onRefine?: (piece: Piece, kind: RefineKind) => Promise<string | null>;
   onPublishPiece?: (piece: Piece) => void;
   onSchedulePiece?: (piece: Piece) => void;
@@ -257,7 +262,7 @@ function PieceCard({
           )}
           {fix && editable && (
             <button
-              onClick={() => onSave(fix.chain ? fix.chain.join("\n\n") : fix.text)}
+              onClick={() => onSave(fix.text, fix.chain)}
               className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-600 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
             >
               <Scissors className="h-3 w-3" /> Auto-fix · {fix.note}

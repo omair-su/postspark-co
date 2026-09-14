@@ -22,7 +22,7 @@ import { VisualPreview, type RefineKind } from "@/components/VisualPreview";
 import { BrandIcon, BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
-import { parsePack, parsePieces, limitFor, PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
+import { parsePack, parsePieces, limitFor, mediaKey, PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
 import { HookABTester } from "@/components/HookABTester";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ToolHero } from "@/components/dashboard/ToolHero";
@@ -343,7 +343,7 @@ function RepurposePage() {
 
   /** Attaches this post's generated visual so publishing/scheduling carry it. */
   const withMedia = (piece: Piece): Piece => {
-    const url = pieceMedia[piece.id];
+    const url = pieceMedia[mediaKey(piece)];
     return url ? { ...piece, media: [...(piece.media || []), url] } : piece;
   };
 
@@ -371,7 +371,7 @@ function RepurposePage() {
   const schedulePiece = async (piece: Piece) => {
     if (!session) return;
     const slot = nextBestSlot(piece.platform as BestTimePlatform);
-    const image = pieceMedia[piece.id];
+    const image = pieceMedia[mediaKey(piece)];
     try {
       const res = await createScheduledPost({
         data: {
@@ -412,7 +412,7 @@ function RepurposePage() {
         toast.error(res?.error === "LIMIT_REACHED" ? "You've used your image credits for this month" : (res?.error || "Could not create a visual"));
         return null;
       }
-      setPieceMedia((m) => ({ ...m, [piece.id]: res.imageUrl }));
+      setPieceMedia((m) => ({ ...m, [mediaKey(piece)]: res.imageUrl }));
       toast.success("Visual attached — it travels with this post");
       return res.imageUrl as string;
     } catch {
@@ -456,9 +456,12 @@ function RepurposePage() {
     const modifierLabels = Array.from(styleModifiers).map(
       (id) => STYLE_MODIFIERS.find((m) => m.id === id)?.label || id,
     );
+    // Siblings are context only — trimmed to the server's accepted shape so a
+    // long neighbouring post can never reject the rewrite.
     const siblings = parsePieces(formatId, results[formatId] || "")
       .filter((p) => p.id !== piece.id)
-      .map((p) => p.text);
+      .slice(0, 6)
+      .map((p) => p.text.slice(0, 2000));
     try {
       const res = await refinePiece({
         data: {
@@ -1749,7 +1752,7 @@ function RepurposePage() {
                   // Same-day packs are spaced 90 minutes apart so feeds don't get flooded.
                   if (scheduleSpread === "same") d.setMinutes(d.getMinutes() + i * 90);
                 }
-                const image = pieceMedia[piece.id];
+                const image = pieceMedia[mediaKey(piece)];
                 try {
                   const res = await createScheduledPost({
                     data: {
