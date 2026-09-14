@@ -456,9 +456,12 @@ function RepurposePage() {
     const modifierLabels = Array.from(styleModifiers).map(
       (id) => STYLE_MODIFIERS.find((m) => m.id === id)?.label || id,
     );
+    // Siblings are context only — trimmed to the server's accepted shape so a
+    // long neighbouring post can never reject the rewrite.
     const siblings = parsePieces(formatId, results[formatId] || "")
       .filter((p) => p.id !== piece.id)
-      .map((p) => p.text);
+      .slice(0, 6)
+      .map((p) => p.text.slice(0, 2000));
     try {
       const res = await refinePiece({
         data: {
