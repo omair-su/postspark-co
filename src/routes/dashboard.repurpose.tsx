@@ -22,7 +22,7 @@ import { VisualPreview, type RefineKind } from "@/components/VisualPreview";
 import { BrandIcon, BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
-import { parsePack, parsePieces, limitFor, PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
+import { parsePack, parsePieces, limitFor, mediaKey, PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
 import { HookABTester } from "@/components/HookABTester";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ToolHero } from "@/components/dashboard/ToolHero";

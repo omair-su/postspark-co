@@ -6,7 +6,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { parsePieces, limitFor, serializePieces, type Piece } from "@/lib/pieces";
+import { parsePieces, limitFor, mediaKey, serializePieces, type Piece } from "@/lib/pieces";
 import { analyzePiece, autoFixPiece } from "@/lib/pieceQuality";
 import { BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 
