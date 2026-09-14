@@ -71,9 +71,14 @@ export function VisualPreview({
     );
   }
 
-  const replacePiece = (index: number, text: string) => {
+  const replacePiece = (index: number, text: string, chain?: string[]) => {
     if (!onChange) return;
-    const next = pieces.map((p, i) => (i === index ? { ...p, text } : p));
+    // A thread split replaces one post with several real posts.
+    const next = pieces.flatMap((p, i) =>
+      i === index
+        ? (chain && chain.length > 1 ? chain : [text]).map((t) => ({ ...p, text: t }))
+        : [p],
+    );
     onChange(serializePieces(typeId, next));
   };
 
