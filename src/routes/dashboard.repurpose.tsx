@@ -343,7 +343,7 @@ function RepurposePage() {
 
   /** Attaches this post's generated visual so publishing/scheduling carry it. */
   const withMedia = (piece: Piece): Piece => {
-    const url = pieceMedia[piece.id];
+    const url = pieceMedia[mediaKey(piece)];
     return url ? { ...piece, media: [...(piece.media || []), url] } : piece;
   };
 
@@ -371,7 +371,7 @@ function RepurposePage() {
   const schedulePiece = async (piece: Piece) => {
     if (!session) return;
     const slot = nextBestSlot(piece.platform as BestTimePlatform);
-    const image = pieceMedia[piece.id];
+    const image = pieceMedia[mediaKey(piece)];
     try {
       const res = await createScheduledPost({
         data: {
@@ -412,7 +412,7 @@ function RepurposePage() {
         toast.error(res?.error === "LIMIT_REACHED" ? "You've used your image credits for this month" : (res?.error || "Could not create a visual"));
         return null;
       }
-      setPieceMedia((m) => ({ ...m, [piece.id]: res.imageUrl }));
+      setPieceMedia((m) => ({ ...m, [mediaKey(piece)]: res.imageUrl }));
       toast.success("Visual attached — it travels with this post");
       return res.imageUrl as string;
     } catch {
@@ -1752,7 +1752,7 @@ function RepurposePage() {
                   // Same-day packs are spaced 90 minutes apart so feeds don't get flooded.
                   if (scheduleSpread === "same") d.setMinutes(d.getMinutes() + i * 90);
                 }
-                const image = pieceMedia[piece.id];
+                const image = pieceMedia[mediaKey(piece)];
                 try {
                   const res = await createScheduledPost({
                     data: {
