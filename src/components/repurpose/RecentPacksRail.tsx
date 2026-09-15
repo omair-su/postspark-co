@@ -189,6 +189,12 @@ export function RecentPacksRail({
                   <p className="line-clamp-2 text-sm font-medium leading-snug">{p.title}</p>
                 </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">{timeAgo(p.createdAt)}</p>
+                {approvalStatus[p.id] && (
+                  <span className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    approvalStatus[p.id] === "approved" ? "bg-emerald-500/10 text-emerald-600" :
+                    approvalStatus[p.id] === "changes_requested" ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary"
+                  }`}>{approvalStatus[p.id].replace("_", " ")}</span>
+                )}
                 <div className="mt-2 flex flex-wrap gap-1">
                   {p.formats.slice(0, 4).map((f) => (
                     <span key={f} className="rounded-full bg-muted/60 px-2 py-0.5 text-[10px] text-muted-foreground">
@@ -201,6 +207,14 @@ export function RecentPacksRail({
                 </div>
 
                 <div className="mt-3 flex items-center gap-1">
+                  <button
+                    onClick={() => openReview(p.id)}
+                    disabled={busyId === p.id}
+                    title="Open live review"
+                    className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] hover:border-primary/50 hover:text-primary"
+                  >
+                    <Eye className="h-3 w-3" /> Review
+                  </button>
                   <button
                     onClick={() => act(p.id, "reopen")}
                     disabled={busyId === p.id}
@@ -238,6 +252,40 @@ export function RecentPacksRail({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {reviewPack && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setReviewPack(null)}>
+          <div role="dialog" aria-modal="true" aria-label={`Review ${reviewPack.title}`} className="max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-card shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <header className="flex items-center justify-between border-b border-border px-5 py-4">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Team review</p>
+                <h4 className="mt-1 text-lg font-semibold">{reviewPack.title}</h4>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => requestReview(reviewPack)} disabled={busyId === reviewPack.id} className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-transform active:scale-95">
+                  {busyId === reviewPack.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  Copy approval link
+                </button>
+                <button aria-label="Close review" onClick={() => setReviewPack(null)} className="rounded-lg p-2 hover:bg-muted"><X className="h-4 w-4" /></button>
+              </div>
+            </header>
+            <div className="grid max-h-[calc(90vh-74px)] overflow-y-auto lg:grid-cols-[280px_1fr]">
+              <aside className="border-b border-border bg-muted/20 p-5 lg:border-b-0 lg:border-r">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Source</p>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{reviewPack.inputText.slice(0, 2400)}</p>
+              </aside>
+              <main className="space-y-8 p-5 md:p-7">
+                {Object.entries(reviewPack.outputs).filter(([, value]) => value?.trim()).map(([format, value]) => (
+                  <section key={format}>
+                    <h5 className="mb-3 text-sm font-semibold">{formatLabel(format)}</h5>
+                    <VisualPreview typeId={format} content={value} label={formatLabel(format)} />
+                  </section>
+                ))}
+              </main>
+            </div>
+          </div>
         </div>
       )}
 
