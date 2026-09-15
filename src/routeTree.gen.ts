@@ -163,6 +163,7 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksWeeklyDigestRouteImport } from './routes/api/public/hooks/weekly-digest'
 import { Route as ApiPublicHooksPublishScheduledXRouteImport } from './routes/api/public/hooks/publish-scheduled-x'
 import { Route as ApiPublicHooksPublishScheduledLinkedinRouteImport } from './routes/api/public/hooks/publish-scheduled-linkedin'
+import { Route as ApiPublicHooksPublishScheduledRouteImport } from './routes/api/public/hooks/publish-scheduled'
 import { Route as ApiPublicHooksEmailDripRouteImport } from './routes/api/public/hooks/email-drip'
 import { Route as ApiPublicWebhooksThreadsUninstallRouteImport } from './routes/api/public/webhooks/threads.uninstall'
 import { Route as ApiPublicWebhooksThreadsDeleteRouteImport } from './routes/api/public/webhooks/threads.delete'
@@ -989,6 +990,12 @@ const ApiPublicHooksPublishScheduledLinkedinRoute =
     path: '/api/public/hooks/publish-scheduled-linkedin',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPublishScheduledRoute =
+  ApiPublicHooksPublishScheduledRouteImport.update({
+    id: '/api/public/hooks/publish-scheduled',
+    path: '/api/public/hooks/publish-scheduled',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksEmailDripRoute = ApiPublicHooksEmailDripRouteImport.update({
   id: '/api/public/hooks/email-drip',
   path: '/api/public/hooks/email-drip',
@@ -1184,6 +1191,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled': typeof ApiPublicHooksPublishScheduledRoute
   '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
@@ -1348,6 +1356,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled': typeof ApiPublicHooksPublishScheduledRoute
   '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
@@ -1514,6 +1523,7 @@ export interface FileRoutesById {
   '/dashboard/settings/whatsapp': typeof DashboardSettingsWhatsappRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/hooks/email-drip': typeof ApiPublicHooksEmailDripRoute
+  '/api/public/hooks/publish-scheduled': typeof ApiPublicHooksPublishScheduledRoute
   '/api/public/hooks/publish-scheduled-linkedin': typeof ApiPublicHooksPublishScheduledLinkedinRoute
   '/api/public/hooks/publish-scheduled-x': typeof ApiPublicHooksPublishScheduledXRoute
   '/api/public/hooks/weekly-digest': typeof ApiPublicHooksWeeklyDigestRoute
@@ -1681,6 +1691,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled'
     | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
@@ -1845,6 +1856,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled'
     | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
@@ -2010,6 +2022,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/whatsapp'
     | '/lovable/email/suppression'
     | '/api/public/hooks/email-drip'
+    | '/api/public/hooks/publish-scheduled'
     | '/api/public/hooks/publish-scheduled-linkedin'
     | '/api/public/hooks/publish-scheduled-x'
     | '/api/public/hooks/weekly-digest'
@@ -2126,6 +2139,7 @@ export interface RootRouteChildren {
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksEmailDripRoute: typeof ApiPublicHooksEmailDripRoute
+  ApiPublicHooksPublishScheduledRoute: typeof ApiPublicHooksPublishScheduledRoute
   ApiPublicHooksPublishScheduledLinkedinRoute: typeof ApiPublicHooksPublishScheduledLinkedinRoute
   ApiPublicHooksPublishScheduledXRoute: typeof ApiPublicHooksPublishScheduledXRoute
   ApiPublicHooksWeeklyDigestRoute: typeof ApiPublicHooksWeeklyDigestRoute
@@ -3226,6 +3240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPublishScheduledLinkedinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/publish-scheduled': {
+      id: '/api/public/hooks/publish-scheduled'
+      path: '/api/public/hooks/publish-scheduled'
+      fullPath: '/api/public/hooks/publish-scheduled'
+      preLoaderRoute: typeof ApiPublicHooksPublishScheduledRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/email-drip': {
       id: '/api/public/hooks/email-drip'
       path: '/api/public/hooks/email-drip'
@@ -3561,6 +3582,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksEmailDripRoute: ApiPublicHooksEmailDripRoute,
+  ApiPublicHooksPublishScheduledRoute: ApiPublicHooksPublishScheduledRoute,
   ApiPublicHooksPublishScheduledLinkedinRoute:
     ApiPublicHooksPublishScheduledLinkedinRoute,
   ApiPublicHooksPublishScheduledXRoute: ApiPublicHooksPublishScheduledXRoute,

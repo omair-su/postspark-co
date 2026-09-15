@@ -46,6 +46,7 @@ export const createScheduledPost = createServerFn({ method: "POST" })
       platform: z.enum(["twitter", "threads", "linkedin", "instagram", "facebook", "tiktok", "youtube", "blog", "email"]),
       scheduled_for: z.string().datetime(),
       media_url: z.string().url().max(2000).optional(),
+      media_urls: z.array(z.string().url().max(2000)).max(10).optional(),
       media_type: z.enum(["image", "video"]).optional(),
       tool: z.string().max(40).optional(),
     }).parse,
@@ -61,7 +62,13 @@ export const createScheduledPost = createServerFn({ method: "POST" })
         content: data.content,
         platform: data.platform,
         scheduled_for: data.scheduled_for,
-        ...(data.media_url ? { media_url: data.media_url, media_type: data.media_type || "image" } : {}),
+        ...(data.media_url || data.media_urls?.length
+          ? {
+              media_url: data.media_url || data.media_urls?.[0],
+              media_urls: data.media_urls?.length ? data.media_urls : data.media_url ? [data.media_url] : [],
+              media_type: data.media_type || "image",
+            }
+          : {}),
         ...(data.tool ? { tool: data.tool } : {}),
       })
       .select()

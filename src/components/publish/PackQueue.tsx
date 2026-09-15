@@ -253,7 +253,18 @@ export function PackQueue({
           content: row.text,
           platform: row.platform as any,
           scheduled_for: when,
-          ...(row.mediaUrl ? { media_url: row.mediaUrl } : {}),
+          ...(() => {
+            const mediaUrls = Array.from(
+              new Set([row.mediaUrl, ...(row.mediaUrls ?? [])].map((url) => url.trim()).filter(Boolean)),
+            );
+            return mediaUrls.length
+              ? {
+                  media_url: mediaUrls[0],
+                  media_urls: mediaUrls,
+                  media_type: /\.(mp4|webm|mov)(\?|$)/i.test(mediaUrls[0]) ? "video" as const : "image" as const,
+                }
+              : {};
+          })(),
         },
         ...authHeaders,
       } as any);
@@ -416,10 +427,22 @@ export function PackQueue({
               />
               <input
                 value={row.mediaUrl}
-                onChange={(e) => patch(row.id, { mediaUrl: e.target.value })}
+                onChange={(e) => patch(row.id, {
+                  mediaUrl: e.target.value,
+                  mediaUrls: e.target.value
+                    ? [e.target.value, ...(row.mediaUrls ?? []).filter((url) => url !== row.mediaUrl)]
+                    : (row.mediaUrls ?? []).filter((url) => url !== row.mediaUrl),
+                })}
                 placeholder="Optional media URL (required for Instagram)"
                 className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs outline-none focus:border-primary"
               />
+              {(row.mediaUrls?.length ?? 0) > 0 && (
+                <div className="mt-2 flex gap-2 overflow-x-auto pb-1" aria-label="Attached visuals">
+                  {row.mediaUrls?.map((url, index) => (
+                    <img key={`${url}-${index}`} src={url} alt={`Attached visual ${index + 1}`} loading="lazy" className="h-16 w-16 shrink-0 rounded-md border border-border object-cover" />
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
