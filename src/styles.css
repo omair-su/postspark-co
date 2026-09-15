@@ -6230,3 +6230,6 @@ html:not(.dark) .dashboard-shell .pod-hero h1 {
   border-radius: 16px;
   background: color-mix(in oklab, var(--card) 88%, transparent);
 }
+
+/* prompt ideas: fit the column they land in instead of forcing three columns */
+.is-bento-ideas { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
