@@ -3,6 +3,8 @@ import {
   OPENAI_IMAGE_MODELS,
   STUDIO_TEXT_MODEL,
   STUDIO_TEXT_MODEL_LITE,
+  REPLICATE_IMAGE_MODELS,
+  type ImageModelId,
 } from "@/lib/imageModels";
 import { STYLE_HINTS, buildImagePrompt } from "@/lib/imagePrompt";
 
@@ -22,6 +24,8 @@ export interface ImageGenResult {
   pending?: { predictionId: string | null; pollUrl: string };
   /** Seed actually used by the engine, so the tile/recipe can show the truth. */
   seed?: number | null;
+  /** Engine that actually produced the render. */
+  actualModel?: ImageModelId;
 }
 
 const styleHints = STYLE_HINTS;
@@ -30,7 +34,7 @@ function buildPrompt(prompt: string, style?: string, aspect?: string, template?:
   return buildImagePrompt(prompt, { style, aspect, template });
 }
 
-export type ImageModel = "auto" | "flux" | "gpt" | "gemini";
+export type ImageModel = ImageModelId;
 
 // Stable image models in fallback order. Lovable AI Gateway is used as the
 // fallback when Replicate is unavailable or for image-edit (multimodal) calls.
@@ -261,6 +265,24 @@ async function callReplicateFlux(
   };
 }
 
+async function callReplicateNamedImage(
+  model: "ideogram" | "flux-ultra" | "imagen",
+  prompt: string,
+  aspect: "square" | "portrait" | "landscape",
+  seed?: number | null,
+  referenceImage?: string | null,
+): Promise<ImageGenResult> {
+  const modelPath = REPLICATE_IMAGE_MODELS[model];
+  const common = { prompt: prompt.slice(0, 2000), aspect_ratio: REPLICATE_ASPECT[aspect] || "1:1" };
+  const input = model === "ideogram"
+    ? { ...common, magic_prompt_option: "Auto", ...(typeof seed === "number" ? { seed } : {}), ...(referenceImage ? { image: referenceImage } : {}) }
+    : model === "flux-ultra"
+      ? { ...common, output_format: "jpg", safety_tolerance: 2, ...(typeof seed === "number" ? { seed } : {}), ...(referenceImage ? { image_prompt: referenceImage, image_prompt_strength: 0.25 } : {}) }
+      : { ...common, image_size: "1K", output_format: "jpg" };
+  const result = await runReplicateModel(modelPath, input);
+  return result.imageUrl ? { ...result, seed: seed ?? null, actualModel: model } : result;
+}
+
 async function callImageAIOnce(
   model: string,
   messages: any[],
@@ -328,35 +350,33 @@ async function generateFromPrompt(
 ): Promise<ImageGenResult> {
   if (model === "gpt") {
     const r = await callOpenAIImage(fullPrompt, aspect, quality);
-    if (r.imageUrl) return r;
-    // Soft fallback to Gemini so users aren't blocked — but flagged, never silent.
-    const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
-    if (fb.imageUrl) return { ...fb, fellBackTo: "gemini" };
-    return r;
+    return r.imageUrl ? { ...r, actualModel: "gpt" } : r;
   }
 
   if (model === "flux") {
     if (process.env.REPLICATE_API_TOKEN) {
       const r = await callReplicateFlux(fullPrompt, aspect, seed, referenceImage);
-      if (r.imageUrl || r.pending) return r;
-      const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
-      if (fb.imageUrl) return { ...fb, fellBackTo: "gemini" };
-      return r;
+      return r.imageUrl ? { ...r, actualModel: "flux" } : r;
     }
-    const fb = await callImageAI([{ role: "user", content: fullPrompt }]);
-    return fb.imageUrl ? { ...fb, fellBackTo: "gemini" } : fb;
+    return { imageUrl: "", error: "Flux is unavailable because Replicate is not configured." };
   }
 
   if (model === "gemini") {
-    return callImageAI([{ role: "user", content: fullPrompt }]);
+    const result = await callImageAI([{ role: "user", content: fullPrompt }]);
+    return result.imageUrl ? { ...result, actualModel: "gemini" } : result;
+  }
+
+  if (model === "ideogram" || model === "flux-ultra" || model === "imagen") {
+    return callReplicateNamedImage(model, fullPrompt, aspect, seed, referenceImage);
   }
 
   // auto: Gemini first, Replicate Flux as fallback
   const primary = await callImageAI([{ role: "user", content: fullPrompt }]);
-  if (primary.imageUrl) return primary;
+  if (primary.imageUrl) return { ...primary, actualModel: "gemini" };
   if (primary.error && /credits|rate limit/i.test(primary.error)) return primary;
   if (process.env.REPLICATE_API_TOKEN) {
-    return callReplicateFlux(fullPrompt, aspect, seed);
+    const fallback = await callReplicateFlux(fullPrompt, aspect, seed);
+    return fallback.imageUrl ? { ...fallback, actualModel: "flux" } : fallback;
   }
   return primary;
 }

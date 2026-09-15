@@ -97,6 +97,7 @@ import { EXPORT_PACK, resizeCover, padToAspect, compositeLogo, randomSeed, type 
 import { streamImage } from "@/lib/streamImage";
 import { getBrandKit } from "@/lib/brandKit.functions";
 import { createScheduledPost } from "@/lib/calendar.functions";
+import type { ImageModelId } from "@/lib/imageModels";
 
 
 
@@ -104,11 +105,14 @@ export const Route = createFileRoute("/dashboard/image-studio")({
   component: ImageStudioPage,
 });
 
-type ModelId = "flux" | "gpt" | "gemini";
+type ModelId = Exclude<ImageModelId, "auto">;
 const MODELS: { id: ModelId; name: string; badge: string; desc: string; bestFor: string; cost: string; color: string }[] = [
   { id: "flux", name: "Flux Pro 1.1", badge: "⚡ Photorealistic", desc: "Photos, art & portraits", bestFor: "Product shots, portraits, concept art", cost: "$0.04 / image", color: "#F97316" },
   { id: "gpt",  name: "GPT Image 2",  badge: "✦ Text Perfect",   desc: "Thumbnails & graphics with text", bestFor: "Text in image, thumbnails, carousels", cost: "$0.04 / image", color: "#059669" },
   { id: "gemini", name: "Gemini Flash", badge: "◈ Fast & Smart", desc: "Fast iteration & exploration", bestFor: "Quick iterations, diverse styles", cost: "Free tier", color: "#1DA1F2" },
+  { id: "ideogram", name: "Ideogram 3 Turbo", badge: "Aa Typography", desc: "Sharp social graphics and lettering", bestFor: "Posters, quote cards, ad creative", cost: "1 credit", color: "#E11D48" },
+  { id: "flux-ultra", name: "Flux Ultra", badge: "◆ Premium detail", desc: "High-fidelity editorial imagery", bestFor: "Campaigns, products, photorealism", cost: "2 credits", color: "#F59E0B" },
+  { id: "imagen", name: "Imagen 4", badge: "◎ Polished", desc: "Balanced, art-directed generation", bestFor: "Brand imagery, concepts, lifestyle", cost: "2 credits", color: "#14B8A6" },
 ];
 
 const STYLES = [
@@ -644,7 +648,7 @@ function ImageStudioPage() {
 
   /** Swap to the next engine and re-render — used by the failure card. */
   const retryWithOtherModel = () => {
-    const order: ModelId[] = ["gemini", "flux", "gpt"];
+    const order: ModelId[] = ["gemini", "flux", "gpt", "ideogram", "flux-ultra", "imagen"];
     const next = order[(order.indexOf(model) + 1) % order.length];
     setModel(next);
     setGenError(null);

@@ -23,7 +23,8 @@ export const Route = createFileRoute("/api/public/hooks/publish-scheduled-linked
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const summary = await processScheduledPosts(supabaseAdmin, "linkedin");
+        // Compatibility endpoint: the existing cron now drives the unified worker.
+        const summary = await processScheduledPosts(supabaseAdmin);
         return Response.json({ ok: true, ...summary });
       },
     },
