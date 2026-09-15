@@ -503,7 +503,7 @@ export const INSPIRATION_PROMPTS = INSPIRATION.map((i) => i.prompt);
 
 export function InspirationWall({ onPick }: { onPick: (prompt: string) => void }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="is-bento-ideas grid gap-3">
       {INSPIRATION.map((i, idx) => (
         <button
           key={i.title}
