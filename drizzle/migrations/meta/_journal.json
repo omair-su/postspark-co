@@ -8,6 +8,13 @@
       "when": 1789125881460,
       "tag": "0000_restore_claim_repurpose_pack",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789454393498,
+      "tag": "0001_unified_scheduled_publishing",
+      "breakpoints": true
     }
   ]
 }
