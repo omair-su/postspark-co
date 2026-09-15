@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  Loader2, RotateCcw, Copy, GitCompare, Sparkles, X, Clock, Star,
+  Loader2, RotateCcw, Copy, GitCompare, Sparkles, X, Clock, Star, Eye, ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { listRecentPacks, getPack, evergreenAngles } from "@/lib/repurposePacks.functions";
+import { createApprovalRequest, listApprovalRequests } from "@/lib/approvals.functions";
+import { VisualPreview } from "@/components/VisualPreview";
 
 export interface RecentPackSummary {
   id: string;
@@ -60,14 +62,24 @@ export function RecentPacksRail({
 
   const [angleFor, setAngleFor] = useState<LoadedPack | null>(null);
   const [angles, setAngles] = useState<EvergreenAngle[]>([]);
+  const [reviewPack, setReviewPack] = useState<LoadedPack | null>(null);
+  const [approvalStatus, setApprovalStatus] = useState<Record<string, string>>({});
 
   const auth = session ? { headers: { Authorization: `Bearer ${session.access_token}` } } : null;
 
   useEffect(() => {
     if (!session) return;
     setLoading(true);
-    listRecentPacks({ data: { limit: 12 }, headers: { Authorization: `Bearer ${session.access_token}` } })
-      .then((res: any) => setPacks(res?.packs || []))
+    Promise.all([
+      listRecentPacks({ data: { limit: 12 }, headers: { Authorization: `Bearer ${session.access_token}` } }),
+      listApprovalRequests({ headers: { Authorization: `Bearer ${session.access_token}` } }),
+    ])
+      .then(([res, approvals]: any[]) => {
+        setPacks(res?.packs || []);
+        const statuses: Record<string, string> = {};
+        for (const item of approvals?.approvals || []) if (!statuses[item.job_id]) statuses[item.job_id] = item.status;
+        setApprovalStatus(statuses);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [session, refreshKey]);
@@ -109,6 +121,32 @@ export function RecentPacksRail({
         if (a && b) setCompare({ a, b });
       } finally { setBusyId(null); }
     }
+  };
+
+  const openReview = async (id: string) => {
+    setBusyId(id);
+    try {
+      const pack = await load(id);
+      if (pack) setReviewPack(pack);
+      else toast.error("Could not load the review");
+    } finally { setBusyId(null); }
+  };
+
+  const requestReview = async (pack: LoadedPack) => {
+    if (!auth) return;
+    setBusyId(pack.id);
+    try {
+      const result: any = await createApprovalRequest({ data: { jobId: pack.id }, ...auth });
+      if (!result?.success || !result.token) {
+        toast.error(result?.error || "Client approvals require the Agency plan");
+        return;
+      }
+      const url = `${window.location.origin}/review/${result.token}`;
+      try { await navigator.clipboard.writeText(url); } catch {}
+      setApprovalStatus((current) => ({ ...current, [pack.id]: "pending" }));
+      toast.success("Approval link copied");
+    } catch { toast.error("Could not create the approval link"); }
+    finally { setBusyId(null); }
   };
 
   if (!session) return null;
