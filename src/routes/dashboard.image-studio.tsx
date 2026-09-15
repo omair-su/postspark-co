@@ -1365,7 +1365,7 @@ function ImageStudioPage() {
   const usagePct = usage ? Math.min(100, Math.round((usage.used / usage.limit) * 100)) : 0;
 
   return (
-    <div className="is-shell mx-auto max-w-[1400px] space-y-6">
+    <div className="is-shell is-bento mx-auto max-w-[1400px] space-y-6">
       {/* ---------------------------------- hero --------------------------------- */}
       <section className="ps-tool-hero ps-elev-2 ds-fade-up relative overflow-hidden">
         <span className="ps-ambient" aria-hidden />

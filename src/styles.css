@@ -6167,3 +6167,69 @@ html:not(.dark) .dashboard-shell .pod-hero h1 {
   .rp-spring, .rp-meter { transition: none !important; }
   .rp-spring:hover, .rp-spring:active { transform: none; }
 }
+
+/* ==========================================================================
+   Image Studio — premium dark bento skin (.is-bento)
+   Presentation only: re-tints the studio's local surface tokens so the studio
+   reads as a deep navy workspace in both light and dark app themes.
+   ========================================================================== */
+.is-bento {
+  --card: oklch(0.208 0.036 268);
+  --background: oklch(0.168 0.032 268);
+  --border: oklch(0.315 0.036 268);
+  --muted: oklch(0.256 0.032 268);
+  --foreground: oklch(0.973 0.008 268);
+  --muted-foreground: oklch(0.735 0.026 268);
+  border-radius: 28px;
+  padding: 18px;
+  background:
+    radial-gradient(120% 90% at 12% -10%, color-mix(in oklab, var(--primary) 20%, transparent), transparent 62%),
+    linear-gradient(180deg, oklch(0.185 0.034 268), oklch(0.152 0.03 268));
+  color: var(--foreground);
+  box-shadow: 0 40px 120px -60px oklch(0.1 0.05 268 / 0.9);
+}
+.is-bento .is-card {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--card) 92%, transparent), color-mix(in oklab, var(--card) 100%, transparent));
+  backdrop-filter: blur(12px);
+}
+.is-bento .is-input {
+  background: oklch(0.152 0.03 268);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.is-bento .text-foreground { color: var(--foreground); }
+.is-bento .text-muted-foreground { color: var(--muted-foreground); }
+
+/* bento grid of model cards: the active engine gets the wide hero tile */
+.is-bento-models {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (min-width: 1024px) {
+  .is-bento-models { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.is-bento-models > .is-model-on {
+  grid-column: span 2;
+  background:
+    radial-gradient(120% 130% at 0% 0%, color-mix(in oklab, var(--is-accent) 26%, transparent), transparent 70%),
+    color-mix(in oklab, var(--card) 96%, transparent);
+}
+@media (max-width: 480px) {
+  .is-bento-models { grid-template-columns: minmax(0, 1fr); }
+  .is-bento-models > .is-model-on { grid-column: span 1; }
+}
+
+/* style presets as compact bento chips */
+.is-bento .is-style-rail {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+.is-bento .is-style {
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+}
+
+/* prompt ideas: fit the column they land in instead of forcing three columns */
+.is-bento-ideas { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
