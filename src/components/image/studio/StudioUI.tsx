@@ -99,7 +99,7 @@ export function ModelPicker<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+    <div className="is-bento-models">
       {models.map((m) => {
         const on = value === m.id;
         return (
