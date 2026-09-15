@@ -1296,6 +1296,7 @@ export type Database = {
       }
       scheduled_posts: {
         Row: {
+          attempts: number
           brand_kit_id: string | null
           content: string
           created_at: string
@@ -1306,6 +1307,7 @@ export type Database = {
           media_urls: Json | null
           platform: string
           platform_post_id: string | null
+          platform_post_url: string | null
           publish_error: string | null
           published_at: string | null
           reply_text: string | null
@@ -1320,6 +1322,7 @@ export type Database = {
           workspace_id: string | null
         }
         Insert: {
+          attempts?: number
           brand_kit_id?: string | null
           content: string
           created_at?: string
@@ -1330,6 +1333,7 @@ export type Database = {
           media_urls?: Json | null
           platform?: string
           platform_post_id?: string | null
+          platform_post_url?: string | null
           publish_error?: string | null
           published_at?: string | null
           reply_text?: string | null
@@ -1344,6 +1348,7 @@ export type Database = {
           workspace_id?: string | null
         }
         Update: {
+          attempts?: number
           brand_kit_id?: string | null
           content?: string
           created_at?: string
@@ -1354,6 +1359,7 @@ export type Database = {
           media_urls?: Json | null
           platform?: string
           platform_post_id?: string | null
+          platform_post_url?: string | null
           publish_error?: string | null
           published_at?: string | null
           reply_text?: string | null

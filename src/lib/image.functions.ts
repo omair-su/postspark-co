@@ -29,8 +29,9 @@ import {
   isProPlan as isPro,
 } from "@/lib/imageQuota.server";
 import { createImageJob, advanceImageJob } from "@/lib/imageJobs.server";
+import { IMAGE_MODEL_CREDIT_WEIGHTS, IMAGE_MODEL_IDS } from "@/lib/imageModels";
 
-const IMAGE_MODEL = z.enum(["auto", "flux", "gpt", "gemini"]).default("auto");
+const IMAGE_MODEL = z.enum(IMAGE_MODEL_IDS).default("auto");
 const QUALITY = z.enum(["standard", "hd"]).default("standard");
 
 
@@ -68,7 +69,8 @@ export const generateImage = createServerFn({ method: "POST" })
       return { imageUrl: "", error: "LIMIT_REACHED" };
     if (!(await isPro(plan)) && data.template !== "thumbnail" && data.template !== "blog-cover")
       return { imageUrl: "", error: "AI Image Studio is a Pro feature. Upgrade to unlock." };
-    const reservation = await reserveImageQuota(userId, plan);
+    const creditWeight = IMAGE_MODEL_CREDIT_WEIGHTS[data.model];
+    const reservation = await reserveImageQuota(userId, plan, creditWeight);
     if (!reservation.ok) return { imageUrl: "", error: "LIMIT_REACHED" };
     const usableReference =
       data.referenceUrl && /^https?:\/\//i.test(data.referenceUrl) ? data.referenceUrl : null;
@@ -99,7 +101,7 @@ export const generateImage = createServerFn({ method: "POST" })
         userId,
         predictionId: res.pending.predictionId,
         pollUrl: res.pending.pollUrl,
-        model: data.model,
+        model: res.actualModel ?? data.model,
         prompt: data.prompt,
         style: data.style,
         aspect: data.aspect,
@@ -126,7 +128,7 @@ export const generateImage = createServerFn({ method: "POST" })
         aspect: data.aspect,
         template: data.template,
         source: data.template === "thumbnail" || data.template === "blog-cover" ? "thumbnail" : "generate",
-        model: data.model,
+           model: res.actualModel ?? data.model,
         seed: res.seed ?? data.seed ?? null,
         negativePrompt: data.negativePrompt ?? null,
         referenceUrl: data.referenceUrl ?? null,
@@ -221,11 +223,12 @@ export const generateImageVariations = createServerFn({ method: "POST" })
     // Every completed tile counts, so only render as many as the plan allows.
     const remaining = await imageQuotaRemaining(userId, plan);
     if (remaining < 1) return { results: [], error: "LIMIT_REACHED" };
-    const wanted = Math.min(data.count, remaining);
+    const creditWeight = IMAGE_MODEL_CREDIT_WEIGHTS[data.model];
+    const wanted = Math.min(data.count, Math.floor(remaining / creditWeight));
     // One reservation per tile, so parallel batches cannot overshoot the plan.
     const tileReservations: Array<string | null> = [];
     for (let i = 0; i < wanted; i++) {
-      const r = await reserveImageQuota(userId, plan);
+      const r = await reserveImageQuota(userId, plan, creditWeight);
       if (!r.ok) break;
       tileReservations.push(r.id);
     }
@@ -253,7 +256,7 @@ export const generateImageVariations = createServerFn({ method: "POST" })
           template: data.template,
           source: "variations",
           // Full recipe, so the library can actually reproduce this tile.
-          model: data.model,
+           model: r.actualModel ?? data.model,
           seed: data.seeds?.[i] ?? null,
           negativePrompt: data.negativePrompt ?? null,
         });
@@ -291,7 +294,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
     const SLIDES = 5;
     const slideReservations: Array<string | null> = [];
     for (let i = 0; i < SLIDES; i++) {
-      const r = await reserveImageQuota(userId, plan);
+       const r = await reserveImageQuota(userId, plan, IMAGE_MODEL_CREDIT_WEIGHTS[data.model]);
       if (!r.ok) break;
       slideReservations.push(r.id);
     }
