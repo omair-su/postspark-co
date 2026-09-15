@@ -89,6 +89,8 @@ async function publishRow(admin: any, row: ScheduledRow) {
   return { error: `${row.platform} scheduled publishing is not supported yet.` };
 }
 
+type PublishResult = { id?: string; url?: string; error?: string };
+
 export async function processScheduledPosts(admin: any, platform?: string) {
   let query = admin.from("scheduled_posts")
     .select("id,user_id,platform,title,content,media_url,media_urls,media_type,first_comment,attempts")
@@ -105,7 +107,7 @@ export async function processScheduledPosts(admin: any, platform?: string) {
       .eq("id", row.id).eq("status", "scheduled").select("id").maybeSingle();
     if (!claimed) { summary.skipped += 1; continue; }
     try {
-      const result = await publishRow(admin, row);
+      const result: PublishResult = await publishRow(admin, row);
       if (result.error) {
         summary.failed += 1;
         await admin.from("scheduled_posts").update({ status: "failed", publish_error: result.error.slice(0, MAX_ERROR_LENGTH) }).eq("id", row.id);
