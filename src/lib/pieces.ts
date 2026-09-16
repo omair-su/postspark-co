@@ -217,9 +217,16 @@ export function autoChunk(text: string, limit: number): string[] {
 }
 
 /**
- * Stable per-post media key: `parsePieces` and `parsePack` assign different
- * `id`s to the same post, so attachments key off format + per-format index.
+ * Stable per-post media key. Positional keys ("format-index") re-attach the
+ * wrong image as soon as posts are reordered or an over-long post is split,
+ * so the key is derived from the post's own text instead.
  */
-export function mediaKey(piece: Pick<Piece, "format" | "index">): string {
-  return `${piece.format}-${piece.index}`;
+function textHash(text: string): string {
+  let h = 5381;
+  for (let i = 0; i < text.length; i += 1) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+export function mediaKey(piece: Pick<Piece, "format" | "text">): string {
+  return `${piece.format}-${textHash((piece.text || "").trim())}`;
 }

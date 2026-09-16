@@ -10,6 +10,14 @@ type ScheduledRow = {
   first_comment: string | null; attempts?: number | null;
 };
 
+/** The queue stores "image" (singular); publishers expect "images". */
+function normalizeMediaType(kind: string | null | undefined, count: number) {
+  const value = (kind || "").toLowerCase();
+  if (value === "image" || value === "photo") return "images";
+  if (value) return value;
+  return count ? "images" : "none";
+}
+
 function mediaFor(row: ScheduledRow) {
   const stored = Array.isArray(row.media_urls)
     ? row.media_urls.filter((value): value is string => typeof value === "string" && value.length > 0)
