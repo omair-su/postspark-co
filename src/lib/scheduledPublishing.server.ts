@@ -68,7 +68,17 @@ async function publishRow(admin: any, row: ScheduledRow) {
         text: part, mediaUrls: index === 0 ? media.slice(0, 4) : [],
         ...(replyTo ? { inReplyToTweetId: replyTo } : {}), scheduledPostId: row.id,
       });
-      if (result.error) return { error: result.error };
+      if (result.error) {
+        // Earlier tweets are already public: never mark the whole row failed,
+        // or a retry would post the thread twice.
+        if (index > 0) {
+          return {
+            id: firstId, url: firstUrl ?? undefined, partial: true,
+            error: `Thread partly sent (${index} of ${xParts(row.content).length} posts). Remaining posts were not sent: ${result.error}`,
+          };
+        }
+        return { error: result.error };
+      }
       replyTo = result.tweetId;
       if (index === 0) { firstId = result.tweetId; firstUrl = result.url; }
     }
@@ -77,7 +87,7 @@ async function publishRow(admin: any, row: ScheduledRow) {
   if (row.platform === "linkedin") {
     const result = await publishLinkedInForUser(admin, row.user_id, {
       content: row.content, mediaPaths: media,
-      mediaType: media.length > 1 ? "images" : row.media_type || (media.length ? "images" : "none"),
+      mediaType: media.length > 1 ? "images" : normalizeMediaType(row.media_type, media.length),
       firstComment: row.first_comment,
     });
     return result.error ? { error: result.error } : { id: result.postId, url: result.url };
