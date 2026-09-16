@@ -107,7 +107,7 @@ async function publishRow(admin: any, row: ScheduledRow) {
   return { error: `${row.platform} scheduled publishing is not supported yet.` };
 }
 
-type PublishResult = { id?: string; url?: string; error?: string };
+type PublishResult = { id?: string; url?: string; error?: string; partial?: boolean };
 
 export async function processScheduledPosts(admin: any, platform?: string) {
   let query = admin.from("scheduled_posts")
@@ -126,9 +126,17 @@ export async function processScheduledPosts(admin: any, platform?: string) {
     if (!claimed) { summary.skipped += 1; continue; }
     try {
       const result: PublishResult = await publishRow(admin, row);
-      if (result.error) {
+      if (result.error && !result.partial) {
         summary.failed += 1;
         await admin.from("scheduled_posts").update({ status: "failed", publish_error: result.error.slice(0, MAX_ERROR_LENGTH) }).eq("id", row.id);
+      } else if (result.partial) {
+        // Partly live: keep it published (not retryable) but record what failed.
+        summary.published += 1;
+        await admin.from("scheduled_posts").update({
+          status: "published", published_at: new Date().toISOString(), platform_post_id: result.id ?? null,
+          platform_post_url: result.url ?? null,
+          publish_error: (result.error ?? "").slice(0, MAX_ERROR_LENGTH),
+        }).eq("id", row.id);
       } else {
         summary.published += 1;
         await admin.from("scheduled_posts").update({

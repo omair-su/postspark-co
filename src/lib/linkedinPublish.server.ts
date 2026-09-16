@@ -60,7 +60,9 @@ export async function publishLinkedInForUser(
   }
 
   let content: any = undefined;
-  const kind = input.mediaType || "none";
+  // Callers may pass the singular "image"/"photo" label used by the queue.
+  const rawKind = (input.mediaType || "none").toLowerCase();
+  const kind = rawKind === "image" || rawKind === "photo" ? "images" : rawKind;
   const refs = input.mediaPaths.filter(Boolean);
 
   if (kind === "images" && refs.length) {
