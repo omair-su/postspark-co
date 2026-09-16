@@ -627,6 +627,7 @@ export async function generateCarouselSet(
 async function runReplicateModel(
   modelPath: string, // e.g. "851-labs/background-remover" or "nightmareai/real-esrgan"
   input: Record<string, any>,
+  opts?: { allowPending?: boolean },
 ): Promise<ImageGenResult> {
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return { imageUrl: "", error: "REPLICATE_API_TOKEN not configured" };
