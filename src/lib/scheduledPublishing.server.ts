@@ -10,6 +10,14 @@ type ScheduledRow = {
   first_comment: string | null; attempts?: number | null;
 };
 
+/** The queue stores "image" (singular); publishers expect "images". */
+function normalizeMediaType(kind: string | null | undefined, count: number) {
+  const value = (kind || "").toLowerCase();
+  if (value === "image" || value === "photo") return "images";
+  if (value) return value;
+  return count ? "images" : "none";
+}
+
 function mediaFor(row: ScheduledRow) {
   const stored = Array.isArray(row.media_urls)
     ? row.media_urls.filter((value): value is string => typeof value === "string" && value.length > 0)
@@ -60,7 +68,17 @@ async function publishRow(admin: any, row: ScheduledRow) {
         text: part, mediaUrls: index === 0 ? media.slice(0, 4) : [],
         ...(replyTo ? { inReplyToTweetId: replyTo } : {}), scheduledPostId: row.id,
       });
-      if (result.error) return { error: result.error };
+      if (result.error) {
+        // Earlier tweets are already public: never mark the whole row failed,
+        // or a retry would post the thread twice.
+        if (index > 0) {
+          return {
+            id: firstId, url: firstUrl ?? undefined, partial: true,
+            error: `Thread partly sent (${index} of ${xParts(row.content).length} posts). Remaining posts were not sent: ${result.error}`,
+          };
+        }
+        return { error: result.error };
+      }
       replyTo = result.tweetId;
       if (index === 0) { firstId = result.tweetId; firstUrl = result.url; }
     }
@@ -69,7 +87,7 @@ async function publishRow(admin: any, row: ScheduledRow) {
   if (row.platform === "linkedin") {
     const result = await publishLinkedInForUser(admin, row.user_id, {
       content: row.content, mediaPaths: media,
-      mediaType: media.length > 1 ? "images" : row.media_type || (media.length ? "images" : "none"),
+      mediaType: media.length > 1 ? "images" : normalizeMediaType(row.media_type, media.length),
       firstComment: row.first_comment,
     });
     return result.error ? { error: result.error } : { id: result.postId, url: result.url };
@@ -89,7 +107,7 @@ async function publishRow(admin: any, row: ScheduledRow) {
   return { error: `${row.platform} scheduled publishing is not supported yet.` };
 }
 
-type PublishResult = { id?: string; url?: string; error?: string };
+type PublishResult = { id?: string; url?: string; error?: string; partial?: boolean };
 
 export async function processScheduledPosts(admin: any, platform?: string) {
   let query = admin.from("scheduled_posts")
@@ -108,9 +126,17 @@ export async function processScheduledPosts(admin: any, platform?: string) {
     if (!claimed) { summary.skipped += 1; continue; }
     try {
       const result: PublishResult = await publishRow(admin, row);
-      if (result.error) {
+      if (result.error && !result.partial) {
         summary.failed += 1;
         await admin.from("scheduled_posts").update({ status: "failed", publish_error: result.error.slice(0, MAX_ERROR_LENGTH) }).eq("id", row.id);
+      } else if (result.partial) {
+        // Partly live: keep it published (not retryable) but record what failed.
+        summary.published += 1;
+        await admin.from("scheduled_posts").update({
+          status: "published", published_at: new Date().toISOString(), platform_post_id: result.id ?? null,
+          platform_post_url: result.url ?? null,
+          publish_error: (result.error ?? "").slice(0, MAX_ERROR_LENGTH),
+        }).eq("id", row.id);
       } else {
         summary.published += 1;
         await admin.from("scheduled_posts").update({

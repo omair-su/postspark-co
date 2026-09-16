@@ -279,8 +279,11 @@ async function callReplicateNamedImage(
     : model === "flux-ultra"
       ? { ...common, output_format: "jpg", safety_tolerance: 2, ...(typeof seed === "number" ? { seed } : {}), ...(referenceImage ? { image_prompt: referenceImage, image_prompt_strength: 0.25 } : {}) }
       : { ...common, image_size: "1K", output_format: "jpg" };
-  const result = await runReplicateModel(modelPath, input);
-  return result.imageUrl ? { ...result, seed: seed ?? null, actualModel: model } : result;
+  const result = await runReplicateModel(modelPath, input, { allowPending: true });
+  if (result.imageUrl) return { ...result, seed: seed ?? null, actualModel: model };
+  // Keep the engine label on a pending render so the background job finishes
+  // under the model the user actually picked.
+  return result.pending ? { ...result, actualModel: model } : result;
 }
 
 async function callImageAIOnce(
@@ -627,6 +630,7 @@ export async function generateCarouselSet(
 async function runReplicateModel(
   modelPath: string, // e.g. "851-labs/background-remover" or "nightmareai/real-esrgan"
   input: Record<string, any>,
+  opts?: { allowPending?: boolean },
 ): Promise<ImageGenResult> {
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return { imageUrl: "", error: "REPLICATE_API_TOKEN not configured" };
@@ -712,6 +716,16 @@ async function runReplicateModel(
     prediction?.status !== "canceled"
   ) {
     if (Date.now() - started > MAX_WAIT_MS) {
+      if (opts?.allowPending) {
+        // Hand the still-running prediction back so it can be finished in the
+        // background instead of being abandoned mid-render.
+        return {
+          imageUrl: "",
+          pending: { predictionId: prediction?.id ?? null, pollUrl: getUrl },
+          error:
+            "Still rendering — this one is taking longer than usual. We'll finish it in the background.",
+        };
+      }
       return { imageUrl: "", error: "Replicate is taking longer than expected. Try again." };
     }
     await sleep(POLL_INTERVAL_MS);
