@@ -9,3 +9,8 @@
 - [x] Audit phase 1: readable failure messages, pricing table fix, logo hydration fix, Humanizer history 500 fix, Instagram avatar fallback
 - [x] Audit phase 2: desktop + mobile sweep of 33 routes; fixed missing-table 404s on dashboard home, phone overflow on Publishing Center and recent-output cards, broken Instagram thumbnails
 - [ ] Audit phase 3-5: brand/premium consistency, trust & conversion, differentiation
+- [ ] Mobile overflow audit + fixes across all dashboard/publishing routes
+- [ ] Skeleton loading states for Publishing Center + Instagram screens
+- [ ] Standardize padding/gaps/typography across publishing panes
+- [ ] Guardrail: warn + preserve attachments through refine/shorter edits
+- [ ] Branded empty/error states with retry (history, repurpose, publishing, settings)
