@@ -134,3 +134,36 @@ export function renderNotificationBody(
       return `💳 PostSpark: ${data.message || "Subscription update."}`;
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * Phone-ownership verification (OTP)
+ *
+ * A phone number typed into the connect form is untrusted: without proof of
+ * ownership, anyone signed in could point our WhatsApp Business number at a
+ * stranger. So the only message we ever send to an unverified number is a
+ * short numeric code, and the number is stored as connected only after the
+ * same user sends that code back.
+ * ------------------------------------------------------------------ */
+
+export const WA_OTP_TTL_MINUTES = 10;
+export const WA_OTP_MAX_ATTEMPTS = 5;
+
+/** Six-digit, cryptographically random verification code. */
+export function generateWhatsAppOtp(): string {
+  const bytes = new Uint32Array(1);
+  crypto.getRandomValues(bytes);
+  return String(bytes[0]! % 1_000_000).padStart(6, "0");
+}
+
+/** Codes are only ever stored hashed, never in plaintext. */
+export async function hashWhatsAppOtp(code: string): Promise<string> {
+  const data = new TextEncoder().encode(`postspark:wa:${code}`);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export function renderWhatsAppOtpBody(code: string): string {
+  return `${code} is your PostSpark verification code. It expires in ${WA_OTP_TTL_MINUTES} minutes. If you didn't request this, ignore this message.`;
+}
