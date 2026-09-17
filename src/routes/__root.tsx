@@ -135,7 +135,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <Scripts />
-        <script dangerouslySetInnerHTML={{ __html: `document.querySelectorAll('link[rel="preload"][as="style"]').forEach(function(l){l.rel="stylesheet"})` }} />
+        {/* Append a fresh stylesheet link instead of mutating the server-rendered
+            preload tag — mutating it caused a React hydration attribute mismatch. */}
+        <script dangerouslySetInnerHTML={{ __html: `document.querySelectorAll('link[rel="preload"][as="style"]').forEach(function(l){if(document.querySelector('link[rel="stylesheet"][href="'+l.href+'"]'))return;var s=document.createElement('link');s.rel='stylesheet';s.href=l.href;document.head.appendChild(s);})` }} />
       </body>
     </html>
   );

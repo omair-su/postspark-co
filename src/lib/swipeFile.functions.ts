@@ -1,3 +1,4 @@
+import { toReadableError } from "./serverErrors";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -21,6 +22,7 @@ export const listSwipeItems = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     let q = supabase
       .from("swipe_file")
@@ -35,6 +37,10 @@ export const listSwipeItems = createServerFn({ method: "POST" })
       return { items: [] as SwipeItem[] };
     }
     return { items: (rows || []) as SwipeItem[] };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "swipeFile");
+    }
   });
 
 export const addSwipeItem = createServerFn({ method: "POST" })
@@ -49,6 +55,7 @@ export const addSwipeItem = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
       .from("swipe_file")
@@ -67,12 +74,17 @@ export const addSwipeItem = createServerFn({ method: "POST" })
       return { success: false, item: null as SwipeItem | null };
     }
     return { success: true, item: row as SwipeItem };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "swipeFile");
+    }
   });
 
 export const removeSwipeItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("swipe_file")
@@ -84,4 +96,8 @@ export const removeSwipeItem = createServerFn({ method: "POST" })
       return { success: false };
     }
     return { success: true };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "swipeFile");
+    }
   });

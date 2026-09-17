@@ -1,3 +1,4 @@
+import { toReadableError } from "./serverErrors";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -37,6 +38,7 @@ export const listPosts = createServerFn({ method: "GET" })
     }).parse(input ?? {})
   )
   .handler(async ({ data }): Promise<BlogPostListItem[]> => {
+    try {
     let query = supabaseAdmin
       .from("blog_posts")
       .select(POST_SELECT)
@@ -58,11 +60,16 @@ export const listPosts = createServerFn({ method: "GET" })
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
     return (rows ?? []) as unknown as BlogPostListItem[];
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "blog");
+    }
   });
 
 export const getPostBySlug = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ slug: z.string().min(1) }).parse(input))
   .handler(async ({ data }): Promise<(BlogPostFull & { html: string }) | null> => {
+    try {
     const { data: row, error } = await supabaseAdmin
       .from("blog_posts")
       .select(`id, slug, title, excerpt, content_md, cover_image_url, published_at, reading_time_minutes, meta_title, meta_description,
@@ -76,26 +83,41 @@ export const getPostBySlug = createServerFn({ method: "GET" })
     const { renderMarkdown } = await import("./markdown.server");
     const html = renderMarkdown((row as any).content_md || "");
     return { ...(row as any), html } as BlogPostFull & { html: string };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "blog");
+    }
   });
 
 
 export const listCategories = createServerFn({ method: "GET" }).handler(async (): Promise<BlogCategory[]> => {
+    try {
   const { data, error } = await supabaseAdmin.from("blog_categories").select("id, slug, name, description").order("name");
   if (error) throw new Error(error.message);
   return data ?? [];
-});
+
+    } catch (thrown) {
+      throw await toReadableError(thrown, "blog");
+    }
+  });
 
 export const getCategoryBySlug = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ slug: z.string().min(1) }).parse(input))
   .handler(async ({ data }): Promise<BlogCategory | null> => {
+    try {
     const { data: row, error } = await supabaseAdmin.from("blog_categories").select("id, slug, name, description").eq("slug", data.slug).maybeSingle();
     if (error) throw new Error(error.message);
     return row ?? null;
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "blog");
+    }
   });
 
 export const getAuthorBySlug = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ slug: z.string().min(1) }).parse(input))
   .handler(async ({ data }): Promise<BlogAuthor | null> => {
+    try {
     const { data: row, error } = await supabaseAdmin
       .from("blog_authors")
       .select("id, slug, name, bio, avatar_url, twitter_handle, linkedin_url")
@@ -103,4 +125,8 @@ export const getAuthorBySlug = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     return row ?? null;
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "blog");
+    }
   });

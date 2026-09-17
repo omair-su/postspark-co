@@ -3,7 +3,7 @@
  * landing page hero/footer. Single source of truth for the icon so the app,
  * sidebar, auth screens and favicon all stay in sync.
  */
-let uid = 0;
+import { useId } from "react";
 
 export function BoltMark({
   size = 28,
@@ -12,7 +12,8 @@ export function BoltMark({
   size?: number;
   className?: string;
 }) {
-  const id = `psbolt-${++uid}`;
+  // useId keeps the gradient id identical on server and client (a counter did not).
+  const id = `psbolt-${useId().replace(/[:]/g, "")}`;
   return (
     <svg
       width={size}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, Minus, Crown, Clock, Wallet, Rocket } from "lucide-react";
 import { delay } from "@/components/landing/v4/parts";
@@ -253,8 +253,8 @@ export function Lp4CompareMatrix() {
             </thead>
             <tbody>
               {GROUPS.map((g) => (
-                <>
-                  <tr key={g.group} style={{ background: "#FCFBFF" }}>
+                <Fragment key={g.group}>
+                  <tr style={{ background: "#FCFBFF" }}>
                     <td
                       colSpan={4}
                       className="px-5 py-2.5"
@@ -279,7 +279,7 @@ export function Lp4CompareMatrix() {
                       </td>
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

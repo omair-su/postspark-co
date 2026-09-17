@@ -1,3 +1,4 @@
+import { toReadableError } from "./serverErrors";
 /**
  * Instagram server functions (Instagram Login flow — no Facebook required).
  * Thin wrappers only: all logic lives in instagram.server.ts.
@@ -29,6 +30,7 @@ import {
 export const getInstagramAuthUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { appId } = getInstagramCredentials();
     if (!appId) {
       return {
@@ -38,11 +40,16 @@ export const getInstagramAuthUrl = createServerFn({ method: "POST" })
     }
     const state = await createInstagramState(context.userId);
     return { url: buildInstagramAuthUrl(state), redirectUri: getInstagramRedirectUri() };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const getInstagramConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const acct = await getIgAccount(context.supabase, context.userId);
     if (!acct) return { connected: false as const, redirectUri: getInstagramRedirectUri() };
     const meta = acct.metadata || {};
@@ -58,11 +65,16 @@ export const getInstagramConnection = createServerFn({ method: "POST" })
       tokenExpiresAt: acct.token_expires_at,
       redirectUri: getInstagramRedirectUri(),
     };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const refreshInstagramProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     let acct = await getIgAccount(context.supabase, context.userId);
     if (!acct) return { error: "Instagram not connected" };
     acct = await refreshIgTokenIfNeeded(acct);
@@ -85,11 +97,16 @@ export const refreshInstagramProfile = createServerFn({ method: "POST" })
       })
       .eq("id", acct.id);
     return { ok: true as const };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const disconnectInstagram = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { error } = await context.supabase
       .from("social_accounts")
       .delete()
@@ -97,6 +114,10 @@ export const disconnectInstagram = createServerFn({ method: "POST" })
       .eq("platform", "instagram");
     if (error) return { error: error.message };
     return { ok: true as const };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const publishInstagramPost = createServerFn({ method: "POST" })
@@ -113,6 +134,7 @@ export const publishInstagramPost = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     let acct = await getIgAccount(supabase, userId);
     if (!acct) return { error: "Instagram not connected" };
@@ -206,12 +228,17 @@ export const publishInstagramPost = createServerFn({ method: "POST" })
     } as any);
 
     return { ok: true as const, mediaId: published.mediaId };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const listInstagramMedia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ limit: z.number().int().min(1).max(25).default(12) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     let acct = await getIgAccount(context.supabase, context.userId);
     if (!acct) return { error: "Instagram not connected" };
     acct = await refreshIgTokenIfNeeded(acct);
@@ -221,12 +248,17 @@ export const listInstagramMedia = createServerFn({ method: "POST" })
     });
     if (!res.ok) return { error: igErrorMessage(json, res), needsReconnect: isAuthError(json) };
     return { media: json?.data || [] };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const listInstagramComments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ mediaId: z.string().min(1) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     let acct = await getIgAccount(context.supabase, context.userId);
     if (!acct) return { error: "Instagram not connected" };
     acct = await refreshIgTokenIfNeeded(acct);
@@ -236,24 +268,34 @@ export const listInstagramComments = createServerFn({ method: "POST" })
     });
     if (!res.ok) return { error: igErrorMessage(json, res), needsReconnect: isAuthError(json) };
     return { comments: json?.data || [] };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const replyToInstagramComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ commentId: z.string().min(1), message: z.string().min(1).max(2200) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     let acct = await getIgAccount(context.supabase, context.userId);
     if (!acct) return { error: "Instagram not connected" };
     acct = await refreshIgTokenIfNeeded(acct);
     const { res, json } = await igPost(`${data.commentId}/replies`, acct.access_token, { message: data.message });
     if (!res.ok) return { error: igErrorMessage(json, res, "Reply failed"), needsReconnect: isAuthError(json) };
     return { ok: true as const, id: json?.id };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const moderateInstagramComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ commentId: z.string().min(1), action: z.enum(["hide", "unhide", "delete"]) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     let acct = await getIgAccount(context.supabase, context.userId);
     if (!acct) return { error: "Instagram not connected" };
     acct = await refreshIgTokenIfNeeded(acct);
@@ -270,12 +312,17 @@ export const moderateInstagramComment = createServerFn({ method: "POST" })
     });
     if (!res.ok) return { error: igErrorMessage(json, res, "Could not update the comment") };
     return { ok: true as const };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 export const getInstagramInsights = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ days: z.union([z.literal(7), z.literal(30), z.literal(90)]).default(30) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     let acct = await getIgAccount(context.supabase, context.userId);
     if (!acct) return { error: "Instagram not connected" };
     acct = await refreshIgTokenIfNeeded(acct);
@@ -311,6 +358,10 @@ export const getInstagramInsights = createServerFn({ method: "POST" })
         mediaCount: acct.metadata?.media_count ?? null,
       },
     };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 /**
@@ -321,6 +372,7 @@ export const getInstagramInsights = createServerFn({ method: "POST" })
 export const deauthorizeInstagram = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const acct = await getIgAccount(context.supabase, context.userId);
     if (!acct) return { ok: true as const, alreadyDisconnected: true as const };
 
@@ -342,6 +394,9 @@ export const deauthorizeInstagram = createServerFn({ method: "POST" })
       confirmationCode: callback.ok ? callback.confirmationCode : null,
       callbackError: callback.ok ? null : callback.error,
     };
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });
 
 async function assertIgAdmin(supabase: any, userId: string) {
@@ -381,6 +436,7 @@ export const getInstagramWebhookHealth = createServerFn({ method: "POST" })
 export const triggerInstagramWebhookTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     await assertIgAdmin(context.supabase, context.userId);
     const verification = await checkInstagramWebhookVerification();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -397,4 +453,8 @@ export const triggerInstagramWebhookTest = createServerFn({ method: "POST" })
     });
     if (error) return { error: error.message };
     return { ok: true as const, verification };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "instagram");
+    }
   });

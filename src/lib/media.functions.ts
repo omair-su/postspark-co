@@ -1,3 +1,4 @@
+import { toReadableError } from "./serverErrors";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -33,6 +34,7 @@ function kindFromName(name: string): MediaKind {
 export const listMediaLibrary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data, error } = await supabase.storage
       .from(POST_MEDIA_BUCKET)
@@ -57,6 +59,10 @@ export const listMediaLibrary = createServerFn({ method: "POST" })
       url: urlByPath.get(paths[i]) || "",
     }));
     return { assets };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "media");
+    }
   });
 
 /** Refresh signed URLs for known storage paths. */
@@ -64,6 +70,7 @@ export const signMediaPaths = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ paths: z.array(z.string().min(1)).max(20) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const owned = data.paths.filter((p) => p.startsWith(`${userId}/`));
     if (owned.length === 0) return { urls: {} as Record<string, string> };
@@ -73,17 +80,26 @@ export const signMediaPaths = createServerFn({ method: "POST" })
     const urls: Record<string, string> = {};
     for (const s of signed || []) if ((s as any).signedUrl) urls[(s as any).path] = (s as any).signedUrl;
     return { urls };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "media");
+    }
   });
 
 export const deleteMediaAsset = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ path: z.string().min(1) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     if (!data.path.startsWith(`${userId}/`)) return { error: "Not allowed" };
     const { error } = await supabase.storage.from(POST_MEDIA_BUCKET).remove([data.path]);
     if (error) return { error: error.message };
     return { ok: true };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "media");
+    }
   });
 
 const MAX_IMPORT_BYTES = 200 * 1024 * 1024;
@@ -103,6 +119,7 @@ export const importRemoteMedia = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
 
     if (!isSafePublicUrl(data.url)) return { error: "That URL is not allowed." };
@@ -140,4 +157,8 @@ export const importRemoteMedia = createServerFn({ method: "POST" })
       .createSignedUrl(path, SIGNED_URL_TTL);
 
     return { ok: true, path, kind, url: signed?.signedUrl || "" };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "media");
+    }
   });
