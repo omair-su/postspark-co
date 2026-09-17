@@ -216,7 +216,14 @@ export const disconnectWhatsApp = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await supabase
       .from("notification_preferences")
-      .update({ whatsapp_phone: null, whatsapp_connected_at: null })
+      .update({
+        whatsapp_phone: null,
+        whatsapp_connected_at: null,
+        whatsapp_pending_phone: null,
+        whatsapp_otp_hash: null,
+        whatsapp_otp_expires_at: null,
+        whatsapp_otp_attempts: 0,
+      })
       .eq("user_id", userId);
     return { success: true };
   
