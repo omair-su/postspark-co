@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   getWhatsAppPrefs,
   saveWhatsAppPrefs,
-  connectWhatsApp,
+  startWhatsAppVerification,
+  confirmWhatsAppVerification,
   disconnectWhatsApp,
   testWhatsApp,
   listWhatsAppNotifications,
@@ -71,6 +72,8 @@ function WhatsAppSettings() {
 
   const [prefs, setPrefs] = useState<Prefs | null>(null);
   const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [awaitingCode, setAwaitingCode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [notifs, setNotifs] = useState<any[]>([]);
@@ -92,16 +95,35 @@ function WhatsAppSettings() {
 
   const connected = !!prefs?.whatsapp_phone;
 
-  const handleConnect = async () => {
+  const handleSendCode = async () => {
     if (!phone.trim()) return toast.error("Enter your WhatsApp number");
     setBusy("connect");
     try {
-      const res = await connectWhatsApp({ data: { phone }, ...authHeaders } as any);
-      if (!(res as any).success)
-        toast.error((res as any).error || "Could not connect WhatsApp");
-      else {
-        toast.success("WhatsApp connected — check your phone");
+      const res = await startWhatsAppVerification({ data: { phone }, ...authHeaders } as any);
+      if (!(res as any).success) {
+        toast.error((res as any).error || "Could not send the verification code");
+      } else {
+        setAwaitingCode(true);
+        setCode("");
+        toast.success("We sent a 6-digit code to that number");
+      }
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleConfirmCode = async () => {
+    if (code.replace(/\D/g, "").length < 4) return toast.error("Enter the code we sent you");
+    setBusy("confirm");
+    try {
+      const res = await confirmWhatsAppVerification({ data: { code }, ...authHeaders } as any);
+      if (!(res as any).success) {
+        toast.error((res as any).error || "That code doesn't match");
+      } else {
+        toast.success("WhatsApp connected");
         setPhone("");
+        setCode("");
+        setAwaitingCode(false);
         refresh();
       }
     } finally {
@@ -113,6 +135,8 @@ function WhatsAppSettings() {
     setBusy("disc");
     try {
       await disconnectWhatsApp(authHeaders);
+      setAwaitingCode(false);
+      setCode("");
       toast.success("WhatsApp disconnected");
       refresh();
     } finally {
