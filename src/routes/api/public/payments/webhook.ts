@@ -6,6 +6,7 @@ import { verifyWebhook, EventName, getPaddleClient, type PaddleEnv } from '@/lib
 import { WelcomePaidEmail } from '@/lib/email-templates/welcome-paid';
 import { PaymentFailedEmail } from '@/lib/email-templates/payment-failed';
 import { SubscriptionCanceledEmail } from '@/lib/email-templates/subscription-canceled';
+import { packForPriceId } from '@/lib/credits';
 
 const SITE_NAME = 'PostSpark';
 const FROM_DOMAIN = 'postspark.co';
@@ -321,6 +322,9 @@ async function handleWebhook(req: Request, env: PaddleEnv) {
       break;
     case EventName.SubscriptionCanceled:
       await handleSubscriptionCanceled(event.data, env);
+      break;
+    case EventName.TransactionCompleted:
+      await handleTransactionCompleted(event.data, env);
       break;
     case EventName.TransactionPaymentFailed:
       await handleTransactionPaymentFailed(event.data, env);
