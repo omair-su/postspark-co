@@ -258,7 +258,7 @@ function SubscriptionCard({
         {usageError && (
           <button
             type="button"
-            onClick={() => setUsageReload((k) => k + 1)}
+            onClick={onRetryUsage}
             className="inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/5 px-3 py-1 text-xs font-medium text-destructive"
           >
             Usage didn't load — retry
