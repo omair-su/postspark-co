@@ -20,3 +20,6 @@
 - [x] Credits balance card on dashboard home and billing page
 - [x] Free-plan monthly schedule slot cap (10) with purchased-slot fallback
 - [x] Phone-width re-audit of dashboard/repurpose/publishing/billing/brand pages — no clipping
+
+- [x] Credit checkout connected to payment gateway (webhook grants packs on transaction.completed)
+- [x] Pack Marketplace: list packs, card or credit checkout, buyer copy delivered to library
