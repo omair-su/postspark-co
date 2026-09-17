@@ -79,6 +79,7 @@ function PublishingCenter() {
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
   const [previewPlatform, setPreviewPlatform] = useState<PlatformId>("x");
+  const [failures, setFailures] = useState<string[]>([]);
 
   const [queue, setQueue] = useState<QueueRow[]>([]);
 
@@ -134,9 +135,14 @@ function PublishingCenter() {
     if (!text.trim()) return toast.error("Write something first");
     if (selected.size === 0) return toast.error("Pick at least one platform");
     setPublishing(true);
+    setFailures([]);
     const results: string[] = [];
-    const fmt = (label: string, r: any) =>
-      r?.ok ? `${label}: ✅` : `${label}: ❌ ${r?.error || "failed"}`;
+    const fails: string[] = [];
+    const fmt = (label: string, r: any) => {
+      if (r?.ok) return `${label}: ✅`;
+      fails.push(`${label}: ${r?.error || "failed"}`);
+      return `${label}: ❌ ${r?.error || "failed"}`;
+    };
     for (const id of selected) {
       try {
         if (id === "x") {
