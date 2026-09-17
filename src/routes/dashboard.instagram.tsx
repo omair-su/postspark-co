@@ -675,15 +675,16 @@ function InsightsTab({ authHeaders }: { authHeaders: any }) {
   const [days, setDays] = useState<7 | 30 | 90>(30);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     setLoading(true);
     getInstagramInsights({ ...authHeaders, data: { days } })
       .then((r: any) => setData(r))
-      .catch(() => setData(null))
+      .catch((e: any) => setData({ error: e?.message || "Could not load insights right now." }))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [days]);
+  }, [days, reloadKey]);
 
   const sumMetric = (name: string) => {
     const row = (data?.daily || []).find((d: any) => d.name === name);
