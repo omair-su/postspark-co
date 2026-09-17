@@ -1648,7 +1648,21 @@ function RepurposePage() {
                 onGenerateImage={generatePieceImage}
                 media={pieceMedia}
                 onMediaRekey={(oldText, newTexts) =>
-                  setPieceMedia((m) => rekeyMedia(m, activeOutputTab, oldText, newTexts))
+                  setPieceMedia((m) => {
+                    const next = rekeyMedia(m, activeOutputTab, oldText, newTexts);
+                    const had = !!m[mediaKey({ format: activeOutputTab, text: oldText })];
+                    const kept = Object.keys(next).length === Object.keys(m).length;
+                    if (had && kept && next !== m) {
+                      toast.success(
+                        newTexts.length > 1
+                          ? "Your visual stayed attached — it follows the first post of the split."
+                          : "Your visual stayed attached to this post.",
+                      );
+                    } else if (had && !kept) {
+                      toast.warning("This post's visual couldn't follow the edit — attach it again before publishing.");
+                    }
+                    return next;
+                  })
                 }
               />
             </div>
