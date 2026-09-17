@@ -7,6 +7,7 @@
  * edits, inpaints and outpaints all draw from the same allowance.
  */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { refundCredits, spendCredits } from "@/lib/credits.server";
 import { isSafePublicUrl, safeFetch } from "@/lib/safeFetch";
 
 export const FREE_MONTHLY_LIMIT = 5; // free tier preview generations
