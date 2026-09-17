@@ -7,5 +7,5 @@
 - [x] Upgrade Recent Packs into a team review feed with live preview and approvals
 - [ ] Verify model identity, quota refunds, worker idempotency, responsive UI, and end-to-end media handoff
 - [x] Audit phase 1: readable failure messages, pricing table fix, logo hydration fix, Humanizer history 500 fix, Instagram avatar fallback
-- [ ] Audit phase 2: page-by-page desktop + mobile UI/UX sweep and fixes
+- [x] Audit phase 2: desktop + mobile sweep of 33 routes; fixed missing-table 404s on dashboard home, phone overflow on Publishing Center and recent-output cards, broken Instagram thumbnails
 - [ ] Audit phase 3-5: brand/premium consistency, trust & conversion, differentiation

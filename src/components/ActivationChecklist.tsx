@@ -37,7 +37,7 @@ export function ActivationChecklist() {
         sb.from("brand_kits").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         sb.from("brand_voices").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         sb.from("repurpose_jobs").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        sb.from("calendar_items").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        sb.from("scheduled_posts").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       if (cancelled) return;
       setSteps([
