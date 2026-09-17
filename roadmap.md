@@ -14,3 +14,9 @@
 - [x] Standardize padding/gaps/typography across publishing panes
 - [x] Guardrail: warn + preserve attachments through refine/shorter edits
 - [x] Branded empty/error states with retry (history, repurpose, publishing, settings)
+- [x] Brand Kit: logo guidelines, visual style guide, voice notes, auto-brand toggle
+- [x] On-brand image generation: active brand kit palette/fonts/style injected into Image Studio prompts (both paths)
+- [x] Credit packs checkout (image credits 100/300/1000, 50 schedule slots) + wallet grants via payment webhook
+- [x] Credits balance card on dashboard home and billing page
+- [x] Free-plan monthly schedule slot cap (10) with purchased-slot fallback
+- [x] Phone-width re-audit of dashboard/repurpose/publishing/billing/brand pages — no clipping
