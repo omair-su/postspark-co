@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { CreditsCard, CreditPacks } from "@/components/dashboard/CreditsPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
@@ -370,6 +371,11 @@ function BillingPage() {
           </div>
         </div>
       )}
+
+      <div className="mt-4 space-y-4">
+        <CreditsCard />
+        <CreditPacks />
+      </div>
 
       {changeTarget && (
         <PlanChangeDialog
