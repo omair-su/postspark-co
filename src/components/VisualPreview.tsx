@@ -51,6 +51,8 @@ interface Props {
   onGenerateImage?: (piece: Piece) => Promise<string | null>;
   /** Visuals already attached, keyed by piece id. */
   media?: Record<string, string>;
+  /** Called before a post's text changes so its attached visual follows it. */
+  onMediaRekey?: (oldText: string, newTexts: string[]) => void;
 }
 
 /**
