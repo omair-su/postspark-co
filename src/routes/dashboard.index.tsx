@@ -10,6 +10,7 @@ import { getMonthlyUsage } from "@/lib/repurpose.functions";
 
 import { DailySpark } from "@/components/DailySpark";
 import { ActivationChecklist } from "@/components/ActivationChecklist";
+import { CreditsCard } from "@/components/dashboard/CreditsPanel";
 import { StreakBadge } from "@/components/StreakBadge";
 import { ReferralBanner } from "@/components/ReferralBanner";
 import { AskBar } from "@/components/dashboard/AskBar";
@@ -437,6 +438,7 @@ function DashboardHome() {
       </section>
 
       <div className="pw-reveal"><ActivationChecklist /></div>
+      <div className="pw-reveal"><CreditsCard /></div>
 
       {/* Guided studios */}
       <section className="pw-reveal">
