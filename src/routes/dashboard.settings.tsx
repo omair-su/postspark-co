@@ -28,13 +28,16 @@ function SettingsPage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
 
+  const [usageError, setUsageError] = useState(false);
+  const [usageReload, setUsageReload] = useState(0);
+
   useEffect(() => {
     if (!session) return;
-
+    setUsageError(false);
     getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
       .then(setUsage)
-      .catch(() => {});
-  }, [session]);
+      .catch(() => setUsageError(true));
+  }, [session, usageReload]);
 
   const plan = usage?.plan || "free";
   const isUnlimited = usage?.limit === -1;
