@@ -241,3 +241,26 @@ Tell me **"start Phase 1"** and I'll execute in this order:
 - **Toast copy sweep** across auth/settings pages: current strings come from Supabase (`error.message`) and are already user-readable ("Invalid login credentials", etc.) — a full rewrite is cosmetic, not P0.
 - **Route-level code-splitting audit** beyond FFmpeg: TanStack Start auto-splits per-route by default; no oversized shared chunks flagged in the current build.
 - **Blog seed indexing**: seed already exists and is linked from the footer; sitemap generation happens server-side. Requires a live Search Console pass to verify, not a code change.
+
+## Phase 2 sweep — 2026 (desktop 1280 + mobile 375)
+
+Crawled 9 public and 24 signed-in routes at both widths, capturing console errors,
+failed requests and layout overflow.
+
+Defects found and fixed:
+1. Dashboard home requested a table that does not exist (`calendar_items`), so the
+   "Schedule a post" activation step could never complete and two 404s fired on every
+   load. Now reads `scheduled_posts`.
+2. Publishing Center panes overflowed the phone viewport (389px in a 375px screen).
+   Added `min-w-0` to the three panes.
+3. Recent-outputs cards on dashboard home overflowed at 375px. Added `min-w-0`.
+4. Instagram thumbnails from expired CDN links rendered as broken images. They now
+   fall back to the muted placeholder tile. (The 403 itself is remote link expiry and
+   cannot be prevented client-side.)
+
+Clean: no horizontal page overflow, no console errors and no failed app requests on
+any other audited route at either width.
+
+Remaining (Phase 3): 35 files still hardcode light colours; `.ds-canvas` override in
+src/styles.css still needed until those are converted. 10px labels are intentional
+eyebrow styling.
