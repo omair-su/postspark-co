@@ -712,11 +712,17 @@ function InsightsTab({ authHeaders }: { authHeaders: any }) {
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading insights…
-        </div>
+        <LoadingPane label="Loading your Instagram insights">
+          <SkeletonTiles tiles={4} aspect="h-20" className="lg:grid-cols-4" />
+          <SkeletonRows rows={3} className="mt-6" />
+        </LoadingPane>
       ) : data?.error ? (
-        <p className="rounded-xl border border-border bg-card p-5 text-sm text-destructive">{data.error}</p>
+        <ErrorState
+          title="Instagram insights didn't load"
+          message={data.error}
+          onRetry={() => setDays((d) => d)}
+          retryLabel="Reload insights"
+        />
       ) : (
         <>
           {data?.warning && (
