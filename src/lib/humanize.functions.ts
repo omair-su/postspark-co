@@ -1,3 +1,4 @@
+import { toReadableError } from "./serverErrors";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -32,7 +33,13 @@ export const humanizeRun = createServerFn({ method: "POST" })
       persist: z.boolean().default(true),
     }).parse,
   )
-  .handler(async ({ data, context }) => runHumanize(context, data));
+  .handler(async ({ data, context }) => {
+    try {
+      return await runHumanize(context, data);
+    } catch (thrown) {
+      throw await toReadableError(thrown, "humanize");
+    }
+  });
 
 export const rerollSentence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -46,19 +53,43 @@ export const rerollSentence = createServerFn({ method: "POST" })
       ...settingsSchema,
     }).parse,
   )
-  .handler(async ({ data, context }) => rerollOneSentence(context, data));
+  .handler(async ({ data, context }) => {
+    try {
+      return await rerollOneSentence(context, data);
+    } catch (thrown) {
+      throw await toReadableError(thrown, "humanize");
+    }
+  });
 
 export const listHumanizerRuns = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ limit: z.number().int().min(1).max(50).default(25) }).parse)
-  .handler(async ({ data, context }) => fetchHumanizerRuns(context, data.limit));
+  .handler(async ({ data, context }) => {
+    try {
+      return await fetchHumanizerRuns(context, data.limit);
+    } catch (thrown) {
+      throw await toReadableError(thrown, "humanize");
+    }
+  });
 
 export const listRunVersions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ sourceHash: z.string().min(4).max(80) }).parse)
-  .handler(async ({ data, context }) => fetchRunVersions(context, data.sourceHash));
+  .handler(async ({ data, context }) => {
+    try {
+      return await fetchRunVersions(context, data.sourceHash);
+    } catch (thrown) {
+      throw await toReadableError(thrown, "humanize");
+    }
+  });
 
 export const deleteHumanizerRun = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
-  .handler(async ({ data, context }) => removeHumanizerRun(context, data.id));
+  .handler(async ({ data, context }) => {
+    try {
+      return await removeHumanizerRun(context, data.id);
+    } catch (thrown) {
+      throw await toReadableError(thrown, "humanize");
+    }
+  });

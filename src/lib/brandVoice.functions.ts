@@ -1,3 +1,4 @@
+import { toReadableError } from "./serverErrors";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -30,7 +31,9 @@ async function requirePro(supabase: any, userId: string) {
 
 export const listBrandVoices = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => wrap(async () => {
+  .handler(async ({ context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("brand_voices")
@@ -42,11 +45,17 @@ export const listBrandVoices = createServerFn({ method: "POST" })
       return { voices: [] };
     }
     return { voices: data || [] };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });
 
 export const getActiveBrandVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => wrap(async () => {
+  .handler(async ({ context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     const { data } = await supabase
       .from("brand_voices")
@@ -55,7 +64,11 @@ export const getActiveBrandVoice = createServerFn({ method: "POST" })
       .eq("is_active", true)
       .maybeSingle();
     return { voice: data || null };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });
 
 export const trainBrandVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -66,7 +79,9 @@ export const trainBrandVoice = createServerFn({ method: "POST" })
       source_url: z.string().url().optional().nullable(),
     }).parse,
   )
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     if (!(await requirePro(supabase, userId))) {
       return { success: false, error: "Brand Voice training is a Pro feature. Upgrade to unlock." };
@@ -96,12 +111,18 @@ export const trainBrandVoice = createServerFn({ method: "POST" })
       return { success: false, error: "Failed to save voice." };
     }
     return { success: true, voice: inserted };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });
 
 export const setActiveBrandVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid().nullable() }).parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     await supabase.from("brand_voices").update({ is_active: false }).eq("user_id", userId);
     if (data.id) {
@@ -113,12 +134,18 @@ export const setActiveBrandVoice = createServerFn({ method: "POST" })
       if (error) return { success: false };
     }
     return { success: true };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });
 
 export const deleteBrandVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("brand_voices")
@@ -127,7 +154,11 @@ export const deleteBrandVoice = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     if (error) return { success: false };
     return { success: true };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });
 
 // ---------- Phase 1 new endpoints ----------
 
@@ -151,7 +182,9 @@ const UpdateVoiceSchema = z.object({
 export const updateBrandVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(UpdateVoiceSchema.parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     const { id, ...fields } = data;
     const patch: Record<string, unknown> = {};
@@ -163,7 +196,11 @@ export const updateBrandVoice = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     if (error) return { success: false, error: error.message };
     return { success: true };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });
 
 export const analyzeBrandVoiceFromUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -171,7 +208,9 @@ export const analyzeBrandVoiceFromUrl = createServerFn({ method: "POST" })
     url: z.string().url(),
     name: z.string().min(1).max(80),
   }).parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     if (!(await requirePro(supabase, userId))) {
       return { success: false, error: "URL analysis is a Pro feature. Upgrade to unlock." };
@@ -199,12 +238,18 @@ export const analyzeBrandVoiceFromUrl = createServerFn({ method: "POST" })
       .single();
     if (error) return { success: false, error: error.message };
     return { success: true, voice: inserted, sampleCount: scraped.samples.length };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });
 
 export const generateVoiceSamples = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ voiceId: z.string().uuid() }).parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     const { data: voice } = await supabase
       .from("brand_voices")
@@ -221,7 +266,11 @@ export const generateVoiceSamples = createServerFn({ method: "POST" })
       return { success: false, error: result.error || "Preview generation failed." };
     }
     return { success: true, previews: result.previews };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });
 
 export const scoreContentAgainstVoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -229,7 +278,9 @@ export const scoreContentAgainstVoice = createServerFn({ method: "POST" })
     voiceId: z.string().uuid(),
     content: z.string().min(10).max(6000),
   }).parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     const { data: voice } = await supabase
       .from("brand_voices")
@@ -243,4 +294,8 @@ export const scoreContentAgainstVoice = createServerFn({ method: "POST" })
     const result = await scoreVoiceMatch(summary, data.content);
     if (result.error) return { success: false, error: result.error };
     return { success: true, score: result.score };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandVoice");
+    }
+  });

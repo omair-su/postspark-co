@@ -308,6 +308,7 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: any; ico
 
 function OverviewTab({ conn, authHeaders }: { conn: any; authHeaders: any }) {
   const [media, setMedia] = useState<any[]>([]);
+  const [avatarBroken, setAvatarBroken] = useState(false);
   useEffect(() => {
     listInstagramMedia({ ...authHeaders, data: { limit: 12 } })
       .then((r: any) => setMedia(r?.media || []))
@@ -320,11 +321,13 @@ function OverviewTab({ conn, authHeaders }: { conn: any; authHeaders: any }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5">
-        {conn.avatarUrl ? (
+        {conn.avatarUrl && !avatarBroken ? (
           <img
             src={conn.avatarUrl}
             alt={`${conn.username || "Instagram"} profile picture`}
             className="h-16 w-16 rounded-full object-cover"
+            // Instagram CDN links expire; fall back to the icon instead of a broken image.
+            onError={() => setAvatarBroken(true)}
           />
         ) : (
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-muted-foreground">

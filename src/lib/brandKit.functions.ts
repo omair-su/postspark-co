@@ -1,3 +1,4 @@
+import { toReadableError } from "./serverErrors";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { resolveActiveBrandKit } from "@/lib/activeBrandKit.server";
@@ -19,7 +20,9 @@ function wrap<T>(fn: () => Promise<T>): Promise<T> {
 
 export const listBrandKits = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => wrap(async () => {
+  .handler(async ({ context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("brand_kits")
@@ -31,12 +34,18 @@ export const listBrandKits = createServerFn({ method: "POST" })
       return { kits: [] };
     }
     return { kits: data || [] };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandKit");
+    }
+  });
 
 export const createBrandKit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ name: z.string().min(1).max(80) }).parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     // Deactivate others so the new one becomes the sole active kit
     await supabase.from("brand_kits").update({ is_active: false } as any).eq("user_id", userId);
@@ -47,12 +56,18 @@ export const createBrandKit = createServerFn({ method: "POST" })
       .single();
     if (error) return { success: false, error: error.message };
     return { success: true, kit: inserted };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandKit");
+    }
+  });
 
 export const setActiveBrandKit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     // Two-step: clear all, then set target
     await supabase.from("brand_kits").update({ is_active: false } as any).eq("user_id", userId);
@@ -63,12 +78,18 @@ export const setActiveBrandKit = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     if (error) return { success: false, error: error.message };
     return { success: true };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandKit");
+    }
+  });
 
 export const deleteBrandKit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ id: z.string().uuid() }).parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     // Prevent deleting the last kit
     const { data: all } = await supabase.from("brand_kits").select("id, is_active").eq("user_id", userId);
@@ -86,18 +107,28 @@ export const deleteBrandKit = createServerFn({ method: "POST" })
       }
     }
     return { success: true };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandKit");
+    }
+  });
 
 // ---------- Backwards-compatible active-kit fetch (used by repurpose) ----------
 
 export const getBrandKit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => wrap(async () => {
+  .handler(async ({ context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     // Single deterministic resolver shared with every generation surface
     const kit = await resolveActiveBrandKit(supabase, userId);
     return { kit: kit as any };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandKit");
+    }
+  });
 
 // ---------- Update fields on a specific (or the active) kit ----------
 
@@ -130,7 +161,9 @@ const UpsertSchema = z.object({
 export const upsertBrandKit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(UpsertSchema.parse)
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     const { id, ...fields } = data;
     const payload: Record<string, unknown> = {};
@@ -161,12 +194,18 @@ export const upsertBrandKit = createServerFn({ method: "POST" })
       if (error) return { success: false, error: error.message };
     }
     return { success: true };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandKit");
+    }
+  });
 
 export const deleteBrandLogo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw: unknown) => z.object({ id: z.string().uuid().optional(), slot: z.string().max(30).optional() }).parse(raw ?? {}))
-  .handler(async ({ data, context }) => wrap(async () => {
+  .handler(async ({ data, context }) => {
+    try {
+      return await wrap(async () => {
     const { supabase, userId } = context;
     let query = supabase
       .from("brand_kits")
@@ -186,4 +225,8 @@ export const deleteBrandLogo = createServerFn({ method: "POST" })
     }
     await supabase.from("brand_kits").update(patch as any).eq("id", kit.id);
     return { success: true };
-  }));
+  });
+    } catch (thrown) {
+      throw await toReadableError(thrown, "brandKit");
+    }
+  });

@@ -1,3 +1,4 @@
+import { toReadableError } from "./serverErrors";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -20,6 +21,7 @@ const EVENT_TYPES = [
 export const getWhatsAppPrefs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data } = await supabase
       .from("notification_preferences")
@@ -27,6 +29,10 @@ export const getWhatsAppPrefs = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .maybeSingle();
     return { prefs: data };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "whatsapp");
+    }
   });
 
 export const saveWhatsAppPrefs = createServerFn({ method: "POST" })
@@ -42,18 +48,24 @@ export const saveWhatsAppPrefs = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("notification_preferences")
       .upsert({ user_id: userId, ...data }, { onConflict: "user_id" });
     if (error) return { success: false, error: error.message };
     return { success: true };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "whatsapp");
+    }
   });
 
 export const connectWhatsApp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ phone: z.string().min(8).max(20) }).parse)
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const phone = normalizePhone(data.phone);
     if (phone.length < 8) return { success: false, error: "Invalid phone number" };
@@ -86,22 +98,32 @@ export const connectWhatsApp = createServerFn({ method: "POST" })
     });
 
     return { success: true, sent: test.ok, warning: test.ok ? null : test.error };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "whatsapp");
+    }
   });
 
 export const disconnectWhatsApp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     await supabase
       .from("notification_preferences")
       .update({ whatsapp_phone: null, whatsapp_connected_at: null })
       .eq("user_id", userId);
     return { success: true };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "whatsapp");
+    }
   });
 
 export const testWhatsApp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: prefs } = await supabase
       .from("notification_preferences")
@@ -121,11 +143,16 @@ export const testWhatsApp = createServerFn({ method: "POST" })
       payload: { test: true },
     });
     return { success: res.ok, error: res.error };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "whatsapp");
+    }
   });
 
 export const listWhatsAppNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    try {
     const { supabase, userId } = context;
     const { data } = await supabase
       .from("whatsapp_notifications")
@@ -134,6 +161,10 @@ export const listWhatsAppNotifications = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(50);
     return { notifications: data || [] };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "whatsapp");
+    }
   });
 
 // Called by other server code (e.g. publish cron) to fire a notification
@@ -147,6 +178,7 @@ export const notifyWhatsApp = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
+    try {
     const { supabase, userId } = context;
     const { data: prefs } = await supabase
       .from("notification_preferences")
@@ -168,4 +200,8 @@ export const notifyWhatsApp = createServerFn({ method: "POST" })
       payload: data.data || {},
     });
     return { success: res.ok, error: res.error };
+  
+    } catch (thrown) {
+      throw await toReadableError(thrown, "whatsapp");
+    }
   });
