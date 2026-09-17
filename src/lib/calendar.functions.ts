@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { resolveActiveBrandKit } from "@/lib/activeBrandKit.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { FREE_MONTHLY_SCHEDULE_SLOTS } from "@/lib/credits";
+import { refundCredits, spendCredits } from "@/lib/credits.server";
 import { generateContentPlan } from "@/lib/calendar.server";
 
 export const listScheduledPosts = createServerFn({ method: "POST" })
@@ -54,6 +56,32 @@ export const createScheduledPost = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
     const { supabase, userId } = context;
+
+    // Free plans get a monthly scheduling allowance; beyond it a purchased
+    // schedule slot is spent (and given back if the insert fails).
+    const { data: planRow } = await supabase
+      .from("profiles").select("plan").eq("user_id", userId).maybeSingle();
+    const plan = planRow?.plan || "free";
+    let slotSpent = false;
+    if (plan !== "pro" && plan !== "agency") {
+      const monthStart = new Date();
+      const periodStart = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1).toISOString();
+      const { count } = await supabase
+        .from("scheduled_posts")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", periodStart);
+      if ((count ?? 0) >= FREE_MONTHLY_SCHEDULE_SLOTS) {
+        slotSpent = await spendCredits(userId, "schedule", 1);
+        if (!slotSpent) {
+          return {
+            success: false,
+            error: "SLOT_LIMIT",
+          };
+        }
+      }
+    }
+
     const { data: inserted, error } = await supabase
       .from("scheduled_posts")
       .insert({
@@ -76,6 +104,7 @@ export const createScheduledPost = createServerFn({ method: "POST" })
 
     if (error) {
       console.error("Create scheduled post error:", error);
+      if (slotSpent) await refundCredits(userId, "schedule", 1);
       return { success: false, error: "Failed to schedule post." };
     }
     return { success: true, post: inserted };
