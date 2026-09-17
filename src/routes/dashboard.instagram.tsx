@@ -19,6 +19,14 @@ import {
 import InstagramSetupGuide from "@/components/instagram/InstagramSetupGuide";
 import InstagramStatusPanel from "@/components/instagram/InstagramStatusPanel";
 import {
+  EmptyState,
+  ErrorState,
+  LoadingPane,
+  SkeletonCard,
+  SkeletonRows,
+  SkeletonTiles,
+} from "@/components/dashboard/StateViews";
+import {
   Instagram,
   Loader2,
   Send,
@@ -861,11 +869,15 @@ function CommentsTab({ authHeaders }: { authHeaders: any }) {
 
       <section className="rounded-2xl border border-border bg-card p-5">
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading comments…
-          </div>
+          <LoadingPane label="Loading comments">
+            <SkeletonRows rows={4} />
+          </LoadingPane>
         ) : comments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No comments on this post yet.</p>
+          <EmptyState
+            icon={<MessageCircle className="h-5 w-5" />}
+            title="No comments yet"
+            body="When people comment on this post, you'll be able to reply, hide, or delete right here."
+          />
         ) : (
           <ul className="space-y-4">
             {comments.map((c) => (
