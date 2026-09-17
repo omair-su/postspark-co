@@ -380,6 +380,9 @@ function OverviewTab({ conn, authHeaders }: { conn: any; authHeaders: any }) {
                     alt={m.caption ? m.caption.slice(0, 80) : "Instagram post thumbnail"}
                     className="h-full w-full object-cover transition-transform group-hover:scale-[1.03]"
                     loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.visibility = "hidden";
+                    }}
                   />
                 </div>
                 <div className="flex items-center justify-between px-2.5 py-2 text-[11px] text-muted-foreground">
@@ -742,8 +745,11 @@ function InsightsTab({ authHeaders }: { authHeaders: any }) {
                   <img
                     src={m.thumbnail_url || m.media_url}
                     alt={m.caption ? m.caption.slice(0, 60) : "Instagram post thumbnail"}
-                    className="h-16 w-16 rounded-lg object-cover"
+                    className="h-16 w-16 rounded-lg bg-muted object-cover"
                     loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.visibility = "hidden";
+                    }}
                   />
                   <div className="min-w-0">
                     <p className="line-clamp-2 text-xs text-foreground">{m.caption || "(no caption)"}</p>
@@ -829,8 +835,11 @@ function CommentsTab({ authHeaders }: { authHeaders: any }) {
               <img
                 src={m.thumbnail_url || m.media_url}
                 alt={m.caption ? m.caption.slice(0, 40) : "Instagram post thumbnail"}
-                className="h-10 w-10 rounded object-cover"
+                className="h-10 w-10 rounded bg-muted object-cover"
                 loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.visibility = "hidden";
+                }}
               />
               <span className="line-clamp-2 flex-1 text-[11px] text-foreground">{m.caption || "(no caption)"}</span>
               <span className="text-[11px] text-muted-foreground">{m.comments_count ?? 0}</span>
