@@ -22,6 +22,7 @@ import { createScheduledPost } from "@/lib/calendar.functions";
 import { ToolHero } from "@/components/dashboard/ToolHero";
 import { PackQueue, rowsFromPieces, type QueueRow } from "@/components/publish/PackQueue";
 import { PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
+import { EmptyState, ErrorState, LoadingPane, SkeletonCard } from "@/components/dashboard/StateViews";
 
 export const Route = createFileRoute("/dashboard/publishing")({
   head: () => ({
@@ -60,6 +61,10 @@ const PLATFORMS: {
   { id: "tiktok", label: "TikTok", icon: Music2, limit: 2200, color: "bg-black" },
   { id: "youtube", label: "YouTube", icon: Youtube, limit: 5000, color: "bg-[#FF0000]" },
 ];
+
+/** Shared pane chrome so every publishing pane matches on desktop and mobile. */
+const PANE = "min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-5";
+const PANE_LABEL = "text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground";
 
 function PublishingCenter() {
   const { session } = useAuth();
