@@ -210,11 +210,23 @@ function SettingsPage() {
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </Link>
 
-      <SubscriptionCard usage={usage} />
+      <SubscriptionCard
+        usage={usage}
+        usageError={usageError}
+        onRetryUsage={() => setUsageReload((k) => k + 1)}
+      />
     </div>
   );
 }
-function SubscriptionCard({ usage }: { usage: { used: number; limit: number; plan?: string } | null }) {
+function SubscriptionCard({
+  usage,
+  usageError,
+  onRetryUsage,
+}: {
+  usage: { used: number; limit: number; plan?: string } | null;
+  usageError?: boolean;
+  onRetryUsage?: () => void;
+}) {
   const { subscription, plan, cadence, lifetime, isActive } = useSubscription();
   const isUnlimited = plan !== "free";
   const renewal = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
