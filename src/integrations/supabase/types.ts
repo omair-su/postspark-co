@@ -1044,6 +1044,109 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_listings: {
+        Row: {
+          created_at: string
+          credit_price: number | null
+          description: string | null
+          id: string
+          job_id: string | null
+          payload: Json
+          platforms: string[]
+          preview: Json
+          price_id: string | null
+          sales_count: number
+          seller_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credit_price?: number | null
+          description?: string | null
+          id?: string
+          job_id?: string | null
+          payload?: Json
+          platforms?: string[]
+          preview?: Json
+          price_id?: string | null
+          sales_count?: number
+          seller_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credit_price?: number | null
+          description?: string | null
+          id?: string
+          job_id?: string | null
+          payload?: Json
+          platforms?: string[]
+          preview?: Json
+          price_id?: string | null
+          sales_count?: number
+          seller_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "repurpose_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_purchases: {
+        Row: {
+          amount_cents: number | null
+          buyer_id: string
+          copied_job_id: string | null
+          created_at: string
+          credits_spent: number | null
+          id: string
+          listing_id: string
+          method: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          buyer_id: string
+          copied_job_id?: string | null
+          created_at?: string
+          credits_spent?: number | null
+          id?: string
+          listing_id: string
+          method: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          buyer_id?: string
+          copied_job_id?: string | null
+          created_at?: string
+          credits_spent?: number | null
+          id?: string
+          listing_id?: string
+          method?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_purchases_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           account_connected: boolean

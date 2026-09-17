@@ -22,6 +22,13 @@
       "when": 1789659689799,
       "tag": "0002_credit_packs_and_brand_guidelines",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789661133712,
+      "tag": "0003_marketplace_listings_and_purchases",
+      "breakpoints": true
     }
   ]
 }
