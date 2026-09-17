@@ -51,6 +51,8 @@ interface Props {
   onGenerateImage?: (piece: Piece) => Promise<string | null>;
   /** Visuals already attached, keyed by piece id. */
   media?: Record<string, string>;
+  /** Called before a post's text changes so its attached visual follows it. */
+  onMediaRekey?: (oldText: string, newTexts: string[]) => void;
 }
 
 /**
@@ -59,7 +61,7 @@ interface Props {
  */
 export function VisualPreview({
   typeId, content, label, onChange, onRefine, onPublishPiece, onSchedulePiece, onVoiceScore,
-  onGenerateImage, media,
+  onGenerateImage, media, onMediaRekey,
 }: Props) {
   const pieces = useMemo(() => parsePieces(typeId, content), [typeId, content]);
 
@@ -74,12 +76,18 @@ export function VisualPreview({
   const replacePiece = (index: number, text: string, chain?: string[]) => {
     if (!onChange) return;
     // A thread split replaces one post with several real posts.
+    const replacements = chain && chain.length > 1 ? chain : [text];
     const next = pieces.flatMap((p, i) =>
-      i === index
-        ? (chain && chain.length > 1 ? chain : [text]).map((t) => ({ ...p, text: t }))
-        : [p],
+      i === index ? replacements.map((t) => ({ ...p, text: t })) : [p],
     );
-    onChange(serializePieces(typeId, next));
+    const serialized = serializePieces(typeId, next);
+    if (onMediaRekey) {
+      // Key off the parsed texts, exactly what lookups will recompute later.
+      const reparsed = parsePieces(typeId, serialized);
+      const newTexts = reparsed.slice(index, index + replacements.length).map((p) => p.text);
+      if (newTexts.length) onMediaRekey(pieces[index].text, newTexts);
+    }
+    onChange(serialized);
   };
 
   return (

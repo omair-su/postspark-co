@@ -22,7 +22,7 @@ import { VisualPreview, type RefineKind } from "@/components/VisualPreview";
 import { BrandIcon, BrandGlyph, type BrandKey } from "@/components/BrandIcon";
 import { ImportInputPanel } from "@/components/ImportInputPanel";
 import { PublishMenu } from "@/components/PublishMenu";
-import { parsePack, parsePieces, limitFor, mediaKey, PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
+import { parsePack, parsePieces, limitFor, mediaKey, rekeyMedia, PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
 import { HookABTester } from "@/components/HookABTester";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ToolHero } from "@/components/dashboard/ToolHero";
@@ -1647,6 +1647,9 @@ function RepurposePage() {
                 onSchedulePiece={schedulePiece}
                 onGenerateImage={generatePieceImage}
                 media={pieceMedia}
+                onMediaRekey={(oldText, newTexts) =>
+                  setPieceMedia((m) => rekeyMedia(m, activeOutputTab, oldText, newTexts))
+                }
               />
             </div>
           )}
@@ -1959,7 +1962,7 @@ function SelectRow({ label, value, onChange, options }: {
   );
 }
 
-function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece, onVoiceScore, onGenerateImage, media }: {
+function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwipe, regenerating, onEdit, onRefinePiece, onPublishPiece, onSchedulePiece, onVoiceScore, onGenerateImage, media, onMediaRekey }: {
   formatId: FormatId; content: string; onCopy: (text: string, id: string) => void; copied: string | null;
   onRegenerate: () => void; onSaveSwipe: () => void; regenerating: boolean;
   onEdit: (value: string) => void;
@@ -1969,6 +1972,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
   onSchedulePiece: (piece: Piece) => void;
   onGenerateImage?: (piece: Piece) => Promise<string | null>;
   media?: Record<string, string>;
+  onMediaRekey?: (oldText: string, newTexts: string[]) => void;
 }) {
   const def = FORMAT_BY_ID[formatId];
   if (!def) return null;
@@ -2052,6 +2056,7 @@ function OutputCard({ formatId, content, onCopy, copied, onRegenerate, onSaveSwi
               onVoiceScore={onVoiceScore}
               onGenerateImage={onGenerateImage}
               media={media}
+              onMediaRekey={onMediaRekey}
             />
           </PlatformChrome>
         </div>

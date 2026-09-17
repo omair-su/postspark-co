@@ -230,3 +230,26 @@ function textHash(text: string): string {
 export function mediaKey(piece: Pick<Piece, "format" | "text">): string {
   return `${piece.format}-${textHash((piece.text || "").trim())}`;
 }
+
+/**
+ * Text-derived keys survive reordering and splitting, but not text edits. When a
+ * post's text changes (inline edit, rewrite, auto-fix split), move its attached
+ * visual to the new key(s) so the image stays with the post the user attached it to.
+ */
+export function rekeyMedia(
+  media: Record<string, string>,
+  format: string,
+  oldText: string,
+  newTexts: string[],
+): Record<string, string> {
+  const from = mediaKey({ format, text: oldText });
+  const url = media[from];
+  const targets = newTexts.map((t) => mediaKey({ format, text: t })).filter(Boolean);
+  if (!url || !targets.length) return media;
+  if (targets.includes(from)) return media;
+  const next = { ...media };
+  delete next[from];
+  // A split produces several posts; the visual follows the first one.
+  next[targets[0]] = url;
+  return next;
+}
