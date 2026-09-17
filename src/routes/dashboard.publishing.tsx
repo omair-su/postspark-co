@@ -162,6 +162,7 @@ function PublishingCenter() {
         } else if (id === "instagram") {
           if (!mediaUrl) {
             results.push("Instagram: ❌ media required");
+            fails.push("Instagram: needs an image or video");
             continue;
           }
           const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
@@ -186,9 +187,11 @@ function PublishingCenter() {
         }
       } catch (e: any) {
         results.push(`${id}: ❌ ${e?.message || "error"}`);
+        fails.push(`${id}: ${e?.message || "error"}`);
       }
     }
     setPublishing(false);
+    setFailures(fails);
     toast.message("Publish results", { description: results.join("\n") });
   };
 
