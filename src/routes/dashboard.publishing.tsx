@@ -221,7 +221,7 @@ function PublishingCenter() {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_260px_1fr]">
         {/* Composer */}
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className="min-w-0 rounded-xl border border-border bg-card p-4">
           <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Caption
           </label>
@@ -306,7 +306,7 @@ function PublishingCenter() {
         </section>
 
         {/* Platform toggles */}
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className="min-w-0 rounded-xl border border-border bg-card p-4">
           <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Platforms
           </div>
@@ -343,7 +343,7 @@ function PublishingCenter() {
         </section>
 
         {/* Live preview */}
-        <section className="rounded-xl border border-border bg-card p-4">
+        <section className="min-w-0 rounded-xl border border-border bg-card p-4">
           <div className="mb-3 flex items-center justify-between">
             <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Preview
