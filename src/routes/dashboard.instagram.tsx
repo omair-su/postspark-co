@@ -721,7 +721,7 @@ function InsightsTab({ authHeaders }: { authHeaders: any }) {
         <ErrorState
           title="Instagram insights didn't load"
           message={data.error}
-          onRetry={() => setDays((d) => d)}
+          onRetry={() => setReloadKey((k) => k + 1)}
           retryLabel="Reload insights"
         />
       ) : (
