@@ -156,6 +156,15 @@ const UpsertSchema = z.object({
   tagline: z.string().max(200).optional().nullable(),
   preferred_tone: z.string().max(50).optional().nullable(),
   watermark_settings: z.record(z.string(), z.any()).optional(),
+  logo_guidelines: z.object({
+    clear_space: z.string().max(200).optional(),
+    min_size: z.string().max(200).optional(),
+    backgrounds: z.string().max(300).optional(),
+    donts: z.string().max(500).optional(),
+  }).optional(),
+  style_notes: z.string().max(1500).optional().nullable(),
+  voice_notes: z.string().max(1500).optional().nullable(),
+  auto_brand_images: z.boolean().optional(),
 });
 
 export const upsertBrandKit = createServerFn({ method: "POST" })
