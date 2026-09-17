@@ -28,13 +28,16 @@ function SettingsPage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [usage, setUsage] = useState<{ used: number; limit: number; plan?: string } | null>(null);
 
+  const [usageError, setUsageError] = useState(false);
+  const [usageReload, setUsageReload] = useState(0);
+
   useEffect(() => {
     if (!session) return;
-
+    setUsageError(false);
     getMonthlyUsage({ headers: { Authorization: `Bearer ${session.access_token}` } })
       .then(setUsage)
-      .catch(() => {});
-  }, [session]);
+      .catch(() => setUsageError(true));
+  }, [session, usageReload]);
 
   const plan = usage?.plan || "free";
   const isUnlimited = usage?.limit === -1;
@@ -207,11 +210,23 @@ function SettingsPage() {
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </Link>
 
-      <SubscriptionCard usage={usage} />
+      <SubscriptionCard
+        usage={usage}
+        usageError={usageError}
+        onRetryUsage={() => setUsageReload((k) => k + 1)}
+      />
     </div>
   );
 }
-function SubscriptionCard({ usage }: { usage: { used: number; limit: number; plan?: string } | null }) {
+function SubscriptionCard({
+  usage,
+  usageError,
+  onRetryUsage,
+}: {
+  usage: { used: number; limit: number; plan?: string } | null;
+  usageError?: boolean;
+  onRetryUsage?: () => void;
+}) {
   const { subscription, plan, cadence, lifetime, isActive } = useSubscription();
   const isUnlimited = plan !== "free";
   const renewal = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
@@ -239,6 +254,15 @@ function SubscriptionCard({ usage }: { usage: { used: number; limit: number; pla
           <span className="text-xs text-muted-foreground">
             {usage?.used ?? 0} / {usage?.limit ?? 3} repurposes this month
           </span>
+        )}
+        {usageError && (
+          <button
+            type="button"
+            onClick={onRetryUsage}
+            className="inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/5 px-3 py-1 text-xs font-medium text-destructive"
+          >
+            Usage didn't load — retry
+          </button>
         )}
       </div>
 

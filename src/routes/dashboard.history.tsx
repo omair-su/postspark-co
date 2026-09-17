@@ -10,6 +10,7 @@ import { togglePublic } from "@/lib/gallery.functions";
 import { createApprovalRequest } from "@/lib/approvals.functions";
 import { toast } from "sonner";
 import { HeroArt } from "@/components/dashboard/HeroArt";
+import { ErrorState } from "@/components/dashboard/StateViews";
 
 interface Job {
   id: string;
@@ -54,18 +55,24 @@ function HistoryPage() {
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
   const [bulkMode, setBulkMode] = useState(false);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
   useEffect(() => {
     if (!user) return;
+    setLoading(true);
+    setLoadError(null);
     (supabase as any)
       .from("repurpose_jobs")
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .then(({ data }: { data: any }) => {
+      .then(({ data, error }: { data: any; error: any }) => {
+        if (error) setLoadError("We couldn't load your history just now.");
         setJobs((data as Job[]) || []);
         setLoading(false);
       });
-  }, [user]);
+  }, [user, reloadKey]);
 
   const handleToggleFavorite = async (job: Job, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -499,7 +506,15 @@ function HistoryPage() {
         </div>
       )}
 
-      {filteredJobs.length === 0 ? (
+      {loadError ? (
+        <ErrorState
+          className="mt-8"
+          title="Your history didn't load"
+          message={loadError}
+          onRetry={() => setReloadKey((k) => k + 1)}
+          retryLabel="Reload history"
+        />
+      ) : filteredJobs.length === 0 ? (
         <div className="ds-card mt-8 p-10 text-center">
           <Clock className="mx-auto h-10 w-10 text-muted-foreground" />
           {search || filterFav ? (

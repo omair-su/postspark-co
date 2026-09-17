@@ -22,6 +22,7 @@ import { createScheduledPost } from "@/lib/calendar.functions";
 import { ToolHero } from "@/components/dashboard/ToolHero";
 import { PackQueue, rowsFromPieces, type QueueRow } from "@/components/publish/PackQueue";
 import { PUBLISH_PACK_KEY, type Piece } from "@/lib/pieces";
+import { EmptyState, ErrorState, LoadingPane, SkeletonCard } from "@/components/dashboard/StateViews";
 
 export const Route = createFileRoute("/dashboard/publishing")({
   head: () => ({
@@ -61,6 +62,10 @@ const PLATFORMS: {
   { id: "youtube", label: "YouTube", icon: Youtube, limit: 5000, color: "bg-[#FF0000]" },
 ];
 
+/** Shared pane chrome so every publishing pane matches on desktop and mobile. */
+const PANE = "min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-5";
+const PANE_LABEL = "text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground";
+
 function PublishingCenter() {
   const { session } = useAuth();
   const authHeaders = session
@@ -74,6 +79,7 @@ function PublishingCenter() {
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
   const [previewPlatform, setPreviewPlatform] = useState<PlatformId>("x");
+  const [failures, setFailures] = useState<string[]>([]);
 
   const [queue, setQueue] = useState<QueueRow[]>([]);
 
@@ -129,9 +135,14 @@ function PublishingCenter() {
     if (!text.trim()) return toast.error("Write something first");
     if (selected.size === 0) return toast.error("Pick at least one platform");
     setPublishing(true);
+    setFailures([]);
     const results: string[] = [];
-    const fmt = (label: string, r: any) =>
-      r?.ok ? `${label}: ✅` : `${label}: ❌ ${r?.error || "failed"}`;
+    const fails: string[] = [];
+    const fmt = (label: string, r: any) => {
+      if (r?.ok) return `${label}: ✅`;
+      fails.push(`${label}: ${r?.error || "failed"}`);
+      return `${label}: ❌ ${r?.error || "failed"}`;
+    };
     for (const id of selected) {
       try {
         if (id === "x") {
@@ -151,6 +162,7 @@ function PublishingCenter() {
         } else if (id === "instagram") {
           if (!mediaUrl) {
             results.push("Instagram: ❌ media required");
+            fails.push("Instagram: needs an image or video");
             continue;
           }
           const isVideo = /\.(mp4|webm|mov)$/i.test(mediaUrl);
@@ -175,9 +187,11 @@ function PublishingCenter() {
         }
       } catch (e: any) {
         results.push(`${id}: ❌ ${e?.message || "error"}`);
+        fails.push(`${id}: ${e?.message || "error"}`);
       }
     }
     setPublishing(false);
+    setFailures(fails);
     toast.message("Publish results", { description: results.join("\n") });
   };
 
@@ -205,6 +219,8 @@ function PublishingCenter() {
     else toast.error("Nothing scheduled");
   };
 
+  const busy = publishing || scheduling;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       <ToolHero
@@ -216,24 +232,24 @@ function PublishingCenter() {
         steps={["Write once", "Preview per platform", "Publish or schedule"]}
       />
 
-
       <PackQueue rows={queue} setRows={(u) => setQueue((prev) => u(prev))} onClear={() => setQueue([])} />
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_260px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[1fr_260px_1fr]">
         {/* Composer */}
-        <section className="min-w-0 rounded-xl border border-border bg-card p-4">
-          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <section className={PANE}>
+          <label className={PANE_LABEL} htmlFor="pc-caption">
             Caption
           </label>
           <textarea
+            id="pc-caption"
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={10}
             placeholder="What do you want to share?"
-            className="mt-2 w-full resize-y rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary"
+            className="mt-2.5 w-full resize-y rounded-lg border border-border bg-background p-3 text-sm leading-relaxed outline-none focus:border-primary"
           />
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className={over ? "text-destructive font-medium" : "text-muted-foreground"}>
+          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className={over ? "font-medium text-destructive" : "text-muted-foreground"}>
               {count}/{activeLimit} chars
             </span>
             <div className="flex flex-wrap gap-2 text-[11px]">
@@ -244,9 +260,7 @@ function PublishingCenter() {
                   <span
                     key={id}
                     className={`rounded-full px-2 py-0.5 ${
-                      bad
-                        ? "bg-destructive/10 text-destructive"
-                        : "bg-muted text-muted-foreground"
+                      bad ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {p.label} {count}/{p.limit}
@@ -256,60 +270,62 @@ function PublishingCenter() {
             </div>
           </div>
 
-          <label className="mt-4 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <label className={`mt-5 block ${PANE_LABEL}`} htmlFor="pc-media">
             Media URL (image or video)
           </label>
           <input
+            id="pc-media"
             value={mediaUrl}
             onChange={(e) => setMediaUrl(e.target.value)}
             placeholder="https://…"
-            className="mt-2 w-full rounded-lg border border-border bg-background p-2 text-sm outline-none focus:border-primary"
+            className="mt-2.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           />
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
             Attach an image or video from Image Studio, Stock Gallery, or paste any public URL.
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
               onClick={publishNow}
-              disabled={publishing || over || selected.size === 0}
+              disabled={busy || over || selected.size === 0}
               className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
             >
-              {publishing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              Publish now
+              {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {publishing ? "Publishing…" : "Publish now"}
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 type="datetime-local"
+                aria-label="Schedule date and time"
                 value={scheduleAt}
                 onChange={(e) => setScheduleAt(e.target.value)}
                 className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
               />
               <button
                 onClick={scheduleAll}
-                disabled={scheduling || !scheduleAt || selected.size === 0}
+                disabled={busy || !scheduleAt || selected.size === 0}
                 className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:bg-accent disabled:opacity-50"
               >
-                {scheduling ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <CalendarIcon className="h-4 w-4" />
-                )}
-                Schedule
+                {scheduling ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarIcon className="h-4 w-4" />}
+                {scheduling ? "Scheduling…" : "Schedule"}
               </button>
             </div>
           </div>
+
+          {failures.length > 0 && !busy && (
+            <ErrorState
+              className="mt-5 text-left"
+              title="Some posts didn't go out"
+              message={`${failures.join(" · ")}. Your caption and media are still here — retry when you're ready.`}
+              onRetry={publishNow}
+              retryLabel="Retry publish"
+            />
+          )}
         </section>
 
         {/* Platform toggles */}
-        <section className="min-w-0 rounded-xl border border-border bg-card p-4">
-          <div className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Platforms
-          </div>
+        <section className={PANE}>
+          <div className={`mb-3.5 ${PANE_LABEL}`}>Platforms</div>
           <div className="grid gap-2">
             {PLATFORMS.map((p) => {
               const active = selected.has(p.id);
@@ -320,22 +336,20 @@ function PublishingCenter() {
                   onClick={() => toggle(p.id)}
                   data-selected={active ? "true" : undefined}
                   style={{ ["--cat" as any]: brandColor(p.id) }}
-                  className={`lux-brand-card flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
-                    active
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:bg-accent"
+                  className={`lux-brand-card flex min-w-0 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                    active ? "border-primary bg-primary/10" : "border-border hover:bg-accent"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex min-w-0 items-center gap-2">
                     <span
                       data-brand-tile="true"
-                      className={`flex h-6 w-6 items-center justify-center rounded ${p.color} text-white`}
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded ${p.color} text-white`}
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </span>
-                    {p.label}
+                    <span className="truncate">{p.label}</span>
                   </span>
-                  <span className="text-[10px] text-muted-foreground">{p.limit}</span>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">{p.limit}</span>
                 </button>
               );
             })}
@@ -343,15 +357,14 @@ function PublishingCenter() {
         </section>
 
         {/* Live preview */}
-        <section className="min-w-0 rounded-xl border border-border bg-card p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Preview
-            </div>
+        <section className={PANE}>
+          <div className="mb-3.5 flex items-center justify-between gap-2">
+            <div className={PANE_LABEL}>Preview</div>
             <select
+              aria-label="Preview platform"
               value={previewPlatform}
               onChange={(e) => setPreviewPlatform(e.target.value as PlatformId)}
-              className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
+              className="shrink-0 rounded-lg border border-border bg-background px-2 py-1 text-xs"
             >
               {PLATFORMS.filter((p) => selected.has(p.id)).map((p) => (
                 <option key={p.id} value={p.id}>
@@ -360,7 +373,22 @@ function PublishingCenter() {
               ))}
             </select>
           </div>
-          <PostPreview platform={previewPlatform} text={text} mediaUrl={mediaUrl} />
+          {busy ? (
+            <LoadingPane label={publishing ? "Publishing your post" : "Scheduling your post"}>
+              <SkeletonCard lines={4} />
+              <p className="mt-3 text-center text-[11px] text-muted-foreground">
+                {publishing ? "Sending to each platform…" : "Adding to your queue…"}
+              </p>
+            </LoadingPane>
+          ) : !text.trim() ? (
+            <EmptyState
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Nothing to preview yet"
+              body="Write a caption — or send a whole pack over from Repurpose Studio — and you'll see exactly how it lands on each platform."
+            />
+          ) : (
+            <PostPreview platform={previewPlatform} text={text} mediaUrl={mediaUrl} />
+          )}
         </section>
       </div>
     </div>
@@ -380,16 +408,17 @@ function PostPreview({
   const Icon = P.icon;
   return (
     <div className="rounded-xl border border-border bg-background p-4">
-      <div className="flex items-center gap-2">
-        <div data-brand-tile="true" className={`flex h-8 w-8 items-center justify-center rounded-full ${P.color} text-white`}>
+      <div className="flex min-w-0 items-center gap-2">
+        <div
+          data-brand-tile="true"
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${P.color} text-white`}
+        >
           <Icon className="h-4 w-4" />
         </div>
-        <div className="text-sm font-semibold">Your Brand</div>
-        <span className="text-xs text-muted-foreground">· now</span>
+        <div className="truncate text-sm font-semibold">Your Brand</div>
+        <span className="shrink-0 text-xs text-muted-foreground">· now</span>
       </div>
-      <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">
-        {text || <span className="text-muted-foreground">Your caption will appear here…</span>}
-      </p>
+      <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed">{text}</p>
       {mediaUrl && /^https?:\/\//.test(mediaUrl) ? (
         <div className="mt-3 overflow-hidden rounded-lg border border-border">
           {/\.(mp4|webm|mov)$/i.test(mediaUrl) ? (

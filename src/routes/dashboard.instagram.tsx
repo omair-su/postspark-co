@@ -19,6 +19,14 @@ import {
 import InstagramSetupGuide from "@/components/instagram/InstagramSetupGuide";
 import InstagramStatusPanel from "@/components/instagram/InstagramStatusPanel";
 import {
+  EmptyState,
+  ErrorState,
+  LoadingPane,
+  SkeletonCard,
+  SkeletonRows,
+  SkeletonTiles,
+} from "@/components/dashboard/StateViews";
+import {
   Instagram,
   Loader2,
   Send,
@@ -184,9 +192,10 @@ function InstagramHub() {
       </header>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading Instagram…
-        </div>
+        <LoadingPane label="Loading your Instagram account">
+          <SkeletonCard lines={3} />
+          <SkeletonTiles tiles={4} className="mt-6" />
+        </LoadingPane>
       ) : !conn?.connected ? (
         <div className="space-y-6">
           <NotConnected redirectUri={conn?.redirectUri} onConnect={connect} connecting={connecting} />
@@ -361,9 +370,11 @@ function OverviewTab({ conn, authHeaders }: { conn: any; authHeaders: any }) {
       <div>
         <h3 className="mb-3 text-sm font-semibold text-foreground">Recent posts</h3>
         {media.length === 0 ? (
-          <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-            No posts found yet.
-          </p>
+          <EmptyState
+            icon={<ImageIcon className="h-5 w-5" />}
+            title="No posts here yet"
+            body="Once you publish to this Instagram account, your recent posts will show up here with their thumbnails."
+          />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {media.map((m) => (
@@ -675,15 +686,16 @@ function InsightsTab({ authHeaders }: { authHeaders: any }) {
   const [days, setDays] = useState<7 | 30 | 90>(30);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     setLoading(true);
     getInstagramInsights({ ...authHeaders, data: { days } })
       .then((r: any) => setData(r))
-      .catch(() => setData(null))
+      .catch((e: any) => setData({ error: e?.message || "Could not load insights right now." }))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [days]);
+  }, [days, reloadKey]);
 
   const sumMetric = (name: string) => {
     const row = (data?.daily || []).find((d: any) => d.name === name);
@@ -712,11 +724,17 @@ function InsightsTab({ authHeaders }: { authHeaders: any }) {
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading insights…
-        </div>
+        <LoadingPane label="Loading your Instagram insights">
+          <SkeletonTiles tiles={4} aspect="h-20" className="lg:grid-cols-4" />
+          <SkeletonRows rows={3} className="mt-6" />
+        </LoadingPane>
       ) : data?.error ? (
-        <p className="rounded-xl border border-border bg-card p-5 text-sm text-destructive">{data.error}</p>
+        <ErrorState
+          title="Instagram insights didn't load"
+          message={data.error}
+          onRetry={() => setReloadKey((k) => k + 1)}
+          retryLabel="Reload insights"
+        />
       ) : (
         <>
           {data?.warning && (
@@ -851,11 +869,15 @@ function CommentsTab({ authHeaders }: { authHeaders: any }) {
 
       <section className="rounded-2xl border border-border bg-card p-5">
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading comments…
-          </div>
+          <LoadingPane label="Loading comments">
+            <SkeletonRows rows={4} />
+          </LoadingPane>
         ) : comments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No comments on this post yet.</p>
+          <EmptyState
+            icon={<MessageCircle className="h-5 w-5" />}
+            title="No comments yet"
+            body="When people comment on this post, you'll be able to reply, hide, or delete right here."
+          />
         ) : (
           <ul className="space-y-4">
             {comments.map((c) => (
