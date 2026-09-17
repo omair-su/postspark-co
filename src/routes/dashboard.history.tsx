@@ -54,18 +54,24 @@ function HistoryPage() {
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
   const [bulkMode, setBulkMode] = useState(false);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
   useEffect(() => {
     if (!user) return;
+    setLoading(true);
+    setLoadError(null);
     (supabase as any)
       .from("repurpose_jobs")
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .then(({ data }: { data: any }) => {
+      .then(({ data, error }: { data: any; error: any }) => {
+        if (error) setLoadError("We couldn't load your history just now.");
         setJobs((data as Job[]) || []);
         setLoading(false);
       });
-  }, [user]);
+  }, [user, reloadKey]);
 
   const handleToggleFavorite = async (job: Job, e: React.MouseEvent) => {
     e.stopPropagation();
