@@ -7,6 +7,8 @@ import { WelcomePaidEmail } from '@/lib/email-templates/welcome-paid';
 import { PaymentFailedEmail } from '@/lib/email-templates/payment-failed';
 import { SubscriptionCanceledEmail } from '@/lib/email-templates/subscription-canceled';
 import { packForPriceId } from '@/lib/credits';
+import { isPackPriceId } from '@/lib/marketplace';
+
 
 const SITE_NAME = 'PostSpark';
 const FROM_DOMAIN = 'postspark.co';
@@ -292,9 +294,31 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
 
   for (const item of (data?.items ?? []) as any[]) {
     const priceId = item?.price?.importMeta?.externalId;
+    const quantity = Math.max(1, Number(item?.quantity ?? 1));
+
+    // Marketplace pack bought with a card: deliver a copy to the buyer.
+    if (isPackPriceId(priceId)) {
+      const listingId = data?.customData?.listingId;
+      if (!listingId) {
+        console.error('marketplace: card purchase without listingId', transactionId);
+        continue;
+      }
+      const amountCents = Number(item?.price?.unitPrice?.amount ?? 0) * quantity;
+      const { copyListingToLibrary } = await import('@/lib/marketplace.server');
+      const delivered = await copyListingToLibrary({
+        listingId,
+        buyerId: userId,
+        method: 'card',
+        amountCents: Number.isFinite(amountCents) ? Math.round(amountCents) : undefined,
+        transactionId,
+      });
+      if (!delivered.success) console.error('marketplace: delivery failed', listingId, transactionId);
+      continue;
+    }
+
     const pack = packForPriceId(priceId);
     if (!pack) continue;
-    const quantity = Math.max(1, Number(item?.quantity ?? 1));
+
     const amount = Number(item?.price?.unitPrice?.amount ?? 0) * quantity;
     const { error } = await getSupabase().rpc('grant_credits', {
       _user_id: userId,

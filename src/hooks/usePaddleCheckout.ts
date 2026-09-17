@@ -15,6 +15,9 @@ export function usePaddleCheckout() {
     successUrl?: string;
     /** Optional analytics context: plan, cadence, trigger surface. */
     meta?: Record<string, string | number | boolean | null>;
+    /** Extra data passed to the payment provider (e.g. a marketplace listing). */
+    customData?: Record<string, string>;
+
   }): Promise<boolean> => {
     if (!session) {
       toast.error("Please sign in again to start checkout.");
@@ -31,7 +34,7 @@ export function usePaddleCheckout() {
       window.Paddle.Checkout.open({
         items: [{ priceId: paddlePriceId, quantity: 1 }],
         customer: options.customerEmail ? { email: options.customerEmail } : undefined,
-        customData: { userId: options.userId },
+        customData: { userId: options.userId, ...(options.customData ?? {}) },
         settings: {
           displayMode: "overlay",
           successUrl:
