@@ -1158,6 +1158,10 @@ export type Database = {
           updated_at: string
           user_id: string
           whatsapp_connected_at: string | null
+          whatsapp_otp_attempts: number
+          whatsapp_otp_expires_at: string | null
+          whatsapp_otp_hash: string | null
+          whatsapp_pending_phone: string | null
           whatsapp_phone: string | null
         }
         Insert: {
@@ -1170,6 +1174,10 @@ export type Database = {
           updated_at?: string
           user_id: string
           whatsapp_connected_at?: string | null
+          whatsapp_otp_attempts?: number
+          whatsapp_otp_expires_at?: string | null
+          whatsapp_otp_hash?: string | null
+          whatsapp_pending_phone?: string | null
           whatsapp_phone?: string | null
         }
         Update: {
@@ -1182,6 +1190,10 @@ export type Database = {
           updated_at?: string
           user_id?: string
           whatsapp_connected_at?: string | null
+          whatsapp_otp_attempts?: number
+          whatsapp_otp_expires_at?: string | null
+          whatsapp_otp_hash?: string | null
+          whatsapp_pending_phone?: string | null
           whatsapp_phone?: string | null
         }
         Relationships: []

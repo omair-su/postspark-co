@@ -29,6 +29,13 @@
       "when": 1789661133712,
       "tag": "0003_marketplace_listings_and_purchases",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789661870616,
+      "tag": "0004_whatsapp_otp_and_revoke_credit_rpcs",
+      "breakpoints": true
     }
   ]
 }
