@@ -184,9 +184,10 @@ function InstagramHub() {
       </header>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading Instagram…
-        </div>
+        <LoadingPane label="Loading your Instagram account">
+          <SkeletonCard lines={3} />
+          <SkeletonTiles tiles={4} className="mt-6" />
+        </LoadingPane>
       ) : !conn?.connected ? (
         <div className="space-y-6">
           <NotConnected redirectUri={conn?.redirectUri} onConnect={connect} connecting={connecting} />
@@ -361,9 +362,11 @@ function OverviewTab({ conn, authHeaders }: { conn: any; authHeaders: any }) {
       <div>
         <h3 className="mb-3 text-sm font-semibold text-foreground">Recent posts</h3>
         {media.length === 0 ? (
-          <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-            No posts found yet.
-          </p>
+          <EmptyState
+            icon={<ImageIcon className="h-5 w-5" />}
+            title="No posts here yet"
+            body="Once you publish to this Instagram account, your recent posts will show up here with their thumbnails."
+          />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {media.map((m) => (
