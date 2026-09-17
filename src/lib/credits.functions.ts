@@ -56,7 +56,14 @@ export const getCreditSummary = createServerFn({ method: "GET" })
           used: scheduledThisMonth ?? 0,
           purchased: wallet.scheduleSlots,
         },
-        purchases: (purchases as Array<Record<string, unknown>>) ?? [],
+        purchases: ((purchases as Array<{ kind: string; units: number; price_id: string; created_at: string }>) ?? []).map(
+          (row) => ({
+            kind: String(row.kind),
+            units: Number(row.units),
+            priceId: String(row.price_id),
+            createdAt: String(row.created_at),
+          }),
+        ),
       };
     } catch (thrown) {
       throw await toReadableError(thrown, "credits");
