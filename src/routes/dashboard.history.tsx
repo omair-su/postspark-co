@@ -10,6 +10,7 @@ import { togglePublic } from "@/lib/gallery.functions";
 import { createApprovalRequest } from "@/lib/approvals.functions";
 import { toast } from "sonner";
 import { HeroArt } from "@/components/dashboard/HeroArt";
+import { ErrorState } from "@/components/dashboard/StateViews";
 
 interface Job {
   id: string;
@@ -505,7 +506,15 @@ function HistoryPage() {
         </div>
       )}
 
-      {filteredJobs.length === 0 ? (
+      {loadError ? (
+        <ErrorState
+          className="mt-8"
+          title="Your history didn't load"
+          message={loadError}
+          onRetry={() => setReloadKey((k) => k + 1)}
+          retryLabel="Reload history"
+        />
+      ) : filteredJobs.length === 0 ? (
         <div className="ds-card mt-8 p-10 text-center">
           <Clock className="mx-auto h-10 w-10 text-muted-foreground" />
           {search || filterFav ? (
