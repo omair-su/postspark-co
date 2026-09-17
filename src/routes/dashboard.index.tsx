@@ -407,7 +407,7 @@ function DashboardHome() {
                   <Link
                     key={j.id}
                     to="/dashboard/history"
-                    className="group flex items-center justify-between gap-3 rounded-lg border pw-hairline border bg-white/[0.02] px-3 py-2.5 hover:border-[#a78bfa]/40 hover:bg-white/[0.05]"
+                    className="group flex min-w-0 items-center justify-between gap-3 rounded-lg border pw-hairline border bg-white/[0.02] px-3 py-2.5 hover:border-[#a78bfa]/40 hover:bg-white/[0.05]"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-xs font-medium pw-muted-text">
