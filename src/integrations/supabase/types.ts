@@ -365,6 +365,7 @@ export type Database = {
       brand_kits: {
         Row: {
           accent_color: string | null
+          auto_brand_images: boolean
           background_color: string | null
           brand_handle: string | null
           brand_name: string | null
@@ -375,6 +376,7 @@ export type Database = {
           font_heading: string | null
           id: string
           is_active: boolean
+          logo_guidelines: Json
           logo_url: string | null
           logo_variants: Json
           name: string
@@ -383,14 +385,17 @@ export type Database = {
           primary_color: string | null
           saved_swatches: Json
           secondary_color: string | null
+          style_notes: string | null
           tagline: string | null
           updated_at: string
           user_id: string
+          voice_notes: string | null
           watermark_settings: Json
           workspace_id: string | null
         }
         Insert: {
           accent_color?: string | null
+          auto_brand_images?: boolean
           background_color?: string | null
           brand_handle?: string | null
           brand_name?: string | null
@@ -401,6 +406,7 @@ export type Database = {
           font_heading?: string | null
           id?: string
           is_active?: boolean
+          logo_guidelines?: Json
           logo_url?: string | null
           logo_variants?: Json
           name?: string
@@ -409,14 +415,17 @@ export type Database = {
           primary_color?: string | null
           saved_swatches?: Json
           secondary_color?: string | null
+          style_notes?: string | null
           tagline?: string | null
           updated_at?: string
           user_id: string
+          voice_notes?: string | null
           watermark_settings?: Json
           workspace_id?: string | null
         }
         Update: {
           accent_color?: string | null
+          auto_brand_images?: boolean
           background_color?: string | null
           brand_handle?: string | null
           brand_name?: string | null
@@ -427,6 +436,7 @@ export type Database = {
           font_heading?: string | null
           id?: string
           is_active?: boolean
+          logo_guidelines?: Json
           logo_url?: string | null
           logo_variants?: Json
           name?: string
@@ -435,9 +445,11 @@ export type Database = {
           primary_color?: string | null
           saved_swatches?: Json
           secondary_color?: string | null
+          style_notes?: string | null
           tagline?: string | null
           updated_at?: string
           user_id?: string
+          voice_notes?: string | null
           watermark_settings?: Json
           workspace_id?: string | null
         }
@@ -633,6 +645,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      credit_purchases: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          environment: string
+          id: string
+          kind: string
+          price_id: string
+          transaction_id: string
+          units: number
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          environment?: string
+          id?: string
+          kind: string
+          price_id: string
+          transaction_id: string
+          units: number
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          environment?: string
+          id?: string
+          kind?: string
+          price_id?: string
+          transaction_id?: string
+          units?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_wallets: {
+        Row: {
+          image_credits: number
+          schedule_slots: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          image_credits?: number
+          schedule_slots?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          image_credits?: number
+          schedule_slots?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       demo_uses: {
         Row: {
@@ -2177,6 +2249,19 @@ export type Database = {
         Returns: number
       }
       get_approval_by_token: { Args: { _token: string }; Returns: Json }
+      grant_credits: {
+        Args: {
+          _amount_cents?: number
+          _currency?: string
+          _environment?: string
+          _kind: string
+          _price_id: string
+          _transaction_id: string
+          _units: number
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
@@ -2209,6 +2294,10 @@ export type Database = {
           read_ct: number
         }[]
       }
+      refund_credits: {
+        Args: { _kind: string; _units: number; _user_id: string }
+        Returns: boolean
+      }
       reserve_usage: {
         Args: {
           _idempotency_key?: string
@@ -2230,6 +2319,10 @@ export type Database = {
       }
       settle_usage: {
         Args: { _reservation_id: string; _success: boolean }
+        Returns: boolean
+      }
+      spend_credits: {
+        Args: { _kind: string; _units: number; _user_id: string }
         Returns: boolean
       }
       workspace_role: {

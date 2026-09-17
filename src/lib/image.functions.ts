@@ -29,6 +29,7 @@ import {
   isProPlan as isPro,
 } from "@/lib/imageQuota.server";
 import { createImageJob, advanceImageJob } from "@/lib/imageJobs.server";
+import { resolveActiveBrandKit, brandImageDirective } from "@/lib/activeBrandKit.server";
 import { IMAGE_MODEL_CREDIT_WEIGHTS, IMAGE_MODEL_IDS } from "@/lib/imageModels";
 
 const IMAGE_MODEL = z.enum(IMAGE_MODEL_IDS).default("auto");
@@ -60,6 +61,7 @@ export const generateImage = createServerFn({ method: "POST" })
       originalPrompt: z.string().max(2000).optional(),
       seed: z.number().int().min(0).max(999999999).optional(),
       referenceUrl: z.string().max(2000).optional(),
+      onBrand: z.boolean().optional(),
     }).parse,
   )
   .handler(async ({ data, context }) => {
@@ -72,12 +74,20 @@ export const generateImage = createServerFn({ method: "POST" })
     const creditWeight = IMAGE_MODEL_CREDIT_WEIGHTS[data.model];
     const reservation = await reserveImageQuota(userId, plan, creditWeight);
     if (!reservation.ok) return { imageUrl: "", error: "LIMIT_REACHED" };
+    // Brand Kit colors, fonts and style notes ride along with the prompt so the
+    // studio produces on-brand graphics by default.
+    let brandedPrompt = data.prompt;
+    if (data.onBrand !== false) {
+      const kit = await resolveActiveBrandKit(supabase, userId);
+      const directive = brandImageDirective(kit);
+      if (directive) brandedPrompt = `${data.prompt}\n\n${directive}`;
+    }
     const usableReference =
       data.referenceUrl && /^https?:\/\//i.test(data.referenceUrl) ? data.referenceUrl : null;
     let res: Awaited<ReturnType<typeof generateSocialImage>>;
     try {
       res = await generateSocialImage(
-        data.prompt,
+        brandedPrompt,
         data.style,
         data.aspect,
         data.template,

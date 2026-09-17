@@ -79,3 +79,29 @@ export function brandKitVisualTokens(kit: ActiveBrandKit | null) {
     watermark: kit.watermark_settings || null,
   };
 }
+
+/**
+ * Visual brand directive appended to Image Studio prompts so generated graphics
+ * come out on-brand without the user re-typing colors and fonts every time.
+ * Returns "" when there is nothing usable or the kit opted out.
+ */
+export function brandImageDirective(kit: ActiveBrandKit | null): string {
+  if (!kit) return "";
+  if (kit.auto_brand_images === false) return "";
+  const parts: string[] = [];
+  const palette = [kit.primary_color, kit.secondary_color, kit.accent_color]
+    .filter((c): c is string => !!c && /^#[0-9a-fA-F]{6}$/.test(c));
+  if (palette.length) parts.push(`brand color palette ${palette.join(", ")}`);
+  if (kit.background_color) parts.push(`background tuned to ${kit.background_color}`);
+  if (kit.font_heading) parts.push(`headline typography in the style of ${kit.font_heading}`);
+  if (kit.font_body) parts.push(`supporting text in the style of ${kit.font_body}`);
+  const tone = (kit.preferred_tone || "").trim();
+  if (tone) parts.push(`${tone} visual mood`);
+  const style = (kit.style_notes || "").trim();
+  if (style) parts.push(style.slice(0, 300));
+  const guidelines = (kit.logo_guidelines || {}) as Record<string, unknown>;
+  const clearSpace = typeof guidelines.clear_space === "string" ? guidelines.clear_space.trim() : "";
+  if (clearSpace) parts.push(`leave clear space for the logo (${clearSpace.slice(0, 120)})`);
+  if (!parts.length) return "";
+  return `On-brand requirements: ${parts.join("; ")}. Keep the composition clean and never render a fake logo or watermark.`;
+}

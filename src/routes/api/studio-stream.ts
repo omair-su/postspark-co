@@ -27,6 +27,7 @@ import {
   logToHistory,
 } from "@/lib/imageQuota.server";
 import { STREAM_IMAGE_MODEL_FAST, STREAM_IMAGE_MODEL_HD } from "@/lib/imageModels";
+import { resolveActiveBrandKit, brandImageDirective } from "@/lib/activeBrandKit.server";
 import { buildImagePrompt } from "@/lib/imagePrompt";
 
 export const Route = createFileRoute("/api/studio-stream")({
@@ -90,7 +91,11 @@ export const Route = createFileRoute("/api/studio-stream")({
         const gatewayModel = quality === "hd" ? STREAM_IMAGE_MODEL_HD : STREAM_IMAGE_MODEL_FAST;
         // Same prompt builder as the non-streaming path, so one click can no
         // longer produce two different images depending on which path ran.
-        const fullPrompt = buildImagePrompt(prompt, { style, aspect, template, negativePrompt });
+        const kit = await resolveActiveBrandKit(supabase, userId);
+        const brandDirective = brandImageDirective(kit);
+        const fullPrompt = `${buildImagePrompt(prompt, { style, aspect, template, negativePrompt })}${
+          brandDirective ? `\n\n${brandDirective}` : ""
+        }`;
 
         let upstream: Response;
         try {

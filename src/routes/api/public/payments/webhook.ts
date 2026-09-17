@@ -6,6 +6,7 @@ import { verifyWebhook, EventName, getPaddleClient, type PaddleEnv } from '@/lib
 import { WelcomePaidEmail } from '@/lib/email-templates/welcome-paid';
 import { PaymentFailedEmail } from '@/lib/email-templates/payment-failed';
 import { SubscriptionCanceledEmail } from '@/lib/email-templates/subscription-canceled';
+import { packForPriceId } from '@/lib/credits';
 
 const SITE_NAME = 'PostSpark';
 const FROM_DOMAIN = 'postspark.co';
@@ -278,6 +279,38 @@ async function handleTransactionPaymentFailed(data: any, _env: PaddleEnv) {
   if (email) await sendPaymentFailedEmail(email, planNameFromProductId(productId ?? undefined));
 }
 
+/**
+ * One-time top-up packs (image credits, schedule slots). Subscription renewals
+ * also arrive as completed transactions, so only known pack prices grant
+ * anything, and grant_credits is idempotent per (transaction, price).
+ */
+async function handleTransactionCompleted(data: any, env: PaddleEnv) {
+  const userId = data?.customData?.userId;
+  const transactionId = data?.id;
+  if (!userId || !transactionId) return;
+  const currency = data?.currencyCode ?? null;
+
+  for (const item of (data?.items ?? []) as any[]) {
+    const priceId = item?.price?.importMeta?.externalId;
+    const pack = packForPriceId(priceId);
+    if (!pack) continue;
+    const quantity = Math.max(1, Number(item?.quantity ?? 1));
+    const amount = Number(item?.price?.unitPrice?.amount ?? 0) * quantity;
+    const { error } = await getSupabase().rpc('grant_credits', {
+      _user_id: userId,
+      _kind: pack.kind,
+      _units: pack.units * quantity,
+      _price_id: pack.priceId,
+      _transaction_id: transactionId,
+      _amount_cents: Number.isFinite(amount) ? Math.round(amount) : null,
+      _currency: currency,
+      _environment: env,
+    });
+    if (error) console.error('grant_credits failed:', error);
+  }
+}
+
+
 async function handleWebhook(req: Request, env: PaddleEnv) {
   const event = await verifyWebhook(req, env);
   switch (event.eventType) {
@@ -289,6 +322,9 @@ async function handleWebhook(req: Request, env: PaddleEnv) {
       break;
     case EventName.SubscriptionCanceled:
       await handleSubscriptionCanceled(event.data, env);
+      break;
+    case EventName.TransactionCompleted:
+      await handleTransactionCompleted(event.data, env);
       break;
     case EventName.TransactionPaymentFailed:
       await handleTransactionPaymentFailed(event.data, env);
