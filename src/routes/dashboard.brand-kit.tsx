@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Palette, Type, Sparkles, ArrowLeft, ImageIcon, FileDown, Crown } from "lucide-react";
+import { Loader2, Palette, Type, Sparkles, ArrowLeft, ImageIcon, FileDown, Crown, Ruler, BookOpen } from "lucide-react";
 import { getBrandKit, upsertBrandKit } from "@/lib/brandKit.functions";
 import { BrandProfileSwitcher } from "@/components/BrandProfileSwitcher";
 import { AdvancedColorPicker } from "@/components/brandkit/AdvancedColorPicker";
@@ -30,6 +30,20 @@ const TONES = [
   { id: "educational", label: "Educational", emoji: "📚" },
   { id: "bold", label: "Bold", emoji: "🔥" },
 ];
+
+type LogoGuidelines = {
+  clear_space?: string;
+  min_size?: string;
+  backgrounds?: string;
+  donts?: string;
+};
+
+const DEFAULT_LOGO_GUIDELINES: LogoGuidelines = {
+  clear_space: "Keep clear space equal to the height of the mark on all sides.",
+  min_size: "Never below 24px tall on screen, 12mm in print.",
+  backgrounds: "Full-colour logo on light backgrounds, light variant on brand navy.",
+  donts: "Don't stretch, recolour, add shadows or place on busy photography.",
+};
 
 const DEFAULT_WATERMARK: WatermarkSettings = {
   enabled: false,
@@ -72,6 +86,12 @@ function BrandKitPage() {
   // Watermark
   const [watermark, setWatermark] = useState<WatermarkSettings>(DEFAULT_WATERMARK);
 
+  // Guidelines + written style guide (used verbatim by the AI)
+  const [logoGuidelines, setLogoGuidelines] = useState<LogoGuidelines>(DEFAULT_LOGO_GUIDELINES);
+  const [styleNotes, setStyleNotes] = useState("");
+  const [voiceNotes, setVoiceNotes] = useState("");
+  const [autoBrandImages, setAutoBrandImages] = useState(true);
+
   useEffect(() => {
     if (!session) return;
     setLoading(true);
@@ -98,6 +118,10 @@ function BrandKitPage() {
           setFontBody(k.font_body || "Inter");
           setCustomFonts(Array.isArray(k.custom_fonts) ? k.custom_fonts : []);
           setTone(k.preferred_tone || "professional");
+          setLogoGuidelines({ ...DEFAULT_LOGO_GUIDELINES, ...(k.logo_guidelines || {}) });
+          setStyleNotes(k.style_notes || "");
+          setVoiceNotes(k.voice_notes || "");
+          setAutoBrandImages(k.auto_brand_images !== false);
           const wm = { ...DEFAULT_WATERMARK, ...(k.watermark_settings || {}) };
           setWatermark(wm);
           // Only mirror into localStorage if this kit actually has saved watermark_settings.
@@ -115,6 +139,8 @@ function BrandKitPage() {
           setFontHeading("Inter"); setFontBody("Inter"); setCustomFonts([]);
           setTone("professional");
           setWatermark(DEFAULT_WATERMARK);
+          setLogoGuidelines(DEFAULT_LOGO_GUIDELINES);
+          setStyleNotes(""); setVoiceNotes(""); setAutoBrandImages(true);
         }
       })
       .finally(() => setLoading(false));
@@ -146,6 +172,10 @@ function BrandKitPage() {
         custom_fonts: customFonts,
         preferred_tone: tone,
         watermark_settings: watermark as any,
+        logo_guidelines: logoGuidelines,
+        style_notes: styleNotes || null,
+        voice_notes: voiceNotes || null,
+        auto_brand_images: autoBrandImages,
       },
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
@@ -247,6 +277,46 @@ function BrandKitPage() {
           </div>
         </div>
         {user && <LogoVault userId={user.id} slots={logos} onChange={setLogos} />}
+      </section>
+
+      {/* Logo guidelines */}
+      <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
+        <h2 className="flex items-center gap-2 text-sm font-semibold pw-ink">
+          <Ruler className="h-4 w-4 text-violet-400" /> Logo guidelines
+        </h2>
+        <p className="mt-1 text-xs pw-muted-text">
+          House rules for your mark. Shown in your exported brand guide and respected when the studio lays out graphics.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Clear space"
+            value={logoGuidelines.clear_space || ""}
+            onChange={(v) => setLogoGuidelines((g) => ({ ...g, clear_space: v }))}
+            placeholder="Clear space equal to the mark height"
+          />
+          <Field
+            label="Minimum size"
+            value={logoGuidelines.min_size || ""}
+            onChange={(v) => setLogoGuidelines((g) => ({ ...g, min_size: v }))}
+            placeholder="Never below 24px tall"
+          />
+          <div className="sm:col-span-2">
+            <Field
+              label="Backgrounds"
+              value={logoGuidelines.backgrounds || ""}
+              onChange={(v) => setLogoGuidelines((g) => ({ ...g, backgrounds: v }))}
+              placeholder="Light variant on brand navy, full colour on white"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <TextareaField
+              label="Never do this"
+              value={logoGuidelines.donts || ""}
+              onChange={(v) => setLogoGuidelines((g) => ({ ...g, donts: v }))}
+              placeholder="Don't stretch, recolour or add shadows."
+            />
+          </div>
+        </div>
       </section>
 
       {/* Color system */}
@@ -370,6 +440,42 @@ function BrandKitPage() {
         </div>
       </section>
 
+      {/* Style guide & voice */}
+      <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
+        <h2 className="flex items-center gap-2 text-sm font-semibold pw-ink">
+          <BookOpen className="h-4 w-4 text-violet-400" /> Style guide & voice
+        </h2>
+        <p className="mt-1 text-xs pw-muted-text">
+          Written in your own words and sent with every generation, so repurposed posts and graphics sound and look like you.
+        </p>
+        <div className="mt-4 grid gap-4">
+          <TextareaField
+            label="Visual style guide"
+            value={styleNotes}
+            onChange={setStyleNotes}
+            placeholder="Editorial photography, generous white space, soft gradients, no stock-photo handshakes."
+          />
+          <TextareaField
+            label="Voice & tone"
+            value={voiceNotes}
+            onChange={setVoiceNotes}
+            placeholder="Direct and warm. Short sentences. No hype words, no emoji spam. Always end with one clear next step."
+          />
+        </div>
+        <label className="mt-4 flex items-start gap-3 rounded-xl border pw-hairline bg-[color:var(--pw-section)] p-3">
+          <input
+            type="checkbox"
+            checked={autoBrandImages}
+            onChange={(e) => setAutoBrandImages(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-violet-600"
+          />
+          <span className="text-xs pw-muted-text">
+            <span className="block text-[13px] font-semibold pw-ink">Auto-brand my graphics</span>
+            Image Studio uses these colours, fonts and style notes on every render unless you turn it off for a single image.
+          </span>
+        </label>
+      </section>
+
       {/* Live preview */}
       <section className="rounded-2xl border pw-hairline bg-[color:var(--pw-surface)] p-5 backdrop-blur-xl">
         <h2 className="text-sm font-semibold pw-ink">Live preview</h2>
@@ -437,6 +543,23 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="mt-1 w-full rounded-lg pw-hairline border bg-[color:var(--pw-surface)] px-3 py-2 text-sm pw-ink outline-none placeholder:opacity-60 focus:border-violet-500"
+      />
+    </label>
+  );
+}
+
+function TextareaField({
+  label, value, onChange, placeholder,
+}: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <label className="block">
+      <span className="text-[11px] font-semibold uppercase tracking-wider pw-muted-text">{label}</span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={3}
+        className="mt-1 w-full resize-y rounded-lg pw-hairline border bg-[color:var(--pw-surface)] px-3 py-2 text-sm pw-ink outline-none placeholder:opacity-60 focus:border-violet-500"
       />
     </label>
   );
