@@ -201,6 +201,7 @@ function PublishingCenter() {
     if (!scheduleAt) return toast.error("Pick a date/time");
     setScheduling(true);
     let ok = 0;
+    let slotLimit = false;
     for (const id of selected) {
       const platform = id === "x" ? "twitter" : id;
       const r = await createScheduledPost({
@@ -213,11 +214,18 @@ function PublishingCenter() {
         ...authHeaders,
       } as any);
       if ((r as any).success) ok++;
+      else if ((r as any).error === "SLOT_LIMIT") slotLimit = true;
     }
     setScheduling(false);
     if (ok > 0) toast.success(`Scheduled to ${ok}/${selected.size} platform(s)`);
+    else if (slotLimit)
+      toast.error("You've used all 10 free scheduled posts this month", {
+        description: "Add schedule slots to keep scheduling, or upgrade for unlimited.",
+        action: { label: "Get more slots", onClick: () => navigate({ to: "/dashboard/billing" }) },
+      });
     else toast.error("Nothing scheduled");
   };
+
 
   const busy = publishing || scheduling;
 
