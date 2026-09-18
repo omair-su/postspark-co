@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+
 import {
   Send, Loader2, Check, AlertTriangle, Trash2, CalendarClock, Scissors, Link2,
 } from "lucide-react";
@@ -82,6 +84,8 @@ export function PackQueue({
   onClear: () => void;
 }) {
   const { session } = useAuth();
+  const navigate = useNavigate();
+
   const authHeaders = session
     ? { headers: { Authorization: `Bearer ${session.access_token}` } }
     : ({} as any);
@@ -244,6 +248,7 @@ export function PackQueue({
     setScheduling(true);
     const start = new Date(scheduleAt).getTime();
     let ok = 0;
+    let slotLimit = false;
     for (const [i, row] of rows.filter((r) => r.status !== "published").entries()) {
       const when = new Date(start + i * spacingMin * 60_000).toISOString();
       // eslint-disable-next-line no-await-in-loop
@@ -271,12 +276,21 @@ export function PackQueue({
       if (r?.success) {
         ok++;
         patch(row.id, { status: "skipped", message: `Scheduled ${new Date(when).toLocaleString()}` });
+      } else if (r?.error === "SLOT_LIMIT") {
+        slotLimit = true;
+        patch(row.id, { status: "failed", message: "Monthly scheduling limit reached" });
       }
     }
     setScheduling(false);
+    if (slotLimit)
+      toast.error("You've used all 10 free scheduled posts this month", {
+        description: "Add schedule slots to keep scheduling, or upgrade for unlimited.",
+        action: { label: "Get more slots", onClick: () => navigate({ to: "/dashboard/billing" }) },
+      });
     if (ok) toast.success(`Scheduled ${ok} post${ok === 1 ? "" : "s"}`);
-    else toast.error("Nothing scheduled");
+    else if (!slotLimit) toast.error("Nothing scheduled");
   };
+
 
   if (!rows.length) return null;
 

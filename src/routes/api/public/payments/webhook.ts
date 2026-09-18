@@ -291,6 +291,9 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
   const transactionId = data?.id;
   if (!userId || !transactionId) return;
   const currency = data?.currencyCode ?? null;
+  // Any delivery failure must surface so the POST handler returns non-2xx and
+  // Paddle redelivers. Both delivery paths are idempotent per transaction.
+  const failures: string[] = [];
 
   for (const item of (data?.items ?? []) as any[]) {
     const priceId = item?.price?.importMeta?.externalId;
@@ -312,7 +315,10 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
         amountCents: Number.isFinite(amountCents) ? Math.round(amountCents) : undefined,
         transactionId,
       });
-      if (!delivered.success) console.error('marketplace: delivery failed', listingId, transactionId);
+      if (!delivered.success) {
+        console.error('marketplace: delivery failed', listingId, transactionId);
+        failures.push(`marketplace delivery failed for listing ${listingId}`);
+      }
       continue;
     }
 
@@ -330,9 +336,17 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
       _currency: currency,
       _environment: env,
     });
-    if (error) console.error('grant_credits failed:', error);
+    if (error) {
+      console.error('grant_credits failed:', error);
+      failures.push(`grant_credits failed for ${pack.priceId}: ${error.message ?? 'unknown error'}`);
+    }
+  }
+
+  if (failures.length) {
+    throw new Error(`Transaction ${transactionId} delivery incomplete: ${failures.join('; ')}`);
   }
 }
+
 
 
 async function handleWebhook(req: Request, env: PaddleEnv) {
