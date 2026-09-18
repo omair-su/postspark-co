@@ -84,6 +84,8 @@ export function PackQueue({
   onClear: () => void;
 }) {
   const { session } = useAuth();
+  const navigate = useNavigate();
+
   const authHeaders = session
     ? { headers: { Authorization: `Bearer ${session.access_token}` } }
     : ({} as any);

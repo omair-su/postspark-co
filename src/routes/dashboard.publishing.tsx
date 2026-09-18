@@ -68,6 +68,8 @@ const PANE_LABEL = "text-[11px] font-semibold uppercase tracking-[0.14em] text-m
 
 function PublishingCenter() {
   const { session } = useAuth();
+  const navigate = useNavigate();
+
   const authHeaders = session
     ? { headers: { Authorization: `Bearer ${session.access_token}` } }
     : ({} as any);
