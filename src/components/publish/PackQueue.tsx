@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+
 import {
   Send, Loader2, Check, AlertTriangle, Trash2, CalendarClock, Scissors, Link2,
 } from "lucide-react";
@@ -274,7 +276,7 @@ export function PackQueue({
         patch(row.id, { status: "skipped", message: `Scheduled ${new Date(when).toLocaleString()}` });
       } else if (r?.error === "SLOT_LIMIT") {
         slotLimit = true;
-        patch(row.id, { status: "error", message: "Monthly scheduling limit reached" });
+        patch(row.id, { status: "failed", message: "Monthly scheduling limit reached" });
       }
     }
     setScheduling(false);
